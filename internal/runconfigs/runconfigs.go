@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/backend/pkg/utils"
 )
 
 type RunType string
@@ -51,20 +52,6 @@ type RunConfig struct {
 	orderByColumns   []string // columns to order by
 	selectQuery      *string
 	splitColumnPaths bool
-}
-
-func newRunConfig(
-	table string,
-	runtype RunType,
-	primaryKeys []string,
-	whereClause *string,
-) *RunConfig {
-	return &RunConfig{
-		table:       table,
-		runType:     runtype,
-		primaryKeys: primaryKeys,
-		whereClause: whereClause,
-	}
 }
 
 func NewRunConfig(
@@ -134,29 +121,6 @@ func (rc *RunConfig) ForeignKeys() []*ForeignKey {
 	return rc.foreignKeys
 }
 
-func (rc *RunConfig) appendSelectColumns(columns ...string) {
-	rc.selectColumns = append(rc.selectColumns, columns...)
-}
-
-func (rc *RunConfig) appendInsertColumns(columns ...string) {
-	rc.insertColumns = append(rc.insertColumns, columns...)
-}
-
-func (rc *RunConfig) appendDependsOn(table string, columns []string) {
-	rc.dependsOn = append(rc.dependsOn, &DependsOn{
-		Table:   table,
-		Columns: columns,
-	})
-}
-
-func (rc *RunConfig) appendForeignKey(fk *ForeignKey) {
-	rc.foreignKeys = append(rc.foreignKeys, fk)
-}
-
-func (rc *RunConfig) setOrderByColumns(orderBy []string) {
-	rc.orderByColumns = orderBy
-}
-
 func (rc *RunConfig) SetSelectQuery(query *string) {
 	rc.selectQuery = query
 }
@@ -171,57 +135,34 @@ func GetRunConfigs(
 ) ([]*RunConfig, error) {
 	configs := []*RunConfig{}
 
-	// // dedupe table columns
-	// for table, cols := range tableColumnsMap {
-	// 	tableColumnsMap[table] = utils.DedupeSliceOrdered(cols)
-	// }
-
-	configs = make([]*RunConfig, 0)
+	// dedupe table columns
 	for table, cols := range tableColumnsMap {
-		primaryKeys := primaryKeyMap[table]
-		var where *string
-		subset, ok := subsets[table]
-		if ok {
-			where = &subset
-		}
-		insertConfig := newRunConfig(table, RunTypeInsert, primaryKeys, where)
-		insertConfig.appendSelectColumns(cols...) // this should be set select columns
-		colsMap := map[string]bool{}
-		for _, c := range cols {
-			colsMap[c] = true
-		}
-		dependencies, ok := dependencyMap[table]
-		if ok {
-			for _, d := range dependencies {
-				insertCols := []string{}
-				updateCols := []string{}
-				for idx, c := range d.Columns {
-					notNullable := d.NotNullable[idx]
-					if notNullable {
-						insertCols = append(insertCols, c)
-					} else {
-						updateCols = append(updateCols, c)
-					}
-				}
-				insertConfig.appendInsertColumns(insertCols...)
-				insertConfig.appendUpdateColumns(updateCols...)
-			}
-		}
-
-		for c, ok := range colsMap {
-			if ok {
-				insertConfig.appendInsertColumns(c)
-			}
-		}
-
+		tableColumnsMap[table] = utils.DedupeSliceOrdered(cols)
 	}
 
-	// filter configs by subset
+	// filter dependencies to only include tables are in tableColumnsMap (jobmappings)
+	filteredFks := filterDependencies(dependencyMap, tableColumnsMap)
+
+	// find circular dependencies
+	graph := buildDependencyGraph(filteredFks)
+	circularDeps := FindCircularDependencies(graph)
+	circularTables := circularDependencyTables(circularDeps)
+
+	// build configs for each table
+	for table, columns := range tableColumnsMap {
+		var where *string
+		if subset, ok := subsets[table]; ok {
+			where = &subset
+		}
+		builder := newRunConfigBuilder(table, columns, primaryKeyMap[table], where, uniqueIndexesMap[table], uniqueConstraintsMap[table], filteredFks[table], circularTables[table])
+		cfgs := builder.Build()
+		configs = append(configs, cfgs...)
+	}
+
+	// remove update configs that have where clause, breaks circular dependencies and self references when subset is applied
 	if len(subsets) > 0 {
 		configs = filterConfigsWithWhereClause(configs)
 	}
-
-	setOrderByColumns(configs, primaryKeyMap, uniqueIndexesMap, uniqueConstraintsMap)
 
 	// check run path
 	if !isValidRunOrder(configs) {
@@ -231,44 +172,41 @@ func GetRunConfigs(
 	return configs, nil
 }
 
-func isFkNullable(fk *sqlmanager_shared.ForeignConstraint) bool {
-	for _, nullable := range fk.NotNullable {
-		if !nullable {
+func circularDependencyTables(circularDeps [][]string) map[string]bool {
+	circularTables := make(map[string]bool)
+	for _, cycle := range circularDeps {
+		for _, table := range cycle {
+			circularTables[table] = true
+		}
+	}
+	return circularTables
+}
+
+func filterDependencies(
+	dependencyMap map[string][]*sqlmanager_shared.ForeignConstraint,
+	tableColumnsMap map[string][]string,
+) map[string][]*sqlmanager_shared.ForeignConstraint {
+	filtered := make(map[string][]*sqlmanager_shared.ForeignConstraint)
+
+	for table, constraints := range dependencyMap {
+		for _, constraint := range constraints {
+			fkTable := constraint.ForeignKey.Table
+			if checkTableHasCols([]string{table, fkTable}, tableColumnsMap) {
+				filtered[table] = append(filtered[table], constraint)
+			}
+		}
+	}
+
+	return filtered
+}
+
+func checkTableHasCols(tables []string, tablesColMap map[string][]string) bool {
+	for _, t := range tables {
+		if _, ok := tablesColMap[t]; !ok {
 			return false
 		}
 	}
 	return true
-}
-
-func setOrderByColumns(configs []*RunConfig, primaryKeyMap map[string][]string, uniqueIndexes, uniqueConstraints map[string][][]string) {
-	for _, config := range configs {
-		cols := getOrderByColumns(config, primaryKeyMap, uniqueIndexes, uniqueConstraints)
-		config.setOrderByColumns(cols)
-	}
-}
-
-// getOrderByColumns returns order by columns for a table, prioritizing primary keys,
-// then unique indexes, and finally falling back to sorted select columns.
-func getOrderByColumns(config *RunConfig, primaryKeyMap map[string][]string, uniqueIndexes, uniqueConstraints map[string][][]string) []string {
-	table := config.Table()
-	cols, ok := primaryKeyMap[table]
-	if ok {
-		return cols
-	}
-
-	constraints := uniqueConstraints[table]
-	if len(constraints) > 0 {
-		return constraints[0]
-	}
-
-	indexes := uniqueIndexes[table]
-	if len(indexes) > 0 {
-		return indexes[0]
-	}
-
-	selectCols := config.SelectColumns()
-	slices.Sort(selectCols)
-	return selectCols
 }
 
 // removes update configs that have where clause
