@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 
@@ -184,11 +185,16 @@ func (r *redisHashWriter) Write(ctx context.Context, msg *service.Message) error
 		}
 	}
 
-	if err := client.HMSet(ctx, key, fields).Err(); err != nil {
+	pipe := client.Pipeline()
+	pipe.HMSet(ctx, key, fields)
+	pipe.Expire(ctx, key, 24*time.Hour)
+
+	if _, err := pipe.Exec(ctx); err != nil {
 		_ = r.disconnect()
-		r.log.Errorf("Error from redis: %v\n", err)
+		r.log.Errorf("Error executing redis pipeline: %v\n", err)
 		return service.ErrNotConnected
 	}
+
 	return nil
 }
 
