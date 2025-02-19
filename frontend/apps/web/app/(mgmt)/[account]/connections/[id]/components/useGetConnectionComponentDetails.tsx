@@ -14,7 +14,6 @@ import { ReactElement } from 'react';
 import ModeView from './ModeView';
 
 interface ConnectionComponent {
-  name: string;
   body: ReactElement;
   header: ReactElement;
 }
@@ -98,7 +97,6 @@ export function useGetConnectionComponentDetails(
       const headerType = getPgHeaderType(value);
 
       return {
-        name: connection.name,
         header: (
           <PageHeader
             header={headerType == 'neon' ? 'Neon' : 'PostgreSQL'}
@@ -143,7 +141,6 @@ export function useGetConnectionComponentDetails(
 
     case 'mysqlConfig': {
       return {
-        name: connection.name,
         header: (
           <PageHeader
             header="Mysql"
@@ -179,7 +176,6 @@ export function useGetConnectionComponentDetails(
 
     case 'awsS3Config':
       return {
-        name: connection.name,
         header: (
           <PageHeader
             header="AWS S3"
@@ -213,7 +209,6 @@ export function useGetConnectionComponentDetails(
       };
     case 'openaiConfig':
       return {
-        name: connection.name,
         header: (
           <PageHeader
             header="OpenAI"
@@ -250,7 +245,6 @@ export function useGetConnectionComponentDetails(
         connection.connectionConfig.config.value.connectionConfig.case !== 'url'
       ) {
         return {
-          name: 'Invalid MongoDB Connection',
           header: <PageHeader header="Invalid MongoDB Connection" />,
           body: (
             <div>
@@ -261,7 +255,6 @@ export function useGetConnectionComponentDetails(
         };
       }
       return {
-        name: connection.name,
         header: (
           <PageHeader
             header="MongoDB"
@@ -295,7 +288,6 @@ export function useGetConnectionComponentDetails(
       };
     case 'gcpCloudstorageConfig': {
       return {
-        name: connection.name,
         header: (
           <PageHeader
             header="GCP Cloud Storage"
@@ -333,7 +325,6 @@ export function useGetConnectionComponentDetails(
     }
     case 'dynamodbConfig': {
       return {
-        name: connection.name,
         header: (
           <PageHeader
             header="DynamoDB"
@@ -368,7 +359,6 @@ export function useGetConnectionComponentDetails(
     }
     case 'mssqlConfig': {
       return {
-        name: connection.name,
         header: (
           <PageHeader
             header="Microsoft SQL Server"
@@ -403,7 +393,6 @@ export function useGetConnectionComponentDetails(
     }
     default:
       return {
-        name: 'Invalid Connection',
         header: <PageHeader header="Unknown Connection" />,
         body: (
           <div>
