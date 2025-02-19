@@ -14,9 +14,6 @@ export default function EditConnectionPage({ params }: PageProps) {
   const id = params?.id ?? '';
   const { account } = useAccount();
 
-  // todo: add check to ensure user has permission to edit connection
-  // if not, do not render component or load query
-
   const {
     data,
     isLoading,
