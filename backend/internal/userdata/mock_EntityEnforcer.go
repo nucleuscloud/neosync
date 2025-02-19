@@ -22,6 +22,64 @@ func (_m *MockEntityEnforcer) EXPECT() *MockEntityEnforcer_Expecter {
 	return &MockEntityEnforcer_Expecter{mock: &_m.Mock}
 }
 
+// Account provides a mock function with given fields: ctx, account, action
+func (_m *MockEntityEnforcer) Account(ctx context.Context, account Identifier, action rbac.AccountAction) (bool, error) {
+	ret := _m.Called(ctx, account, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Account")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, Identifier, rbac.AccountAction) (bool, error)); ok {
+		return rf(ctx, account, action)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, Identifier, rbac.AccountAction) bool); ok {
+		r0 = rf(ctx, account, action)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, Identifier, rbac.AccountAction) error); ok {
+		r1 = rf(ctx, account, action)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockEntityEnforcer_Account_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Account'
+type MockEntityEnforcer_Account_Call struct {
+	*mock.Call
+}
+
+// Account is a helper method to define mock.On call
+//   - ctx context.Context
+//   - account Identifier
+//   - action rbac.AccountAction
+func (_e *MockEntityEnforcer_Expecter) Account(ctx interface{}, account interface{}, action interface{}) *MockEntityEnforcer_Account_Call {
+	return &MockEntityEnforcer_Account_Call{Call: _e.mock.On("Account", ctx, account, action)}
+}
+
+func (_c *MockEntityEnforcer_Account_Call) Run(run func(ctx context.Context, account Identifier, action rbac.AccountAction)) *MockEntityEnforcer_Account_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(Identifier), args[2].(rbac.AccountAction))
+	})
+	return _c
+}
+
+func (_c *MockEntityEnforcer_Account_Call) Return(_a0 bool, _a1 error) *MockEntityEnforcer_Account_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockEntityEnforcer_Account_Call) RunAndReturn(run func(context.Context, Identifier, rbac.AccountAction) (bool, error)) *MockEntityEnforcer_Account_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Connection provides a mock function with given fields: ctx, connection, action
 func (_m *MockEntityEnforcer) Connection(ctx context.Context, connection DomainEntity, action rbac.ConnectionAction) (bool, error) {
 	ret := _m.Called(ctx, connection, action)
@@ -220,6 +278,64 @@ func (_c *MockEntityEnforcer_EnforceJob_Call) Return(_a0 error) *MockEntityEnfor
 }
 
 func (_c *MockEntityEnforcer_EnforceJob_Call) RunAndReturn(run func(context.Context, DomainEntity, rbac.JobAction) error) *MockEntityEnforcer_EnforceJob_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Job provides a mock function with given fields: ctx, job, action
+func (_m *MockEntityEnforcer) Job(ctx context.Context, job DomainEntity, action rbac.JobAction) (bool, error) {
+	ret := _m.Called(ctx, job, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Job")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DomainEntity, rbac.JobAction) (bool, error)); ok {
+		return rf(ctx, job, action)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DomainEntity, rbac.JobAction) bool); ok {
+		r0 = rf(ctx, job, action)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DomainEntity, rbac.JobAction) error); ok {
+		r1 = rf(ctx, job, action)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockEntityEnforcer_Job_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Job'
+type MockEntityEnforcer_Job_Call struct {
+	*mock.Call
+}
+
+// Job is a helper method to define mock.On call
+//   - ctx context.Context
+//   - job DomainEntity
+//   - action rbac.JobAction
+func (_e *MockEntityEnforcer_Expecter) Job(ctx interface{}, job interface{}, action interface{}) *MockEntityEnforcer_Job_Call {
+	return &MockEntityEnforcer_Job_Call{Call: _e.mock.On("Job", ctx, job, action)}
+}
+
+func (_c *MockEntityEnforcer_Job_Call) Run(run func(ctx context.Context, job DomainEntity, action rbac.JobAction)) *MockEntityEnforcer_Job_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DomainEntity), args[2].(rbac.JobAction))
+	})
+	return _c
+}
+
+func (_c *MockEntityEnforcer_Job_Call) Return(_a0 bool, _a1 error) *MockEntityEnforcer_Job_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockEntityEnforcer_Job_Call) RunAndReturn(run func(context.Context, DomainEntity, rbac.JobAction) (bool, error)) *MockEntityEnforcer_Job_Call {
 	_c.Call.Return(run)
 	return _c
 }

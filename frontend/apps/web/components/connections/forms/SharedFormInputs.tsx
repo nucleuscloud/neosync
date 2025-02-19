@@ -111,7 +111,7 @@ export function SqlConnectionOptions(
         <FormHeader
           htmlFor="maxOpenDuration"
           title="Max Open Duration"
-          description="The maximum amount of time a connection may be reused. Expired connections may be closed laizly before reuse. Ex: 1s, 1m, 500ms. Empty to leave unset."
+          description="The maximum amount of time a connection may be reused. Expired connections may be closed lazily before reuse. Ex: 1s, 1m, 500ms. Empty to leave unset."
           isErrored={!!errors['options.maxOpenDuration']}
         />
         <Input
@@ -152,7 +152,7 @@ export function SqlConnectionOptions(
         <FormHeader
           htmlFor="maxIdleDuration"
           title="Max Idle Duration"
-          description="The maximum amount of time a connection may be idle. Expired connections may be closed laizly before reuse. Ex: 1s, 1m, 500ms. Empty to leave unset."
+          description="The maximum amount of time a connection may be idle. Expired connections may be closed lazily before reuse. Ex: 1s, 1m, 500ms. Empty to leave unset."
           isErrored={!!errors['options.maxIdleDuration']}
         />
         <Input

@@ -3,9 +3,12 @@ package pg_models
 import (
 	"errors"
 	"fmt"
+	"log/slog"
+	"net/url"
 	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
 )
 
 type ConnectionConfig struct {
@@ -59,12 +62,21 @@ func (c *ConnectionConfig) ToDto(canViewSensitive bool) (*mgmtv1alpha1.Connectio
 				},
 			}, nil
 		} else if c.PgConfig.Url != nil {
-			// todo: parse URL and replace pass with sensitiveValue if !canViewSensitive
+			uri, err := dbconnectconfig.GetPostgresUri(*c.PgConfig.Url)
+			if err != nil {
+				return nil, err
+			}
+			if !canViewSensitive && uri.User != nil {
+				_, ok := uri.User.Password()
+				if ok {
+					uri.User = url.UserPassword(uri.User.Username(), uriSensitiveValue)
+				}
+			}
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: *c.PgConfig.Url,
+							Url: uri.String(),
 						},
 						Tunnel:            tunnel,
 						ConnectionOptions: connectionOptions,
@@ -124,12 +136,22 @@ func (c *ConnectionConfig) ToDto(canViewSensitive bool) (*mgmtv1alpha1.Connectio
 				},
 			}, nil
 		} else if c.MysqlConfig.Url != nil {
-			// todo: parse URL and replace pass with sensitiveValue if !canViewSensitive
+			mysqlUrl := *c.MysqlConfig.Url
+			if !canViewSensitive {
+				dsn, err := dbconnectconfig.GetMysqlDsn(mysqlUrl, slog.Default())
+				if err != nil {
+					return nil, err
+				}
+				if dsn.Passwd != "" {
+					dsn.Passwd = uriSensitiveValue
+				}
+				mysqlUrl = dsn.FormatDSN()
+			}
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
 					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
 						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-							Url: *c.MysqlConfig.Url,
+							Url: mysqlUrl,
 						},
 						Tunnel:            tunnel,
 						ConnectionOptions: connectionOptions,
@@ -413,9 +435,19 @@ func (d *MssqlConfig) ToDto(canViewSensitive bool) (*mgmtv1alpha1.MssqlConnectio
 	}
 	if d.Url != nil {
 		// todo: parse URL and replace pass with sensitiveValue if !canViewSensitive
+		uri, err := dbconnectconfig.GetMssqlUri(*d.Url)
+		if err != nil {
+			return nil, err
+		}
+		if !canViewSensitive && uri.User != nil {
+			_, ok := uri.User.Password()
+			if ok {
+				uri.User = url.UserPassword(uri.User.Username(), uriSensitiveValue)
+			}
+		}
 		return &mgmtv1alpha1.MssqlConnectionConfig{
 			ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
-				Url: *d.Url,
+				Url: uri.String(),
 			},
 			ConnectionOptions: connectionOptions,
 			Tunnel:            tunnel,
@@ -579,6 +611,9 @@ type SSHAuthentication struct {
 }
 
 const sensitiveValue = "********"
+
+// splitting this out because URI encodes **** as %2A and it looks ugly
+const uriSensitiveValue = "______"
 
 func (s *SSHAuthentication) ToDto(canViewSensitive bool) *mgmtv1alpha1.SSHAuthentication {
 	if s.SSHPassphrase != nil {
