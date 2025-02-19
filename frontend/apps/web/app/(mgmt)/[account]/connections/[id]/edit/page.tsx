@@ -9,7 +9,6 @@ import { useQuery } from '@connectrpc/connect-query';
 import { ConnectionService } from '@neosync/sdk';
 import Error from 'next/error';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 import { useGetConnectionComponentDetails } from '../components/useGetConnectionComponentDetails';
 
 export default function EditConnectionPage({ params }: PageProps) {
@@ -35,7 +34,6 @@ export default function EditConnectionPage({ params }: PageProps) {
     mode: 'edit',
     connection: data?.connection!,
     onSaved: (updatedConnection) => {
-      toast.success('Successfully updated connection!');
       // maybe use the query cache here for faster round trip and navigation
       mutateGetConnection().finally(() => {
         router.push(`/${account?.name}/connections/${updatedConnection.id}`);

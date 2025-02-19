@@ -1,46 +1,41 @@
 'use client';
-import OpenAiConnectionForm from '@/components/connections/forms/openai/OpenAiConnectionForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
-import { useTheme } from 'next-themes';
+import Error from 'next/error';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useMemo } from 'react';
-import { OpenAiLogo } from '../../../new/connection/openai/OpenAiLogo';
+import { ReactElement } from 'react';
+import { useGetConnectionComponentDetails } from '../components/useGetConnectionComponentDetails';
 export default function CloneConnectionPage({
   params,
 }: PageProps): ReactElement {
-  const { resolvedTheme } = useTheme();
-  const logoBg = useMemo(
-    () => (resolvedTheme === 'dark' ? 'white' : '#272F30'),
-    [resolvedTheme]
-  );
+  const id = params?.id ?? '';
 
   const router = useRouter();
   const { account } = useAccount();
 
-  const id = params?.id ?? ''; // todo: check this
+  const connectionComponent = useGetConnectionComponentDetails({
+    mode: 'clone',
+    connectionId: id,
+    onSaved: (conn) => {
+      router.push(`/${account?.name}/connections/${conn.id}`);
+    },
+  });
+
+  if (!id) {
+    return <Error statusCode={404} />;
+  }
 
   return (
     <OverviewContainer
-      Header={
-        <PageHeader
-          header="OpenAI"
-          subHeadings="Configure an OpenAI SDK to be used for AI-focused data generation jobs."
-          leftIcon={<OpenAiLogo bg={logoBg} />}
-        />
-      }
-      containerClassName="px-12 md:px-24 lg:px-32"
+      Header={connectionComponent.header}
+      containerClassName="px-32"
     >
-      {/* todo: wrap in permission check */}
-      <OpenAiConnectionForm
-        mode="clone"
-        onSuccess={async (conn) => {
-          router.push(`/${account?.name}/connections/${conn.id}`);
-        }}
-        connectionId={id}
-      />
+      <div className="connection-details-container">
+        <div className="flex flex-col gap-8">
+          <div>{connectionComponent.body}</div>
+        </div>
+      </div>
     </OverviewContainer>
   );
 }
