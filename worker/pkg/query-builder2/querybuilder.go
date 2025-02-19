@@ -144,6 +144,10 @@ func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement strin
 	if err != nil {
 		return "", nil, "", false, fmt.Errorf("unable to convery structured page query to string for %s.%s: %w", schema, tableName, err)
 	}
+	if qb.driver == sqlmanager_shared.MssqlDriver {
+		// MSSQL TOP needs to be cast to int
+		pageSql = strings.Replace(pageSql, "TOP (@p1)", "TOP (CAST(@p1 AS INT))", 1)
+	}
 	return sql, args, pageSql, notFkSafe, nil
 }
 
