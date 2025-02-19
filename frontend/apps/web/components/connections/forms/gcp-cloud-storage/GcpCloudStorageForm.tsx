@@ -1,47 +1,31 @@
 import Submit from '@/components/forms/Submit';
 import { useAccount } from '@/components/providers/account-provider';
 import { BaseStore } from '@/util/zustand.stores.util';
-import { AwsFormValues } from '@/yup-validations/connections';
+import { GcpCloudStorageFormValues } from '@/yup-validations/connections';
 import { useMutation } from '@connectrpc/connect-query';
 import { ConnectionService } from '@neosync/sdk';
 import { FormEvent, ReactElement, useEffect } from 'react';
 import { ValidationError } from 'yup';
 import { create } from 'zustand';
-import {
-  AwsAdvancedConfigAccordion,
-  AwsCredentialsForm,
-  Name,
-} from '../SharedFormInputs';
+import { Name } from '../SharedFormInputs';
 import Bucket from './Bucket';
 
-interface AwsS3FormStore extends BaseStore<AwsFormValues> {
-  init?(values: AwsFormValues): void;
+interface GcpCloudStorageFormStore
+  extends BaseStore<GcpCloudStorageFormValues> {
+  init?(values: GcpCloudStorageFormValues): void;
 }
 
-function getInitialFormState(): AwsFormValues {
+function getInitialFormState(): GcpCloudStorageFormValues {
   return {
     connectionName: 'my-connection',
-    s3: {
+    gcp: {
       bucket: '',
       pathPrefix: '',
-    },
-    advanced: {
-      region: '',
-      endpoint: '',
-    },
-    credentials: {
-      accessKeyId: '',
-      secretAccessKey: '',
-      sessionToken: '',
-      fromEc2Role: false,
-      roleArn: '',
-      roleExternalId: '',
-      profile: '',
     },
   };
 }
 
-const useFormStore = create<AwsS3FormStore>((set) => ({
+const useFormStore = create<GcpCloudStorageFormStore>((set) => ({
   formData: getInitialFormState(),
   errors: {},
   isSubmitting: false,
@@ -62,13 +46,13 @@ type Mode = 'create' | 'edit' | 'view';
 
 interface Props {
   mode: Mode;
-  initialValues?: AwsFormValues;
-  onSubmit?(values: AwsFormValues): Promise<void>;
+  initialValues?: GcpCloudStorageFormValues;
+  onSubmit?(values: GcpCloudStorageFormValues): Promise<void>;
   canViewSecrets?: boolean;
-  getValueWithSecrets?(): Promise<AwsFormValues | undefined>;
+  getValueWithSecrets?(): Promise<GcpCloudStorageFormValues | undefined>;
 }
 
-export default function AwsS3Form(props: Props): ReactElement {
+export default function GcpCloudStorageForm(props: Props): ReactElement {
   const {
     mode,
     initialValues,
@@ -110,7 +94,7 @@ export default function AwsS3Form(props: Props): ReactElement {
       setSubmitting(true);
       setErrors({});
 
-      const validatedData = await AwsFormValues.validate(formData, {
+      const validatedData = await GcpCloudStorageFormValues.validate(formData, {
         abortEarly: false,
         context: {
           accountId: account?.id ?? '',
@@ -152,28 +136,11 @@ export default function AwsS3Form(props: Props): ReactElement {
       />
 
       <Bucket
-        value={formData.s3}
-        onChange={(value) => setFormData({ s3: value })}
+        value={formData.gcp}
+        onChange={(value) => setFormData({ gcp: value })}
         errors={errors}
       />
 
-      <AwsAdvancedConfigAccordion
-        value={formData.advanced ?? {}}
-        onChange={(value) => setFormData({ advanced: value })}
-        errors={errors}
-      />
-
-      <AwsCredentialsForm
-        value={formData.credentials ?? {}}
-        onChange={(value) => setFormData({ credentials: value })}
-        isViewMode={isViewMode}
-        canViewSecrets={canViewSecrets}
-        onRevealClick={async () => {
-          const values = await getValueWithSecrets?.();
-          return values?.credentials ?? {};
-        }}
-        errors={errors}
-      />
       <div className="flex justify-end gap-3">
         {!isViewMode && (
           <Submit isSubmitting={isSubmitting} text={submitText} />

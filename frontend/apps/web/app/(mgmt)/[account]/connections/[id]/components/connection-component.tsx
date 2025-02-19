@@ -1,6 +1,7 @@
 'use client';
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
 import DynamoDbConnectionForm from '@/components/connections/forms/dynamodb/DynamoDbConnectionForm';
+import GcpCloudStorageConnectionForm from '@/components/connections/forms/gcp-cloud-storage/GcpCloudStorageConnectionForm';
 import MongoDbConnectionForm from '@/components/connections/forms/mongodb/MongoDbConnectionForm';
 import MysqlConnectionForm from '@/components/connections/forms/mysql/MysqlConnectionForm';
 import OpenAiConnectionForm from '@/components/connections/forms/openai/OpenAiConnectionForm';
@@ -10,7 +11,6 @@ import SqlServerConnectionForm from '@/components/connections/forms/sql-server/S
 import PageHeader from '@/components/headers/PageHeader';
 import { Connection, PostgresConnectionConfig } from '@neosync/sdk';
 import { ReactElement } from 'react';
-import GcpCloudStorageForm from './GcpCloudStorageForm';
 
 interface ConnectionComponent {
   name: string;
@@ -420,17 +420,21 @@ export function useGetConnectionComponentDetails(
           />
         ),
         body: (
-          <GcpCloudStorageForm
-            connectionId={connection.id}
-            defaultValues={{
-              connectionName: connection.name,
-              gcp: {
-                bucket: connection.connectionConfig.config.value.bucket,
-                pathPrefix: connection.connectionConfig.config.value.pathPrefix,
-              },
-            }}
-            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
-            onSaveFailed={(err) => onSaveFailed?.(err)}
+          <ModeView
+            mode={mode}
+            view={() => (
+              <GcpCloudStorageConnectionForm
+                mode="view"
+                connection={connection}
+              />
+            )}
+            edit={() => (
+              <GcpCloudStorageConnectionForm
+                mode="edit"
+                connection={connection}
+                onSuccess={onSuccess}
+              />
+            )}
           />
         ),
       };
