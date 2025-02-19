@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	pageLimit = 10
+	pageLimit = 100
 )
 
 func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
