@@ -14,7 +14,7 @@ import Error from 'next/error';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import RemoveConnectionButton from './components/RemoveConnectionButton';
-import { useGetConnectionComponentDetails } from './components/connection-component';
+import { useGetConnectionComponentDetails } from './components/useGetConnectionComponentDetails';
 
 export default function ConnectionPage({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';

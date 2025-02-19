@@ -28,13 +28,11 @@ type BaseConnectionComponentDetailsProps = {
 type ViewModeProps = BaseConnectionComponentDetailsProps & {
   mode?: 'view';
   onSaved?: never;
-  onSaveFailed?: never;
 };
 
 type EditModeProps = BaseConnectionComponentDetailsProps & {
   mode: 'edit';
   onSaved: (connection: Connection) => void;
-  onSaveFailed: (err: unknown) => void;
 };
 
 // type CloneModeProps = BaseConnectionComponentDetailsProps & {
@@ -91,7 +89,6 @@ export function useGetConnectionComponentDetails(
 
     onSaved,
     extraPageHeading,
-    onSaveFailed,
     subHeading,
     mode = 'view',
   } = props;

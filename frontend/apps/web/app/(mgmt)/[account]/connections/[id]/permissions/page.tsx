@@ -30,7 +30,7 @@ import Error from 'next/error';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
 import RemoveConnectionButton from '../components/RemoveConnectionButton';
-import { useGetConnectionComponentDetails } from '../components/connection-component';
+import { useGetConnectionComponentDetails } from '../components/useGetConnectionComponentDetails';
 
 function getPermissionColumnType(
   connConfig: ConnectionConfig

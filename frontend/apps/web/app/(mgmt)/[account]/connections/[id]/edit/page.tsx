@@ -5,13 +5,12 @@ import ResourceId from '@/components/ResourceId';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { SubNav } from '@/components/SubNav';
 import { PageProps } from '@/components/types';
-import { getErrorMessage } from '@/util/util';
 import { useQuery } from '@connectrpc/connect-query';
 import { ConnectionService } from '@neosync/sdk';
 import Error from 'next/error';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { useGetConnectionComponentDetails } from '../components/connection-component';
+import { useGetConnectionComponentDetails } from '../components/useGetConnectionComponentDetails';
 
 export default function EditConnectionPage({ params }: PageProps) {
   const id = params?.id ?? '';
@@ -42,10 +41,6 @@ export default function EditConnectionPage({ params }: PageProps) {
         router.push(`/${account?.name}/connections/${updatedConnection.id}`);
       });
     },
-    onSaveFailed: (err) =>
-      toast.error('Unable to update connection', {
-        description: getErrorMessage(err),
-      }),
     subHeading: (
       <ResourceId
         labelText={data?.connection?.id ?? ''}

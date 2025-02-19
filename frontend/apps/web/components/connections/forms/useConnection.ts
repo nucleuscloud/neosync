@@ -1,4 +1,5 @@
 import { useAccount } from '@/components/providers/account-provider';
+import { getErrorMessage } from '@/util/util';
 import { create as createMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import {
@@ -8,7 +9,9 @@ import {
   CreateConnectionRequestSchema,
   UpdateConnectionRequestSchema,
 } from '@neosync/sdk';
+import { usePostHog } from 'posthog-js/react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export interface CreateProps<T> {
   mode: 'create';
@@ -66,6 +69,7 @@ export function useConnection<T extends { connectionName: string }>(
   );
   const [isLoading, setIsLoading] = useState(true);
   const [initialValues, setInitialValues] = useState<T | undefined>(undefined);
+  const posthog = usePostHog();
 
   useEffect(() => {
     async function loadValues(): Promise<void> {
@@ -103,32 +107,62 @@ export function useConnection<T extends { connectionName: string }>(
     mode === 'clone' ? props.connectionId : undefined,
   ]);
 
+  function handleOnSuccess(
+    conn: Connection,
+    mode: 'create' | 'clone' | 'edit',
+    onSuccess: (conn: Connection) => void | Promise<void>
+  ): void {
+    if (mode === 'create' || mode === 'clone') {
+      toast.success('Connection created successfully!');
+      posthog.capture('New Connection Created', {
+        type: conn.connectionConfig?.config.case,
+      });
+    } else if (mode === 'edit') {
+      toast.success('Connection updated successfully!');
+    }
+    onSuccess(conn);
+  }
+
   async function handleSubmit(values: T): Promise<void> {
     if (mode === 'view' || !account?.id) {
       return;
     }
 
     if (mode === 'create' || mode === 'clone') {
-      const newConnResp = await createConnection(
-        createMessage(CreateConnectionRequestSchema, {
-          accountId: account.id,
-          name: values.connectionName,
-          connectionConfig: props.buildConnectionConfig(values),
-        })
-      );
-      if (newConnResp.connection) {
-        props.onSuccess(newConnResp.connection);
+      try {
+        const newConnResp = await createConnection(
+          createMessage(CreateConnectionRequestSchema, {
+            accountId: account.id,
+            name: values.connectionName,
+            connectionConfig: props.buildConnectionConfig(values),
+          })
+        );
+        if (newConnResp.connection) {
+          handleOnSuccess(newConnResp.connection, mode, props.onSuccess);
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error('Unable to create connection', {
+          description: getErrorMessage(err),
+        });
       }
     } else if (mode === 'edit') {
-      const updatedConnResp = await updateConnection(
-        createMessage(UpdateConnectionRequestSchema, {
-          id: props.connection.id,
-          name: values.connectionName,
-          connectionConfig: props.buildConnectionConfig(values),
-        })
-      );
-      if (updatedConnResp.connection) {
-        props.onSuccess(updatedConnResp.connection);
+      try {
+        const updatedConnResp = await updateConnection(
+          createMessage(UpdateConnectionRequestSchema, {
+            id: props.connection.id,
+            name: values.connectionName,
+            connectionConfig: props.buildConnectionConfig(values),
+          })
+        );
+        if (updatedConnResp.connection) {
+          handleOnSuccess(updatedConnResp.connection, mode, props.onSuccess);
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error('Unable to update connection', {
+          description: getErrorMessage(err),
+        });
       }
     }
   }

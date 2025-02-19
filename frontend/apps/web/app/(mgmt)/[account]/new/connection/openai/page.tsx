@@ -2,11 +2,9 @@
 import OpenAiConnectionForm from '@/components/connections/forms/openai/OpenAiConnectionForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import { useAccount } from '@/components/providers/account-provider';
-import { Connection } from '@neosync/sdk';
 import { useTheme } from 'next-themes';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useMemo } from 'react';
+import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
 import { OpenAiLogo } from './OpenAiLogo';
 
 export default function OpenAi(): ReactElement {
@@ -16,8 +14,7 @@ export default function OpenAi(): ReactElement {
     [resolvedTheme]
   );
 
-  const onSuccess = useOnSuccess();
-
+  const onSuccess = useOnCreateSuccess();
   return (
     <OverviewContainer
       Header={
@@ -32,39 +29,4 @@ export default function OpenAi(): ReactElement {
       <OpenAiConnectionForm mode="create" onSuccess={onSuccess} />
     </OverviewContainer>
   );
-}
-
-function useOnSuccess(): (conn: Connection) => Promise<void> {
-  const router = useRouter();
-  const { account } = useAccount();
-  // const posthog = usePostHog();
-  const searchParams = useSearchParams();
-  const returnTo = searchParams.get('returnTo');
-
-  return async (conn: Connection): Promise<void> => {
-    if (!account) {
-      return;
-    }
-    if (returnTo) {
-      router.push(returnTo);
-    } else if (conn.id) {
-      router.push(`/${account.name}/connections/${conn.id}`);
-    }
-
-    // try {
-    //   // toast.success('Successfully created OpenAI Connection!');
-    //   // posthog.capture('New Connection Created', { type: 'openai' });
-
-    //   if (returnTo) {
-    //     router.push(returnTo);
-    //   } else if (conn.id) {
-    //     router.push(`/${account.name}/connections/${conn.id}`);
-    //   }
-    // } catch (err) {
-    //   console.error(err);
-    //   toast.error('Unable to create OpenAI Connection', {
-    //     description: getErrorMessage(err),
-    //   });
-    // }
-  };
 }
