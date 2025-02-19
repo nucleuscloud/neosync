@@ -10,7 +10,7 @@ import {
   UpdateConnectionRequestSchema,
 } from '@neosync/sdk';
 import { usePostHog } from 'posthog-js/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 export interface CreateProps<T> {
@@ -48,6 +48,8 @@ interface UseConnectionResult<T> {
   initialValues: T | undefined;
   handleSubmit(values: T): Promise<void>;
   getValueWithSecrets(): Promise<T | undefined>;
+  // only populated for view mode
+  connectionId: string | undefined;
 }
 
 type Props<T> = CreateProps<T> | EditProps<T> | ViewProps<T> | CloneProps<T>;
@@ -70,6 +72,13 @@ export function useConnection<T extends { connectionName: string }>(
   const [isLoading, setIsLoading] = useState(true);
   const [initialValues, setInitialValues] = useState<T | undefined>(undefined);
   const posthog = usePostHog();
+
+  const connectionId = useMemo(() => {
+    if (mode === 'view') {
+      return props.connection.id;
+    }
+    return undefined;
+  }, [mode]);
 
   useEffect(() => {
     async function loadValues(): Promise<void> {
@@ -180,5 +189,6 @@ export function useConnection<T extends { connectionName: string }>(
     initialValues,
     handleSubmit,
     getValueWithSecrets,
+    connectionId,
   };
 }

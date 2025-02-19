@@ -24,8 +24,13 @@ export default function MysqlConnectionForm(
     toFormValues,
   };
 
-  const { isLoading, initialValues, handleSubmit, getValueWithSecrets } =
-    useConnection<MysqlFormValues>(connectionProps);
+  const {
+    isLoading,
+    initialValues,
+    handleSubmit,
+    getValueWithSecrets,
+    connectionId,
+  } = useConnection<MysqlFormValues>(connectionProps);
 
   if (isLoading) {
     return <SkeletonForm />;
@@ -38,6 +43,7 @@ export default function MysqlConnectionForm(
       onSubmit={handleSubmit}
       canViewSecrets={mode === 'view'}
       getValueWithSecrets={getValueWithSecrets}
+      connectionId={connectionId}
     />
   );
 }

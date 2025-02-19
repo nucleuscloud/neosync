@@ -20,8 +20,13 @@ export default function MongoDbConnectionForm(
     toFormValues,
   };
 
-  const { isLoading, initialValues, handleSubmit, getValueWithSecrets } =
-    useConnection<MongoDbFormValues>(connectionProps);
+  const {
+    isLoading,
+    initialValues,
+    handleSubmit,
+    getValueWithSecrets,
+    connectionId,
+  } = useConnection<MongoDbFormValues>(connectionProps);
 
   if (isLoading) {
     return <SkeletonForm />;
@@ -34,6 +39,7 @@ export default function MongoDbConnectionForm(
       onSubmit={handleSubmit}
       canViewSecrets={mode === 'view'}
       getValueWithSecrets={getValueWithSecrets}
+      connectionId={connectionId}
     />
   );
 }

@@ -6,6 +6,7 @@ import { MongoDbFormValues } from '@/yup-validations/connections';
 import { create as createMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import {
+  CheckConnectionConfigByIdRequestSchema,
   CheckConnectionConfigRequestSchema,
   ConnectionService,
 } from '@neosync/sdk';
@@ -60,6 +61,7 @@ interface Props {
   onSubmit?(values: MongoDbFormValues): Promise<void>;
   canViewSecrets?: boolean;
   getValueWithSecrets?(): Promise<MongoDbFormValues | undefined>;
+  connectionId?: string;
 }
 
 export default function MongoDbForm(props: Props): ReactElement {
@@ -69,6 +71,7 @@ export default function MongoDbForm(props: Props): ReactElement {
     onSubmit,
     canViewSecrets = false,
     getValueWithSecrets,
+    connectionId,
   } = props;
   const { account } = useAccount();
   const {
@@ -180,6 +183,12 @@ export default function MongoDbForm(props: Props): ReactElement {
           }}
           connectionName={formData.connectionName}
           connectionType="mongodb"
+          mode={mode === 'view' ? 'checkById' : 'check'}
+          getRequestById={() => {
+            return createMessage(CheckConnectionConfigByIdRequestSchema, {
+              id: connectionId ?? '',
+            });
+          }}
         />
         {!isViewMode && (
           <Submit isSubmitting={isSubmitting} text={submitText} />

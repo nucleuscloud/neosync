@@ -19,8 +19,13 @@ export default function DynamoDbConnectionForm(
     toFormValues,
   };
 
-  const { isLoading, initialValues, handleSubmit, getValueWithSecrets } =
-    useConnection<DynamoDbFormValues>(connectionProps);
+  const {
+    isLoading,
+    initialValues,
+    handleSubmit,
+    getValueWithSecrets,
+    connectionId,
+  } = useConnection<DynamoDbFormValues>(connectionProps);
 
   if (isLoading) {
     return <SkeletonForm />;
@@ -33,6 +38,7 @@ export default function DynamoDbConnectionForm(
       onSubmit={handleSubmit}
       canViewSecrets={mode === 'view'}
       getValueWithSecrets={getValueWithSecrets}
+      connectionId={connectionId}
     />
   );
 }

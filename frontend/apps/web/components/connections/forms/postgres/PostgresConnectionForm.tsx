@@ -24,8 +24,13 @@ export default function PostgresConnectionForm(
     toFormValues,
   };
 
-  const { isLoading, initialValues, handleSubmit, getValueWithSecrets } =
-    useConnection<PostgresFormValues>(connectionProps);
+  const {
+    isLoading,
+    initialValues,
+    handleSubmit,
+    getValueWithSecrets,
+    connectionId,
+  } = useConnection<PostgresFormValues>(connectionProps);
 
   if (isLoading) {
     return <SkeletonForm />;
@@ -38,6 +43,7 @@ export default function PostgresConnectionForm(
       onSubmit={handleSubmit}
       canViewSecrets={mode === 'view'}
       getValueWithSecrets={getValueWithSecrets}
+      connectionId={connectionId}
     />
   );
 }

@@ -7,7 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { CheckConnectionConfigResponse } from '@neosync/sdk';
+import {
+  CheckConnectionConfigByIdResponse,
+  CheckConnectionConfigResponse,
+} from '@neosync/sdk';
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,
@@ -21,7 +24,9 @@ import PermissionsDataTable from './PermissionsDataTable';
 import { PermissionConnectionType, getPermissionColumns } from './columns';
 
 interface Props {
-  checkResponse: CheckConnectionConfigResponse;
+  checkResponse:
+    | CheckConnectionConfigResponse
+    | CheckConnectionConfigByIdResponse;
   openPermissionDialog: boolean;
   setOpenPermissionDialog(open: boolean): void;
   isValidating: boolean;

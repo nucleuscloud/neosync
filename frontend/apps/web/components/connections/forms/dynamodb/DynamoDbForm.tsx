@@ -6,6 +6,7 @@ import { DynamoDbFormValues } from '@/yup-validations/connections';
 import { create as createMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import {
+  CheckConnectionConfigByIdRequestSchema,
   CheckConnectionConfigRequestSchema,
   ConnectionService,
 } from '@neosync/sdk';
@@ -63,6 +64,7 @@ interface Props {
   onSubmit?(values: DynamoDbFormValues): Promise<void>;
   canViewSecrets?: boolean;
   getValueWithSecrets?(): Promise<DynamoDbFormValues | undefined>;
+  connectionId?: string;
 }
 
 export default function DynamoDbForm(props: Props): ReactElement {
@@ -72,6 +74,7 @@ export default function DynamoDbForm(props: Props): ReactElement {
     onSubmit,
     canViewSecrets = false,
     getValueWithSecrets,
+    connectionId,
   } = props;
   const { account } = useAccount();
   const {
@@ -174,8 +177,14 @@ export default function DynamoDbForm(props: Props): ReactElement {
               }),
             });
           }}
+          getRequestById={() => {
+            return createMessage(CheckConnectionConfigByIdRequestSchema, {
+              id: connectionId ?? '',
+            });
+          }}
           connectionName={formData.connectionName}
           connectionType="dynamodb"
+          mode={mode === 'view' ? 'checkById' : 'check'}
         />
         {!isViewMode && (
           <Submit isSubmitting={isSubmitting} text={submitText} />

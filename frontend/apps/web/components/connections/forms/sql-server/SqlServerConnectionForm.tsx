@@ -24,8 +24,13 @@ export default function SqlServerConnectionForm(
     toFormValues,
   };
 
-  const { isLoading, initialValues, handleSubmit, getValueWithSecrets } =
-    useConnection<MssqlFormValues>(connectionProps);
+  const {
+    isLoading,
+    initialValues,
+    handleSubmit,
+    getValueWithSecrets,
+    connectionId,
+  } = useConnection<MssqlFormValues>(connectionProps);
 
   if (isLoading) {
     return <SkeletonForm />;
@@ -38,6 +43,7 @@ export default function SqlServerConnectionForm(
       onSubmit={handleSubmit}
       canViewSecrets={mode === 'view'}
       getValueWithSecrets={getValueWithSecrets}
+      connectionId={connectionId}
     />
   );
 }

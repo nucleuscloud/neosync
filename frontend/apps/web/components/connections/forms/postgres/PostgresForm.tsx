@@ -6,6 +6,7 @@ import { PostgresFormValues } from '@/yup-validations/connections';
 import { create as createMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import {
+  CheckConnectionConfigByIdRequestSchema,
   CheckConnectionConfigRequestSchema,
   ConnectionService,
 } from '@neosync/sdk';
@@ -85,6 +86,7 @@ interface Props {
   onSubmit?(values: PostgresFormValues): Promise<void>;
   canViewSecrets?: boolean;
   getValueWithSecrets?(): Promise<PostgresFormValues | undefined>;
+  connectionId?: string;
 }
 
 export default function PostgresForm(props: Props): ReactElement {
@@ -94,6 +96,7 @@ export default function PostgresForm(props: Props): ReactElement {
     onSubmit,
     canViewSecrets = false,
     getValueWithSecrets,
+    connectionId,
   } = props;
   const { account } = useAccount();
   const {
@@ -242,6 +245,12 @@ export default function PostgresForm(props: Props): ReactElement {
           }}
           connectionName={formData.connectionName}
           connectionType="postgres"
+          mode={mode === 'view' ? 'checkById' : 'check'}
+          getRequestById={() => {
+            return createMessage(CheckConnectionConfigByIdRequestSchema, {
+              id: connectionId ?? '',
+            });
+          }}
         />
         {!isViewMode && (
           <Submit isSubmitting={isSubmitting} text={submitText} />

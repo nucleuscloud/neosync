@@ -27,6 +27,8 @@ import {
 import { create as createMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import {
+  CheckConnectionConfigByIdRequest,
+  CheckConnectionConfigByIdResponse,
   CheckConnectionConfigRequest,
   CheckConnectionConfigResponse,
   CheckConnectionConfigResponseSchema,
@@ -462,31 +464,50 @@ export function SSHTunnel(props: SSHTunnelProps): ReactElement {
 
 interface CheckConnectionButtonProps {
   isValid: boolean;
-
-  getRequest(): CheckConnectionConfigRequest;
   connectionName: string;
   connectionType: PermissionConnectionType;
+  mode: 'check' | 'checkById';
+  getRequest(): CheckConnectionConfigRequest;
+  getRequestById(): CheckConnectionConfigByIdRequest;
 }
 
 export function CheckConnectionButton(
   props: CheckConnectionButtonProps
 ): ReactElement {
-  const { isValid, getRequest, connectionName, connectionType } = props;
+  const {
+    isValid,
+    getRequest,
+    getRequestById,
+    connectionName,
+    connectionType,
+    mode,
+  } = props;
   const [isChecking, setIsChecking] = useState(false);
   const [validationResponse, setValidationResponse] = useState<
-    CheckConnectionConfigResponse | undefined
+    | CheckConnectionConfigResponse
+    | CheckConnectionConfigByIdResponse
+    | undefined
   >();
   const [openPermissionDialog, setOpenPermissionDialog] = useState(false);
   const { mutateAsync: checkConnectionConfig } = useMutation(
     ConnectionService.method.checkConnectionConfig
   );
+  const { mutateAsync: checkConnectionConfigById } = useMutation(
+    ConnectionService.method.checkConnectionConfigById
+  );
 
   async function onClick(): Promise<void> {
     try {
       setIsChecking(true);
-      const res = await checkConnectionConfig(getRequest());
-      setValidationResponse(res);
-      setOpenPermissionDialog(!!res?.isConnected);
+      if (mode === 'check') {
+        const res = await checkConnectionConfig(getRequest());
+        setValidationResponse(res);
+        setOpenPermissionDialog(!!res?.isConnected);
+      } else {
+        const res = await checkConnectionConfigById(getRequestById());
+        setValidationResponse(res);
+        setOpenPermissionDialog(!!res?.isConnected);
+      }
     } catch (err) {
       setValidationResponse(
         createMessage(CheckConnectionConfigResponseSchema, {
