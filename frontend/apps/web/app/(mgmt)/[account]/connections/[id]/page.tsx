@@ -8,7 +8,6 @@ import { PageProps } from '@/components/types';
 import { useQuery } from '@connectrpc/connect-query';
 import { ConnectionService } from '@neosync/sdk';
 import Error from 'next/error';
-import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { useGetConnectionComponentDetails } from './components/useGetConnectionComponentDetails';
 import ViewActions from './components/ViewActions';
@@ -22,7 +21,6 @@ export default function ConnectionPage({ params }: PageProps): ReactElement {
     { id: id, excludeSensitive: true },
     { enabled: !!id }
   );
-  const router = useRouter();
 
   const connectionComponent = useGetConnectionComponentDetails({
     connection: data?.connection!,
