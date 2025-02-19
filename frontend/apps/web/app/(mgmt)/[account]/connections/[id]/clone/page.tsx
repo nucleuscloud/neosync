@@ -47,7 +47,10 @@ function CloneForm(props: CloneFormProps): ReactElement {
 
   const connectionComponent = useGetConnectionComponentDetails({
     mode: 'clone',
-    connection,
+    connection: {
+      ...connection,
+      name: `${connection.name}-copy`,
+    },
     onSaved: (conn) => {
       router.push(`/${account?.name}/connections/${conn.id}`);
     },

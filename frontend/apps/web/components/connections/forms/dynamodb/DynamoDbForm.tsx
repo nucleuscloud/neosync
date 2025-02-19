@@ -26,16 +26,14 @@ interface DynamoDbFormStore extends BaseStore<DynamoDbFormValues> {
 function getInitialFormState(): DynamoDbFormValues {
   return {
     connectionName: 'my-connection',
-    db: {
-      advanced: {
-        region: '',
-        endpoint: '',
-      },
-      credentials: {
-        accessKeyId: '',
-        secretAccessKey: '',
-        sessionToken: '',
-      },
+    advanced: {
+      region: '',
+      endpoint: '',
+    },
+    credentials: {
+      accessKeyId: '',
+      secretAccessKey: '',
+      sessionToken: '',
     },
   };
 }
@@ -150,23 +148,19 @@ export default function DynamoDbForm(props: Props): ReactElement {
         }
       />
       <AwsAdvancedConfigAccordion
-        value={formData.db.advanced ?? {}}
-        onChange={(value) =>
-          setFormData({ db: { ...formData.db, advanced: value } })
-        }
+        value={formData.advanced ?? {}}
+        onChange={(value) => setFormData({ advanced: value })}
         errors={errors}
       />
 
       <AwsCredentialsForm
-        value={formData.db.credentials ?? {}}
-        onChange={(value) =>
-          setFormData({ db: { ...formData.db, credentials: value } })
-        }
+        value={formData.credentials ?? {}}
+        onChange={(value) => setFormData({ credentials: value })}
         isViewMode={isViewMode}
         canViewSecrets={canViewSecrets}
         onRevealClick={async () => {
           const values = await getValueWithSecrets?.();
-          return values?.db?.credentials ?? {};
+          return values?.credentials ?? {};
         }}
         errors={errors}
       />
@@ -177,7 +171,6 @@ export default function DynamoDbForm(props: Props): ReactElement {
             return createMessage(CheckConnectionConfigRequestSchema, {
               connectionConfig: buildConnectionConfigDynamoDB({
                 ...formData,
-                db: formData.db,
               }),
             });
           }}

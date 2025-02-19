@@ -298,18 +298,12 @@ export const AwsFormValues = Yup.object<
 
 export type AwsFormValues = Yup.InferType<typeof AwsFormValues>;
 
-const DynamoDbDbFormValue = Yup.object()
-  .shape({
-    advanced: AwsAdvancedFormValues.optional(),
-    credentials: AwsCredentialsFormValues.optional(),
-  })
-  .required('The DynamoDB form fields are required.');
-
 export const DynamoDbFormValues = Yup.object<
   CreateConnectionFormContext | EditConnectionFormContext
 >().shape({
   connectionName: connectionNameSchema,
-  db: DynamoDbDbFormValue,
+  advanced: AwsAdvancedFormValues.optional(),
+  credentials: AwsCredentialsFormValues.optional(),
 });
 
 export type DynamoDbFormValues = Yup.InferType<typeof DynamoDbFormValues>;

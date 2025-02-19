@@ -47,12 +47,10 @@ function toFormValues(connection: Connection): DynamoDbFormValues | undefined {
 
   return {
     connectionName: connection.name,
-    db: {
-      advanced: {
-        region: connection.connectionConfig.config.value.region,
-        endpoint: connection.connectionConfig.config.value.endpoint,
-      },
-      credentials: connection.connectionConfig.config.value.credentials,
+    advanced: {
+      region: connection.connectionConfig.config.value.region,
+      endpoint: connection.connectionConfig.config.value.endpoint,
     },
+    credentials: connection.connectionConfig.config.value.credentials,
   };
 }

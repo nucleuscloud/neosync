@@ -40,13 +40,6 @@ type CloneModeProps = BaseConnectionComponentDetailsProps & {
   onSaved(connection: Connection): Promise<void> | void;
 };
 
-type CreateModeProps = BaseConnectionComponentDetailsProps & {
-  mode: 'create';
-  connection?: never;
-
-  onSaved(connection: Connection): Promise<void> | void;
-};
-
 type GetConnectionComponentDetailsProps =
   | ViewModeProps
   | EditModeProps
