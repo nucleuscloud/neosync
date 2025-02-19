@@ -11,29 +11,11 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	_ "github.com/doug-martin/goqu/v9/dialect/sqlserver"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/doug-martin/goqu/v9/sqlgen"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tsql_parser "github.com/nucleuscloud/neosync/worker/pkg/query-builder2/tsql"
 	pg_query "github.com/pganalyze/pg_query_go/v5"
 	"github.com/xwb1989/sqlparser"
 )
-
-const (
-	mysqlDialect = "custom-mysql-dialect"
-	// pageLimit    = 100_000
-)
-
-func init() {
-	goqu.RegisterDialect(mysqlDialect, buildMysqlDialect())
-}
-
-func buildMysqlDialect() *sqlgen.SQLDialectOptions {
-	opts := goqu.DefaultDialectOptions()
-	opts.QuoteRune = '`'
-	opts.SupportsWithCTERecursive = true
-	opts.SupportsWithCTE = true
-	return opts
-}
 
 type TableInfo struct {
 	Schema      string
@@ -118,8 +100,6 @@ func (qb *QueryBuilder) AddOrderBy(schema, tableName string, orderBy []string) {
 
 func (qb *QueryBuilder) getDialect() goqu.DialectWrapper {
 	switch qb.driver {
-	case sqlmanager_shared.MysqlDriver:
-		return goqu.Dialect(mysqlDialect)
 	case sqlmanager_shared.PostgresDriver:
 		return goqu.Dialect(sqlmanager_shared.GoquPostgresDriver)
 	default:
