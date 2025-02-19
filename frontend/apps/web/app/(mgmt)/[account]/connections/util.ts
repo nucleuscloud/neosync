@@ -329,8 +329,8 @@ export function buildConnectionConfigDynamoDB(
     config: {
       case: 'dynamodbConfig',
       value: create(DynamoDBConnectionConfigSchema, {
-        endpoint: values.db.endpoint,
-        region: values.db.region,
+        endpoint: values.db.advanced?.endpoint,
+        region: values.db.advanced?.region,
         credentials: values.db.credentials
           ? buildAwsCredentials(values.db.credentials)
           : undefined,
@@ -348,10 +348,10 @@ export function buildConnectionConfigAwsS3(
       value: create(AwsS3ConnectionConfigSchema, {
         bucket: values.s3.bucket,
         pathPrefix: values.s3.pathPrefix,
-        region: values.s3.region,
-        endpoint: values.s3.endpoint,
-        credentials: values.s3.credentials
-          ? buildAwsCredentials(values.s3.credentials)
+        region: values.advanced?.region,
+        endpoint: values.advanced?.endpoint,
+        credentials: values.credentials
+          ? buildAwsCredentials(values.credentials)
           : undefined,
       }),
     },

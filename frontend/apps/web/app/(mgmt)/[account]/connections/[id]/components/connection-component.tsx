@@ -5,11 +5,11 @@ import MongoDbConnectionForm from '@/components/connections/forms/mongodb/MongoD
 import MysqlConnectionForm from '@/components/connections/forms/mysql/MysqlConnectionForm';
 import OpenAiConnectionForm from '@/components/connections/forms/openai/OpenAiConnectionForm';
 import PostgresConnectionForm from '@/components/connections/forms/postgres/PostgresConnectionForm';
+import AwsS3ConnectionForm from '@/components/connections/forms/s3/AwsS3ConnectionForm';
 import SqlServerConnectionForm from '@/components/connections/forms/sql-server/SqlServerConnectionForm';
 import PageHeader from '@/components/headers/PageHeader';
 import { Connection, PostgresConnectionConfig } from '@neosync/sdk';
 import { ReactElement } from 'react';
-import AwsS3Form from './AwsS3Form';
 import GcpCloudStorageForm from './GcpCloudStorageForm';
 
 interface ConnectionComponent {
@@ -305,42 +305,18 @@ export function useGetConnectionComponentDetails(
           />
         ),
         body: (
-          <AwsS3Form
-            connectionId={connection.id}
-            defaultValues={{
-              connectionName: connection.name,
-              s3: {
-                bucket: connection.connectionConfig.config.value.bucket,
-                pathPrefix: connection.connectionConfig.config.value.pathPrefix,
-                credentials: {
-                  accessKeyId:
-                    connection.connectionConfig.config.value.credentials
-                      ?.accessKeyId,
-                  secretAccessKey:
-                    connection.connectionConfig.config.value.credentials
-                      ?.secretAccessKey,
-                  sessionToken:
-                    connection.connectionConfig.config.value.credentials
-                      ?.sessionToken,
-                  fromEc2Role:
-                    connection.connectionConfig.config.value.credentials
-                      ?.fromEc2Role,
-                  roleArn:
-                    connection.connectionConfig.config.value.credentials
-                      ?.roleArn,
-                  roleExternalId:
-                    connection.connectionConfig.config.value.credentials
-                      ?.roleExternalId,
-                  profile:
-                    connection.connectionConfig.config.value.credentials
-                      ?.profile,
-                },
-                endpoint: connection.connectionConfig.config.value.endpoint,
-                region: connection.connectionConfig.config.value.region,
-              },
-            }}
-            onSaved={(resp) => onSaved?.(resp?.connection ?? connection)}
-            onSaveFailed={(err) => onSaveFailed?.(err)}
+          <ModeView
+            mode={mode}
+            view={() => (
+              <AwsS3ConnectionForm mode="view" connection={connection} />
+            )}
+            edit={() => (
+              <AwsS3ConnectionForm
+                mode="edit"
+                connection={connection}
+                onSuccess={onSuccess}
+              />
+            )}
           />
         ),
       };

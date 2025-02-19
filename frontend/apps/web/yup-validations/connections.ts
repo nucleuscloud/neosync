@@ -261,6 +261,12 @@ export const PostgresFormValues = Yup.object<
 
 export type PostgresFormValues = Yup.InferType<typeof PostgresFormValues>;
 
+const AwsAdvancedFormValues = Yup.object().shape({
+  region: Yup.string().optional(),
+  endpoint: Yup.string().optional(),
+});
+export type AwsAdvancedFormValues = Yup.InferType<typeof AwsAdvancedFormValues>;
+
 const AwsCredentialsFormValues = Yup.object({
   profile: Yup.string().optional(),
   accessKeyId: Yup.string(),
@@ -278,9 +284,6 @@ const AwsS3DbFormValue = Yup.object()
   .shape({
     bucket: Yup.string().required('The Bucket name is required.'),
     pathPrefix: Yup.string().optional(),
-    region: Yup.string().optional(),
-    endpoint: Yup.string().optional(),
-    credentials: AwsCredentialsFormValues.optional(),
   })
   .required('The AWS form fields are required.');
 
@@ -289,15 +292,11 @@ export const AwsFormValues = Yup.object<
 >().shape({
   connectionName: connectionNameSchema,
   s3: AwsS3DbFormValue,
+  advanced: AwsAdvancedFormValues.optional(),
+  credentials: AwsCredentialsFormValues.optional(),
 });
 
 export type AwsFormValues = Yup.InferType<typeof AwsFormValues>;
-
-const AwsAdvancedFormValues = Yup.object().shape({
-  region: Yup.string().optional(),
-  endpoint: Yup.string().optional(),
-});
-export type AwsAdvancedFormValues = Yup.InferType<typeof AwsAdvancedFormValues>;
 
 const DynamoDbDbFormValue = Yup.object()
   .shape({
