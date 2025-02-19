@@ -36,7 +36,7 @@ function getInitialFormState(): PostgresFormValues {
       user: '',
       pass: '',
       port: 5432,
-      sslMode: '',
+      sslMode: 'disable',
     },
     tunnel: {
       host: '',

@@ -329,10 +329,10 @@ export function buildConnectionConfigDynamoDB(
     config: {
       case: 'dynamodbConfig',
       value: create(DynamoDBConnectionConfigSchema, {
-        endpoint: values.db.advanced?.endpoint,
-        region: values.db.advanced?.region,
-        credentials: values.db.credentials
-          ? buildAwsCredentials(values.db.credentials)
+        endpoint: values.advanced?.endpoint,
+        region: values.advanced?.region,
+        credentials: values.credentials
+          ? buildAwsCredentials(values.credentials)
           : undefined,
       }),
     },
@@ -441,12 +441,12 @@ function buildMssqlConnectionConfig(
     clientTls: getClientTlsConfig(values.clientTls),
   });
 
-  if (values.url) {
+  if (values.activeTab === 'url' && values.url) {
     mssqlconfig.connectionConfig = {
       case: 'url',
       value: values.url,
     };
-  } else if (values.envVar) {
+  } else if (values.activeTab === 'url-env' && values.envVar) {
     mssqlconfig.connectionConfig = {
       case: 'urlFromEnv',
       value: values.envVar,
@@ -475,18 +475,17 @@ function buildMysqlConnectionConfig(
     clientTls: getClientTlsConfig(values.clientTls),
   });
 
-  if (values.url) {
+  if (values.activeTab === 'url' && values.url) {
     mysqlconfig.connectionConfig = {
       case: 'url',
       value: values.url,
     };
-  } else if (values.envVar) {
+  } else if (values.activeTab === 'url-env' && values.envVar) {
     mysqlconfig.connectionConfig = {
       case: 'urlFromEnv',
       value: values.envVar,
     };
-    // values.db needs to come last as it is usually an empty object
-  } else if (values.db) {
+  } else if (values.activeTab === 'host' && values.db) {
     mysqlconfig.connectionConfig = {
       case: 'connection',
       value: create(MysqlConnectionSchema, {
@@ -532,17 +531,17 @@ function buildPostgresConnectionConfig(
     connectionOptions: getSqlConnectionOptions(values.options),
   });
 
-  if (values.url) {
+  if (values.activeTab === 'url' && values.url) {
     pgconfig.connectionConfig = {
       case: 'url',
       value: values.url,
     };
-  } else if (values.envVar) {
+  } else if (values.activeTab === 'url-env' && values.envVar) {
     pgconfig.connectionConfig = {
       case: 'urlFromEnv',
       value: values.envVar,
     };
-  } else if (values.db) {
+  } else if (values.activeTab === 'host' && values.db) {
     pgconfig.connectionConfig = {
       case: 'connection',
       value: create(PostgresConnectionSchema, {

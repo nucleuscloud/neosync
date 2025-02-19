@@ -136,7 +136,7 @@ function UrlEnvTab(props: UrlEnvTabProps): ReactElement {
         htmlFor="envVar"
         title="Environment Variable"
         description={`The environment variable that contains the connection URL.
-Must start with &quot;USER_DEFINED_&quot;. Must be present on
+Must start with "USER_DEFINED_". Must be present on
 both the backend and the worker processes for full
 functionality.`}
         isErrored={!!error}

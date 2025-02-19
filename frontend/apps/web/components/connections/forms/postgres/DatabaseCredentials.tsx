@@ -167,7 +167,7 @@ function UrlEnvTab(props: UrlEnvTabProps): ReactElement {
         htmlFor="envVar"
         title="Environment Variable"
         description={`The environment variable that contains the connection URL.
-Must start with &quot;USER_DEFINED_&quot;. Must be present on
+Must start with "USER_DEFINED_". Must be present on
 both the backend and the worker processes for full
 functionality.`}
         isErrored={!!error}
@@ -236,7 +236,7 @@ function HostTab(props: HostTabProps): ReactElement {
           onChange={(e) =>
             onDbValueChange({ ...dbValue, port: e.target.valueAsNumber })
           }
-          placeholder="3306"
+          placeholder="5432"
         />
         <FormErrorMessage message={errors.port} />
       </div>
@@ -253,7 +253,7 @@ function HostTab(props: HostTabProps): ReactElement {
           onChange={(e) =>
             onDbValueChange({ ...dbValue, name: e.target.value })
           }
-          placeholder="mysql"
+          placeholder="postgres"
         />
         <FormErrorMessage message={errors.name} />
       </div>
@@ -270,7 +270,7 @@ function HostTab(props: HostTabProps): ReactElement {
           onChange={(e) =>
             onDbValueChange({ ...dbValue, user: e.target.value })
           }
-          placeholder="mysql"
+          placeholder="postgres"
         />
         <FormErrorMessage message={errors.user} />
       </div>
@@ -301,7 +301,7 @@ function HostTab(props: HostTabProps): ReactElement {
             onChange={(e) =>
               onDbValueChange({ ...dbValue, pass: e.target.value })
             }
-            placeholder="mysql"
+            placeholder="postgres"
           />
         )}
 
