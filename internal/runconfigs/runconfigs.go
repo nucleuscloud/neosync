@@ -194,6 +194,10 @@ func GetRunConfigs(
 		if ok {
 			for _, d := range dependencies {
 				for idx, c := range d.Columns {
+					notNullable := d.NotNullable[idx]
+					if notNullable {
+
+					}
 
 				}
 			}
