@@ -312,6 +312,7 @@ func serve(ctx context.Context) error {
 		return fmt.Errorf("unable to get redis client: %w", err)
 	}
 
+	pageLimit := 100_000
 	genbenthosActivity := genbenthosconfigs_activity.New(
 		jobclient,
 		connclient,
@@ -319,6 +320,7 @@ func serve(ctx context.Context) error {
 		sqlmanager,
 		redisconfig,
 		otelconfig.IsEnabled,
+		pageLimit,
 	)
 
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
@@ -337,6 +339,7 @@ func serve(ctx context.Context) error {
 	w.RegisterActivity(runPostTableSyncActivity.RunPostTableSync)
 	w.RegisterActivity(jobhookByTimingActivity.RunJobHooksByTiming)
 
+	maxIterations := 100
 	tablesync_workflow_register.Register(
 		w,
 		connclient,
@@ -345,6 +348,7 @@ func serve(ctx context.Context) error {
 		mongoconnmanager,
 		syncActivityMeter,
 		benthosstream.NewBenthosStreamManager(),
+		maxIterations,
 	)
 
 	if cascadelicense.IsValid() {

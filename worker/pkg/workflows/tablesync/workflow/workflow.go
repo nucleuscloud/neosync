@@ -23,15 +23,17 @@ type TableSyncResponse struct {
 	Table  string
 }
 
-type Workflow struct{}
-
-func New() *Workflow {
-	return &Workflow{}
+type Workflow struct {
+	maxIterations int
 }
 
-const MAX_ITERATIONS = 100
+func New(maxIterations int) *Workflow {
+	return &Workflow{
+		maxIterations: maxIterations,
+	}
+}
 
-func (*Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*TableSyncResponse, error) {
+func (w *Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*TableSyncResponse, error) {
 	logger := log.With(
 		workflow.GetLogger(ctx),
 		"accountId", req.AccountId,
@@ -73,7 +75,7 @@ func (*Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*TableS
 			logger.Debug("no continuation token, breaking")
 			break
 		}
-		if iterations >= MAX_ITERATIONS {
+		if iterations >= w.maxIterations {
 			logger.Debug("max iterations reached, continuing as new")
 			newReq := *req
 			newReq.ContinuationToken = continuationToken

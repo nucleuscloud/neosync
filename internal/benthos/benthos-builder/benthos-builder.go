@@ -105,7 +105,12 @@ func (b *BuilderProvider) registerStandardBuilders(
 	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
 	redisConfig *neosync_redis.RedisConfig,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
+	pageLimit *int,
 ) error {
+	defaultPageLimit := 100_000
+	if pageLimit != nil && *pageLimit > 0 {
+		defaultPageLimit = *pageLimit
+	}
 	sourceConnectionType, err := bb_shared.GetConnectionType(sourceConnection)
 	if err != nil {
 		return err
@@ -124,13 +129,13 @@ func (b *BuilderProvider) registerStandardBuilders(
 		for _, connectionType := range connectionTypes {
 			switch connectionType {
 			case bb_shared.ConnectionTypePostgres:
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.PostgresDriver, selectQueryBuilder)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.PostgresDriver, selectQueryBuilder, defaultPageLimit)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_shared.ConnectionTypeMysql:
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MysqlDriver, selectQueryBuilder)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MysqlDriver, selectQueryBuilder, defaultPageLimit)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_shared.ConnectionTypeMssql:
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MssqlDriver, selectQueryBuilder)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MssqlDriver, selectQueryBuilder, defaultPageLimit)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_shared.ConnectionTypeAwsS3:
 				b.Register(bb_internal.JobTypeSync, bb_shared.ConnectionTypeAwsS3, bb_conns.NewAwsS3SyncBuilder())
@@ -221,6 +226,7 @@ type WorkerBenthosConfig struct {
 	RedisConfig            *neosync_redis.RedisConfig
 	MetricsEnabled         bool
 	SelectQueryBuilder     bb_shared.SelectQueryMapBuilder
+	PageLimit              *int
 }
 
 // Creates a new BenthosConfigManager configured for worker
@@ -245,6 +251,7 @@ func NewWorkerBenthosConfigManager(
 		config.Connectionclient,
 		config.RedisConfig,
 		config.SelectQueryBuilder,
+		config.PageLimit,
 	)
 	if err != nil {
 		return nil, err
@@ -299,6 +306,7 @@ type CliBenthosConfig struct {
 	Connectiondataclient  mgmtv1alpha1connect.ConnectionDataServiceClient
 	RedisConfig           *neosync_redis.RedisConfig
 	MetricsEnabled        bool
+	PageLimit             *int
 }
 
 // Creates a new BenthosConfigManager configured for CLI
@@ -323,6 +331,7 @@ func NewCliBenthosConfigManager(
 		nil,
 		config.RedisConfig,
 		nil,
+		config.PageLimit,
 	)
 	if err != nil {
 		return nil, err

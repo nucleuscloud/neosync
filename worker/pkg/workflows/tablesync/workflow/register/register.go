@@ -25,8 +25,9 @@ func Register(
 	mongoconnmanager connectionmanager.Interface[neosync_benthos_mongodb.MongoClient],
 	meter metric.Meter, // optional
 	benthosStreamManager benthosstream.BenthosStreamManagerClient,
+	maxIterations int,
 ) {
-	tsWf := tablesync_workflow.New()
+	tsWf := tablesync_workflow.New(maxIterations)
 	w.RegisterWorkflow(tsWf.TableSync)
 
 	syncActivity := sync_activity.New(
