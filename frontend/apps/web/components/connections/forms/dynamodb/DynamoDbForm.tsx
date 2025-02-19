@@ -14,7 +14,7 @@ import { ValidationError } from 'yup';
 import { create } from 'zustand';
 import {
   AwsAdvancedConfigAccordion,
-  AwsCredentialsForm,
+  AwsCredentialsFormAccordion,
   CheckConnectionButton,
   Name,
 } from '../SharedFormInputs';
@@ -153,7 +153,7 @@ export default function DynamoDbForm(props: Props): ReactElement {
         errors={errors}
       />
 
-      <AwsCredentialsForm
+      <AwsCredentialsFormAccordion
         value={formData.credentials ?? {}}
         onChange={(value) => setFormData({ credentials: value })}
         isViewMode={isViewMode}

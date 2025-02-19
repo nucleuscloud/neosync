@@ -9,7 +9,7 @@ import { ValidationError } from 'yup';
 import { create } from 'zustand';
 import {
   AwsAdvancedConfigAccordion,
-  AwsCredentialsForm,
+  AwsCredentialsFormAccordion,
   Name,
 } from '../SharedFormInputs';
 import Bucket from './Bucket';
@@ -163,7 +163,7 @@ export default function AwsS3Form(props: Props): ReactElement {
         errors={errors}
       />
 
-      <AwsCredentialsForm
+      <AwsCredentialsFormAccordion
         value={formData.credentials ?? {}}
         onChange={(value) => setFormData({ credentials: value })}
         isViewMode={isViewMode}

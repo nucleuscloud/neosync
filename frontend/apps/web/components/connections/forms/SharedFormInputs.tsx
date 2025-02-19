@@ -6,6 +6,7 @@ import { PermissionConnectionType } from '@/components/permissions/columns';
 import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { SecurePasswordInput } from '@/components/SecurePasswordInput';
 import Spinner from '@/components/Spinner';
+import SwitchCard from '@/components/switches/SwitchCard';
 import {
   Accordion,
   AccordionContent,
@@ -15,7 +16,6 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import {
   AwsAdvancedFormValues,
@@ -624,6 +624,28 @@ function AwsAdvancedConfig(props: AwsAdvancedConfigProps): ReactElement {
   );
 }
 
+interface AwsCredentialsFormAccordionProps
+  extends SecretRevealProps<AwsCredentialsFormValues> {
+  value: AwsCredentialsFormValues;
+  onChange(value: AwsCredentialsFormValues): void;
+  errors: Record<string, string>;
+}
+
+export function AwsCredentialsFormAccordion(
+  props: AwsCredentialsFormAccordionProps
+): ReactElement {
+  return (
+    <Accordion type="single" collapsible className="w-full">
+      <AccordionItem value="credentials">
+        <AccordionTrigger>AWS Credentials</AccordionTrigger>
+        <AccordionContent className="flex flex-col gap-4 p-2">
+          <AwsCredentialsForm {...props} />
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+}
+
 interface AwsCredentialsFormProps
   extends SecretRevealProps<AwsCredentialsFormValues> {
   value: AwsCredentialsFormValues;
@@ -631,9 +653,7 @@ interface AwsCredentialsFormProps
   errors: Record<string, string>;
 }
 
-export function AwsCredentialsForm(
-  props: AwsCredentialsFormProps
-): ReactElement {
+function AwsCredentialsForm(props: AwsCredentialsFormProps): ReactElement {
   const { value, onChange, errors, isViewMode, canViewSecrets, onRevealClick } =
     props;
 
@@ -699,14 +719,10 @@ export function AwsCredentialsForm(
         <FormErrorMessage message={errors['credentials.sessionToken']} />
       </div>
       <div className="space-y-2">
-        <FormHeader
-          htmlFor="fromEc2Role"
+        <SwitchCard
+          isChecked={value.fromEc2Role ?? false}
           title="From EC2 Role"
           description="If true, the SDK will use the EC2 role assigned to the instance"
-        />
-        <Switch
-          id="fromEc2Role"
-          checked={value.fromEc2Role}
           onCheckedChange={(checked) =>
             onChange({ ...value, fromEc2Role: checked })
           }
