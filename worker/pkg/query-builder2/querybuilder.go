@@ -73,6 +73,10 @@ type QueryBuilder struct {
 }
 
 func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool, columnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, pageLimit int) *QueryBuilder {
+	limit := uint(0)
+	if pageLimit > 0 {
+		limit = uint(pageLimit)
+	}
 	return &QueryBuilder{
 		tables:                        make(map[string]*TableInfo),
 		whereConditions:               make(map[string][]WhereCondition),
@@ -84,7 +88,7 @@ func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints
 		tablesWithWhereConditions:     make(set),
 		pathCache:                     make(set),
 		aliasCounter:                  0,
-		pageLimit:                     uint(pageLimit),
+		pageLimit:                     limit,
 	}
 }
 
