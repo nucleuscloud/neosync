@@ -1,5 +1,4 @@
 'use client';
-import { CloneConnectionButton } from '@/components/CloneConnectionButton';
 import ResourceId from '@/components/ResourceId';
 import Spinner from '@/components/Spinner';
 import { SubNav } from '@/components/SubNav';
@@ -29,7 +28,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import Error from 'next/error';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
-import RemoveConnectionButton from '../components/RemoveConnectionButton';
+import ViewActions from '../components/ViewActions';
 import { useGetConnectionComponentDetails } from '../components/useGetConnectionComponentDetails';
 
 function getPermissionColumnType(
@@ -81,14 +80,8 @@ export default function PermissionsPage({ params }: PageProps) {
   const connectionComponent = useGetConnectionComponentDetails({
     mode: 'view',
     connection: data?.connection!,
-    extraPageHeading: (
-      <div className="flex flex-row items-center gap-4">
-        {data?.connection?.connectionConfig?.config.case &&
-          data?.connection?.id && (
-            <CloneConnectionButton id={data?.connection?.id ?? ''} />
-          )}
-        <RemoveConnectionButton connectionId={id} />
-      </div>
+    extraPageHeading: data?.connection && (
+      <ViewActions connection={data.connection} />
     ),
     subHeading: (
       <ResourceId

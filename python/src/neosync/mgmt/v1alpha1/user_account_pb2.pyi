@@ -469,29 +469,61 @@ class SetUserRoleResponse(_message.Message):
     def __init__(self) -> None: ...
 
 class HasPermissionRequest(_message.Message):
-    __slots__ = ("account_id", "resource_id", "permission")
-    class Permission(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-        __slots__ = ()
-        PERMISSION_UNSPECIFIED: _ClassVar[HasPermissionRequest.Permission]
-        PERMISSION_CREATE: _ClassVar[HasPermissionRequest.Permission]
-        PERMISSION_READ: _ClassVar[HasPermissionRequest.Permission]
-        PERMISSION_UPDATE: _ClassVar[HasPermissionRequest.Permission]
-        PERMISSION_DELETE: _ClassVar[HasPermissionRequest.Permission]
-    PERMISSION_UNSPECIFIED: HasPermissionRequest.Permission
-    PERMISSION_CREATE: HasPermissionRequest.Permission
-    PERMISSION_READ: HasPermissionRequest.Permission
-    PERMISSION_UPDATE: HasPermissionRequest.Permission
-    PERMISSION_DELETE: HasPermissionRequest.Permission
+    __slots__ = ("account_id", "resource")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
-    RESOURCE_ID_FIELD_NUMBER: _ClassVar[int]
-    PERMISSION_FIELD_NUMBER: _ClassVar[int]
+    RESOURCE_FIELD_NUMBER: _ClassVar[int]
     account_id: str
-    resource_id: str
-    permission: HasPermissionRequest.Permission
-    def __init__(self, account_id: _Optional[str] = ..., resource_id: _Optional[str] = ..., permission: _Optional[_Union[HasPermissionRequest.Permission, str]] = ...) -> None: ...
+    resource: ResourcePermission
+    def __init__(self, account_id: _Optional[str] = ..., resource: _Optional[_Union[ResourcePermission, _Mapping]] = ...) -> None: ...
+
+class ResourcePermission(_message.Message):
+    __slots__ = ("type", "id", "action")
+    class Type(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        TYPE_UNSPECIFIED: _ClassVar[ResourcePermission.Type]
+        TYPE_ACCOUNT: _ClassVar[ResourcePermission.Type]
+        TYPE_CONNECTION: _ClassVar[ResourcePermission.Type]
+        TYPE_JOB: _ClassVar[ResourcePermission.Type]
+    TYPE_UNSPECIFIED: ResourcePermission.Type
+    TYPE_ACCOUNT: ResourcePermission.Type
+    TYPE_CONNECTION: ResourcePermission.Type
+    TYPE_JOB: ResourcePermission.Type
+    class Action(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        ACTION_UNSPECIFIED: _ClassVar[ResourcePermission.Action]
+        ACTION_CREATE: _ClassVar[ResourcePermission.Action]
+        ACTION_READ: _ClassVar[ResourcePermission.Action]
+        ACTION_UPDATE: _ClassVar[ResourcePermission.Action]
+        ACTION_DELETE: _ClassVar[ResourcePermission.Action]
+    ACTION_UNSPECIFIED: ResourcePermission.Action
+    ACTION_CREATE: ResourcePermission.Action
+    ACTION_READ: ResourcePermission.Action
+    ACTION_UPDATE: ResourcePermission.Action
+    ACTION_DELETE: ResourcePermission.Action
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    ID_FIELD_NUMBER: _ClassVar[int]
+    ACTION_FIELD_NUMBER: _ClassVar[int]
+    type: ResourcePermission.Type
+    id: str
+    action: ResourcePermission.Action
+    def __init__(self, type: _Optional[_Union[ResourcePermission.Type, str]] = ..., id: _Optional[str] = ..., action: _Optional[_Union[ResourcePermission.Action, str]] = ...) -> None: ...
 
 class HasPermissionResponse(_message.Message):
     __slots__ = ("has_permission",)
     HAS_PERMISSION_FIELD_NUMBER: _ClassVar[int]
     has_permission: bool
     def __init__(self, has_permission: bool = ...) -> None: ...
+
+class HasPermissionsRequest(_message.Message):
+    __slots__ = ("account_id", "resources")
+    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    RESOURCES_FIELD_NUMBER: _ClassVar[int]
+    account_id: str
+    resources: _containers.RepeatedCompositeFieldContainer[ResourcePermission]
+    def __init__(self, account_id: _Optional[str] = ..., resources: _Optional[_Iterable[_Union[ResourcePermission, _Mapping]]] = ...) -> None: ...
+
+class HasPermissionsResponse(_message.Message):
+    __slots__ = ("assertions",)
+    ASSERTIONS_FIELD_NUMBER: _ClassVar[int]
+    assertions: _containers.RepeatedScalarFieldContainer[bool]
+    def __init__(self, assertions: _Optional[_Iterable[bool]] = ...) -> None: ...

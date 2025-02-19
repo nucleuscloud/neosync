@@ -145,6 +145,11 @@ class UserAccountServiceStub(object):
                 request_serializer=mgmt_dot_v1alpha1_dot_user__account__pb2.HasPermissionRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_user__account__pb2.HasPermissionResponse.FromString,
                 _registered_method=True)
+        self.HasPermissions = channel.unary_unary(
+                '/mgmt.v1alpha1.UserAccountService/HasPermissions',
+                request_serializer=mgmt_dot_v1alpha1_dot_user__account__pb2.HasPermissionsRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_user__account__pb2.HasPermissionsResponse.FromString,
+                _registered_method=True)
 
 
 class UserAccountServiceServicer(object):
@@ -333,6 +338,13 @@ class UserAccountServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def HasPermissions(self, request, context):
+        """Bulk check if a user has the given permissions
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_UserAccountServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -465,6 +477,11 @@ def add_UserAccountServiceServicer_to_server(servicer, server):
                     servicer.HasPermission,
                     request_deserializer=mgmt_dot_v1alpha1_dot_user__account__pb2.HasPermissionRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_user__account__pb2.HasPermissionResponse.SerializeToString,
+            ),
+            'HasPermissions': grpc.unary_unary_rpc_method_handler(
+                    servicer.HasPermissions,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_user__account__pb2.HasPermissionsRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_user__account__pb2.HasPermissionsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1170,6 +1187,33 @@ class UserAccountService(object):
             '/mgmt.v1alpha1.UserAccountService/HasPermission',
             mgmt_dot_v1alpha1_dot_user__account__pb2.HasPermissionRequest.SerializeToString,
             mgmt_dot_v1alpha1_dot_user__account__pb2.HasPermissionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def HasPermissions(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/mgmt.v1alpha1.UserAccountService/HasPermissions',
+            mgmt_dot_v1alpha1_dot_user__account__pb2.HasPermissionsRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_user__account__pb2.HasPermissionsResponse.FromString,
             options,
             channel_credentials,
             insecure,

@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@connectrpc/connect-query';
 import {
   Connection,
-  HasPermissionRequest_Permission,
+  ResourcePermission_Action,
+  ResourcePermission_Type,
   UserAccountService,
 } from '@neosync/sdk';
+import { Pencil1Icon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import RemoveConnectionButton from './RemoveConnectionButton';
@@ -21,39 +23,36 @@ export default function ViewActions(props: Props): ReactElement | null {
   const router = useRouter();
   const { account } = useAccount();
 
-  const { data: canEditConnections } = useQuery(
-    UserAccountService.method.hasPermission,
+  const { data: permissions } = useQuery(
+    UserAccountService.method.hasPermissions,
     {
       accountId: account?.id ?? '',
-      resourceId: connection?.id ?? '',
-      permission: HasPermissionRequest_Permission.UPDATE,
-    },
-    { enabled: !!account?.id && !!connection?.id }
-  );
-
-  const { data: canDeleteConnections } = useQuery(
-    UserAccountService.method.hasPermission,
-    {
-      accountId: account?.id ?? '',
-      resourceId: connection?.id ?? '',
-      permission: HasPermissionRequest_Permission.DELETE,
-    },
-    { enabled: !!account?.id && !!connection?.id }
-  );
-
-  const { data: canCreateConnections } = useQuery(
-    UserAccountService.method.hasPermission,
-    {
-      accountId: account?.id ?? '',
-      resourceId: connection?.id ?? '',
-      permission: HasPermissionRequest_Permission.CREATE,
-    },
-    { enabled: !!account?.id && !!connection?.id }
+      resources: [
+        {
+          type: ResourcePermission_Type.CONNECTION,
+          id: connection?.id ?? '',
+          action: ResourcePermission_Action.UPDATE,
+        },
+        {
+          type: ResourcePermission_Type.CONNECTION,
+          id: connection?.id ?? '',
+          action: ResourcePermission_Action.DELETE,
+        },
+        {
+          type: ResourcePermission_Type.CONNECTION,
+          id: connection?.id ?? '',
+          action: ResourcePermission_Action.CREATE,
+        },
+      ],
+    }
   );
 
   if (!connection?.id) {
     return null;
   }
+
+  const [canCreateConnections, canDeleteConnections, canEditConnections] =
+    permissions?.assertions ?? [false, false, false];
 
   return (
     <div className="flex flex-row items-center gap-4">
@@ -68,7 +67,7 @@ export default function ViewActions(props: Props): ReactElement | null {
             router.push(`/${account?.name}/connections/${connection?.id}/edit`);
           }}
         >
-          <ButtonText text="Edit" />
+          <ButtonText leftIcon={<Pencil1Icon />} text="Edit" />
         </Button>
       )}
     </div>
