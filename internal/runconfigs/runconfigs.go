@@ -193,13 +193,18 @@ func GetRunConfigs(
 		dependencies, ok := dependencyMap[table]
 		if ok {
 			for _, d := range dependencies {
+				insertCols := []string{}
+				updateCols := []string{}
 				for idx, c := range d.Columns {
 					notNullable := d.NotNullable[idx]
 					if notNullable {
-
+						insertCols = append(insertCols, c)
+					} else {
+						updateCols = append(updateCols, c)
 					}
-
 				}
+				insertConfig.appendInsertColumns(insertCols...)
+				insertConfig.appendUpdateColumns(updateCols...)
 			}
 		}
 
