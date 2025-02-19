@@ -18,4 +18,6 @@ type TestJobOptions struct {
 	SkipForeignKeyViolations      bool
 	OnConflictDoNothing           bool
 	OnConflictDoUpdate            bool
+	BatchSize                     *uint32
+	MaxInFlight                   *uint32
 }
