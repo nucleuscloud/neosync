@@ -37,9 +37,14 @@ type EditModeProps = BaseConnectionComponentDetailsProps & {
 
 type CloneModeProps = BaseConnectionComponentDetailsProps & {
   mode: 'clone';
+  connection?: Connection;
+  onSaved(connection: Connection): Promise<void> | void;
+};
+
+type CreateModeProps = BaseConnectionComponentDetailsProps & {
+  mode: 'create';
   connection?: never;
 
-  connectionId: string;
   onSaved(connection: Connection): Promise<void> | void;
 };
 
@@ -127,7 +132,7 @@ export function useGetConnectionComponentDetails(
             clone={() => (
               <PostgresConnectionForm
                 mode="clone"
-                connectionId={connection.id}
+                connection={connection}
                 onSuccess={onSuccess}
               />
             )}
@@ -163,7 +168,7 @@ export function useGetConnectionComponentDetails(
             clone={() => (
               <MysqlConnectionForm
                 mode="clone"
-                connectionId={connection.id}
+                connection={connection}
                 onSuccess={onSuccess}
               />
             )}
@@ -199,7 +204,7 @@ export function useGetConnectionComponentDetails(
             clone={() => (
               <AwsS3ConnectionForm
                 mode="clone"
-                connectionId={connection.id}
+                connection={connection}
                 onSuccess={onSuccess}
               />
             )}
@@ -233,7 +238,7 @@ export function useGetConnectionComponentDetails(
             clone={() => (
               <OpenAiConnectionForm
                 mode="clone"
-                connectionId={connection.id}
+                connection={connection}
                 onSuccess={onSuccess}
               />
             )}
@@ -281,7 +286,7 @@ export function useGetConnectionComponentDetails(
             clone={() => (
               <MongoDbConnectionForm
                 mode="clone"
-                connectionId={connection.id}
+                connection={connection}
                 onSuccess={onSuccess}
               />
             )}
@@ -318,7 +323,7 @@ export function useGetConnectionComponentDetails(
             clone={() => (
               <GcpCloudStorageConnectionForm
                 mode="clone"
-                connectionId={connection.id}
+                connection={connection}
                 onSuccess={onSuccess}
               />
             )}
@@ -353,7 +358,7 @@ export function useGetConnectionComponentDetails(
             clone={() => (
               <DynamoDbConnectionForm
                 mode="clone"
-                connectionId={connection.id}
+                connection={connection}
                 onSuccess={onSuccess}
               />
             )}
@@ -388,7 +393,7 @@ export function useGetConnectionComponentDetails(
             clone={() => (
               <SqlServerConnectionForm
                 mode="clone"
-                connectionId={connection.id}
+                connection={connection}
                 onSuccess={onSuccess}
               />
             )}

@@ -37,7 +37,7 @@ export interface ViewProps<T> {
 
 export interface CloneProps<T> {
   mode: 'clone';
-  connectionId: string;
+  connection: Connection;
   toFormValues(connection: Connection): T | undefined;
   buildConnectionConfig(formValues: T): ConnectionConfig;
   onSuccess(conn: Connection): Promise<void> | void;
@@ -80,18 +80,7 @@ export function useConnection<T extends { connectionName: string }>(
           return;
         }
 
-        if (mode === 'clone') {
-          const connectionResp = await getConnection({
-            id: props.connectionId,
-            excludeSensitive: false,
-          });
-          if (connectionResp.connection) {
-            setInitialValues(props.toFormValues(connectionResp.connection));
-          }
-          return;
-        }
-
-        // For view/edit modes
+        // For view/edit/clone modes
         const values = props.toFormValues(props.connection);
         if (mode === 'view' || initialValues === undefined) {
           setInitialValues(values);
@@ -104,7 +93,7 @@ export function useConnection<T extends { connectionName: string }>(
   }, [
     mode,
     mode === 'view' ? props.connection : undefined,
-    mode === 'clone' ? props.connectionId : undefined,
+    mode === 'clone' ? props.connection : undefined,
   ]);
 
   function handleOnSuccess(
