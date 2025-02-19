@@ -3,7 +3,6 @@ import OverviewContainer from '@/components/containers/OverviewContainer';
 import { useAccount } from '@/components/providers/account-provider';
 import ResourceId from '@/components/ResourceId';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
-import { SubNav } from '@/components/SubNav';
 import { PageProps } from '@/components/types';
 import { useQuery } from '@connectrpc/connect-query';
 import { ConnectionService } from '@neosync/sdk';
@@ -62,24 +61,6 @@ export default function EditConnectionPage({ params }: PageProps) {
   if (!isLoading && !data?.connection) {
     return <Error statusCode={404} />;
   }
-  const basePath = `/${account?.name}/connections/${data?.connection?.id}`;
-
-  const subnav = [
-    {
-      title: 'Configuration',
-      href: `${basePath}`,
-    },
-    {
-      title: 'Permissions',
-      href: `${basePath}/permissions`,
-    },
-  ];
-
-  const showSubNav =
-    data?.connection?.connectionConfig?.config.case === 'pgConfig' ||
-    data?.connection?.connectionConfig?.config.case === 'mysqlConfig' ||
-    data?.connection?.connectionConfig?.config.case === 'dynamodbConfig' ||
-    data?.connection?.connectionConfig?.config.case === 'mongoConfig';
 
   return (
     <OverviewContainer
@@ -88,7 +69,6 @@ export default function EditConnectionPage({ params }: PageProps) {
     >
       <div className="connection-details-container">
         <div className="flex flex-col gap-8">
-          {showSubNav && <SubNav items={subnav} buttonClassName="" />}
           <div>{connectionComponent.body}</div>
         </div>
       </div>
