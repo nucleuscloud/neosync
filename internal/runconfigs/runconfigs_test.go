@@ -526,6 +526,169 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 	}
 }
 
+func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
+	emptyWhere := ""
+	tests := []struct {
+		name          string
+		dependencies  map[string][]*sqlmanager_shared.ForeignConstraint
+		subsets       map[string]string
+		tableColsMap  map[string][]string
+		primaryKeyMap map[string][]string
+		expect        []*RunConfig
+	}{
+		{
+			name: "Straight dependencies",
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
+				"public.a": {
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+				},
+				"public.b": {
+					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+				},
+				"public.c": {},
+			},
+			tableColsMap: map[string][]string{
+				"public.a": {"id", "b_id"},
+				"public.b": {"id", "c_id", "other_id"},
+				"public.c": {"id"},
+			},
+			primaryKeyMap: map[string][]string{
+				"public.a": {"id"},
+				"public.b": {"id"},
+				"public.c": {"id"},
+			},
+			subsets: map[string]string{},
+			expect: []*RunConfig{
+				buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id"}, []string{"id"}, []*DependsOn{}),
+				buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "c_id", "other_id"}, []string{"id", "c_id", "other_id"}, []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}),
+				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "b_id"}, []string{"id", "b_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}),
+			},
+		},
+		{
+			name: "Duplicate Columns",
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
+				"public.a": {
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+				},
+				"public.b": {
+					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+				},
+				"public.c": {},
+			},
+			tableColsMap: map[string][]string{
+				"public.a": {"id", "b_id", "id"},
+				"public.b": {"id", "c_id", "other_id", "id"},
+				"public.c": {"id", "id"},
+			},
+			primaryKeyMap: map[string][]string{
+				"public.a": {"id"},
+				"public.b": {"id"},
+				"public.c": {"id"},
+			},
+			subsets: map[string]string{},
+			expect: []*RunConfig{
+				buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id"}, []string{"id"}, []*DependsOn{}),
+				buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "c_id", "other_id"}, []string{"id", "c_id", "other_id"}, []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}),
+				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "b_id"}, []string{"id", "b_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}),
+			},
+		},
+		{
+			name: "Sub Tree",
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
+				"public.a": {
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+				},
+				"public.b": {
+					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+				},
+				"public.c": {},
+			},
+			tableColsMap: map[string][]string{
+				"public.a": {"id", "b_id"},
+				"public.b": {"id", "c_id", "other_id"},
+			},
+			primaryKeyMap: map[string][]string{
+				"public.a": {"id"},
+				"public.b": {"id"},
+			},
+			subsets: map[string]string{},
+			expect: []*RunConfig{
+				buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "c_id", "other_id"}, []string{"id", "c_id", "other_id"}, []*DependsOn{}),
+				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "b_id"}, []string{"id", "b_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assertRunConfigs(t, tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap, tt.expect)
+		})
+	}
+}
+
+func Test_GetRunConfigs_CompositeKey(t *testing.T) {
+	emptyWhere := ""
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.employees": {
+			{Columns: []string{"department_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.department", Columns: []string{"department_id"}}},
+		},
+		"public.projects": {
+			{Columns: []string{"responsible_employee_id", "responsible_department_id"}, NotNullable: []bool{false, false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employee_id", "department_id"}}},
+		},
+	}
+	primaryKeyMap := map[string][]string{
+		"public.department": {
+			"department_id",
+		},
+		"public.employees": {
+			"employee_id",
+			"department_id",
+		},
+		"public.projects": {
+			"project_id",
+		},
+	}
+	tablesColMap := map[string][]string{
+		"public.department": {
+			"department_id",
+			"department_name",
+			"location",
+		},
+		"public.employees": {
+			"employee_id",
+			"department_id",
+			"first_name",
+			"last_name",
+			"email",
+		},
+		"public.projects": {
+			"project_id",
+			"project_name",
+			"start_date",
+			"end_date",
+			"responsible_employee_id",
+			"responsible_department_id",
+		},
+	}
+
+	expect := []*RunConfig{
+		buildRunConfig("public.employees", RunTypeInsert, []string{"employee_id", "department_id"}, &emptyWhere,
+			[]string{"employee_id", "department_id", "first_name", "last_name", "email"},
+			[]string{"employee_id", "department_id", "first_name", "last_name", "email"},
+			[]*DependsOn{{Table: "public.department", Columns: []string{"department_id"}}}),
+		buildRunConfig("public.department", RunTypeInsert, []string{"department_id"}, &emptyWhere,
+			[]string{"department_id", "department_name", "location"},
+			[]string{"department_id", "department_name", "location"},
+			[]*DependsOn{}),
+		buildRunConfig("public.projects", RunTypeInsert, []string{"project_id"}, &emptyWhere,
+			[]string{"project_id", "project_name", "start_date", "end_date", "responsible_employee_id", "responsible_department_id"},
+			[]string{"project_id", "project_name", "start_date", "end_date", "responsible_employee_id", "responsible_department_id"},
+			[]*DependsOn{{Table: "public.employees", Columns: []string{"employee_id", "department_id"}}}),
+	}
+
+	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
+}
+
 func getConfigByTableAndType(table string, runtype RunType, insertCols []string, configs []*RunConfig) *RunConfig {
 	for _, c := range configs {
 		cCols := slices.Clone(c.InsertColumns())
@@ -537,6 +700,249 @@ func getConfigByTableAndType(table string, runtype RunType, insertCols []string,
 		}
 	}
 	return nil
+}
+
+func Test_GetRunConfigs_HumanResources(t *testing.T) {
+	emptyWhere := ""
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.countries": {
+			{Columns: []string{"region_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.regions", Columns: []string{"region_id"}}},
+		},
+		"public.departments": {
+			{Columns: []string{"location_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.locations", Columns: []string{"location_id"}}},
+		},
+		"public.dependents": {
+			{Columns: []string{"employee_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
+		},
+		"public.employees": {
+			{Columns: []string{"job_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.jobs", Columns: []string{"job_id"}}},
+			{Columns: []string{"department_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.departments", Columns: []string{"department_id"}}},
+			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
+		},
+		"public.locations": {
+			{Columns: []string{"country_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.countries", Columns: []string{"country_id"}}},
+		},
+	}
+	primaryKeyMap := map[string][]string{
+		"public.regions":     {"region_id"},
+		"public.countries":   {"country_id"},
+		"public.locations":   {"location_id"},
+		"public.jobs":        {"job_id"},
+		"public.departments": {"department_id"},
+		"public.employees":   {"employee_id"},
+		"public.dependents":  {"dependent_id"},
+	}
+	tablesColMap := map[string][]string{
+		"public.regions": {
+			"region_id",
+			"region_name",
+		},
+		"public.countries": {
+			"country_id",
+			"country_name",
+			"region_id",
+		},
+		"public.locations": {
+			"location_id",
+			"street_address",
+			"country_id",
+		},
+		"public.jobs": {
+			"job_id",
+			"job_title",
+		},
+		"public.departments": {
+			"department_id",
+			"department_name",
+			"location_id",
+		},
+		"public.employees": {
+			"employee_id",
+			"email",
+			"name",
+			"job_id",
+			"manager_id",
+			"department_id",
+		},
+		"public.dependents": {
+			"dependent_id",
+			"name",
+			"employee_id",
+		},
+	}
+
+	expect := []*RunConfig{
+		buildRunConfig("public.regions", RunTypeInsert, []string{"region_id"}, &emptyWhere,
+			[]string{"region_id", "region_name"},
+			[]string{"region_id", "region_name"},
+			[]*DependsOn{}),
+		buildRunConfig("public.countries", RunTypeInsert, []string{"country_id"}, &emptyWhere,
+			[]string{"country_id", "country_name", "region_id"},
+			[]string{"country_id", "country_name", "region_id"},
+			[]*DependsOn{{Table: "public.regions", Columns: []string{"region_id"}}}),
+		buildRunConfig("public.locations", RunTypeInsert, []string{"location_id"}, &emptyWhere,
+			[]string{"location_id", "street_address", "country_id"},
+			[]string{"location_id", "street_address", "country_id"},
+			[]*DependsOn{{Table: "public.countries", Columns: []string{"country_id"}}}),
+		buildRunConfig("public.jobs", RunTypeInsert, []string{"job_id"}, &emptyWhere,
+			[]string{"job_id", "job_title"},
+			[]string{"job_id", "job_title"},
+			[]*DependsOn{}),
+		buildRunConfig("public.departments", RunTypeInsert, []string{"department_id"}, &emptyWhere,
+			[]string{"department_id", "department_name", "location_id"},
+			[]string{"department_id", "department_name", "location_id"},
+			[]*DependsOn{{Table: "public.locations", Columns: []string{"location_id"}}}),
+		buildRunConfig("public.employees", RunTypeInsert, []string{"employee_id"}, &emptyWhere,
+			[]string{"employee_id", "email", "name", "job_id", "manager_id", "department_id"},
+			[]string{"employee_id", "email", "name", "job_id"},
+			[]*DependsOn{{Table: "public.jobs", Columns: []string{"job_id"}}}),
+		buildRunConfig("public.dependents", RunTypeInsert, []string{"dependent_id"}, &emptyWhere,
+			[]string{"dependent_id", "name", "employee_id"},
+			[]string{"dependent_id", "name", "employee_id"},
+			[]*DependsOn{{Table: "public.employees", Columns: []string{"employee_id"}}}),
+		buildRunConfig("public.employees", RunTypeUpdate, []string{"employee_id"}, &emptyWhere,
+			[]string{"employee_id", "manager_id"},
+			[]string{"manager_id"},
+			[]*DependsOn{{Table: "public.employees", Columns: []string{"employee_id"}}}),
+		buildRunConfig("public.employees", RunTypeUpdate, []string{"employee_id"}, &emptyWhere,
+			[]string{"employee_id", "department_id"},
+			[]string{"department_id"},
+			[]*DependsOn{{Table: "public.employees", Columns: []string{"employee_id"}}, {Table: "public.departments", Columns: []string{"department_id"}}}),
+	}
+
+	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
+}
+
+func Test_GetRunConfigs_SingleTable_WithFks(t *testing.T) {
+	emptyWhere := ""
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.countries": {
+			{Columns: []string{"region_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.regions", Columns: []string{"region_id"}}},
+		},
+		"public.departments": {
+			{Columns: []string{"location_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.locations", Columns: []string{"location_id"}}},
+		},
+		"public.dependents": {
+			{Columns: []string{"employee_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
+		},
+		"public.employees": {
+			{Columns: []string{"job_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.jobs", Columns: []string{"job_id"}}},
+			{Columns: []string{"department_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.departments", Columns: []string{"department_id"}}},
+			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
+		},
+		"public.locations": {
+			{Columns: []string{"country_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.countries", Columns: []string{"country_id"}}},
+		},
+	}
+	primaryKeyMap := map[string][]string{
+		"public.regions":     {"region_id"},
+		"public.countries":   {"country_id"},
+		"public.locations":   {"location_id"},
+		"public.jobs":        {"job_id"},
+		"public.departments": {"department_id"},
+		"public.employees":   {"employee_id"},
+		"public.dependents":  {"dependent_id"},
+	}
+	tablesColMap := map[string][]string{
+		"public.employees": {
+			"employee_id",
+			"email",
+			"name",
+			"job_id",
+			"manager_id",
+			"department_id",
+		},
+	}
+
+	expect := []*RunConfig{
+		buildRunConfig("public.employees", RunTypeInsert, []string{"employee_id"}, &emptyWhere,
+			[]string{"employee_id", "email", "name", "job_id", "manager_id", "department_id"},
+			[]string{"employee_id", "email", "name", "job_id", "department_id"},
+			[]*DependsOn{}),
+		buildRunConfig("public.employees", RunTypeUpdate, []string{"employee_id"}, &emptyWhere,
+			[]string{"employee_id", "manager_id"},
+			[]string{"manager_id"},
+			[]*DependsOn{{Table: "public.employees", Columns: []string{"employee_id"}}}),
+	}
+
+	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
+}
+
+func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
+	emptyWhere := ""
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.table_1": {
+			{Columns: []string{"prev_id_1"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_4", Columns: []string{"id_4"}}},
+			{Columns: []string{"next_id_1"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_2", Columns: []string{"id_2"}}},
+		},
+		"public.table_2": {
+			{Columns: []string{"prev_id_2"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_1", Columns: []string{"id_1"}}},
+			{Columns: []string{"next_id_2"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_3", Columns: []string{"id_3"}}},
+		},
+		"public.table_3": {
+			{Columns: []string{"prev_id_3"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_2", Columns: []string{"id_2"}}},
+			{Columns: []string{"next_id_3"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_4", Columns: []string{"id_4"}}},
+		},
+		"public.table_4": {
+			{Columns: []string{"prev_id_4"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_3", Columns: []string{"id_3"}}},
+			{Columns: []string{"next_id_4"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_1", Columns: []string{"id_1"}}},
+		},
+	}
+	primaryKeyMap := map[string][]string{
+		"public.table_1": {"id_1"},
+		"public.table_2": {"id_2"},
+		"public.table_3": {"id_3"},
+		"public.table_4": {"id_4"},
+	}
+	tablesColMap := map[string][]string{
+		"public.table_1": {"id_1", "name_1", "address_1", "prev_id_1", "next_id_1"},
+		"public.table_2": {"id_2", "name_2", "address_2", "prev_id_2", "next_id_2"},
+		"public.table_3": {"id_3", "name_3", "address_3", "prev_id_3", "next_id_3"},
+		"public.table_4": {"id_4", "name_4", "address_4", "prev_id_4", "next_id_4"},
+	}
+
+	expect := []*RunConfig{
+		buildRunConfig("public.table_4", RunTypeInsert, []string{"id_4"}, &emptyWhere,
+			[]string{"id_4", "name_4", "address_4", "prev_id_4", "next_id_4"},
+			[]string{"id_4", "name_4", "address_4"},
+			[]*DependsOn{}),
+		buildRunConfig("public.table_4", RunTypeUpdate, []string{"id_4"}, &emptyWhere,
+			[]string{"id_4", "prev_id_4", "next_id_4"},
+			[]string{"prev_id_4", "next_id_4"},
+			[]*DependsOn{
+				{Table: "public.table_4", Columns: []string{"id_4"}},
+				{Table: "public.table_3", Columns: []string{"id_3"}},
+				{Table: "public.table_1", Columns: []string{"id_1"}},
+			}),
+		buildRunConfig("public.table_2", RunTypeInsert, []string{"id_2"}, &emptyWhere,
+			[]string{"id_2", "name_2", "address_2", "prev_id_2", "next_id_2"},
+			[]string{"id_2", "name_2", "address_2"},
+			[]*DependsOn{}),
+		buildRunConfig("public.table_2", RunTypeUpdate, []string{"id_2"}, &emptyWhere,
+			[]string{"id_2", "prev_id_2", "next_id_2"},
+			[]string{"prev_id_2", "next_id_2"},
+			[]*DependsOn{
+				{Table: "public.table_2", Columns: []string{"id_2"}},
+				{Table: "public.table_1", Columns: []string{"id_1"}},
+				{Table: "public.table_3", Columns: []string{"id_3"}},
+			}),
+		buildRunConfig("public.table_1", RunTypeInsert, []string{"id_1"}, &emptyWhere,
+			[]string{"id_1", "name_1", "address_1", "prev_id_1", "next_id_1"},
+			[]string{"id_1", "name_1", "address_1", "prev_id_1", "next_id_1"},
+			[]*DependsOn{
+				{Table: "public.table_4", Columns: []string{"id_4"}},
+				{Table: "public.table_2", Columns: []string{"id_2"}},
+			}),
+		buildRunConfig("public.table_3", RunTypeInsert, []string{"id_3"}, &emptyWhere,
+			[]string{"id_3", "name_3", "address_3", "prev_id_3", "next_id_3"},
+			[]string{"id_3", "name_3", "address_3", "prev_id_3", "next_id_3"},
+			[]*DependsOn{
+				{Table: "public.table_2", Columns: []string{"id_2"}},
+				{Table: "public.table_4", Columns: []string{"id_4"}},
+			}),
+	}
+
+	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
 }
 
 func buildRunConfig(
