@@ -1,10 +1,12 @@
+'use client';
 import DynamoDbConnectionForm from '@/components/connections/forms/dynamodb/DynamoDbConnectionForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { ReactElement } from 'react';
 import { FaAws } from 'react-icons/fa';
 import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
 
-export default async function DynamoDB() {
+export default function NewDynamoDBConnection(): ReactElement {
   const onSuccess = useOnCreateSuccess();
   return (
     <OverviewContainer

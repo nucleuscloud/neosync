@@ -327,10 +327,12 @@ export const GcpCloudStorageFormValues = Yup.object<
   CreateConnectionFormContext | EditConnectionFormContext
 >().shape({
   connectionName: connectionNameSchema,
-  gcp: Yup.object({
-    bucket: Yup.string().required('The Bucket is required.'),
-    pathPrefix: Yup.string().optional(),
-  }).required('The GCP form fields are required.'),
+  gcp: Yup.object()
+    .shape({
+      bucket: Yup.string().required('The Bucket is required.'),
+      pathPrefix: Yup.string().optional(),
+    })
+    .required('The GCP form fields are required.'),
 });
 
 export type GcpCloudStorageFormValues = Yup.InferType<
