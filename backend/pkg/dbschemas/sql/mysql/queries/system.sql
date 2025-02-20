@@ -209,8 +209,12 @@ WHERE
 ORDER BY
     c.ordinal_position;
 
+-- name: GetVersion :one
+SELECT
+    VERSION() as version;
 
--- name: GetIndicesBySchemasAndTables :many
+
+-- name: GetMysqlIndicesBySchemasAndTables :many
 SELECT
     s.TABLE_SCHEMA as schema_name,
     s.TABLE_NAME as table_name,
@@ -222,15 +226,28 @@ SELECT
     s.NULLABLE as nullable
 FROM
     INFORMATION_SCHEMA.STATISTICS s
-LEFT JOIN
-    INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-    ON s.TABLE_SCHEMA = kcu.CONSTRAINT_SCHEMA
-    AND s.TABLE_NAME = kcu.TABLE_NAME
-    AND s.COLUMN_NAME = kcu.COLUMN_NAME
 WHERE
     s.TABLE_SCHEMA = sqlc.arg('schema') AND s.TABLE_NAME in (sqlc.slice('tables'))
     AND s.INDEX_NAME != 'PRIMARY'
-    AND kcu.CONSTRAINT_NAME IS NULL
+ORDER BY
+    s.TABLE_NAME,
+    s.INDEX_NAME,
+    s.SEQ_IN_INDEX;
+
+-- name: GetMariaDbIndicesBySchemasAndTables :many
+SELECT
+    s.TABLE_SCHEMA as schema_name,
+    s.TABLE_NAME as table_name,
+    s.COLUMN_NAME as column_name,
+    s.INDEX_NAME as index_name,
+    s.INDEX_TYPE as index_type,
+    s.SEQ_IN_INDEX as seq_in_index,
+    s.NULLABLE as nullable
+FROM
+    INFORMATION_SCHEMA.STATISTICS s
+WHERE
+    s.TABLE_SCHEMA = sqlc.arg('schema') AND s.TABLE_NAME in (sqlc.slice('tables'))
+    AND s.INDEX_NAME != 'PRIMARY'
 ORDER BY
     s.TABLE_NAME,
     s.INDEX_NAME,

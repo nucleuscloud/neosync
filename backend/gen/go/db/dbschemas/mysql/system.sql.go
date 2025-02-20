@@ -317,51 +317,43 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 	return items, nil
 }
 
-const getIndicesBySchemasAndTables = `-- name: GetIndicesBySchemasAndTables :many
+const getMariaDbIndicesBySchemasAndTables = `-- name: GetMariaDbIndicesBySchemasAndTables :many
 SELECT
     s.TABLE_SCHEMA as schema_name,
     s.TABLE_NAME as table_name,
     s.COLUMN_NAME as column_name,
-    s.EXPRESSION as expression,
     s.INDEX_NAME as index_name,
     s.INDEX_TYPE as index_type,
     s.SEQ_IN_INDEX as seq_in_index,
     s.NULLABLE as nullable
 FROM
     INFORMATION_SCHEMA.STATISTICS s
-LEFT JOIN
-    INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-    ON s.TABLE_SCHEMA = kcu.CONSTRAINT_SCHEMA
-    AND s.TABLE_NAME = kcu.TABLE_NAME
-    AND s.COLUMN_NAME = kcu.COLUMN_NAME
 WHERE
     s.TABLE_SCHEMA = ? AND s.TABLE_NAME in (/*SLICE:tables*/?)
     AND s.INDEX_NAME != 'PRIMARY'
-    AND kcu.CONSTRAINT_NAME IS NULL
 ORDER BY
     s.TABLE_NAME,
     s.INDEX_NAME,
     s.SEQ_IN_INDEX
 `
 
-type GetIndicesBySchemasAndTablesParams struct {
+type GetMariaDbIndicesBySchemasAndTablesParams struct {
 	Schema string
 	Tables []string
 }
 
-type GetIndicesBySchemasAndTablesRow struct {
+type GetMariaDbIndicesBySchemasAndTablesRow struct {
 	SchemaName string
 	TableName  string
 	ColumnName sql.NullString
-	Expression sql.NullString
 	IndexName  string
 	IndexType  string
 	SeqInIndex sql.NullInt64
 	Nullable   string
 }
 
-func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, arg *GetIndicesBySchemasAndTablesParams) ([]*GetIndicesBySchemasAndTablesRow, error) {
-	query := getIndicesBySchemasAndTables
+func (q *Queries) GetMariaDbIndicesBySchemasAndTables(ctx context.Context, db DBTX, arg *GetMariaDbIndicesBySchemasAndTablesParams) ([]*GetMariaDbIndicesBySchemasAndTablesRow, error) {
+	query := getMariaDbIndicesBySchemasAndTables
 	var queryParams []interface{}
 	queryParams = append(queryParams, arg.Schema)
 	if len(arg.Tables) > 0 {
@@ -377,9 +369,88 @@ func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, arg
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetIndicesBySchemasAndTablesRow
+	var items []*GetMariaDbIndicesBySchemasAndTablesRow
 	for rows.Next() {
-		var i GetIndicesBySchemasAndTablesRow
+		var i GetMariaDbIndicesBySchemasAndTablesRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ColumnName,
+			&i.IndexName,
+			&i.IndexType,
+			&i.SeqInIndex,
+			&i.Nullable,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMysqlIndicesBySchemasAndTables = `-- name: GetMysqlIndicesBySchemasAndTables :many
+SELECT
+    s.TABLE_SCHEMA as schema_name,
+    s.TABLE_NAME as table_name,
+    s.COLUMN_NAME as column_name,
+    s.EXPRESSION as expression,
+    s.INDEX_NAME as index_name,
+    s.INDEX_TYPE as index_type,
+    s.SEQ_IN_INDEX as seq_in_index,
+    s.NULLABLE as nullable
+FROM
+    INFORMATION_SCHEMA.STATISTICS s
+WHERE
+    s.TABLE_SCHEMA = ? AND s.TABLE_NAME in (/*SLICE:tables*/?)
+    AND s.INDEX_NAME != 'PRIMARY'
+ORDER BY
+    s.TABLE_NAME,
+    s.INDEX_NAME,
+    s.SEQ_IN_INDEX
+`
+
+type GetMysqlIndicesBySchemasAndTablesParams struct {
+	Schema string
+	Tables []string
+}
+
+type GetMysqlIndicesBySchemasAndTablesRow struct {
+	SchemaName string
+	TableName  string
+	ColumnName sql.NullString
+	Expression sql.NullString
+	IndexName  string
+	IndexType  string
+	SeqInIndex sql.NullInt64
+	Nullable   string
+}
+
+func (q *Queries) GetMysqlIndicesBySchemasAndTables(ctx context.Context, db DBTX, arg *GetMysqlIndicesBySchemasAndTablesParams) ([]*GetMysqlIndicesBySchemasAndTablesRow, error) {
+	query := getMysqlIndicesBySchemasAndTables
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.Schema)
+	if len(arg.Tables) > 0 {
+		for _, v := range arg.Tables {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:tables*/?", strings.Repeat(",?", len(arg.Tables))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:tables*/?", "NULL", 1)
+	}
+	rows, err := db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetMysqlIndicesBySchemasAndTablesRow
+	for rows.Next() {
+		var i GetMysqlIndicesBySchemasAndTablesRow
 		if err := rows.Scan(
 			&i.SchemaName,
 			&i.TableName,
@@ -705,4 +776,16 @@ func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db DBTX, sch
 		return nil, err
 	}
 	return items, nil
+}
+
+const getVersion = `-- name: GetVersion :one
+SELECT
+    VERSION() as version
+`
+
+func (q *Queries) GetVersion(ctx context.Context, db DBTX) (string, error) {
+	row := db.QueryRowContext(ctx, getVersion)
+	var version string
+	err := row.Scan(&version)
+	return version, err
 }
