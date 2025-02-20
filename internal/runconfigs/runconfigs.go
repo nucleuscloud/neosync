@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/backend/pkg/utils"
@@ -125,6 +126,56 @@ func (rc *RunConfig) SetSelectQuery(query *string) {
 	rc.selectQuery = query
 }
 
+func (rc *RunConfig) String() string {
+	var sb strings.Builder
+
+	sb.WriteString("RunConfig:\n")
+	if rc == nil {
+		return sb.String()
+	}
+	sb.WriteString(fmt.Sprintf("  Table: %s\n", rc.table))
+	sb.WriteString(fmt.Sprintf("  RunType: %s\n", rc.runType))
+	sb.WriteString(fmt.Sprintf("  PrimaryKeys: %v\n", rc.primaryKeys))
+
+	if rc.whereClause != nil {
+		sb.WriteString(fmt.Sprintf("  WhereClause: %s\n", *rc.whereClause))
+	} else {
+		sb.WriteString("  WhereClause: nil\n")
+	}
+
+	if rc.selectQuery != nil {
+		sb.WriteString(fmt.Sprintf("  SelectQuery: %s\n", *rc.selectQuery))
+	} else {
+		sb.WriteString("  SelectQuery: nil\n")
+	}
+
+	sb.WriteString(fmt.Sprintf("  SelectColumns: %v\n", rc.selectColumns))
+	sb.WriteString(fmt.Sprintf("  InsertColumns: %v\n", rc.insertColumns))
+	sb.WriteString(fmt.Sprintf("  OrderByColumns: %v\n", rc.orderByColumns))
+	sb.WriteString(fmt.Sprintf("  SplitColumnPaths: %v\n", rc.splitColumnPaths))
+
+	sb.WriteString("  DependsOn:\n")
+	if rc.dependsOn != nil {
+		for i, d := range rc.dependsOn {
+			sb.WriteString(fmt.Sprintf("    [%d] Table: %s, Columns: %v\n", i, d.Table, d.Columns))
+		}
+	} else {
+		sb.WriteString("    nil\n")
+	}
+
+	sb.WriteString("  ForeignKeys:\n")
+	if rc.foreignKeys != nil {
+		for i, fk := range rc.foreignKeys {
+			sb.WriteString(fmt.Sprintf("    [%d] Columns: %v, NotNullable: %v, ReferenceTable: %s, ReferenceColumns: %v\n",
+				i, fk.Columns, fk.NotNullable, fk.ReferenceTable, fk.ReferenceColumns))
+		}
+	} else {
+		sb.WriteString("    nil\n")
+	}
+
+	return sb.String()
+}
+
 func GetRunConfigs(
 	dependencyMap map[string][]*sqlmanager_shared.ForeignConstraint,
 	subsets map[string]string,
@@ -164,6 +215,12 @@ func GetRunConfigs(
 		configs = filterConfigsWithWhereClause(configs)
 	}
 
+	for _, c := range configs {
+		fmt.Println()
+		fmt.Println(c.String())
+		fmt.Println()
+	}
+
 	// check run path
 	if !isValidRunOrder(configs) {
 		return nil, errors.New("unable to build table run order. unsupported circular dependency detected.")
@@ -182,6 +239,7 @@ func circularDependencyTables(circularDeps [][]string) map[string]bool {
 	return circularTables
 }
 
+// filter dependencies to only include tables are in tableColumnsMap (jobmappings)
 func filterDependencies(
 	dependencyMap map[string][]*sqlmanager_shared.ForeignConstraint,
 	tableColumnsMap map[string][]string,
@@ -266,7 +324,7 @@ func isValidRunOrder(configs []*RunConfig) bool {
 
 	configMap := map[string]*RunConfig{}
 	for _, config := range configs {
-		configName := fmt.Sprintf("%s.%s", config.Table(), config.RunType())
+		configName := fmt.Sprintf("%s.%s.%s", config.Table(), config.RunType(), strings.Join(config.InsertColumns(), ","))
 		if _, exists := configMap[configName]; exists {
 			// configs should be unique
 			return false

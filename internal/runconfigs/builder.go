@@ -1,6 +1,8 @@
 package runconfigs
 
 import (
+	"encoding/json"
+	"fmt"
 	"slices"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -63,6 +65,7 @@ func (b *runConfigBuilder) buildInsertConfig() *RunConfig {
 }
 
 func (b *runConfigBuilder) buildCircularDependencyConfigs() []*RunConfig {
+	fmt.Println("table", b.table)
 	var configs []*RunConfig
 
 	var where *string
@@ -75,7 +78,7 @@ func (b *runConfigBuilder) buildCircularDependencyConfigs() []*RunConfig {
 		table:          b.table,
 		runType:        RunTypeInsert,
 		selectColumns:  b.columns, // select cols in insert config must be all columns due to S3 as possible output
-		insertColumns:  []string{},
+		insertColumns:  b.primaryKeys,
 		primaryKeys:    b.primaryKeys,
 		whereClause:    where,
 		orderByColumns: orderByColumns,
@@ -85,6 +88,9 @@ func (b *runConfigBuilder) buildCircularDependencyConfigs() []*RunConfig {
 	// Track which columns still need to be inserted (that aren’t handled by constraints).
 	remainingColumns := make(map[string]bool, len(b.columns))
 	for _, col := range b.columns {
+		if slices.Contains(b.primaryKeys, col) {
+			continue
+		}
 		remainingColumns[col] = true
 	}
 
@@ -93,13 +99,11 @@ func (b *runConfigBuilder) buildCircularDependencyConfigs() []*RunConfig {
 		if fc == nil || fc.ForeignKey == nil {
 			continue
 		}
+		fmt.Println("FOREIGN KEY")
+		jsonF, _ := json.MarshalIndent(fc, "", " ")
+		fmt.Printf("\n\n %s \n\n", string(jsonF))
 
-		var (
-			insertCols   []string
-			insertFkCols []string
-			updateCols   []string
-			updateFkCols []string
-		)
+		insertCols, insertFkCols, updateCols, updateFkCols := []string{}, []string{}, []string{}, []string{}
 
 		// Classify each constrained column into insert vs. update groups
 		// based on whether the column is NOT NULL.
@@ -127,6 +131,7 @@ func (b *runConfigBuilder) buildCircularDependencyConfigs() []*RunConfig {
 
 		// For columns that can be null, we do them after the main insert (Update).
 		if len(updateCols) > 0 {
+			fmt.Printf("\n\n updateCols: %v \n\n", updateCols)
 			updateConfig := b.buildUpdateConfig(fc, updateCols, updateFkCols, where, orderByColumns)
 			configs = append(configs, updateConfig)
 		}
@@ -155,13 +160,17 @@ func (b *runConfigBuilder) buildUpdateConfig(
 ) *RunConfig {
 	dependsOn := []*DependsOn{
 		{
-			Table:   b.table,
-			Columns: b.primaryKeys,
-		},
-		{
 			Table:   fc.ForeignKey.Table,
 			Columns: updateFkCols,
 		},
+	}
+
+	// if the foreign key table is not the same as the table, we need to add a depends on for the primary keys
+	if fc.ForeignKey.Table != b.table {
+		dependsOn = append(dependsOn, &DependsOn{
+			Table:   b.table,
+			Columns: b.primaryKeys,
+		})
 	}
 
 	selectColumns := slices.Concat(b.primaryKeys, updateCols)
