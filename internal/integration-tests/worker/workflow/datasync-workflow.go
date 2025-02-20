@@ -19,6 +19,7 @@ import (
 	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 	datasync_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/register"
+	accounthook_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow/register"
 	tablesync_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow/register"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
@@ -105,7 +106,7 @@ func NewTestDataSyncWorkflowEnv(
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	transformerclient := neosyncApi.OSSUnauthenticatedLicensedClients.Transformers()
 	userclient := neosyncApi.OSSUnauthenticatedLicensedClients.Users()
-
+	accounthookclient := neosyncApi.OSSUnauthenticatedLicensedClients.AccountHooks()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 	env := testSuite.NewTestWorkflowEnvironment()
@@ -136,6 +137,10 @@ func NewTestDataSyncWorkflowEnv(
 		benthosstream.NewBenthosStreamManager(),
 		workflowEnv.maxIterations,
 	)
+
+	if workflowEnv.fakeEELicense.IsValid() {
+		accounthook_workflow_register.Register(env, accounthookclient)
+	}
 
 	env.SetTestTimeout(600 * time.Second)
 
