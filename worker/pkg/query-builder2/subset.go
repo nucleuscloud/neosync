@@ -66,16 +66,15 @@ func BuildSelectQueryMap(
 	querymap := map[string]*sqlmanager_shared.SelectQuery{}
 	for _, cfg := range runConfigs {
 		schema, table := splitTable(cfg.Table())
-		query, err := qb.BuildQuery(schema, table)
+		query, _, pageQuery, isNotForeignKeySafe, err := qb.BuildQuery(schema, table)
 		if err != nil {
 			return nil, err
 		}
 		querymap[cfg.Id()] = &sqlmanager_shared.SelectQuery{
-			Query:                     query.Query,
-			PageQuery:                 query.PagedQuery,
+			Query:                     query,
+			PageQuery:                 pageQuery,
 			PageLimit:                 pageLimit,
-			IsNotForeignKeySafeSubset: query.IsNotForeignKeySafeSubset,
-			IsSubset:                  query.IsSubset,
+			IsNotForeignKeySafeSubset: isNotForeignKeySafe,
 		}
 	}
 
