@@ -29,6 +29,7 @@ interface MssqlFormStore extends BaseStore<MssqlFormValues> {
 function getInitialFormState(): MssqlFormValues {
   return {
     connectionName: 'my-connection',
+    activeTab: 'url',
     url: '',
     envVar: '',
     tunnel: {

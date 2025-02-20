@@ -28,6 +28,7 @@ interface MysqlFormStore extends BaseStore<MysqlFormValues> {
 
 function getInitialFormState(): MysqlFormValues {
   return {
+    activeTab: 'url',
     connectionName: 'my-connection',
     url: '',
     envVar: '',
