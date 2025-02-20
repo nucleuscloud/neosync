@@ -13,6 +13,8 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	accounthook_events "github.com/nucleuscloud/neosync/internal/ee/events"
+	"github.com/nucleuscloud/neosync/internal/ee/license"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
@@ -21,9 +23,11 @@ import (
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
+	accounthook_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/activities/sync"
 	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
 	"github.com/spf13/viper"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 
@@ -35,6 +39,16 @@ type WorkflowRequest struct {
 }
 
 type WorkflowResponse struct{}
+
+type Workflow struct {
+	eelicense license.EEInterface
+}
+
+func New(eelicense license.EEInterface) *Workflow {
+	return &Workflow{
+		eelicense: eelicense,
+	}
+}
 
 var (
 	invalidAccountStatusError = errors.New("exiting workflow due to invalid account status")
@@ -70,7 +84,80 @@ func withJobHookTimingActivityOptions(ctx workflow.Context) workflow.Context {
 	})
 }
 
-func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
+func (w *Workflow) Workflow(ctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
+	wfinfo := workflow.GetInfo(ctx)
+	logger := workflow.GetLogger(ctx)
+	return w.handleEventLifecycle(
+		ctx,
+		w.eelicense,
+		req.JobId,
+		wfinfo.WorkflowExecution.ID,
+		logger,
+		func() (string, error) {
+			actOptResp, err := retrieveActivityOptions(ctx, req.JobId, logger)
+			if err != nil {
+				return "", err
+			}
+			return actOptResp.AccountId, nil
+		},
+		func(ctx workflow.Context, logger log.Logger) (*WorkflowResponse, error) {
+			return executeWorkflow(ctx, req)
+		})
+}
+
+func (w *Workflow) handleEventLifecycle(
+	ctx workflow.Context,
+	eelicense license.EEInterface,
+	jobId, runId string,
+	logger log.Logger,
+	getAccountId func() (string, error),
+	fn func(ctx workflow.Context, logger log.Logger) (*WorkflowResponse, error),
+) (*WorkflowResponse, error) {
+	if !eelicense.IsValid() {
+		logger.Debug("ee license is not valid, skipping event lifecycle")
+		return fn(ctx, logger)
+	}
+
+	accountId, err := getAccountId()
+	if err != nil {
+		return nil, err
+	}
+	eventChildOpts := workflow.ChildWorkflowOptions{
+		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+	}
+
+	eventFutures := []workflow.Future{}
+	defer func() {
+		for _, future := range eventFutures {
+			if waitErr := future.Get(ctx, nil); waitErr != nil {
+				logger.Error("failed to process event", "error", waitErr)
+			}
+		}
+	}()
+
+	createdFuture := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, eventChildOpts), accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
+		Event: accounthook_events.NewEvent_JobRunCreated(accountId, jobId, runId),
+	})
+	eventFutures = append(eventFutures, createdFuture)
+
+	resp, err := fn(ctx, logger)
+	if err != nil {
+		failedFuture := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, eventChildOpts), accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
+			Event: accounthook_events.NewEvent_JobRunFailed(accountId, jobId, runId),
+		})
+		eventFutures = append(eventFutures, failedFuture)
+		return nil, err
+	}
+
+	completedFuture := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, eventChildOpts), accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
+		Event: accounthook_events.NewEvent_JobRunSucceeded(accountId, jobId, runId),
+	})
+	eventFutures = append(eventFutures, completedFuture)
+
+	return resp, nil
+}
+
+func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
 	ctx, cancelHandler := workflow.WithCancel(wfctx)
 	logger := workflow.GetLogger(ctx)
 

@@ -51,7 +51,8 @@ func Test_Workflow_BenthosConfigsFails(t *testing.T) {
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).Return(nil, errors.New("TestFailure"))
 
-	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	datasyncWorkflow := &Workflow{}
+	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
 	assert.True(t, env.IsWorkflowCompleted())
@@ -85,7 +86,8 @@ func Test_Workflow_Succeeds_Zero_BenthosConfigs(t *testing.T) {
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosbuilder.BenthosConfigResponse{}}, nil)
 
-	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	datasyncWorkflow := &Workflow{}
+	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
 
@@ -137,7 +139,8 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 	env.OnWorkflow(syncWorkflow.TableSync, mock.Anything, mock.Anything).
 		Return(&tablesync_workflow.TableSyncResponse{}, nil)
 
-	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	datasyncWorkflow := &Workflow{}
+	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted(), "Workflow did not complete as expected")
 
@@ -231,7 +234,8 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 			return &tablesync_workflow.TableSyncResponse{}, nil
 		})
 
-	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	datasyncWorkflow := &Workflow{}
+	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
 	assert.Equal(t, count, 2)
@@ -345,7 +349,8 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 			return &tablesync_workflow.TableSyncResponse{}, nil
 		})
 
-	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	datasyncWorkflow := &Workflow{}
+	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
 	assert.Equal(t, counter.Load(), int32(3))
@@ -481,7 +486,8 @@ func Test_Workflow_Follows_Multiple_Dependent_Redis_Cleanup(t *testing.T) {
 			return &syncrediscleanup_activity.DeleteRedisHashResponse{}, nil
 		})
 
-	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	datasyncWorkflow := &Workflow{}
+	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
 	assert.Equal(t, counter.Load(), int32(3))
@@ -587,7 +593,8 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 			return &tablesync_workflow.TableSyncResponse{}, nil
 		})
 
-	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	datasyncWorkflow := &Workflow{}
+	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	require.True(t, env.IsWorkflowCompleted())
 
@@ -690,7 +697,8 @@ func Test_Workflow_Halts_Activities_On_InvalidAccountStatus(t *testing.T) {
 			return &tablesync_workflow.TableSyncResponse{}, nil
 		})
 
-	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	datasyncWorkflow := &Workflow{}
+	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	require.True(t, env.IsWorkflowCompleted())
 
@@ -807,7 +815,8 @@ func Test_Workflow_Cleans_Up_Redis_OnError(t *testing.T) {
 			return &syncrediscleanup_activity.DeleteRedisHashResponse{}, nil
 		})
 
-	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	datasyncWorkflow := &Workflow{}
+	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
 	assert.Equal(t, int32(1), redisCleanupCount.Load(), "Expected one redis cleanup call")
@@ -895,7 +904,8 @@ func Test_Workflow_Max_InFlight(t *testing.T) {
 			return &tablesync_workflow.TableSyncResponse{}, nil
 		})
 
-	env.ExecuteWorkflow(Workflow, &WorkflowRequest{JobId: "test-job"})
+	datasyncWorkflow := &Workflow{}
+	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{JobId: "test-job"})
 
 	require.True(t, env.IsWorkflowCompleted())
 	err := env.GetWorkflowError()
@@ -1038,7 +1048,8 @@ func Test_Workflow_Initial_AccountStatus(t *testing.T) {
 			Reason:  shared.Ptr("test failure"),
 		}, nil)
 
-	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	datasyncWorkflow := &Workflow{}
+	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
 
