@@ -10,10 +10,10 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -100,7 +100,7 @@ func (b *dyanmodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
-			tabledependency.NewRunConfig(tableMapping.Table, tabledependency.RunTypeInsert, []string{}, nil, columns, columns, nil, nil, splitColumnPaths),
+			runconfigs.NewRunConfig(tableMapping.Table, runconfigs.RunTypeInsert, []string{}, nil, columns, columns, nil, nil, splitColumnPaths),
 			map[string][]*bb_internal.ReferenceKey{},
 			map[string][]*bb_internal.ReferenceKey{},
 			params.Job.Id,
@@ -123,8 +123,8 @@ func (b *dyanmodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 			Name:        fmt.Sprintf("%s.%s", tableMapping.Schema, tableMapping.Table), // todo
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
-			RunType:     tabledependency.RunTypeInsert,
-			DependsOn:   []*tabledependency.DependsOn{},
+			RunType:     runconfigs.RunTypeInsert,
+			DependsOn:   []*runconfigs.DependsOn{},
 			Columns:     columns,
 
 			Metriclabels: metrics.MetricLabels{

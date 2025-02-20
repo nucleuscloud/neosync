@@ -7,10 +7,10 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -69,7 +69,7 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
-			tabledependency.NewRunConfig(tableMapping.Table, tabledependency.RunTypeInsert, []string{}, nil, columns, columns, nil, nil, splitColumnPaths),
+			runconfigs.NewRunConfig(tableMapping.Table, runconfigs.RunTypeInsert, []string{}, nil, columns, columns, nil, nil, splitColumnPaths),
 			map[string][]*bb_internal.ReferenceKey{},
 			map[string][]*bb_internal.ReferenceKey{},
 			params.Job.Id,
@@ -92,8 +92,8 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_
 			Name:        fmt.Sprintf("%s.%s", tableMapping.Schema, tableMapping.Table), // todo
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
-			RunType:     tabledependency.RunTypeInsert,
-			DependsOn:   []*tabledependency.DependsOn{},
+			RunType:     runconfigs.RunTypeInsert,
+			DependsOn:   []*runconfigs.DependsOn{},
 			Columns:     columns,
 			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: sourceConnection.GetId()}},
 

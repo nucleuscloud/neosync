@@ -9,8 +9,8 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 )
 
 func maxInt(a, b int) int {
@@ -104,7 +104,7 @@ func getTableColMap(schemas []*mgmtv1alpha1.DatabaseColumn) map[string][]string 
 	return tableColMap
 }
 
-func buildDependencyMap(syncConfigs []*tabledependency.RunConfig) map[string][]string {
+func buildDependencyMap(syncConfigs []*runconfigs.RunConfig) map[string][]string {
 	dependencyMap := map[string][]string{}
 	for _, cfg := range syncConfigs {
 		_, dpOk := dependencyMap[cfg.Table()]

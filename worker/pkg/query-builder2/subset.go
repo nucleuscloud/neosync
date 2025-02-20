@@ -4,19 +4,19 @@ import (
 	"strings"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	runcfg "github.com/nucleuscloud/neosync/internal/runconfigs"
 )
 
 // returns map of schema.table -> select query
 func BuildSelectQueryMap(
 	driver string,
-	runConfigs []*tabledependency.RunConfig,
+	runConfigs []*runcfg.RunConfig,
 	subsetByForeignKeyConstraints bool,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
-) (map[string]map[tabledependency.RunType]*sqlmanager_shared.SelectQuery, error) {
+) (map[string]map[runcfg.RunType]*sqlmanager_shared.SelectQuery, error) {
 	tableDependencies := map[string]*TableConstraints{}
 	for _, rc := range runConfigs {
-		if rc.RunType() != tabledependency.RunTypeInsert {
+		if rc.RunType() != runcfg.RunTypeInsert {
 			continue
 		}
 		td, ok := tableDependencies[rc.Table()]
@@ -45,7 +45,7 @@ func BuildSelectQueryMap(
 	qb := NewQueryBuilderFromSchemaDefinition(groupedColumnInfo, tableDependencies, "public", driver, subsetByForeignKeyConstraints)
 
 	for _, cfg := range runConfigs {
-		if cfg.RunType() != tabledependency.RunTypeInsert {
+		if cfg.RunType() != runcfg.RunTypeInsert {
 			continue
 		}
 		// add order by to query builder
@@ -63,10 +63,10 @@ func BuildSelectQueryMap(
 		}
 	}
 
-	querymap := map[string]map[tabledependency.RunType]*sqlmanager_shared.SelectQuery{}
+	querymap := map[string]map[runcfg.RunType]*sqlmanager_shared.SelectQuery{}
 	for _, cfg := range runConfigs {
 		if _, ok := querymap[cfg.Table()]; !ok {
-			querymap[cfg.Table()] = map[tabledependency.RunType]*sqlmanager_shared.SelectQuery{}
+			querymap[cfg.Table()] = map[runcfg.RunType]*sqlmanager_shared.SelectQuery{}
 		}
 		schema, table := splitTable(cfg.Table())
 		query, _, pageQuery, isNotForeignKeySafe, err := qb.BuildQuery(schema, table)

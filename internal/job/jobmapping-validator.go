@@ -6,7 +6,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 )
 
 type JobMappingsValidator struct {
@@ -119,7 +119,7 @@ func (j *JobMappingsValidator) Validate(
 ) (*JobMappingsValidatorResponse, error) {
 	j.ValidateJobMappingsExistInSource(tableColumnMap)
 	j.ValidateVirtualForeignKeys(virtualForeignKeys, tableColumnMap, tableConstraints)
-	err := j.ValidateCircularDependencies(tableConstraints.ForeignKeyConstraints, virtualForeignKeys, tableColumnMap)
+	err := j.ValidateCircularDependencies(tableConstraints.ForeignKeyConstraints, tableConstraints.PrimaryKeyConstraints, virtualForeignKeys, tableColumnMap)
 	if err != nil {
 		return nil, err
 	}
@@ -176,11 +176,12 @@ func (j *JobMappingsValidator) ValidateJobMappingsExistInSource(
 // validates that there are no unsupported circular dependencies
 func (j *JobMappingsValidator) ValidateCircularDependencies(
 	foreignKeys map[string][]*sqlmanager_shared.ForeignConstraint,
+	primaryKeys map[string][]string,
 	virtualForeignKeys []*mgmtv1alpha1.VirtualForeignConstraint,
 	tableColumnMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 ) error {
 	// foreign key dependencies that are in job mappings
-	validForeignKeyDependencies := map[string][]string{} // table -> foreign key table
+	validForeignKeyDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{}
 	for table, fks := range foreignKeys {
 		colMappings, ok := j.jobMappings[table]
 		if !ok {
@@ -194,7 +195,7 @@ func (j *JobMappingsValidator) ValidateCircularDependencies(
 					if ok {
 						fkCol := fk.ForeignKey.Columns[idx]
 						if _, ok = fkColMappings[fkCol]; ok {
-							validForeignKeyDependencies[table] = append(validForeignKeyDependencies[table], fk.ForeignKey.Table)
+							validForeignKeyDependencies[table] = append(validForeignKeyDependencies[table], fk)
 						}
 					}
 				}
@@ -207,7 +208,6 @@ func (j *JobMappingsValidator) ValidateCircularDependencies(
 	for _, vfk := range virtualForeignKeys {
 		tableName := sqlmanager_shared.BuildTable(vfk.Schema, vfk.Table)
 		fkTable := sqlmanager_shared.BuildTable(vfk.ForeignKey.Schema, vfk.ForeignKey.Table)
-		validForeignKeyDependencies[tableName] = append(validForeignKeyDependencies[tableName], fkTable)
 
 		tableCols, ok := tableColumnMap[tableName]
 		if !ok {
@@ -223,35 +223,30 @@ func (j *JobMappingsValidator) ValidateCircularDependencies(
 			notNullable = append(notNullable, !colInfo.IsNullable)
 		}
 
-		allForeignKeys[tableName] = append(allForeignKeys[tableName], &sqlmanager_shared.ForeignConstraint{
+		virt := &sqlmanager_shared.ForeignConstraint{
 			Columns:     vfk.GetColumns(),
 			NotNullable: notNullable,
 			ForeignKey: &sqlmanager_shared.ForeignKey{
 				Columns: vfk.GetColumns(),
 				Table:   fkTable,
 			},
-		})
+		}
+		allForeignKeys[tableName] = append(allForeignKeys[tableName], virt)
+		validForeignKeyDependencies[tableName] = append(validForeignKeyDependencies[tableName], virt)
 	}
 
-	for table, deps := range validForeignKeyDependencies {
-		validForeignKeyDependencies[table] = slices.Compact(deps)
-	}
-
-	cycles := tabledependency.FindCircularDependencies(validForeignKeyDependencies)
-	startTables, err := tabledependency.DetermineCycleInsertUpdateTables(cycles, map[string]string{}, allForeignKeys)
-	if err != nil {
-		return err
-	}
-
-	containsStart := func(t string) bool {
-		return slices.Contains(startTables, t)
-	}
-
-	for _, cycle := range cycles {
-		if !slices.ContainsFunc(cycle, containsStart) {
-			j.addDatabaseError(fmt.Sprintf("Unsupported circular dependency. At least one foreign key in circular dependency must be nullable. Tables: %+v", cycle), mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE)
+	tableColumnNameMap := map[string][]string{}
+	for table, colsMap := range tableColumnMap {
+		for col := range colsMap {
+			tableColumnNameMap[table] = append(tableColumnNameMap[table], col)
 		}
 	}
+
+	_, err := runconfigs.BuildRunConfigs(validForeignKeyDependencies, map[string]string{}, primaryKeys, tableColumnNameMap, map[string][][]string{}, map[string][][]string{})
+	if err != nil {
+		j.addDatabaseError(fmt.Sprintf("Error building run configs: %s", err), mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE)
+	}
+
 	return nil
 }
 

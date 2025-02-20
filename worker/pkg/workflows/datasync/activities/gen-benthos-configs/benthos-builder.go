@@ -13,10 +13,10 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	querybuilder2 "github.com/nucleuscloud/neosync/worker/pkg/query-builder2"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 
@@ -284,7 +284,7 @@ func buildPostTableSyncRunCtx(benthosConfigs []*benthosbuilder.BenthosConfigResp
 
 func buildPgPostTableSyncStatement(bc *benthosbuilder.BenthosConfigResponse) []string {
 	statements := []string{}
-	if bc.RunType == tabledependency.RunTypeUpdate {
+	if bc.RunType == runconfigs.RunTypeUpdate {
 		return statements
 	}
 	colDefaultProps := bc.ColumnDefaultProperties
@@ -300,7 +300,7 @@ func buildPgPostTableSyncStatement(bc *benthosbuilder.BenthosConfigResponse) []s
 
 func buildMssqlPostTableSyncStatement(bc *benthosbuilder.BenthosConfigResponse) []string {
 	statements := []string{}
-	if bc.RunType == tabledependency.RunTypeUpdate {
+	if bc.RunType == runconfigs.RunTypeUpdate {
 		return statements
 	}
 	colDefaultProps := bc.ColumnDefaultProperties

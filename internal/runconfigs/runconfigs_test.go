@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
+func Test_BuildRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 	where := ""
 
 	t.Run("Single Cycle", func(t *testing.T) {
@@ -262,7 +262,7 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 	})
 }
 
-func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
+func Test_BuildRunConfigs_Subset_SingleCycle(t *testing.T) {
 	where := "where"
 	emptyWhere := ""
 	tests := []struct {
@@ -301,6 +301,7 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 			},
 			expect: []*RunConfig{
 				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "b_id"}, []string{"id"}, []*DependsOn{}),
+				buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "b_id"}, []string{"b_id"}, []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}),
 				buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "a_id"}, []string{"id", "a_id"}, []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}),
 				buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &where, []string{"id", "c_id"}, []string{"id", "c_id"}, []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}),
 			},
@@ -337,6 +338,7 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 			expect: []*RunConfig{
 				buildRunConfig("public.x", RunTypeInsert, []string{"id"}, &where, []string{"id"}, []string{"id"}, []*DependsOn{}),
 				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "b_id", "x_id"}, []string{"id", "x_id"}, []*DependsOn{{Table: "public.x", Columns: []string{"id"}}}),
+				buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "b_id"}, []string{"b_id"}, []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}),
 				buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "a_id"}, []string{"id", "a_id"}, []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}),
 				buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "c_id"}, []string{"id", "c_id"}, []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}),
 			},
@@ -350,7 +352,7 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 	}
 }
 
-func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
+func Test_BuildRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 	emptyWhere := ""
 	tests := []struct {
 		name          string
@@ -526,7 +528,7 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 	}
 }
 
-func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
+func Test_BuildRunConfigs_NoSubset_NoCycle(t *testing.T) {
 	emptyWhere := ""
 	tests := []struct {
 		name          string
@@ -626,7 +628,7 @@ func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
 	}
 }
 
-func Test_GetRunConfigs_CompositeKey(t *testing.T) {
+func Test_BuildRunConfigs_CompositeKey(t *testing.T) {
 	emptyWhere := ""
 	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.employees": {
@@ -689,7 +691,7 @@ func Test_GetRunConfigs_CompositeKey(t *testing.T) {
 	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
 }
 
-func Test_GetRunConfigs_HumanResources(t *testing.T) {
+func Test_BuildRunConfigs_HumanResources(t *testing.T) {
 	emptyWhere := ""
 	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.countries": {
@@ -800,7 +802,7 @@ func Test_GetRunConfigs_HumanResources(t *testing.T) {
 	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
 }
 
-func Test_GetRunConfigs_SingleTable_WithFks(t *testing.T) {
+func Test_BuildRunConfigs_SingleTable_WithFks(t *testing.T) {
 	emptyWhere := ""
 	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.countries": {
@@ -855,7 +857,7 @@ func Test_GetRunConfigs_SingleTable_WithFks(t *testing.T) {
 	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
 }
 
-func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
+func Test_BuildRunConfigs_Complex_CircularDependency(t *testing.T) {
 	emptyWhere := ""
 	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.table_1": {
@@ -944,7 +946,7 @@ func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
 	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
 }
 
-func Test_GetRunConfigs_Multiple_CircularDependency(t *testing.T) {
+func Test_BuildRunConfigs_Multiple_CircularDependency(t *testing.T) {
 	emptyWhere := ""
 	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.a": {
@@ -1013,7 +1015,7 @@ func Test_GetRunConfigs_Multiple_CircularDependency(t *testing.T) {
 	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
 }
 
-func Test_GetRunConfigs_CircularDependency_MultipleFksPerTable(t *testing.T) {
+func Test_BuildRunConfigs_CircularDependency_MultipleFksPerTable(t *testing.T) {
 	emptyWhere := ""
 	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.a": {
@@ -1081,7 +1083,7 @@ func Test_GetRunConfigs_CircularDependency_MultipleFksPerTable(t *testing.T) {
 	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
 }
 
-func Test_GetRunConfigs_CircularDependencyNoneNullable(t *testing.T) {
+func Test_BuildRunConfigs_CircularDependencyNoneNullable(t *testing.T) {
 	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.a": {
 			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
@@ -1090,97 +1092,8 @@ func Test_GetRunConfigs_CircularDependencyNoneNullable(t *testing.T) {
 			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 	}
-	_, err := GetRunConfigs(dependencies, map[string]string{}, map[string][]string{}, map[string][]string{"public.a": {}, "public.b": {}}, map[string][][]string{}, map[string][][]string{})
+	_, err := BuildRunConfigs(dependencies, map[string]string{}, map[string][]string{}, map[string][]string{"public.a": {}, "public.b": {}}, map[string][][]string{}, map[string][][]string{})
 	require.Error(t, err)
-}
-
-func Test_GetTablesOrderedByDependency_CircularDependency(t *testing.T) {
-	dependencies := map[string][]string{
-		"other.a": {"other.b"},
-		"other.b": {"other.c"},
-		"other.c": {"other.a"},
-	}
-
-	resp, err := GetTablesOrderedByDependency(dependencies)
-	require.NoError(t, err)
-	require.Equal(t, resp.HasCycles, true)
-	for _, e := range resp.OrderedTables {
-		require.Contains(t, []*sqlmanager_shared.SchemaTable{{Schema: "other", Table: "a"}, {Schema: "other", Table: "b"}, {Schema: "other", Table: "c"}}, e)
-	}
-}
-
-func Test_GetTablesOrderedByDependency_Dependencies(t *testing.T) {
-	dependencies := map[string][]string{
-		"countries":   {"regions"},
-		"departments": {"locations"},
-		"dependents":  {"employees"},
-		"employees":   {"departments", "jobs", "employees"},
-		"locations":   {"countries"},
-		"regions":     {},
-		"jobs":        {},
-	}
-	expected := [][]*sqlmanager_shared.SchemaTable{
-		{{Schema: "public", Table: "regions"}, {Schema: "public", Table: "jobs"}},
-		{{Schema: "public", Table: "regions"}, {Schema: "public", Table: "jobs"}},
-		{{Schema: "public", Table: "countries"}},
-		{{Schema: "public", Table: "locations"}},
-		{{Schema: "public", Table: "departments"}},
-		{{Schema: "public", Table: "employees"}},
-		{{Schema: "public", Table: "dependents"}}}
-
-	actual, err := GetTablesOrderedByDependency(dependencies)
-	require.NoError(t, err)
-	require.Equal(t, actual.HasCycles, false)
-
-	for idx, table := range actual.OrderedTables {
-		require.Contains(t, expected[idx], table)
-	}
-}
-
-func Test_GetTablesOrderedByDependency_Mixed(t *testing.T) {
-	dependencies := map[string][]string{
-		"countries": {},
-		"locations": {"countries"},
-		"regions":   {},
-		"jobs":      {},
-	}
-
-	expected := []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "countries"}, {Schema: "public", Table: "regions"}, {Schema: "public", Table: "jobs"}, {Schema: "public", Table: "locations"}}
-	actual, err := GetTablesOrderedByDependency(dependencies)
-	require.NoError(t, err)
-	require.Equal(t, actual.HasCycles, false)
-	require.Len(t, actual.OrderedTables, len(expected))
-	for _, table := range actual.OrderedTables {
-		require.Contains(t, expected, table)
-	}
-	require.Equal(t, &sqlmanager_shared.SchemaTable{Schema: "public", Table: "locations"}, actual.OrderedTables[len(actual.OrderedTables)-1])
-}
-
-func Test_GetTablesOrderedByDependency_BrokenDependencies_NoLoop(t *testing.T) {
-	dependencies := map[string][]string{
-		"countries": {},
-		"locations": {"countries"},
-		"regions":   {"a"},
-		"jobs":      {"b"},
-	}
-
-	_, err := GetTablesOrderedByDependency(dependencies)
-	require.Error(t, err)
-}
-
-func Test_GetTablesOrderedByDependency_NestedDependencies(t *testing.T) {
-	dependencies := map[string][]string{
-		"a": {"b"},
-		"b": {"c"},
-		"c": {"d"},
-		"d": {},
-	}
-
-	expected := []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "d"}, {Schema: "public", Table: "c"}, {Schema: "public", Table: "b"}, {Schema: "public", Table: "a"}}
-	actual, err := GetTablesOrderedByDependency(dependencies)
-	require.NoError(t, err)
-	require.Equal(t, expected[0], actual.OrderedTables[0])
-	require.Equal(t, actual.HasCycles, false)
 }
 
 func Test_isValidRunOrder(t *testing.T) {
@@ -1268,7 +1181,7 @@ func buildRunConfig(
 }
 
 func assertRunConfigs(t *testing.T, dependencies map[string][]*sqlmanager_shared.ForeignConstraint, subsets map[string]string, primaryKeyMap map[string][]string, tableColsMap map[string][]string, expect []*RunConfig) {
-	actual, err := GetRunConfigs(dependencies, subsets, primaryKeyMap, tableColsMap, map[string][][]string{}, map[string][][]string{})
+	actual, err := BuildRunConfigs(dependencies, subsets, primaryKeyMap, tableColsMap, map[string][][]string{}, map[string][][]string{})
 	require.NoError(t, err)
 	assert.Len(t, actual, len(expect), "expected %d configs but got %d", len(expect), len(actual))
 	for _, e := range expect {

@@ -334,6 +334,9 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			if err != nil {
 				return nil, err
 			}
+			fmt.Println()
+			fmt.Println("config", bc.Name, "isReady", isReady, "cols", bc.Columns)
+			fmt.Println()
 
 			if !isReady {
 				continue

@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	runconfigs "github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
@@ -121,7 +121,7 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosbuilder.BenthosConfigResponse{
 			{
 				Name:      "public.users",
-				DependsOn: []*tabledependency.DependsOn{},
+				DependsOn: []*runconfigs.DependsOn{},
 				Config:    &neosync_benthos.BenthosConfig{},
 			},
 		}}, nil)
@@ -165,7 +165,7 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosbuilder.BenthosConfigResponse{
 			{
 				Name:      "public.users",
-				DependsOn: []*tabledependency.DependsOn{},
+				DependsOn: []*runconfigs.DependsOn{},
 				Config: &neosync_benthos.BenthosConfig{
 					StreamConfig: neosync_benthos.StreamConfig{
 						Input: &neosync_benthos.InputConfig{
@@ -183,7 +183,7 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 			},
 			{
 				Name:      "public.foo",
-				DependsOn: []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}},
+				DependsOn: []*runconfigs.DependsOn{{Table: "public.users", Columns: []string{"id"}}},
 				Config: &neosync_benthos.BenthosConfig{
 					StreamConfig: neosync_benthos.StreamConfig{
 						Input: &neosync_benthos.InputConfig{
@@ -259,7 +259,7 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosbuilder.BenthosConfigResponse{
 			{
 				Name:        "public.users",
-				DependsOn:   []*tabledependency.DependsOn{},
+				DependsOn:   []*runconfigs.DependsOn{},
 				TableSchema: "public",
 				TableName:   "users",
 				Columns:     []string{"id"},
@@ -277,7 +277,7 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 			},
 			{
 				Name:        "public.accounts",
-				DependsOn:   []*tabledependency.DependsOn{},
+				DependsOn:   []*runconfigs.DependsOn{},
 				Columns:     []string{"id"},
 				TableSchema: "public",
 				TableName:   "accounts",
@@ -295,7 +295,7 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 			},
 			{
 				Name:        "public.foo",
-				DependsOn:   []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
+				DependsOn:   []*runconfigs.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
 				Columns:     []string{"id"},
 				TableSchema: "public",
 				TableName:   "foo",
@@ -373,7 +373,7 @@ func Test_Workflow_Follows_Multiple_Dependent_Redis_Cleanup(t *testing.T) {
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosbuilder.BenthosConfigResponse{
 			{
 				Name:        "public.users",
-				DependsOn:   []*tabledependency.DependsOn{},
+				DependsOn:   []*runconfigs.DependsOn{},
 				TableSchema: "public",
 				TableName:   "users",
 				Columns:     []string{"id"},
@@ -398,7 +398,7 @@ func Test_Workflow_Follows_Multiple_Dependent_Redis_Cleanup(t *testing.T) {
 			},
 			{
 				Name:        "public.accounts",
-				DependsOn:   []*tabledependency.DependsOn{},
+				DependsOn:   []*runconfigs.DependsOn{},
 				Columns:     []string{"id"},
 				TableSchema: "public",
 				TableName:   "accounts",
@@ -423,7 +423,7 @@ func Test_Workflow_Follows_Multiple_Dependent_Redis_Cleanup(t *testing.T) {
 			},
 			{
 				Name:        "public.foo",
-				DependsOn:   []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
+				DependsOn:   []*runconfigs.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
 				Columns:     []string{"id"},
 				TableSchema: "public",
 				TableName:   "foo",
@@ -507,7 +507,7 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosbuilder.BenthosConfigResponse{
 			{
 				Name:        "public.users",
-				DependsOn:   []*tabledependency.DependsOn{},
+				DependsOn:   []*runconfigs.DependsOn{},
 				Columns:     []string{"id"},
 				TableSchema: "public",
 				TableName:   "users",
@@ -525,7 +525,7 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 			},
 			{
 				Name:        "public.accounts",
-				DependsOn:   []*tabledependency.DependsOn{},
+				DependsOn:   []*runconfigs.DependsOn{},
 				Columns:     []string{"id"},
 				TableSchema: "public",
 				TableName:   "accounts",
@@ -543,7 +543,7 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 			},
 			{
 				Name:        "public.foo",
-				DependsOn:   []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
+				DependsOn:   []*runconfigs.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
 				Columns:     []string{"id"},
 				TableSchema: "public",
 				TableName:   "foo",
@@ -609,7 +609,7 @@ func Test_Workflow_Halts_Activities_On_InvalidAccountStatus(t *testing.T) {
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosbuilder.BenthosConfigResponse{
 			{
 				Name:        "public.users",
-				DependsOn:   []*tabledependency.DependsOn{},
+				DependsOn:   []*runconfigs.DependsOn{},
 				Columns:     []string{"id"},
 				TableSchema: "public",
 				TableName:   "users",
@@ -627,7 +627,7 @@ func Test_Workflow_Halts_Activities_On_InvalidAccountStatus(t *testing.T) {
 			},
 			{
 				Name:        "public.accounts",
-				DependsOn:   []*tabledependency.DependsOn{},
+				DependsOn:   []*runconfigs.DependsOn{},
 				Columns:     []string{"id"},
 				TableSchema: "public",
 				TableName:   "accounts",
@@ -645,7 +645,7 @@ func Test_Workflow_Halts_Activities_On_InvalidAccountStatus(t *testing.T) {
 			},
 			{
 				Name:        "public.foo",
-				DependsOn:   []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
+				DependsOn:   []*runconfigs.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
 				Columns:     []string{"id"},
 				TableSchema: "public",
 				TableName:   "foo",
@@ -712,7 +712,7 @@ func Test_Workflow_Cleans_Up_Redis_OnError(t *testing.T) {
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosbuilder.BenthosConfigResponse{
 			{
 				Name:        "public.users",
-				DependsOn:   []*tabledependency.DependsOn{},
+				DependsOn:   []*runconfigs.DependsOn{},
 				Columns:     []string{"id"},
 				TableSchema: "public",
 				TableName:   "users",
@@ -737,7 +737,7 @@ func Test_Workflow_Cleans_Up_Redis_OnError(t *testing.T) {
 			},
 			{
 				Name:        "public.accounts",
-				DependsOn:   []*tabledependency.DependsOn{},
+				DependsOn:   []*runconfigs.DependsOn{},
 				Columns:     []string{"id"},
 				TableSchema: "public",
 				TableName:   "accounts",
@@ -755,7 +755,7 @@ func Test_Workflow_Cleans_Up_Redis_OnError(t *testing.T) {
 			},
 			{
 				Name:        "public.foo",
-				DependsOn:   []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
+				DependsOn:   []*runconfigs.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
 				Columns:     []string{"id"},
 				TableSchema: "public",
 				TableName:   "foo",
@@ -849,7 +849,7 @@ func Test_Workflow_Max_InFlight(t *testing.T) {
 	for i := 0; i < numConfigs; i++ {
 		configs[i] = &benthosbuilder.BenthosConfigResponse{
 			Name:        fmt.Sprintf("config-%d", i),
-			DependsOn:   []*tabledependency.DependsOn{},
+			DependsOn:   []*runconfigs.DependsOn{},
 			TableSchema: "public",
 			TableName:   fmt.Sprintf("table%d", i),
 			Columns:     []string{"id"},
@@ -919,7 +919,7 @@ func Test_isConfigReady(t *testing.T) {
 
 	isReady, err = isConfigReady(&benthosbuilder.BenthosConfigResponse{
 		Name:      "foo",
-		DependsOn: []*tabledependency.DependsOn{},
+		DependsOn: []*runconfigs.DependsOn{},
 	},
 		nil)
 	assert.NoError(t, err)
@@ -933,7 +933,7 @@ func Test_isConfigReady(t *testing.T) {
 	completed.Store("bar", []string{"id"})
 	isReady, err = isConfigReady(&benthosbuilder.BenthosConfigResponse{
 		Name:      "foo",
-		DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id"}}, {Table: "baz", Columns: []string{"id"}}},
+		DependsOn: []*runconfigs.DependsOn{{Table: "bar", Columns: []string{"id"}}, {Table: "baz", Columns: []string{"id"}}},
 	},
 		&completed)
 	assert.NoError(t, err)
@@ -948,7 +948,7 @@ func Test_isConfigReady(t *testing.T) {
 	completed.Store("baz", []string{"id"})
 	isReady, err = isConfigReady(&benthosbuilder.BenthosConfigResponse{
 		Name:      "foo",
-		DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id"}}, {Table: "baz", Columns: []string{"id"}}},
+		DependsOn: []*runconfigs.DependsOn{{Table: "bar", Columns: []string{"id"}}, {Table: "baz", Columns: []string{"id"}}},
 	}, &completed)
 	assert.NoError(t, err)
 	assert.True(
@@ -961,7 +961,7 @@ func Test_isConfigReady(t *testing.T) {
 	completed.Store("bar", []string{"id"})
 	isReady, err = isConfigReady(&benthosbuilder.BenthosConfigResponse{
 		Name:      "foo",
-		DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id", "f_id"}}},
+		DependsOn: []*runconfigs.DependsOn{{Table: "bar", Columns: []string{"id", "f_id"}}},
 	},
 		&completed)
 	assert.NoError(t, err)
