@@ -147,7 +147,7 @@ func NewTestDataSyncWorkflowEnv(
 // ExecuteTestDataSyncWorkflow starts the test workflow with the given job ID
 func (w *TestWorkflowEnv) ExecuteTestDataSyncWorkflow(jobId string) {
 	w.TestEnv.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: jobId})
-	datasyncWorkflow := &datasync_workflow.Workflow{}
+	datasyncWorkflow := datasync_workflow.New(w.fakeEELicense)
 	w.TestEnv.ExecuteWorkflow(datasyncWorkflow.Workflow, &datasync_workflow.WorkflowRequest{JobId: jobId})
 }
 

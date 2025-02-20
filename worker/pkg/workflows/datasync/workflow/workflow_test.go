@@ -142,7 +142,7 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 	env.OnActivity(jobHookTimingActivity.RunJobHooksByTiming, mock.Anything, mock.Anything).
 		Return(&jobhooks_by_timing_activity.RunJobHooksByTimingResponse{ExecCount: 1}, nil)
 
-	syncWorkflow := &tablesync_workflow.Workflow{}
+	syncWorkflow := tablesync_workflow.New(10)
 	env.OnWorkflow(syncWorkflow.TableSync, mock.Anything, mock.Anything).
 		Return(&tablesync_workflow.TableSyncResponse{}, nil)
 
