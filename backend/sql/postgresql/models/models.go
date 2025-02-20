@@ -359,10 +359,27 @@ func (m *MongoConnectionConfig) ToDto(canViewSensitive bool) (*mgmtv1alpha1.Mong
 	if m.ClientTls != nil {
 		clienttls = m.ClientTls.ToDto(canViewSensitive)
 	}
+	uri := *m.Url
+	if !canViewSensitive {
+		uriconfig, err := url.Parse(uri)
+		if err != nil {
+			var urlErr *url.Error
+			if errors.As(err, &urlErr) {
+				return nil, fmt.Errorf("unable to parse mongo url [%s]: %w", urlErr.Op, urlErr.Err)
+			}
+			return nil, fmt.Errorf("unable to parse mongo url: %w", err)
+		}
+		if uriconfig.User != nil {
+			_, ok := uriconfig.User.Password()
+			if ok {
+				uriconfig.User = url.UserPassword(uriconfig.User.Username(), uriSensitiveValue)
+			}
+		}
+		uri = uriconfig.String()
+	}
 	return &mgmtv1alpha1.MongoConnectionConfig{
-		// todo: parse URL and replace pass with sensitiveValue if !canViewSensitive
 		ConnectionConfig: &mgmtv1alpha1.MongoConnectionConfig_Url{
-			Url: *m.Url,
+			Url: uri,
 		},
 		Tunnel:    tunnel,
 		ClientTls: clienttls,
@@ -434,7 +451,6 @@ func (d *MssqlConfig) ToDto(canViewSensitive bool) (*mgmtv1alpha1.MssqlConnectio
 		clientTls = d.ClientTls.ToDto(canViewSensitive)
 	}
 	if d.Url != nil {
-		// todo: parse URL and replace pass with sensitiveValue if !canViewSensitive
 		uri, err := dbconnectconfig.GetMssqlUri(*d.Url)
 		if err != nil {
 			return nil, err
