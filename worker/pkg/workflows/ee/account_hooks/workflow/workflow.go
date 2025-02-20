@@ -24,7 +24,7 @@ func ProcessAccountHook(wfctx workflow.Context, req *ProcessAccountHookRequest) 
 		workflow.WithActivityOptions(wfctx, workflow.ActivityOptions{
 			StartToCloseTimeout: 1 * time.Minute,
 			RetryPolicy: &temporal.RetryPolicy{
-				MaximumAttempts: 1,
+				MaximumAttempts: 3,
 			},
 			HeartbeatTimeout: 1 * time.Minute,
 			Summary:          "Retrieves the configured account hooks for the given event",

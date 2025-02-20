@@ -53,7 +53,7 @@ func Test_Workflow_BenthosConfigsFails(t *testing.T) {
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).Return(nil, errors.New("TestFailure"))
 
 	env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
-		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil)
+		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil).Twice()
 
 	datasyncWorkflow := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
@@ -123,7 +123,7 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
 		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
 	env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
-		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil)
+		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil).Twice()
 
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
