@@ -11,29 +11,11 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	_ "github.com/doug-martin/goqu/v9/dialect/sqlserver"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/doug-martin/goqu/v9/sqlgen"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tsql_parser "github.com/nucleuscloud/neosync/worker/pkg/query-builder2/tsql"
 	pg_query "github.com/pganalyze/pg_query_go/v5"
 	"github.com/xwb1989/sqlparser"
 )
-
-const (
-	mysqlDialect = "custom-mysql-dialect"
-	pageLimit    = 100_000
-)
-
-func init() {
-	goqu.RegisterDialect(mysqlDialect, buildMysqlDialect())
-}
-
-func buildMysqlDialect() *sqlgen.SQLDialectOptions {
-	opts := goqu.DefaultDialectOptions()
-	opts.QuoteRune = '`'
-	opts.SupportsWithCTERecursive = true
-	opts.SupportsWithCTE = true
-	return opts
-}
 
 type TableInfo struct {
 	Schema      string
@@ -87,9 +69,14 @@ type QueryBuilder struct {
 	tablesWithWhereConditions     set
 	pathCache                     set
 	aliasCounter                  int
+	pageLimit                     uint
 }
 
-func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool, columnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow) *QueryBuilder {
+func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool, columnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, pageLimit int) *QueryBuilder {
+	limit := uint(0)
+	if pageLimit > 0 {
+		limit = uint(pageLimit)
+	}
 	return &QueryBuilder{
 		tables:                        make(map[string]*TableInfo),
 		whereConditions:               make(map[string][]WhereCondition),
@@ -101,6 +88,7 @@ func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints
 		tablesWithWhereConditions:     make(set),
 		pathCache:                     make(set),
 		aliasCounter:                  0,
+		pageLimit:                     limit,
 	}
 }
 
@@ -116,8 +104,6 @@ func (qb *QueryBuilder) AddOrderBy(schema, tableName string, orderBy []string) {
 
 func (qb *QueryBuilder) getDialect() goqu.DialectWrapper {
 	switch qb.driver {
-	case sqlmanager_shared.MysqlDriver:
-		return goqu.Dialect(mysqlDialect)
 	case sqlmanager_shared.PostgresDriver:
 		return goqu.Dialect(sqlmanager_shared.GoquPostgresDriver)
 	default:
@@ -149,14 +135,18 @@ func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement strin
 		return "", nil, "", false, err
 	}
 
-	sql, args, err := query.Limit(pageLimit).ToSQL()
+	sql, args, err := query.Limit(qb.pageLimit).ToSQL()
 	if err != nil {
 		return "", nil, "", false, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
 	}
 
-	pageSql, _, err := pageQuery.Limit(pageLimit).ToSQL()
+	pageSql, _, err := pageQuery.Limit(qb.pageLimit).ToSQL()
 	if err != nil {
 		return "", nil, "", false, fmt.Errorf("unable to convery structured page query to string for %s.%s: %w", schema, tableName, err)
+	}
+	if qb.driver == sqlmanager_shared.MssqlDriver {
+		// MSSQL TOP needs to be cast to int
+		pageSql = strings.Replace(pageSql, "TOP (@p1)", "TOP (CAST(@p1 AS INT))", 1)
 	}
 	return sql, args, pageSql, notFkSafe, nil
 }

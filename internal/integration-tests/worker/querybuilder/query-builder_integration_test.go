@@ -12,6 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	pageLimit = 100
+)
+
 func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 	whereId := "id = 1"
 	tableDependencies := map[string][]*tabledependency.ForeignKey{
@@ -77,7 +81,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 		"genbenthosconfigs_querybuilder.item":           2,
 	}
 
-	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
+	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo, pageLimit)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -173,7 +177,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleRootSubset() {
 		"genbenthosconfigs_querybuilder.test_2_e": 2,
 	}
 
-	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
+	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo, pageLimit)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -373,7 +377,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 		"genbenthosconfigs_querybuilder.test_3_i": 1,
 	}
 
-	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
+	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo, pageLimit)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -508,7 +512,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 		"genbenthosconfigs_querybuilder.test_3_e": 1,
 	}
 
-	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
+	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo, pageLimit)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -642,7 +646,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForei
 		"genbenthosconfigs_querybuilder.test_3_e": 5,
 	}
 
-	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, false, columnInfo)
+	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, false, columnInfo, pageLimit)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -772,7 +776,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 		"genbenthosconfigs_querybuilder.payments":  1,
 	}
 
-	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
+	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo, pageLimit)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -884,7 +888,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 		"genbenthosconfigs_querybuilder.test_3_a": 5,
 	}
 
-	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
+	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo, pageLimit)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 
@@ -977,7 +981,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
 		"genbenthosconfigs_querybuilder.test_3_a": 5,
 	}
 
-	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
+	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo, pageLimit)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedCount), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -1070,7 +1074,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 		"genbenthosconfigs_querybuilder.projects":  2,
 	}
 
-	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo)
+	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfo, pageLimit)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
@@ -1342,7 +1346,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 		"genbenthosconfigs_querybuilder.attachments": 2,
 	}
 
-	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfoMap)
+	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfoMap, pageLimit)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 
@@ -1481,7 +1485,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
 		"genbenthosconfigs_querybuilder.network_users": 1,
 	}
 
-	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfoMap)
+	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, columnInfoMap, pageLimit)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	allrows := []pgx.Rows{}
@@ -1764,7 +1768,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 		"mssqltest.attachments": 2,
 	}
 
-	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.MssqlDriver, dependencyConfigs, true, columnInfoMap)
+	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.MssqlDriver, dependencyConfigs, true, columnInfoMap, pageLimit)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
