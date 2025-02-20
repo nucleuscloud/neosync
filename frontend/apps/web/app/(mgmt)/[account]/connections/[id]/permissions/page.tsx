@@ -62,8 +62,8 @@ export default function PermissionsPage({ params }: PageProps) {
     isLoading: isCheckConnLoading,
     isFetching,
     refetch: refetchCheckConnectionConfig,
-  } = useQuery(ConnectionService.method.checkConnectionConfig, {
-    connectionConfig: data?.connection?.connectionConfig,
+  } = useQuery(ConnectionService.method.checkConnectionConfigById, {
+    id,
   });
 
   const columns = useMemo(
