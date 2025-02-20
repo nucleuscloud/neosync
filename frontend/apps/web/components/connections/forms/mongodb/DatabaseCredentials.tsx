@@ -63,6 +63,7 @@ function UrlTab(props: UrlTabProps): ReactElement {
         title="Connection URL"
         description="The URL of the database"
         isErrored={!!error}
+        isRequired={true}
       />
       {isViewMode ? (
         <SecurePasswordInput

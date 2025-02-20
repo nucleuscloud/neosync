@@ -26,7 +26,7 @@ interface DynamoDbFormStore extends BaseStore<DynamoDbFormValues> {
 
 function getInitialFormState(): DynamoDbFormValues {
   return {
-    connectionName: 'my-connection',
+    connectionName: '',
     advanced: {
       region: '',
       endpoint: '',

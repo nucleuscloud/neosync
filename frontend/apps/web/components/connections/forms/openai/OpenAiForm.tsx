@@ -16,7 +16,7 @@ interface OpenAiFormStore extends BaseStore<OpenAiFormValues> {
 
 function getInitialFormState(): OpenAiFormValues {
   return {
-    connectionName: 'my-connection',
+    connectionName: '',
     sdk: {
       url: 'https://api.openai.com/v1',
       apiKey: '',

@@ -21,6 +21,7 @@ export default function Bucket(props: Props): ReactElement {
           title="Bucket"
           description="The S3 bucket"
           isErrored={!!errors['s3.bucket']}
+          isRequired={true}
         />
         <Input
           id="bucket"

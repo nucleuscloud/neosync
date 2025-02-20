@@ -151,6 +151,7 @@ function UrlTab(props: UrlTabProps): ReactElement {
         title="Connection URL"
         description="The URL of the database"
         isErrored={!!error}
+        isRequired={true}
       />
       {isViewMode ? (
         <SecurePasswordInput
@@ -200,6 +201,7 @@ Must start with "USER_DEFINED_". Must be present on
 both the backend and the worker processes for full
 functionality.`}
         isErrored={!!error}
+        isRequired={true}
       />
       <Input
         id="envVar"
@@ -238,6 +240,7 @@ function HostTab(props: HostTabProps): ReactElement {
           title="Host"
           description="The host name"
           isErrored={!!errors.host}
+          isRequired={true}
         />
         <Input
           id="host"
@@ -257,6 +260,7 @@ function HostTab(props: HostTabProps): ReactElement {
           title="Port"
           description="The port number"
           isErrored={!!errors.port}
+          isRequired={true}
         />
         <Input
           id="port"
@@ -275,6 +279,7 @@ function HostTab(props: HostTabProps): ReactElement {
           title="Database Name"
           description="The name of the database"
           isErrored={!!errors.name}
+          isRequired={true}
         />
         <Input
           id="name"
@@ -292,6 +297,7 @@ function HostTab(props: HostTabProps): ReactElement {
           title="Username"
           description="The username for the database"
           isErrored={!!errors.user}
+          isRequired={true}
         />
         <Input
           id="user"
@@ -309,6 +315,7 @@ function HostTab(props: HostTabProps): ReactElement {
           title="Password"
           description="The password for the database"
           isErrored={!!errors.pass}
+          isRequired={true}
         />
         {isViewMode ? (
           <SecurePasswordInput
@@ -342,6 +349,7 @@ function HostTab(props: HostTabProps): ReactElement {
           title="Connection Protocol"
           description="The protocol to use for the connection"
           isErrored={!!errors.protocol}
+          isRequired={true}
         />
         <Select
           onValueChange={(value) =>

@@ -28,7 +28,7 @@ interface PostgresFormStore extends BaseStore<PostgresFormValues> {
 
 function getInitialFormState(): PostgresFormValues {
   return {
-    connectionName: 'my-connection',
+    connectionName: '',
     activeTab: 'url',
     url: '',
     envVar: '',

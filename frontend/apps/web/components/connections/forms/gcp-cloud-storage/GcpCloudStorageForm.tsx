@@ -18,7 +18,7 @@ interface GcpCloudStorageFormStore
 
 function getInitialFormState(): GcpCloudStorageFormValues {
   return {
-    connectionName: 'my-connection',
+    connectionName: '',
     gcp: {
       bucket: '',
       pathPrefix: '',

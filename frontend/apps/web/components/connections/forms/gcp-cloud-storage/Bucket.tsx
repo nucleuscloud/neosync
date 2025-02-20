@@ -21,6 +21,7 @@ export default function Bucket(props: Props): ReactElement {
           title="Bucket"
           description="The GCP Cloud Storage bucket"
           isErrored={!!errors['gcp.bucket']}
+          isRequired={true}
         />
         <Input
           id="bucket"

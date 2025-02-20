@@ -59,6 +59,7 @@ export function Name(props: NameProps): ReactElement {
         title="Name"
         description="Name of the connection for display and reference, must be unique"
         isErrored={!!error}
+        isRequired={true}
       />
       <Input
         id="name"

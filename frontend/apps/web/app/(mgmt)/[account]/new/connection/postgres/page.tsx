@@ -1,3 +1,4 @@
+'use client';
 import PostgresConnectionForm from '@/components/connections/forms/postgres/PostgresConnectionForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';

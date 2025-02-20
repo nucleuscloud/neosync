@@ -21,7 +21,7 @@ interface AwsS3FormStore extends BaseStore<AwsFormValues> {
 
 function getInitialFormState(): AwsFormValues {
   return {
-    connectionName: 'my-connection',
+    connectionName: '',
     s3: {
       bucket: '',
       pathPrefix: '',

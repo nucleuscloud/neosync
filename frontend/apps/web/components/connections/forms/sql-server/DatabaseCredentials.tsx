@@ -121,6 +121,7 @@ function UrlTab(props: UrlTabProps): ReactElement {
         title="Connection URL"
         description="The URL of the database"
         isErrored={!!error}
+        isRequired={true}
       />
       {isViewMode ? (
         <SecurePasswordInput
@@ -170,6 +171,7 @@ Must start with "USER_DEFINED_". Must be present on
 both the backend and the worker processes for full
 functionality.`}
         isErrored={!!error}
+        isRequired={true}
       />
       <Input
         id="envVar"

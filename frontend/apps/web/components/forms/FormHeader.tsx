@@ -8,17 +8,26 @@ interface FormHeaderProps {
   containerClassName?: string;
   isErrored?: boolean;
   htmlFor?: string;
+  isRequired?: boolean;
 }
 
 // This is intended to replace the shadcn form entirely by being completely stateless to any specific form(s)
 export default function FormHeader(props: FormHeaderProps): ReactElement {
-  const { title, description, containerClassName, isErrored, htmlFor } = props;
+  const {
+    title,
+    description,
+    containerClassName,
+    isErrored,
+    htmlFor,
+    isRequired,
+  } = props;
   return (
     <div className={containerClassName}>
       <Label
         htmlFor={htmlFor}
         className={cn(isErrored ? 'text-destructive' : undefined)}
       >
+        {isRequired && <span className="text-destructive mr-1">*</span>}
         {title}
       </Label>
       <Description>{description}</Description>

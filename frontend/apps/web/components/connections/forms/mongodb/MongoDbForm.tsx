@@ -26,7 +26,7 @@ interface MongoDbFormStore extends BaseStore<MongoDbFormValues> {
 
 function getInitialFormState(): MongoDbFormValues {
   return {
-    connectionName: 'my-connection',
+    connectionName: '',
     url: '',
     clientTls: {
       clientCert: '',
