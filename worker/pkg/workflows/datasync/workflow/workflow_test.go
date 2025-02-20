@@ -12,6 +12,7 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	"github.com/nucleuscloud/neosync/internal/testutil"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
@@ -19,10 +20,10 @@ import (
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
+	accounthook_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow"
 	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
 	"go.uber.org/atomic"
 
-	// sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -51,16 +52,18 @@ func Test_Workflow_BenthosConfigsFails(t *testing.T) {
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).Return(nil, errors.New("TestFailure"))
 
-	datasyncWorkflow := &Workflow{}
+	env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil)
+
+	datasyncWorkflow := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
-	assert.True(t, env.IsWorkflowCompleted())
 
 	err := env.GetWorkflowError()
-	assert.Error(t, err)
+	require.Error(t, err)
 	var applicationErr *temporal.ApplicationError
-	assert.True(t, errors.As(err, &applicationErr))
+	require.True(t, errors.As(err, &applicationErr))
 	assert.Equal(t, "TestFailure", applicationErr.Error())
 
 	env.AssertExpectations(t)
@@ -81,12 +84,14 @@ func Test_Workflow_Succeeds_Zero_BenthosConfigs(t *testing.T) {
 	var accStatsActivity *accountstatus_activity.Activity
 	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
 		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
+	env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil)
 
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosbuilder.BenthosConfigResponse{}}, nil)
 
-	datasyncWorkflow := &Workflow{}
+	datasyncWorkflow := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
@@ -117,6 +122,8 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 	var accStatsActivity *accountstatus_activity.Activity
 	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
 		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
+	env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil)
 
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
@@ -139,7 +146,7 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 	env.OnWorkflow(syncWorkflow.TableSync, mock.Anything, mock.Anything).
 		Return(&tablesync_workflow.TableSyncResponse{}, nil)
 
-	datasyncWorkflow := &Workflow{}
+	datasyncWorkflow := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted(), "Workflow did not complete as expected")
@@ -162,6 +169,8 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 	var accStatsActivity *accountstatus_activity.Activity
 	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
 		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
+	env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil)
 
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
@@ -234,7 +243,7 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 			return &tablesync_workflow.TableSyncResponse{}, nil
 		})
 
-	datasyncWorkflow := &Workflow{}
+	datasyncWorkflow := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
@@ -258,6 +267,9 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 	var accStatsActivity *accountstatus_activity.Activity
 	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
 		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
+	env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil)
+
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosbuilder.BenthosConfigResponse{
@@ -349,7 +361,7 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 			return &tablesync_workflow.TableSyncResponse{}, nil
 		})
 
-	datasyncWorkflow := &Workflow{}
+	datasyncWorkflow := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
@@ -373,6 +385,8 @@ func Test_Workflow_Follows_Multiple_Dependent_Redis_Cleanup(t *testing.T) {
 	var accStatsActivity *accountstatus_activity.Activity
 	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
 		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
+	env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil)
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosbuilder.BenthosConfigResponse{
@@ -486,7 +500,7 @@ func Test_Workflow_Follows_Multiple_Dependent_Redis_Cleanup(t *testing.T) {
 			return &syncrediscleanup_activity.DeleteRedisHashResponse{}, nil
 		})
 
-	datasyncWorkflow := &Workflow{}
+	datasyncWorkflow := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
@@ -579,6 +593,8 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 	var accStatsActivity *accountstatus_activity.Activity
 	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
 		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
+	env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil)
 
 	var jobHookTimingActivity *jobhooks_by_timing_activity.Activity
 	env.OnActivity(jobHookTimingActivity.RunJobHooksByTiming, mock.Anything, mock.Anything).
@@ -593,7 +609,7 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 			return &tablesync_workflow.TableSyncResponse{}, nil
 		})
 
-	datasyncWorkflow := &Workflow{}
+	datasyncWorkflow := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	require.True(t, env.IsWorkflowCompleted())
@@ -686,6 +702,9 @@ func Test_Workflow_Halts_Activities_On_InvalidAccountStatus(t *testing.T) {
 	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
 		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: false}, nil).Once()
 
+	env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil)
+
 	var jobHookTimingActivity *jobhooks_by_timing_activity.Activity
 	env.OnActivity(jobHookTimingActivity.RunJobHooksByTiming, mock.Anything, mock.Anything).
 		Return(&jobhooks_by_timing_activity.RunJobHooksByTimingResponse{ExecCount: 1}, nil)
@@ -697,7 +716,7 @@ func Test_Workflow_Halts_Activities_On_InvalidAccountStatus(t *testing.T) {
 			return &tablesync_workflow.TableSyncResponse{}, nil
 		})
 
-	datasyncWorkflow := &Workflow{}
+	datasyncWorkflow := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	require.True(t, env.IsWorkflowCompleted())
@@ -794,6 +813,9 @@ func Test_Workflow_Cleans_Up_Redis_OnError(t *testing.T) {
 	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
 		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
 
+	env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil)
+
 	var jobHookTimingActivity *jobhooks_by_timing_activity.Activity
 	env.OnActivity(jobHookTimingActivity.RunJobHooksByTiming, mock.Anything, mock.Anything).
 		Return(&jobhooks_by_timing_activity.RunJobHooksByTimingResponse{ExecCount: 1}, nil)
@@ -815,7 +837,7 @@ func Test_Workflow_Cleans_Up_Redis_OnError(t *testing.T) {
 			return &syncrediscleanup_activity.DeleteRedisHashResponse{}, nil
 		})
 
-	datasyncWorkflow := &Workflow{}
+	datasyncWorkflow := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
@@ -850,6 +872,9 @@ func Test_Workflow_Max_InFlight(t *testing.T) {
 	var accStatsActivity *accountstatus_activity.Activity
 	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
 		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
+
+	env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil)
 
 	// Return several root configurations so that all can be started concurrently.
 	var genact *genbenthosconfigs_activity.Activity
@@ -904,7 +929,7 @@ func Test_Workflow_Max_InFlight(t *testing.T) {
 			return &tablesync_workflow.TableSyncResponse{}, nil
 		})
 
-	datasyncWorkflow := &Workflow{}
+	datasyncWorkflow := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{JobId: "test-job"})
 
 	require.True(t, env.IsWorkflowCompleted())
@@ -1048,7 +1073,10 @@ func Test_Workflow_Initial_AccountStatus(t *testing.T) {
 			Reason:  shared.Ptr("test failure"),
 		}, nil)
 
-	datasyncWorkflow := &Workflow{}
+	env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+		Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil)
+
+	datasyncWorkflow := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 	env.ExecuteWorkflow(datasyncWorkflow.Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
