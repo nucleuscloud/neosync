@@ -1,5 +1,6 @@
 import Submit from '@/components/forms/Submit';
 import { useAccount } from '@/components/providers/account-provider';
+import SystemLicenseAlert from '@/components/SystemLicenseAlert';
 import { BaseStore } from '@/util/zustand.stores.util';
 import { GcpCloudStorageFormValues } from '@/yup-validations/connections';
 import { useMutation } from '@connectrpc/connect-query';
@@ -53,13 +54,7 @@ interface Props {
 }
 
 export default function GcpCloudStorageForm(props: Props): ReactElement {
-  const {
-    mode,
-    initialValues,
-    onSubmit,
-    canViewSecrets = false,
-    getValueWithSecrets,
-  } = props;
+  const { mode, initialValues, onSubmit } = props;
   const { account } = useAccount();
   const {
     formData,
@@ -125,6 +120,8 @@ export default function GcpCloudStorageForm(props: Props): ReactElement {
 
   const formContent = (
     <>
+      <SystemLicenseAlert />
+
       <Name
         error={errors.connectionName}
         value={formData.connectionName}

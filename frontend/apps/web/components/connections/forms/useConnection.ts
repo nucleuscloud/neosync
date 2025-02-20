@@ -13,13 +13,13 @@ import { usePostHog } from 'posthog-js/react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-export interface CreateProps<T> {
+interface CreateProps<T> {
   mode: 'create';
   buildConnectionConfig(formValues: T): ConnectionConfig;
   onSuccess(conn: Connection): Promise<void> | void;
 }
 
-export interface EditProps<T> {
+interface EditProps<T> {
   mode: 'edit';
   connection: Connection;
   buildConnectionConfig(formValues: T): ConnectionConfig;
@@ -27,7 +27,7 @@ export interface EditProps<T> {
   onSuccess(conn: Connection): Promise<void> | void;
 }
 
-export interface ViewProps<T> {
+interface ViewProps<T> {
   mode: 'view';
   connection: Connection;
 
@@ -35,7 +35,7 @@ export interface ViewProps<T> {
   toFormValues(connection: Connection): T | undefined;
 }
 
-export interface CloneProps<T> {
+interface CloneProps<T> {
   mode: 'clone';
   connection: Connection;
   toFormValues(connection: Connection): T | undefined;

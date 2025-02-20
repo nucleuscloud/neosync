@@ -337,7 +337,7 @@ export type GcpCloudStorageFormValues = Yup.InferType<
   typeof GcpCloudStorageFormValues
 >;
 
-export interface CreateConnectionFormContext {
+interface CreateConnectionFormContext {
   accountId: string;
 
   isConnectionNameAvailable: UseMutateAsyncFunction<
@@ -351,34 +351,32 @@ export interface CreateConnectionFormContext {
 export type ActiveConnectionTab = 'url' | 'host' | 'url-env';
 export type MssqlActiveConnectionTab = 'url' | 'url-env';
 
-export interface MysqlCreateConnectionFormContext
+interface MysqlCreateConnectionFormContext extends CreateConnectionFormContext {
+  activeTab: ActiveConnectionTab;
+}
+
+interface MssqlCreateConnectionFormContext extends CreateConnectionFormContext {
+  activeTab: ActiveConnectionTab;
+}
+
+interface PostgresCreateConnectionFormContext
   extends CreateConnectionFormContext {
   activeTab: ActiveConnectionTab;
 }
 
-export type MssqlCreateConnectionFormContext = CreateConnectionFormContext;
-
-export interface PostgresCreateConnectionFormContext
-  extends CreateConnectionFormContext {
-  activeTab: ActiveConnectionTab;
-}
-
-export interface EditConnectionFormContext extends CreateConnectionFormContext {
+interface EditConnectionFormContext extends CreateConnectionFormContext {
   originalConnectionName: string;
 }
 
-export interface PostgresEditConnectionFormContext
-  extends EditConnectionFormContext {
+interface PostgresEditConnectionFormContext extends EditConnectionFormContext {
   activeTab: ActiveConnectionTab;
 }
 
-export interface MysqlEditConnectionFormContext
-  extends EditConnectionFormContext {
+interface MysqlEditConnectionFormContext extends EditConnectionFormContext {
   activeTab: ActiveConnectionTab;
 }
 
-export interface MssqlEditConnectionFormContext
-  extends EditConnectionFormContext {
+interface MssqlEditConnectionFormContext extends EditConnectionFormContext {
   activeTab: MssqlActiveConnectionTab;
 }
 

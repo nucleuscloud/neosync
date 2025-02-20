@@ -1,5 +1,6 @@
 import Submit from '@/components/forms/Submit';
 import { useAccount } from '@/components/providers/account-provider';
+import SystemLicenseAlert from '@/components/SystemLicenseAlert';
 import { BaseStore } from '@/util/zustand.stores.util';
 import { AwsFormValues } from '@/yup-validations/connections';
 import { useMutation } from '@connectrpc/connect-query';
@@ -141,6 +142,8 @@ export default function AwsS3Form(props: Props): ReactElement {
 
   const formContent = (
     <>
+      <SystemLicenseAlert />
+
       <Name
         error={errors.connectionName}
         value={formData.connectionName}

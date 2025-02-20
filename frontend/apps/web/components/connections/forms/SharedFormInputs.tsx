@@ -204,7 +204,7 @@ interface ClientTlsProps extends SecretRevealProps<ClientTlsFormValues> {
   errors: Record<string, string>;
 }
 
-export function ClientTls(props: ClientTlsProps): ReactElement {
+function ClientTls(props: ClientTlsProps): ReactElement {
   const { value, onChange, errors, isViewMode, canViewSecrets, onRevealClick } =
     props;
 
@@ -327,7 +327,7 @@ interface SSHTunnelProps extends SecretRevealProps<SshTunnelFormValues> {
   errors: Record<string, string>;
 }
 
-export function SSHTunnel(props: SSHTunnelProps): ReactElement {
+function SSHTunnel(props: SSHTunnelProps): ReactElement {
   const { value, onChange, errors, isViewMode, canViewSecrets, onRevealClick } =
     props;
 
