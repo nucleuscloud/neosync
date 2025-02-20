@@ -2,11 +2,15 @@ import { Alert } from '@/components/ui/alert';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { CheckConnectionConfigResponse } from '@neosync/sdk';
+import {
+  CheckConnectionConfigByIdResponse,
+  CheckConnectionConfigResponse,
+} from '@neosync/sdk';
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,
@@ -20,7 +24,9 @@ import PermissionsDataTable from './PermissionsDataTable';
 import { PermissionConnectionType, getPermissionColumns } from './columns';
 
 interface Props {
-  checkResponse: CheckConnectionConfigResponse;
+  checkResponse:
+    | CheckConnectionConfigResponse
+    | CheckConnectionConfigByIdResponse;
   openPermissionDialog: boolean;
   setOpenPermissionDialog(open: boolean): void;
   isValidating: boolean;
@@ -51,10 +57,10 @@ export default function PermissionsDialog(props: Props): ReactElement {
             <DialogTitle>Connection Permissions</DialogTitle>
             {isValidating ? <Spinner /> : null}
           </div>
-          <div className="text-muted-foreground text-sm">
+          <DialogDescription className="text-muted-foreground text-sm">
             Review the permissions that Neosync needs for your connection.{' '}
             <LearnMoreLink href="https://docs.neosync.dev/connections/postgres#permissions" />{' '}
-          </div>
+          </DialogDescription>
         </DialogHeader>
         <PermissionsDataTable
           ConnectionAlert={

@@ -12,7 +12,7 @@ import { getDurationValidateFn } from './number';
 /* This is the standard regular expression we assign to all or most "name" fields on the backend. */
 export const RESOURCE_NAME_REGEX = /^[a-z0-9-]{3,100}$/;
 
-const connectionNameSchema = Yup.string()
+const connectionNameSchema = Yup.string<string, EditConnectionFormContext>()
   .required('Connection Name is a required field.')
   .min(3, 'The Connection name must be longer than 3 characters.')
   .max(100, 'The Connection name must be less than or equal to 100 characters.')
@@ -46,14 +46,8 @@ const connectionNameSchema = Yup.string()
       }
 
       try {
-        const isConnectionNameAvailable:
-          | UseMutateAsyncFunction<
-              IsConnectionNameAvailableResponse,
-              ConnectError,
-              MessageInitShape<typeof IsConnectionNameAvailableRequestSchema>,
-              unknown
-            >
-          | undefined = context?.options?.context?.isConnectionNameAvailable;
+        const isConnectionNameAvailable =
+          context?.options?.context?.isConnectionNameAvailable;
         if (isConnectionNameAvailable) {
           const res = await isConnectionNameAvailable(
             create(IsConnectionNameAvailableRequestSchema, {
@@ -159,93 +153,119 @@ const UrlEnvVarFormValue = Yup.string().when('$activeTab', {
   otherwise: (schema) => schema.notRequired(),
 });
 
-export const MysqlFormValues = Yup.object({
+const MysqlDbFormValue = Yup.object().shape({
+  host: Yup.string().when('$activeTab', {
+    is: 'host', // Only require if activeTab is 'host'
+    then: (schema) => schema.required('The host name is required.'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  name: Yup.string().when('$activeTab', {
+    is: 'host',
+    then: (schema) => schema.required('The database name is required.'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  user: Yup.string().when('$activeTab', {
+    is: 'host',
+    then: (schema) => schema.required('The database user is required.'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  pass: Yup.string().when('$activeTab', {
+    is: 'host',
+    then: (schema) => schema.required('The database password is required.'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  port: Yup.number()
+    .integer()
+    .positive()
+    .when('$activeTab', {
+      is: 'host',
+      then: (schema) => schema.required('A database port is required.'),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+  protocol: Yup.string().when('$activeTab', {
+    is: 'host',
+    then: (schema) => schema.required('The database protocol is required.'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+});
+
+export const MysqlFormValues = Yup.object<
+  MysqlCreateConnectionFormContext | MysqlEditConnectionFormContext
+>().shape({
   connectionName: connectionNameSchema,
-  db: Yup.object({
-    host: Yup.string().when('$activeTab', {
-      is: 'host', // Only require if activeTab is 'host'
-      then: (schema) => schema.required('The host name is required.'),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-    name: Yup.string().when('$activeTab', {
-      is: 'host',
-      then: (schema) => schema.required('The database name is required.'),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-    user: Yup.string().when('$activeTab', {
-      is: 'host',
-      then: (schema) => schema.required('The database user is required.'),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-    pass: Yup.string().when('$activeTab', {
-      is: 'host',
-      then: (schema) => schema.required('The database password is required.'),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-    port: Yup.number()
-      .integer()
-      .positive()
-      .when('$activeTab', {
-        is: 'host',
-        then: (schema) => schema.required('A database port is required.'),
-        otherwise: (schema) => schema.notRequired(),
-      }),
-    protocol: Yup.string().when('$activeTab', {
-      is: 'host',
-      then: (schema) => schema.required('The database protocol is required.'),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-  }).required('The database credentials are required.'),
+  db: MysqlDbFormValue,
   url: UrlFormValue,
   envVar: UrlEnvVarFormValue,
   tunnel: SshTunnelFormValues,
   options: SqlOptionsFormValues,
   clientTls: ClientTlsFormValues,
+
+  activeTab: Yup.string().oneOf<ActiveConnectionTab>([
+    'url',
+    'host',
+    'url-env',
+  ]),
 });
 
 export type MysqlFormValues = Yup.InferType<typeof MysqlFormValues>;
 
-export const PostgresFormValues = Yup.object({
-  connectionName: connectionNameSchema,
-  db: Yup.object({
-    host: Yup.string().when('$activeTab', {
-      is: 'host', // Only require if activeTab is 'host'
-      then: (schema) => schema.required('The host name is required.'),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-    name: Yup.string().when('$activeTab', {
-      is: 'host',
-      then: (schema) => schema.required('The database name is required'),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-    user: Yup.string().when('$activeTab', {
-      is: 'host',
-      then: (schema) => schema.required('The database user is required'),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-    pass: Yup.string().when('$activeTab', {
-      is: 'host',
-      then: (schema) => schema.required('The database password is required'),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-    port: Yup.number()
-      .integer()
-      .positive()
-      .when('$activeTab', {
-        is: 'host',
-        then: (schema) => schema.required('The database port is required'),
-        otherwise: (schema) => schema.notRequired(),
-      }),
-    sslMode: Yup.string().optional(),
+const PostgresDbFormValue = Yup.object().shape({
+  host: Yup.string().when('$activeTab', {
+    is: 'host', // Only require if activeTab is 'host'
+    then: (schema) => schema.required('The host name is required.'),
+    otherwise: (schema) => schema.notRequired(),
   }),
+  name: Yup.string().when('$activeTab', {
+    is: 'host',
+    then: (schema) => schema.required('The database name is required'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  user: Yup.string().when('$activeTab', {
+    is: 'host',
+    then: (schema) => schema.required('The database user is required'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  pass: Yup.string().when('$activeTab', {
+    is: 'host',
+    then: (schema) => schema.required('The database password is required'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  port: Yup.number()
+    .integer()
+    .positive()
+    .when('$activeTab', {
+      is: 'host',
+      then: (schema) => schema.required('The database port is required'),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+  sslMode: Yup.string().optional(),
+});
+
+export const PostgresFormValues = Yup.object<
+  PostgresCreateConnectionFormContext | PostgresEditConnectionFormContext
+>().shape({
+  connectionName: connectionNameSchema,
+  db: PostgresDbFormValue,
   url: UrlFormValue,
   envVar: UrlEnvVarFormValue,
   tunnel: SshTunnelFormValues,
   options: SqlOptionsFormValues,
   clientTls: ClientTlsFormValues,
+
+  activeTab: Yup.string().oneOf<ActiveConnectionTab>([
+    'url',
+    'host',
+    'url-env',
+  ]),
 });
 
 export type PostgresFormValues = Yup.InferType<typeof PostgresFormValues>;
+
+const AwsAdvancedFormValues = Yup.object().shape({
+  region: Yup.string().optional(),
+  endpoint: Yup.string().optional(),
+});
+export type AwsAdvancedFormValues = Yup.InferType<typeof AwsAdvancedFormValues>;
 
 const AwsCredentialsFormValues = Yup.object({
   profile: Yup.string().optional(),
@@ -260,54 +280,66 @@ export type AwsCredentialsFormValues = Yup.InferType<
   typeof AwsCredentialsFormValues
 >;
 
-export const AwsFormValues = Yup.object({
-  connectionName: connectionNameSchema,
-  s3: Yup.object({
+const AwsS3DbFormValue = Yup.object()
+  .shape({
     bucket: Yup.string().required('The Bucket name is required.'),
     pathPrefix: Yup.string().optional(),
-    region: Yup.string().optional(),
-    endpoint: Yup.string().optional(),
-    credentials: AwsCredentialsFormValues.optional(),
-  }).required('The AWS form fields are required.'),
+  })
+  .required('The AWS form fields are required.');
+
+export const AwsFormValues = Yup.object<
+  CreateConnectionFormContext | EditConnectionFormContext
+>().shape({
+  connectionName: connectionNameSchema,
+  s3: AwsS3DbFormValue,
+  advanced: AwsAdvancedFormValues.optional(),
+  credentials: AwsCredentialsFormValues.optional(),
 });
 
 export type AwsFormValues = Yup.InferType<typeof AwsFormValues>;
 
-export const DynamoDbFormValues = Yup.object({
+export const DynamoDbFormValues = Yup.object<
+  CreateConnectionFormContext | EditConnectionFormContext
+>().shape({
   connectionName: connectionNameSchema,
-  db: Yup.object({
-    region: Yup.string().optional(),
-    endpoint: Yup.string().optional(),
-    credentials: AwsCredentialsFormValues.optional(),
-  }).required('The Dynamo DB form fields are required.'),
+  advanced: AwsAdvancedFormValues.optional(),
+  credentials: AwsCredentialsFormValues.optional(),
 });
 
 export type DynamoDbFormValues = Yup.InferType<typeof DynamoDbFormValues>;
 
-export const MssqlFormValues = Yup.object({
+export const MssqlFormValues = Yup.object<
+  MssqlCreateConnectionFormContext | MssqlEditConnectionFormContext
+>().shape({
   connectionName: connectionNameSchema,
   url: UrlFormValue,
   envVar: UrlEnvVarFormValue,
   options: SqlOptionsFormValues,
   tunnel: SshTunnelFormValues,
   clientTls: ClientTlsFormValues,
+
+  activeTab: Yup.string().oneOf<MssqlActiveConnectionTab>(['url', 'url-env']),
 });
 
 export type MssqlFormValues = Yup.InferType<typeof MssqlFormValues>;
 
-export const GcpCloudStorageFormValues = Yup.object({
+export const GcpCloudStorageFormValues = Yup.object<
+  CreateConnectionFormContext | EditConnectionFormContext
+>().shape({
   connectionName: connectionNameSchema,
-  gcp: Yup.object({
-    bucket: Yup.string().required('The Bucket is required.'),
-    pathPrefix: Yup.string().optional(),
-  }).required('The GCP form fields are required.'),
+  gcp: Yup.object()
+    .shape({
+      bucket: Yup.string().required('The Bucket is required.'),
+      pathPrefix: Yup.string().optional(),
+    })
+    .required('The GCP form fields are required.'),
 });
 
 export type GcpCloudStorageFormValues = Yup.InferType<
   typeof GcpCloudStorageFormValues
 >;
 
-export interface CreateConnectionFormContext {
+interface CreateConnectionFormContext {
   accountId: string;
 
   isConnectionNameAvailable: UseMutateAsyncFunction<
@@ -321,38 +353,38 @@ export interface CreateConnectionFormContext {
 export type ActiveConnectionTab = 'url' | 'host' | 'url-env';
 export type MssqlActiveConnectionTab = 'url' | 'url-env';
 
-export interface MysqlCreateConnectionFormContext
+interface MysqlCreateConnectionFormContext extends CreateConnectionFormContext {
+  activeTab: ActiveConnectionTab;
+}
+
+interface MssqlCreateConnectionFormContext extends CreateConnectionFormContext {
+  activeTab: ActiveConnectionTab;
+}
+
+interface PostgresCreateConnectionFormContext
   extends CreateConnectionFormContext {
   activeTab: ActiveConnectionTab;
 }
 
-export type MssqlCreateConnectionFormContext = CreateConnectionFormContext;
-
-export interface PostgresCreateConnectionFormContext
-  extends CreateConnectionFormContext {
-  activeTab: ActiveConnectionTab;
-}
-
-export interface EditConnectionFormContext extends CreateConnectionFormContext {
+interface EditConnectionFormContext extends CreateConnectionFormContext {
   originalConnectionName: string;
 }
 
-export interface PostgresEditConnectionFormContext
-  extends EditConnectionFormContext {
+interface PostgresEditConnectionFormContext extends EditConnectionFormContext {
   activeTab: ActiveConnectionTab;
 }
 
-export interface MysqlEditConnectionFormContext
-  extends EditConnectionFormContext {
+interface MysqlEditConnectionFormContext extends EditConnectionFormContext {
   activeTab: ActiveConnectionTab;
 }
 
-export interface MssqlEditConnectionFormContext
-  extends EditConnectionFormContext {
+interface MssqlEditConnectionFormContext extends EditConnectionFormContext {
   activeTab: MssqlActiveConnectionTab;
 }
 
-export const OpenAiFormValues = Yup.object({
+export const OpenAiFormValues = Yup.object<
+  CreateConnectionFormContext | EditConnectionFormContext
+>().shape({
   connectionName: connectionNameSchema,
   sdk: Yup.object({
     url: Yup.string().required('A URL must be provided.'),
@@ -362,12 +394,16 @@ export const OpenAiFormValues = Yup.object({
 
 export type OpenAiFormValues = Yup.InferType<typeof OpenAiFormValues>;
 
-export const MongoDbFormValues = Yup.object({
-  connectionName: connectionNameSchema,
+export const MongoDbFormValues = Yup.object<
+  CreateConnectionFormContext | EditConnectionFormContext
+>()
+  .shape({
+    connectionName: connectionNameSchema,
 
-  url: Yup.string().required('The Url is required.'),
+    url: Yup.string().required('The Url is required.'),
 
-  clientTls: ClientTlsFormValues,
-}).required('The MongoDB form fields are required.');
+    clientTls: ClientTlsFormValues,
+  })
+  .required('The MongoDB form fields are required.');
 
 export type MongoDbFormValues = Yup.InferType<typeof MongoDbFormValues>;

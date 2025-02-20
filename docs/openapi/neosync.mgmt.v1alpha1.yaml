@@ -4467,6 +4467,82 @@ paths:
                 $ref: '#/components/schemas/connect.error'
       security:
         - BearerAuth: []
+  /mgmt.v1alpha1.UserAccountService/HasPermission:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: HasPermission
+      description: Checks if the user has the given permission
+      operationId: mgmt.v1alpha1.UserAccountService.HasPermission
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.HasPermissionRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.HasPermissionResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.UserAccountService/HasPermissions:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: HasPermissions
+      description: Bulk check if a user has the given permissions
+      operationId: mgmt.v1alpha1.UserAccountService.HasPermissions
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.HasPermissionsRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.HasPermissionsResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
 components:
   schemas:
     mgmt.v1alpha1.AccountHookEvent:
@@ -7947,6 +8023,13 @@ components:
           title: id
           format: uuid
           description: The unique identifier of the connection to get
+        excludeSensitive:
+          type: boolean
+          title: exclude_sensitive
+          description: |-
+            Whether or not to exclude sensitive data from the connection
+             If the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data
+             This behavior exists to preserve backwards compatibility that originally always returned sensitive data
       title: GetConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionResponse:
@@ -7967,6 +8050,13 @@ components:
           title: account_id
           format: uuid
           description: The unique identifier of the account to get connections for
+        excludeSensitive:
+          type: boolean
+          title: exclude_sensitive
+          description: |-
+            Whether or not to exclude sensitive data from the connection
+             If the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data
+             This behavior exists to preserve backwards compatibility that originally always returned sensitive data
       title: GetConnectionsRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionsResponse:
@@ -14225,6 +14315,23 @@ components:
         - BILLING_STATUS_EXPIRED
         - BILLING_STATUS_TRIAL_ACTIVE
         - BILLING_STATUS_TRIAL_EXPIRED
+    mgmt.v1alpha1.ResourcePermission.Action:
+      type: string
+      title: Action
+      enum:
+        - ACTION_UNSPECIFIED
+        - ACTION_CREATE
+        - ACTION_READ
+        - ACTION_UPDATE
+        - ACTION_DELETE
+    mgmt.v1alpha1.ResourcePermission.Type:
+      type: string
+      title: Type
+      enum:
+        - TYPE_UNSPECIFIED
+        - TYPE_ACCOUNT
+        - TYPE_CONNECTION
+        - TYPE_JOB
     mgmt.v1alpha1.UserAccountType:
       type: string
       title: UserAccountType
@@ -14730,6 +14837,57 @@ components:
           description: The unique identifier of the user that was retrieved.
       title: GetUserResponse
       additionalProperties: false
+    mgmt.v1alpha1.HasPermissionRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to check the permission for.
+        resource:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ResourcePermission'
+          title: resource
+          description: The resource to check the permission for.
+      title: HasPermissionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.HasPermissionResponse:
+      type: object
+      properties:
+        hasPermission:
+          type: boolean
+          title: has_permission
+          description: Whether or not the user has the given permission.
+      title: HasPermissionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.HasPermissionsRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to check the permissions for.
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.ResourcePermission'
+          title: resources
+          description: The resources to check the permissions for.
+      title: HasPermissionsRequest
+      additionalProperties: false
+    mgmt.v1alpha1.HasPermissionsResponse:
+      type: object
+      properties:
+        assertions:
+          type: array
+          items:
+            type: boolean
+          title: assertions
+          description: Parallel array to the resources, with the same index.
+      title: HasPermissionsResponse
+      additionalProperties: false
     mgmt.v1alpha1.InviteUserToTeamAccountRequest:
       type: object
       allOf:
@@ -14904,6 +15062,26 @@ components:
     mgmt.v1alpha1.RemoveTeamAccountMemberResponse:
       type: object
       title: RemoveTeamAccountMemberResponse
+      additionalProperties: false
+    mgmt.v1alpha1.ResourcePermission:
+      type: object
+      properties:
+        type:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ResourcePermission.Type'
+          title: type
+          description: The type of resource to check the permission for.
+        id:
+          type: string
+          title: id
+          minLength: 1
+          description: The unique identifier of the resource to check the permission for.
+        action:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ResourcePermission.Action'
+          title: action
+          description: The action to check for.
+      title: ResourcePermission
       additionalProperties: false
     mgmt.v1alpha1.SetAccountOnboardingConfigRequest:
       type: object

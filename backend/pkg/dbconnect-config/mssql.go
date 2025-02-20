@@ -41,13 +41,9 @@ func NewFromMssqlConnection(
 			mssqlurl = viper.GetString(config.MssqlConfig.GetUrlFromEnv())
 		}
 
-		uriconfig, err := url.Parse(mssqlurl)
+		uriconfig, err := GetMssqlUri(mssqlurl)
 		if err != nil {
-			var urlErr *url.Error
-			if errors.As(err, &urlErr) {
-				return nil, fmt.Errorf("unable to parse mssql url [%s]: %w", urlErr.Op, urlErr.Err)
-			}
-			return nil, fmt.Errorf("unable to parse mssql url: %w", err)
+			return nil, err
 		}
 
 		query := uriconfig.Query()
@@ -61,4 +57,16 @@ func NewFromMssqlConnection(
 	default:
 		return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("must provide valid mssql connection: %T", cc))
 	}
+}
+
+func GetMssqlUri(mssqlurl string) (*url.URL, error) {
+	uriconfig, err := url.Parse(mssqlurl)
+	if err != nil {
+		var urlErr *url.Error
+		if errors.As(err, &urlErr) {
+			return nil, fmt.Errorf("unable to parse mssql url [%s]: %w", urlErr.Op, urlErr.Err)
+		}
+		return nil, fmt.Errorf("unable to parse mssql url: %w", err)
+	}
+	return uriconfig, nil
 }

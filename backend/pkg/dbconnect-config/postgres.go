@@ -74,13 +74,9 @@ func NewFromPostgresConnection(
 			pgurl = viper.GetString(config.PgConfig.GetUrlFromEnv())
 		}
 
-		uriconfig, err := url.Parse(pgurl)
+		uriconfig, err := GetPostgresUri(pgurl)
 		if err != nil {
-			var urlErr *url.Error
-			if errors.As(err, &urlErr) {
-				return nil, fmt.Errorf("unable to parse postgres url [%s]: %w", urlErr.Op, urlErr.Err)
-			}
-			return nil, fmt.Errorf("unable to parse postgres url: %w", err)
+			return nil, err
 		}
 		query := uriconfig.Query()
 		if !query.Has("connect_timeout") && connectionTimeout != nil {
@@ -98,4 +94,16 @@ func getUserFromInfo(u *url.Userinfo) string {
 		return ""
 	}
 	return u.Username()
+}
+
+func GetPostgresUri(pgurl string) (*url.URL, error) {
+	uriconfig, err := url.Parse(pgurl)
+	if err != nil {
+		var urlErr *url.Error
+		if errors.As(err, &urlErr) {
+			return nil, fmt.Errorf("unable to parse postgres url [%s]: %w", urlErr.Op, urlErr.Err)
+		}
+		return nil, fmt.Errorf("unable to parse postgres url: %w", err)
+	}
+	return uriconfig, nil
 }

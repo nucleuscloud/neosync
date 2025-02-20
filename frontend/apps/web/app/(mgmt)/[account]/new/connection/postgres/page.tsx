@@ -1,9 +1,13 @@
+'use client';
+import PostgresConnectionForm from '@/components/connections/forms/postgres/PostgresConnectionForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { ReactElement } from 'react';
 import { DiPostgresql } from 'react-icons/di';
-import PostgresForm from './PostgresForm';
+import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
 
-export default async function Postgres() {
+export default function NewPostgresPage(): ReactElement {
+  const onSuccess = useOnCreateSuccess();
   return (
     <OverviewContainer
       Header={
@@ -15,7 +19,7 @@ export default async function Postgres() {
       }
       containerClassName="px-12 md:px-24 lg:px-32"
     >
-      <PostgresForm />
+      <PostgresConnectionForm onSuccess={onSuccess} mode="create" />
     </OverviewContainer>
   );
 }

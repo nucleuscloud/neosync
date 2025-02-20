@@ -8,10 +8,12 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class GetConnectionsRequest(_message.Message):
-    __slots__ = ("account_id",)
+    __slots__ = ("account_id", "exclude_sensitive")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    EXCLUDE_SENSITIVE_FIELD_NUMBER: _ClassVar[int]
     account_id: str
-    def __init__(self, account_id: _Optional[str] = ...) -> None: ...
+    exclude_sensitive: bool
+    def __init__(self, account_id: _Optional[str] = ..., exclude_sensitive: bool = ...) -> None: ...
 
 class GetConnectionsResponse(_message.Message):
     __slots__ = ("connections",)
@@ -20,10 +22,12 @@ class GetConnectionsResponse(_message.Message):
     def __init__(self, connections: _Optional[_Iterable[_Union[Connection, _Mapping]]] = ...) -> None: ...
 
 class GetConnectionRequest(_message.Message):
-    __slots__ = ("id",)
+    __slots__ = ("id", "exclude_sensitive")
     ID_FIELD_NUMBER: _ClassVar[int]
+    EXCLUDE_SENSITIVE_FIELD_NUMBER: _ClassVar[int]
     id: str
-    def __init__(self, id: _Optional[str] = ...) -> None: ...
+    exclude_sensitive: bool
+    def __init__(self, id: _Optional[str] = ..., exclude_sensitive: bool = ...) -> None: ...
 
 class GetConnectionResponse(_message.Message):
     __slots__ = ("connection",)

@@ -68,41 +68,9 @@ func NewFromMysqlConnection(
 			mysqlurl = viper.GetString(config.MysqlConfig.GetUrlFromEnv())
 		}
 
-		cfg, err := mysql.ParseDSN(mysqlurl)
+		cfg, err := GetMysqlDsn(mysqlurl, logger)
 		if err != nil {
-			logger.Warn(fmt.Sprintf("failed to parse mysql url as DSN: %v", err))
-			uriConfig, err := url.Parse(mysqlurl)
-			if err != nil {
-				var urlErr *url.Error
-				if errors.As(err, &urlErr) {
-					return nil, fmt.Errorf("unable to parse mysql url [%s]: %w", urlErr.Op, urlErr.Err)
-				}
-				return nil, fmt.Errorf("unable to parse mysql url: %w", err)
-			}
-			cfg = mysql.NewConfig()
-			cfg.Net = "tcp"
-			cfg.DBName = strings.TrimPrefix(uriConfig.Path, "/")
-			cfg.Addr = uriConfig.Host
-			cfg.User = uriConfig.User.Username()
-			if passwd, ok := uriConfig.User.Password(); ok {
-				cfg.Passwd = passwd
-			}
-
-			if connectionTimeout != nil {
-				cfg.Timeout = time.Duration(*connectionTimeout) * time.Second
-			}
-			cfg.MultiStatements = true
-			cfg.ParseTime = parseTime
-
-			if uriConfig.RawQuery != "" {
-				cfg.Params = make(map[string]string)
-				for k, values := range uriConfig.Query() {
-					for _, value := range values {
-						cfg.Params[k] = value
-					}
-				}
-			}
-			return &mysqlConnectConfig{dsn: cfg.FormatDSN(), user: cfg.User}, nil
+			return nil, err
 		}
 
 		if cfg.Timeout == 0 && connectionTimeout != nil {
@@ -114,4 +82,37 @@ func NewFromMysqlConnection(
 	default:
 		return nil, fmt.Errorf("unsupported mysql connection config: %T", cc)
 	}
+}
+
+func GetMysqlDsn(mysqlurl string, logger *slog.Logger) (*mysql.Config, error) {
+	cfg, err := mysql.ParseDSN(mysqlurl)
+	if err != nil {
+		logger.Warn(fmt.Sprintf("failed to parse mysql url as DSN: %v", err))
+		uriConfig, err := url.Parse(mysqlurl)
+		if err != nil {
+			var urlErr *url.Error
+			if errors.As(err, &urlErr) {
+				return nil, fmt.Errorf("unable to parse mysql url [%s]: %w", urlErr.Op, urlErr.Err)
+			}
+			return nil, fmt.Errorf("unable to parse mysql url: %w", err)
+		}
+		cfg = mysql.NewConfig()
+		cfg.Net = "tcp"
+		cfg.DBName = strings.TrimPrefix(uriConfig.Path, "/")
+		cfg.Addr = uriConfig.Host
+		cfg.User = uriConfig.User.Username()
+		if passwd, ok := uriConfig.User.Password(); ok {
+			cfg.Passwd = passwd
+		}
+
+		if uriConfig.RawQuery != "" {
+			cfg.Params = make(map[string]string)
+			for k, values := range uriConfig.Query() {
+				for _, value := range values {
+					cfg.Params[k] = value
+				}
+			}
+		}
+	}
+	return cfg, nil
 }
