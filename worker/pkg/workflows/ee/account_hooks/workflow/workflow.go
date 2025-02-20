@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	accounthook_events "github.com/nucleuscloud/neosync/internal/ee/events"
 	execute_hook_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/activities/execute"
 	hooks_by_event_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/activities/hooks-by-event"
-	accounthook_events "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/events"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -24,7 +24,7 @@ func ProcessAccountHook(wfctx workflow.Context, req *ProcessAccountHookRequest) 
 		workflow.WithActivityOptions(wfctx, workflow.ActivityOptions{
 			StartToCloseTimeout: 1 * time.Minute,
 			RetryPolicy: &temporal.RetryPolicy{
-				MaximumAttempts: 1,
+				MaximumAttempts: 3,
 			},
 			HeartbeatTimeout: 1 * time.Minute,
 			Summary:          "Retrieves the configured account hooks for the given event",
