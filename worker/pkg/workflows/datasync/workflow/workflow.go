@@ -85,24 +85,27 @@ func withJobHookTimingActivityOptions(ctx workflow.Context) workflow.Context {
 }
 
 func (w *Workflow) Workflow(ctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
-	wfinfo := workflow.GetInfo(ctx)
 	logger := workflow.GetLogger(ctx)
+	getAccountId := func() (string, error) {
+		actOptResp, err := retrieveActivityOptions(ctx, req.JobId, logger)
+		if err != nil {
+			return "", err
+		}
+		return actOptResp.AccountId, nil
+	}
+	runWorkflow := func(ctx workflow.Context, logger log.Logger) (*WorkflowResponse, error) {
+		return executeWorkflow(ctx, req)
+	}
+	wfinfo := workflow.GetInfo(ctx)
 	return w.handleEventLifecycle(
 		ctx,
 		w.eelicense,
 		req.JobId,
 		wfinfo.WorkflowExecution.ID,
 		logger,
-		func() (string, error) {
-			actOptResp, err := retrieveActivityOptions(ctx, req.JobId, logger)
-			if err != nil {
-				return "", err
-			}
-			return actOptResp.AccountId, nil
-		},
-		func(ctx workflow.Context, logger log.Logger) (*WorkflowResponse, error) {
-			return executeWorkflow(ctx, req)
-		})
+		getAccountId,
+		runWorkflow,
+	)
 }
 
 func (w *Workflow) handleEventLifecycle(
@@ -126,35 +129,41 @@ func (w *Workflow) handleEventLifecycle(
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 	}
 
-	eventFutures := []workflow.Future{}
-	defer func() {
-		for _, future := range eventFutures {
-			if waitErr := future.Get(ctx, nil); waitErr != nil {
-				logger.Error("failed to process event", "error", waitErr)
-			}
-		}
-	}()
-
 	createdFuture := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, eventChildOpts), accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
 		Event: accounthook_events.NewEvent_JobRunCreated(accountId, jobId, runId),
 	})
-	eventFutures = append(eventFutures, createdFuture)
+	if err := ensureChildSpawned(ctx, createdFuture, logger); err != nil {
+		return nil, err
+	}
 
 	resp, err := fn(ctx, logger)
 	if err != nil {
 		failedFuture := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, eventChildOpts), accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
 			Event: accounthook_events.NewEvent_JobRunFailed(accountId, jobId, runId),
 		})
-		eventFutures = append(eventFutures, failedFuture)
+		if err := ensureChildSpawned(ctx, failedFuture, logger); err != nil {
+			return nil, err
+		}
 		return nil, err
 	}
 
 	completedFuture := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, eventChildOpts), accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
 		Event: accounthook_events.NewEvent_JobRunSucceeded(accountId, jobId, runId),
 	})
-	eventFutures = append(eventFutures, completedFuture)
+	if err := ensureChildSpawned(ctx, completedFuture, logger); err != nil {
+		return nil, err
+	}
 
 	return resp, nil
+}
+
+func ensureChildSpawned(ctx workflow.Context, future workflow.ChildWorkflowFuture, logger log.Logger) error {
+	var childWE workflow.Execution
+	if waitErr := future.GetChildWorkflowExecution().Get(ctx, &childWE); waitErr != nil {
+		return waitErr
+	}
+	logger.Debug(fmt.Sprintf("child wf event spawned: %s", childWE.ID))
+	return nil
 }
 
 func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
