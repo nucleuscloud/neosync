@@ -160,6 +160,11 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 				val := columnDefaultDefault // With this type columnDefaultStr will be surrounded by parentheses when translated to SQL
 				columnDefaultType = &val
 			}
+			if (!row.ColumnDefaultRaw.Valid || (row.ColumnDefaultRaw.Valid && row.ColumnDefaultRaw.String == "" || row.ColumnDefaultRaw.String == "NULL")) && row.IsNullable == 1 {
+				columnDefaultStr = ""
+				columnDefaultType = nil
+			}
+			fmt.Println("FOO", columnDefaultStr, columnDefaultType)
 
 			// Note: there is a slight mismatch here between how we bring this data in to be surfaced vs how we utilize it when building the init table statements.
 			// They seem to be disconnected however
@@ -395,6 +400,15 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			columnDefaultStr, err = EscapeMysqlDefaultColumn(columnDefaultStr, columnDefaultType)
 			if err != nil {
 				return nil, fmt.Errorf("failed to escape column default: %w", err)
+			}
+
+			if (!record.ColumnDefaultRaw.Valid || (record.ColumnDefaultRaw.Valid && record.ColumnDefaultRaw.String == "" || record.ColumnDefaultRaw.String == "NULL")) && record.IsNullable == 1 {
+				columnDefaultStr = ""
+				columnDefaultType = nil
+			}
+			fmt.Println("FOO", columnDefaultStr, columnDefaultType, identityType)
+			if identityType != nil && *identityType == "" {
+				fmt.Println("ID TYPE", *identityType)
 			}
 
 			genExp, err := convertUInt8ToString(record.GenerationExp)

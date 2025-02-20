@@ -1749,6 +1749,8 @@ github.com/subosito/gotenv v1.6.0 h1:9NlTDc1FTs4qu0DDq7AEtTPNw6SVm7uBMsUCUjABIf8
 github.com/subosito/gotenv v1.6.0/go.mod h1:Dk4QP5c2W3ibzajGcXpNraDfq2IrhjMIvMSWPKKo0FU=
 github.com/testcontainers/testcontainers-go v0.35.0 h1:uADsZpTKFAtp8SLK+hMwSaa+X+JiERHtd4sQAFmXeMo=
 github.com/testcontainers/testcontainers-go v0.35.0/go.mod h1:oEVBj5zrfJTrgjwONs1SsRbnBtH9OKl+IGl3UMcr2B4=
+github.com/testcontainers/testcontainers-go/modules/mariadb v0.35.0 h1:QCqXzMEXWTN1WjD2jfZftvgRL19+VD0At455y3jjUVM=
+github.com/testcontainers/testcontainers-go/modules/mariadb v0.35.0/go.mod h1:dcEHJaXIbg5EYiG4t5JFSgDrZyGk/SsNVODUxSktm/4=
 github.com/testcontainers/testcontainers-go/modules/mongodb v0.35.0 h1:i1Kh9fmXgHG9z3uzJv5Arz7pDKVaaNpLrqyd+0xhYMA=
 github.com/testcontainers/testcontainers-go/modules/mongodb v0.35.0/go.mod h1:SD8nVMK1m7b/K2YJqYjYNzfHmZfqHtqNOlI44nfxjdg=
 github.com/testcontainers/testcontainers-go/modules/mssql v0.35.0 h1:TNyqxHauRH1p15HSD8G2clhkJXnsRFHX3jcCyS6omd4=

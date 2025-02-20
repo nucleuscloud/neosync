@@ -156,6 +156,7 @@ SELECT
 	c.column_name,
 	c.ordinal_position,
     IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.COLUMN_DEFAULT, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS column_default, -- hack to fix this bug https://bugs.mysql.com/bug.php?
+    c.COLUMN_DEFAULT as column_default_raw,
 	c.is_nullable,
 	c.data_type,
 	c.character_maximum_length,
@@ -177,6 +178,7 @@ type GetDatabaseSchemaRow struct {
 	ColumnName             string
 	OrdinalPosition        int64
 	ColumnDefault          interface{}
+	ColumnDefaultRaw       sql.NullString
 	IsNullable             string
 	DataType               string
 	CharacterMaximumLength sql.NullInt64
@@ -200,6 +202,7 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabas
 			&i.ColumnName,
 			&i.OrdinalPosition,
 			&i.ColumnDefault,
+			&i.ColumnDefaultRaw,
 			&i.IsNullable,
 			&i.DataType,
 			&i.CharacterMaximumLength,
@@ -226,6 +229,7 @@ SELECT
    c.TABLE_NAME AS table_name,
    c.COLUMN_NAME AS column_name,
    c.COLUMN_TYPE AS data_type,
+   c.COLUMN_DEFAULT as column_default_raw,
    IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.COLUMN_DEFAULT, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS column_default, -- hack to fix this bug https://bugs.mysql.com/bug.php?
    CASE WHEN c.IS_NULLABLE = 'YES' THEN 1 ELSE 0 END AS is_nullable,
    CAST(IF(c.DATA_TYPE IN ('varchar', 'char'), c.CHARACTER_MAXIMUM_LENGTH, -1) AS SIGNED) AS character_maximum_length,
@@ -258,6 +262,7 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	TableName               string
 	ColumnName              string
 	DataType                string
+	ColumnDefaultRaw        sql.NullString
 	ColumnDefault           interface{}
 	IsNullable              int32
 	CharacterMaximumLength  int64
@@ -294,6 +299,7 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.TableName,
 			&i.ColumnName,
 			&i.DataType,
+			&i.ColumnDefaultRaw,
 			&i.ColumnDefault,
 			&i.IsNullable,
 			&i.CharacterMaximumLength,
