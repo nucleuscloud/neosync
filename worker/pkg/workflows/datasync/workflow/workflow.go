@@ -125,31 +125,61 @@ func (w *Workflow) handleEventLifecycle(
 	if err != nil {
 		return nil, err
 	}
-	eventChildOpts := workflow.ChildWorkflowOptions{
-		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
-	}
 
-	createdFuture := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, eventChildOpts), accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
-		Event: accounthook_events.NewEvent_JobRunCreated(accountId, jobId, runId),
-	})
+	createdFuture := workflow.ExecuteChildWorkflow(
+		workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
+			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+			WorkflowID:        getAccountHookChildWorkflowId(runId, "job-run-created", workflow.Now(ctx)),
+			StaticSummary:     "Account Hook: Job Run Created",
+			RetryPolicy: &temporal.RetryPolicy{
+				MaximumAttempts: 1,
+			},
+		}),
+		accounthook_workflow.ProcessAccountHook,
+		&accounthook_workflow.ProcessAccountHookRequest{
+			Event: accounthook_events.NewEvent_JobRunCreated(accountId, jobId, runId),
+		},
+	)
 	if err := ensureChildSpawned(ctx, createdFuture, logger); err != nil {
 		return nil, err
 	}
 
 	resp, err := fn(ctx, logger)
 	if err != nil {
-		failedFuture := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, eventChildOpts), accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
-			Event: accounthook_events.NewEvent_JobRunFailed(accountId, jobId, runId),
-		})
+		failedFuture := workflow.ExecuteChildWorkflow(
+			workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
+				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+				WorkflowID:        getAccountHookChildWorkflowId(runId, "job-run-failed", workflow.Now(ctx)),
+				StaticSummary:     "Account Hook: Job Run Failed",
+				RetryPolicy: &temporal.RetryPolicy{
+					MaximumAttempts: 1,
+				},
+			}),
+			accounthook_workflow.ProcessAccountHook,
+			&accounthook_workflow.ProcessAccountHookRequest{
+				Event: accounthook_events.NewEvent_JobRunFailed(accountId, jobId, runId),
+			},
+		)
 		if err := ensureChildSpawned(ctx, failedFuture, logger); err != nil {
 			return nil, err
 		}
 		return nil, err
 	}
 
-	completedFuture := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, eventChildOpts), accounthook_workflow.ProcessAccountHook, &accounthook_workflow.ProcessAccountHookRequest{
-		Event: accounthook_events.NewEvent_JobRunSucceeded(accountId, jobId, runId),
-	})
+	completedFuture := workflow.ExecuteChildWorkflow(
+		workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
+			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+			WorkflowID:        getAccountHookChildWorkflowId(runId, "job-run-succeeded", workflow.Now(ctx)),
+			StaticSummary:     "Account Hook: Job Run Succeeded",
+			RetryPolicy: &temporal.RetryPolicy{
+				MaximumAttempts: 1,
+			},
+		}),
+		accounthook_workflow.ProcessAccountHook,
+		&accounthook_workflow.ProcessAccountHookRequest{
+			Event: accounthook_events.NewEvent_JobRunSucceeded(accountId, jobId, runId),
+		},
+	)
 	if err := ensureChildSpawned(ctx, completedFuture, logger); err != nil {
 		return nil, err
 	}
@@ -631,7 +661,7 @@ func invokeSync(
 		var wfResult tablesync_workflow.TableSyncResponse
 
 		err := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-			WorkflowID:    getChildWorkflowId(info.WorkflowExecution.ID, config.Name, workflow.Now(ctx)),
+			WorkflowID:    getTableSyncChildWorkflowId(info.WorkflowExecution.ID, config.Name, workflow.Now(ctx)),
 			StaticSummary: fmt.Sprintf("Syncing %s.%s", config.TableSchema, config.TableName),
 			RetryPolicy: &temporal.RetryPolicy{
 				MaximumAttempts: 1,
@@ -657,8 +687,16 @@ func invokeSync(
 	return future
 }
 
-func getChildWorkflowId(jobRunId, configName string, now time.Time) string {
-	id := fmt.Sprintf("%s-%s-%d", jobRunId, sanitizeWorkflowID(strings.ToLower(configName)), now.UnixNano())
+func getAccountHookChildWorkflowId(parentJobRunId, eventName string, now time.Time) string {
+	id := fmt.Sprintf("%s-hook-%s-%d", parentJobRunId, sanitizeWorkflowID(strings.ToLower(eventName)), now.UnixNano())
+	if len(id) > 1000 {
+		id = id[:1000]
+	}
+	return id
+}
+
+func getTableSyncChildWorkflowId(parentJobRunId, configName string, now time.Time) string {
+	id := fmt.Sprintf("%s-%s-%d", parentJobRunId, sanitizeWorkflowID(strings.ToLower(configName)), now.UnixNano())
 	if len(id) > 1000 {
 		id = id[:1000]
 	}
