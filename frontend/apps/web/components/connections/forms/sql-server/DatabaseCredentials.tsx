@@ -1,6 +1,7 @@
 import FormErrorMessage from '@/components/FormErrorMessage';
 import FormHeader from '@/components/forms/FormHeader';
 import OSSOnlyGuard from '@/components/guards/OSSOnlyGuard';
+import { SecurePasswordInput } from '@/components/SecurePasswordInput';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -47,6 +48,12 @@ export default function DatabaseCredentials(props: Props): ReactElement {
           urlValue={urlValue}
           onUrlValueChange={onUrlValueChange}
           error={errors.url}
+          isViewMode={isViewMode}
+          canViewSecrets={canViewSecrets}
+          onRevealClick={async () => {
+            const values = await onRevealClick();
+            return values?.url ?? '';
+          }}
         />
       )}
       {activeTab === 'url-env' && (
@@ -91,14 +98,21 @@ function ActiveTabSelector(props: ActiveTabProps): ReactElement {
   );
 }
 
-interface UrlTabProps {
+interface UrlTabProps extends SecretRevealProps<MssqlFormValues['url']> {
   urlValue: MssqlFormValues['url'];
   onUrlValueChange(value: MssqlFormValues['url']): void;
   error?: string;
 }
 
 function UrlTab(props: UrlTabProps): ReactElement {
-  const { urlValue, onUrlValueChange, error } = props;
+  const {
+    urlValue,
+    onUrlValueChange,
+    error,
+    isViewMode,
+    canViewSecrets,
+    onRevealClick,
+  } = props;
 
   return (
     <div className="space-y-2">
@@ -108,14 +122,30 @@ function UrlTab(props: UrlTabProps): ReactElement {
         description="The URL of the database"
         isErrored={!!error}
       />
-      <Input
-        id="url"
-        autoCapitalize="off"
-        data-1p-ignore // tells 1password extension to not autofill this field
-        value={urlValue || ''}
-        onChange={(e) => onUrlValueChange(e.target.value)}
-        placeholder="sqlserver://username:password@host:port/instance?param1=value&param2=value"
-      />
+      {isViewMode ? (
+        <SecurePasswordInput
+          value={urlValue || ''}
+          maskedValue={urlValue ?? ''}
+          disabled={!canViewSecrets}
+          onRevealPassword={
+            canViewSecrets
+              ? async () => {
+                  const values = await onRevealClick();
+                  return values ?? '';
+                }
+              : undefined
+          }
+        />
+      ) : (
+        <Input
+          id="url"
+          autoCapitalize="off"
+          data-1p-ignore // tells 1password extension to not autofill this field
+          value={urlValue || ''}
+          onChange={(e) => onUrlValueChange(e.target.value)}
+          placeholder="sqlserver://username:password@host:port/instance?param1=value&param2=value"
+        />
+      )}
       <FormErrorMessage message={error} />
     </div>
   );

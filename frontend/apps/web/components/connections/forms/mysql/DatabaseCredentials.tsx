@@ -61,6 +61,12 @@ export default function DatabaseCredentials(props: Props): ReactElement {
           urlValue={urlValue}
           onUrlValueChange={onUrlValueChange}
           error={errors.url}
+          isViewMode={isViewMode}
+          canViewSecrets={canViewSecrets}
+          onRevealClick={async () => {
+            const values = await onRevealClick();
+            return values?.url ?? '';
+          }}
         />
       )}
       {activeTab === 'host' && (
@@ -122,14 +128,21 @@ function ActiveTabSelector(props: ActiveTabProps): ReactElement {
   );
 }
 
-interface UrlTabProps {
+interface UrlTabProps extends SecretRevealProps<MysqlFormValues['url']> {
   urlValue: MysqlFormValues['url'];
   onUrlValueChange(value: MysqlFormValues['url']): void;
   error?: string;
 }
 
 function UrlTab(props: UrlTabProps): ReactElement {
-  const { urlValue, onUrlValueChange, error } = props;
+  const {
+    urlValue,
+    onUrlValueChange,
+    error,
+    isViewMode,
+    canViewSecrets,
+    onRevealClick,
+  } = props;
 
   return (
     <div className="space-y-2">
@@ -139,14 +152,30 @@ function UrlTab(props: UrlTabProps): ReactElement {
         description="The URL of the database"
         isErrored={!!error}
       />
-      <Input
-        id="url"
-        autoCapitalize="off"
-        data-1p-ignore // tells 1password extension to not autofill this field
-        value={urlValue || ''}
-        onChange={(e) => onUrlValueChange(e.target.value)}
-        placeholder="username:password@tcp(hostname:port)/database"
-      />
+      {isViewMode ? (
+        <SecurePasswordInput
+          value={urlValue || ''}
+          maskedValue={urlValue ?? ''}
+          disabled={!canViewSecrets}
+          onRevealPassword={
+            canViewSecrets
+              ? async () => {
+                  const values = await onRevealClick();
+                  return values ?? '';
+                }
+              : undefined
+          }
+        />
+      ) : (
+        <Input
+          id="url"
+          autoCapitalize="off"
+          data-1p-ignore // tells 1password extension to not autofill this field
+          value={urlValue || ''}
+          onChange={(e) => onUrlValueChange(e.target.value)}
+          placeholder="username:password@tcp(hostname:port)/database"
+        />
+      )}
       <FormErrorMessage message={error} />
     </div>
   );

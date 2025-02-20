@@ -1,5 +1,6 @@
 import FormErrorMessage from '@/components/FormErrorMessage';
 import FormHeader from '@/components/forms/FormHeader';
+import { SecurePasswordInput } from '@/components/SecurePasswordInput';
 import { Input } from '@/components/ui/input';
 import { MongoDbFormValues } from '@/yup-validations/connections';
 import { ReactElement } from 'react';
@@ -28,19 +29,32 @@ export default function DatabaseCredentials(props: Props): ReactElement {
         urlValue={urlValue}
         onUrlValueChange={onUrlValueChange}
         error={errors.url}
+        isViewMode={isViewMode}
+        canViewSecrets={canViewSecrets}
+        onRevealClick={async () => {
+          const values = await onRevealClick();
+          return values?.url ?? '';
+        }}
       />
     </div>
   );
 }
 
-interface UrlTabProps {
+interface UrlTabProps extends SecretRevealProps<MongoDbFormValues['url']> {
   urlValue: MongoDbFormValues['url'];
   onUrlValueChange(value: MongoDbFormValues['url']): void;
   error?: string;
 }
 
 function UrlTab(props: UrlTabProps): ReactElement {
-  const { urlValue, onUrlValueChange, error } = props;
+  const {
+    urlValue,
+    onUrlValueChange,
+    error,
+    isViewMode,
+    canViewSecrets,
+    onRevealClick,
+  } = props;
 
   return (
     <div className="space-y-2">
@@ -50,13 +64,30 @@ function UrlTab(props: UrlTabProps): ReactElement {
         description="The URL of the database"
         isErrored={!!error}
       />
-      <Input
-        id="url"
-        autoCapitalize="off"
-        data-1p-ignore // tells 1password extension to not autofill this field
-        value={urlValue || ''}
-        onChange={(e) => onUrlValueChange(e.target.value)}
-      />
+      {isViewMode ? (
+        <SecurePasswordInput
+          value={urlValue || ''}
+          maskedValue={urlValue ?? ''}
+          disabled={!canViewSecrets}
+          onRevealPassword={
+            canViewSecrets
+              ? async () => {
+                  const values = await onRevealClick();
+                  return values ?? '';
+                }
+              : undefined
+          }
+        />
+      ) : (
+        <Input
+          id="url"
+          autoCapitalize="off"
+          data-1p-ignore // tells 1password extension to not autofill this field
+          value={urlValue || ''}
+          onChange={(e) => onUrlValueChange(e.target.value)}
+          placeholder="mongodb://username:password@hostname:port/database"
+        />
+      )}
       <FormErrorMessage message={error} />
     </div>
   );
