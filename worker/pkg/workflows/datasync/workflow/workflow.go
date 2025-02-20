@@ -126,14 +126,17 @@ func (w *Workflow) handleEventLifecycle(
 		return nil, err
 	}
 
+	searchAttributes := temporal.NewSearchAttributes(
+		temporal.NewSearchAttributeKeyString("NeosyncAccountId").ValueSet(accountId),
+		temporal.NewSearchAttributeKeyString("NeosyncJobId").ValueSet(jobId),
+	)
+
 	createdFuture := workflow.ExecuteChildWorkflow(
 		workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
-			WorkflowID:        getAccountHookChildWorkflowId(runId, "job-run-created", workflow.Now(ctx)),
-			StaticSummary:     "Account Hook: Job Run Created",
-			RetryPolicy: &temporal.RetryPolicy{
-				MaximumAttempts: 1,
-			},
+			ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_ABANDON,
+			WorkflowID:            getAccountHookChildWorkflowId(runId, "job-run-created", workflow.Now(ctx)),
+			StaticSummary:         "Account Hook: Job Run Created",
+			TypedSearchAttributes: searchAttributes,
 		}),
 		accounthook_workflow.ProcessAccountHook,
 		&accounthook_workflow.ProcessAccountHookRequest{
@@ -148,12 +151,10 @@ func (w *Workflow) handleEventLifecycle(
 	if err != nil {
 		failedFuture := workflow.ExecuteChildWorkflow(
 			workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
-				WorkflowID:        getAccountHookChildWorkflowId(runId, "job-run-failed", workflow.Now(ctx)),
-				StaticSummary:     "Account Hook: Job Run Failed",
-				RetryPolicy: &temporal.RetryPolicy{
-					MaximumAttempts: 1,
-				},
+				ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_ABANDON,
+				WorkflowID:            getAccountHookChildWorkflowId(runId, "job-run-failed", workflow.Now(ctx)),
+				StaticSummary:         "Account Hook: Job Run Failed",
+				TypedSearchAttributes: searchAttributes,
 			}),
 			accounthook_workflow.ProcessAccountHook,
 			&accounthook_workflow.ProcessAccountHookRequest{
@@ -168,12 +169,10 @@ func (w *Workflow) handleEventLifecycle(
 
 	completedFuture := workflow.ExecuteChildWorkflow(
 		workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
-			WorkflowID:        getAccountHookChildWorkflowId(runId, "job-run-succeeded", workflow.Now(ctx)),
-			StaticSummary:     "Account Hook: Job Run Succeeded",
-			RetryPolicy: &temporal.RetryPolicy{
-				MaximumAttempts: 1,
-			},
+			ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_ABANDON,
+			WorkflowID:            getAccountHookChildWorkflowId(runId, "job-run-succeeded", workflow.Now(ctx)),
+			StaticSummary:         "Account Hook: Job Run Succeeded",
+			TypedSearchAttributes: searchAttributes,
 		}),
 		accounthook_workflow.ProcessAccountHook,
 		&accounthook_workflow.ProcessAccountHookRequest{
