@@ -689,19 +689,6 @@ func Test_GetRunConfigs_CompositeKey(t *testing.T) {
 	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
 }
 
-func getConfigByTableAndType(table string, runtype RunType, insertCols []string, configs []*RunConfig) *RunConfig {
-	for _, c := range configs {
-		cCols := slices.Clone(c.InsertColumns())
-		iCols := slices.Clone(insertCols)
-		slices.Sort(cCols)
-		slices.Sort(iCols)
-		if c.Table() == table && c.RunType() == runtype && slices.Equal(cCols, iCols) {
-			return c
-		}
-	}
-	return nil
-}
-
 func Test_GetRunConfigs_HumanResources(t *testing.T) {
 	emptyWhere := ""
 	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
@@ -907,11 +894,17 @@ func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
 			[]string{"id_4", "name_4", "address_4"},
 			[]*DependsOn{}),
 		buildRunConfig("public.table_4", RunTypeUpdate, []string{"id_4"}, &emptyWhere,
-			[]string{"id_4", "prev_id_4", "next_id_4"},
-			[]string{"prev_id_4", "next_id_4"},
+			[]string{"id_4", "prev_id_4"},
+			[]string{"prev_id_4"},
 			[]*DependsOn{
 				{Table: "public.table_4", Columns: []string{"id_4"}},
 				{Table: "public.table_3", Columns: []string{"id_3"}},
+			}),
+		buildRunConfig("public.table_4", RunTypeUpdate, []string{"id_4"}, &emptyWhere,
+			[]string{"id_4", "next_id_4"},
+			[]string{"next_id_4"},
+			[]*DependsOn{
+				{Table: "public.table_4", Columns: []string{"id_4"}},
 				{Table: "public.table_1", Columns: []string{"id_1"}},
 			}),
 		buildRunConfig("public.table_2", RunTypeInsert, []string{"id_2"}, &emptyWhere,
@@ -919,11 +912,17 @@ func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
 			[]string{"id_2", "name_2", "address_2"},
 			[]*DependsOn{}),
 		buildRunConfig("public.table_2", RunTypeUpdate, []string{"id_2"}, &emptyWhere,
-			[]string{"id_2", "prev_id_2", "next_id_2"},
-			[]string{"prev_id_2", "next_id_2"},
+			[]string{"id_2", "prev_id_2"},
+			[]string{"prev_id_2"},
 			[]*DependsOn{
 				{Table: "public.table_2", Columns: []string{"id_2"}},
 				{Table: "public.table_1", Columns: []string{"id_1"}},
+			}),
+		buildRunConfig("public.table_2", RunTypeUpdate, []string{"id_2"}, &emptyWhere,
+			[]string{"id_2", "next_id_2"},
+			[]string{"next_id_2"},
+			[]*DependsOn{
+				{Table: "public.table_2", Columns: []string{"id_2"}},
 				{Table: "public.table_3", Columns: []string{"id_3"}},
 			}),
 		buildRunConfig("public.table_1", RunTypeInsert, []string{"id_1"}, &emptyWhere,
@@ -943,6 +942,309 @@ func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
 	}
 
 	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
+}
+
+func Test_GetRunConfigs_Multiple_CircularDependency(t *testing.T) {
+	emptyWhere := ""
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.a": {
+			{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+		},
+		"public.b": {
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"ac_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"c_id"}}},
+		},
+		"public.c": {
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"acb_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"ac_id"}}},
+		},
+	}
+	primaryKeyMap := map[string][]string{
+		"public.a": {"id"},
+		"public.b": {"id"},
+		"public.c": {"id"},
+	}
+	tablesColMap := map[string][]string{
+		"public.a": {"id", "c_id"},
+		"public.b": {"id", "a_id", "ac_id"},
+		"public.c": {"id", "b_id", "acb_id"},
+	}
+
+	expect := []*RunConfig{
+		buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "c_id"},
+			[]string{"id"},
+			[]*DependsOn{}),
+		buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "c_id"},
+			[]string{"c_id"},
+			[]*DependsOn{
+				{Table: "public.a", Columns: []string{"id"}},
+				{Table: "public.c", Columns: []string{"id"}},
+			}),
+		buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "a_id", "ac_id"},
+			[]string{"id", "a_id"},
+			[]*DependsOn{
+				{Table: "public.a", Columns: []string{"id"}},
+			}),
+		buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "ac_id"},
+			[]string{"ac_id"},
+			[]*DependsOn{
+				{Table: "public.b", Columns: []string{"id"}},
+				{Table: "public.a", Columns: []string{"c_id"}},
+			}),
+		buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "b_id", "acb_id"},
+			[]string{"id", "b_id"},
+			[]*DependsOn{
+				{Table: "public.b", Columns: []string{"id"}},
+			}),
+		buildRunConfig("public.c", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "acb_id"},
+			[]string{"acb_id"},
+			[]*DependsOn{
+				{Table: "public.c", Columns: []string{"id"}},
+				{Table: "public.b", Columns: []string{"ac_id"}},
+			}),
+	}
+
+	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
+}
+
+func Test_GetRunConfigs_CircularDependency_MultipleFksPerTable(t *testing.T) {
+	emptyWhere := ""
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.a": {
+			{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+		},
+		"public.b": {
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"ac_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"c_id"}}},
+		},
+		"public.c": {
+			{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"acb_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"ac_id"}}},
+		},
+	}
+	primaryKeyMap := map[string][]string{
+		"public.a": {"id"},
+		"public.b": {"id"},
+		"public.c": {"id"},
+	}
+	tablesColMap := map[string][]string{
+		"public.a": {"id", "c_id"},
+		"public.b": {"id", "a_id", "ac_id"},
+		"public.c": {"id", "b_id", "acb_id"},
+	}
+
+	expect := []*RunConfig{
+		buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "c_id"},
+			[]string{"id"},
+			[]*DependsOn{}),
+		buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "c_id"},
+			[]string{"c_id"},
+			[]*DependsOn{
+				{Table: "public.a", Columns: []string{"id"}},
+				{Table: "public.c", Columns: []string{"id"}},
+			}),
+		buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "a_id", "ac_id"},
+			[]string{"id", "a_id", "ac_id"},
+			[]*DependsOn{
+				{Table: "public.a", Columns: []string{"id"}},
+				{Table: "public.a", Columns: []string{"c_id"}},
+			}),
+		buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere,
+			[]string{"id", "b_id", "acb_id"},
+			[]string{"id"},
+			[]*DependsOn{}),
+		buildRunConfig("public.c", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "b_id"},
+			[]string{"b_id"},
+			[]*DependsOn{
+				{Table: "public.c", Columns: []string{"id"}},
+				{Table: "public.b", Columns: []string{"id"}},
+			}),
+		buildRunConfig("public.c", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "acb_id"},
+			[]string{"acb_id"},
+			[]*DependsOn{
+				{Table: "public.c", Columns: []string{"id"}},
+				{Table: "public.b", Columns: []string{"ac_id"}},
+			}),
+	}
+
+	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
+}
+
+func Test_GetRunConfigs_CircularDependencyNoneNullable(t *testing.T) {
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.a": {
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+		},
+		"public.b": {
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+		},
+	}
+	_, err := GetRunConfigs(dependencies, map[string]string{}, map[string][]string{}, map[string][]string{"public.a": {}, "public.b": {}}, map[string][][]string{}, map[string][][]string{})
+	require.Error(t, err)
+}
+
+func Test_GetTablesOrderedByDependency_CircularDependency(t *testing.T) {
+	dependencies := map[string][]string{
+		"other.a": {"other.b"},
+		"other.b": {"other.c"},
+		"other.c": {"other.a"},
+	}
+
+	resp, err := GetTablesOrderedByDependency(dependencies)
+	require.NoError(t, err)
+	require.Equal(t, resp.HasCycles, true)
+	for _, e := range resp.OrderedTables {
+		require.Contains(t, []*sqlmanager_shared.SchemaTable{{Schema: "other", Table: "a"}, {Schema: "other", Table: "b"}, {Schema: "other", Table: "c"}}, e)
+	}
+}
+
+func Test_GetTablesOrderedByDependency_Dependencies(t *testing.T) {
+	dependencies := map[string][]string{
+		"countries":   {"regions"},
+		"departments": {"locations"},
+		"dependents":  {"employees"},
+		"employees":   {"departments", "jobs", "employees"},
+		"locations":   {"countries"},
+		"regions":     {},
+		"jobs":        {},
+	}
+	expected := [][]*sqlmanager_shared.SchemaTable{
+		{{Schema: "public", Table: "regions"}, {Schema: "public", Table: "jobs"}},
+		{{Schema: "public", Table: "regions"}, {Schema: "public", Table: "jobs"}},
+		{{Schema: "public", Table: "countries"}},
+		{{Schema: "public", Table: "locations"}},
+		{{Schema: "public", Table: "departments"}},
+		{{Schema: "public", Table: "employees"}},
+		{{Schema: "public", Table: "dependents"}}}
+
+	actual, err := GetTablesOrderedByDependency(dependencies)
+	require.NoError(t, err)
+	require.Equal(t, actual.HasCycles, false)
+
+	for idx, table := range actual.OrderedTables {
+		require.Contains(t, expected[idx], table)
+	}
+}
+
+func Test_GetTablesOrderedByDependency_Mixed(t *testing.T) {
+	dependencies := map[string][]string{
+		"countries": {},
+		"locations": {"countries"},
+		"regions":   {},
+		"jobs":      {},
+	}
+
+	expected := []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "countries"}, {Schema: "public", Table: "regions"}, {Schema: "public", Table: "jobs"}, {Schema: "public", Table: "locations"}}
+	actual, err := GetTablesOrderedByDependency(dependencies)
+	require.NoError(t, err)
+	require.Equal(t, actual.HasCycles, false)
+	require.Len(t, actual.OrderedTables, len(expected))
+	for _, table := range actual.OrderedTables {
+		require.Contains(t, expected, table)
+	}
+	require.Equal(t, &sqlmanager_shared.SchemaTable{Schema: "public", Table: "locations"}, actual.OrderedTables[len(actual.OrderedTables)-1])
+}
+
+func Test_GetTablesOrderedByDependency_BrokenDependencies_NoLoop(t *testing.T) {
+	dependencies := map[string][]string{
+		"countries": {},
+		"locations": {"countries"},
+		"regions":   {"a"},
+		"jobs":      {"b"},
+	}
+
+	_, err := GetTablesOrderedByDependency(dependencies)
+	require.Error(t, err)
+}
+
+func Test_GetTablesOrderedByDependency_NestedDependencies(t *testing.T) {
+	dependencies := map[string][]string{
+		"a": {"b"},
+		"b": {"c"},
+		"c": {"d"},
+		"d": {},
+	}
+
+	expected := []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "d"}, {Schema: "public", Table: "c"}, {Schema: "public", Table: "b"}, {Schema: "public", Table: "a"}}
+	actual, err := GetTablesOrderedByDependency(dependencies)
+	require.NoError(t, err)
+	require.Equal(t, expected[0], actual.OrderedTables[0])
+	require.Equal(t, actual.HasCycles, false)
+}
+
+func Test_isValidRunOrder(t *testing.T) {
+	tests := []struct {
+		name     string
+		configs  []*RunConfig
+		expected bool
+	}{
+		{
+			name:     "empty configuration",
+			configs:  []*RunConfig{},
+			expected: true,
+		},
+		{
+			name: "single node with no dependencies",
+			configs: []*RunConfig{
+				buildRunConfig("users", "initial", nil, nil, []string{"id", "name"}, []string{"id", "name"}, nil),
+			},
+			expected: true,
+		},
+		{
+			name: "multiple nodes with no dependencies",
+			configs: []*RunConfig{
+				buildRunConfig("users", "initial", nil, nil, []string{"id", "name"}, []string{"id", "name"}, nil),
+				buildRunConfig("products", "initial", nil, nil, []string{"id", "name"}, []string{"id", "name"}, nil),
+			},
+			expected: true,
+		},
+		{
+			name: "simple dependency chain",
+			configs: []*RunConfig{
+				buildRunConfig("users", "initial", nil, nil, []string{"id"}, []string{"id"}, nil),
+				buildRunConfig("orders", "initial", nil, nil, []string{"id", "user_id"}, []string{"user_id"}, []*DependsOn{{Table: "users", Columns: []string{"id"}}}),
+			},
+			expected: true,
+		},
+		{
+			name: "circular dependency",
+			configs: []*RunConfig{
+				buildRunConfig("users", "initial", nil, nil, []string{"id"}, []string{"id"}, []*DependsOn{{Table: "orders", Columns: []string{"user_id"}}}),
+				buildRunConfig("orders", "initial", nil, nil, []string{"user_id"}, []string{"user_id"}, []*DependsOn{{Table: "users", Columns: []string{"id"}}}),
+			},
+			expected: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := isValidRunOrder(tt.configs)
+			require.Equal(t, tt.expected, actual)
+		})
+	}
+}
+
+func getConfigByTableAndType(table string, runtype RunType, insertCols []string, configs []*RunConfig) *RunConfig {
+	for _, c := range configs {
+		cCols := slices.Clone(c.InsertColumns())
+		iCols := slices.Clone(insertCols)
+		slices.Sort(cCols)
+		slices.Sort(iCols)
+		if c.Table() == table && c.RunType() == runtype && slices.Equal(cCols, iCols) {
+			return c
+		}
+	}
+	return nil
 }
 
 func buildRunConfig(

@@ -1,12 +1,19 @@
 package runconfigs
 
 import (
-	"encoding/json"
-	"fmt"
 	"slices"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
+
+// RunConfigBuilder is responsible for generating RunConfigs that define how to process table data.
+// It handles two main scenarios:
+// 1. Tables without circular dependencies - generates a single INSERT config
+// 2. Tables with circular dependencies - generates multiple configs to handle the cycle:
+//   - Initial INSERT with non-nullable foreign key columns
+//   - UPDATE configs for each nullable foreign key reference
+//
+// This allows for properly ordered data synchronization while maintaining referential integrity.
 
 type runConfigBuilder struct {
 	table                      string
@@ -65,7 +72,6 @@ func (b *runConfigBuilder) buildInsertConfig() *RunConfig {
 }
 
 func (b *runConfigBuilder) buildCircularDependencyConfigs() []*RunConfig {
-	fmt.Println("table", b.table)
 	var configs []*RunConfig
 
 	var where *string
@@ -99,9 +105,6 @@ func (b *runConfigBuilder) buildCircularDependencyConfigs() []*RunConfig {
 		if fc == nil || fc.ForeignKey == nil {
 			continue
 		}
-		fmt.Println("FOREIGN KEY")
-		jsonF, _ := json.MarshalIndent(fc, "", " ")
-		fmt.Printf("\n\n %s \n\n", string(jsonF))
 
 		insertCols, insertFkCols, updateCols, updateFkCols := []string{}, []string{}, []string{}, []string{}
 
@@ -131,7 +134,6 @@ func (b *runConfigBuilder) buildCircularDependencyConfigs() []*RunConfig {
 
 		// For columns that can be null, we do them after the main insert (Update).
 		if len(updateCols) > 0 {
-			fmt.Printf("\n\n updateCols: %v \n\n", updateCols)
 			updateConfig := b.buildUpdateConfig(fc, updateCols, updateFkCols, where, orderByColumns)
 			configs = append(configs, updateConfig)
 		}

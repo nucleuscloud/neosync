@@ -210,17 +210,6 @@ func GetRunConfigs(
 		configs = append(configs, cfgs...)
 	}
 
-	// remove update configs that have where clause, breaks circular dependencies and self references when subset is applied
-	if len(subsets) > 0 {
-		configs = filterConfigsWithWhereClause(configs)
-	}
-
-	for _, c := range configs {
-		fmt.Println()
-		fmt.Println(c.String())
-		fmt.Println()
-	}
-
 	// check run path
 	if !isValidRunOrder(configs) {
 		return nil, errors.New("unable to build table run order. unsupported circular dependency detected.")
@@ -267,56 +256,98 @@ func checkTableHasCols(tables []string, tablesColMap map[string][]string) bool {
 	return true
 }
 
-// removes update configs that have where clause
-// breaks circular dependencies and self references when subset is applied
-func filterConfigsWithWhereClause(configs []*RunConfig) []*RunConfig {
-	result := make([]*RunConfig, 0)
-	visited := make(map[string]bool)
-	hasWhereClause := make(map[string]bool)
+type OrderedTablesResult struct {
+	OrderedTables []*sqlmanager_shared.SchemaTable
+	HasCycles     bool
+}
 
-	var isSubset func(*RunConfig) bool
-	isSubset = func(config *RunConfig) bool {
-		if hasWhereClause[config.Table()] {
+func getMultiTableCircularDependencies(dependencyMap map[string][]string) [][]string {
+	cycles := FindCircularDependencies(dependencyMap)
+	multiTableCycles := [][]string{}
+	for _, c := range cycles {
+		if len(c) > 1 {
+			multiTableCycles = append(multiTableCycles, c)
+		}
+	}
+	return multiTableCycles
+}
+
+func GetTablesOrderedByDependency(dependencyMap map[string][]string) (*OrderedTablesResult, error) {
+	hasCycles := false
+	cycles := getMultiTableCircularDependencies(dependencyMap)
+	if len(cycles) > 0 {
+		hasCycles = true
+	}
+
+	tableMap := map[string]struct{}{}
+	for t := range dependencyMap {
+		tableMap[t] = struct{}{}
+	}
+	orderedTables := []*sqlmanager_shared.SchemaTable{}
+	seenTables := map[string]struct{}{}
+	for table := range tableMap {
+		dep, ok := dependencyMap[table]
+		if !ok || len(dep) == 0 {
+			s, t := sqlmanager_shared.SplitTableKey(table)
+			orderedTables = append(orderedTables, &sqlmanager_shared.SchemaTable{Schema: s, Table: t})
+			seenTables[table] = struct{}{}
+			delete(tableMap, table)
+		}
+	}
+
+	prevTableLen := 0
+	for len(tableMap) > 0 {
+		// prevents looping forever
+		if prevTableLen == len(tableMap) {
+			return nil, fmt.Errorf("unable to build table order")
+		}
+		prevTableLen = len(tableMap)
+		for table := range tableMap {
+			deps := dependencyMap[table]
+			if isReady(seenTables, deps, table, cycles) {
+				s, t := sqlmanager_shared.SplitTableKey(table)
+				orderedTables = append(orderedTables, &sqlmanager_shared.SchemaTable{Schema: s, Table: t})
+				seenTables[table] = struct{}{}
+				delete(tableMap, table)
+			}
+		}
+	}
+
+	return &OrderedTablesResult{OrderedTables: orderedTables, HasCycles: hasCycles}, nil
+}
+
+// returns all cycles table is in
+func getTableCirularDependencies(table string, circularDeps [][]string) [][]string {
+	cycles := [][]string{}
+	for _, cycle := range circularDeps {
+		if slices.Contains(cycle, table) {
+			cycles = append(cycles, cycle)
+		}
+	}
+	return cycles
+}
+
+func isReady(seen map[string]struct{}, deps []string, table string, cycles [][]string) bool {
+	// allow circular dependencies
+	circularDeps := getTableCirularDependencies(table, cycles)
+	circularDepsMap := map[string]struct{}{}
+	for _, cycle := range circularDeps {
+		for _, t := range cycle {
+			circularDepsMap[t] = struct{}{}
+		}
+	}
+	for _, d := range deps {
+		_, cdOk := circularDepsMap[d]
+		if cdOk {
 			return true
 		}
-
-		key := fmt.Sprintf("%s.%s", config.Table(), config.RunType())
-		if visited[key] {
+		_, ok := seen[d]
+		// allow self dependencies
+		if !ok && d != table {
 			return false
 		}
-		visited[key] = true
-
-		if config.WhereClause() != nil {
-			hasWhereClause[config.Table()] = true
-			return true
-		}
-
-		for _, dep := range config.DependsOn() {
-			for _, c := range configs {
-				if c.Table() == dep.Table {
-					if isSubset(c) {
-						hasWhereClause[config.Table()] = true
-						return true
-					}
-					break
-				}
-			}
-		}
-
-		return false
 	}
-
-	for _, config := range configs {
-		if isSubset(config) {
-			if config.RunType() == RunTypeInsert {
-				result = append(result, config)
-			}
-		} else {
-			result = append(result, config)
-		}
-	}
-
-	return result
+	return true
 }
 
 func isValidRunOrder(configs []*RunConfig) bool {
