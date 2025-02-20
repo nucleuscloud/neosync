@@ -1,6 +1,7 @@
-package tabledependency
+package runconfigs
 
 import (
+	"slices"
 	"testing"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -10,264 +11,255 @@ import (
 
 func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 	where := ""
-	tests := []struct {
-		name          string
-		dependencies  map[string][]*sqlmanager_shared.ForeignConstraint
-		subsets       map[string]string
-		tableColsMap  map[string][]string
-		primaryKeyMap map[string][]string
-		expect        []*RunConfig
-	}{
-		{
-			name: "Single Cycle",
-			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
-				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
-				},
-				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-				},
-				"public.c": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-				},
-			},
-			tableColsMap: map[string][]string{
-				"public.a": {"id", "b_id"},
-				"public.b": {"id", "c_id"},
-				"public.c": {"id", "a_id"},
-			},
-			primaryKeyMap: map[string][]string{
-				"public.a": {"id"},
-				"public.b": {"id"},
-				"public.c": {"id"},
-			},
-			subsets: map[string]string{},
-			expect: []*RunConfig{
-				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &where, []string{"id", "b_id"}, []string{"id"}, []*DependsOn{}),
-				buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &where, []string{"id", "b_id"}, []string{"b_id"}, []*DependsOn{
-					{Table: "public.a", Columns: []string{"id"}},
-					{Table: "public.b", Columns: []string{"id"}},
-				}),
-				buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &where, []string{"id", "a_id"}, []string{"id", "a_id"}, []*DependsOn{
-					{Table: "public.a", Columns: []string{"id"}},
-				}),
-				buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &where, []string{"id", "c_id"}, []string{"id", "c_id"}, []*DependsOn{
-					{Table: "public.c", Columns: []string{"id"}},
-				}),
-			},
-		},
-		{
-			name: "Single Cycle Non Cycle Start",
-			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
-				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
-					{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.x", Columns: []string{"id"}}},
-				},
-				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-				},
-				"public.c": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-				},
-			},
-			tableColsMap: map[string][]string{
-				"public.a": {"id", "b_id", "x_id"},
-				"public.b": {"id", "c_id"},
-				"public.c": {"id", "a_id"},
-				"public.x": {"id"},
-			},
-			primaryKeyMap: map[string][]string{
-				"public.x": {"id"},
-				"public.a": {"id"},
-				"public.b": {"id"},
-				"public.c": {"id"},
-			},
-			subsets: map[string]string{},
-			expect: []*RunConfig{
-				buildRunConfig("public.x", RunTypeInsert, []string{"id"}, &where, []string{"id"}, []string{"id"}, []*DependsOn{}),
-				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &where, []string{"id", "b_id", "x_id"}, []string{"id", "x_id"}, []*DependsOn{
-					{Table: "public.x", Columns: []string{"id"}},
-				}),
-				buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &where, []string{"id", "b_id"}, []string{"b_id"}, []*DependsOn{
-					{Table: "public.a", Columns: []string{"id"}},
-					{Table: "public.b", Columns: []string{"id"}},
-				}),
-				buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &where, []string{"id", "a_id"}, []string{"id", "a_id"}, []*DependsOn{
-					{Table: "public.a", Columns: []string{"id"}},
-				}),
-				buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &where, []string{"id", "c_id"}, []string{"id", "c_id"}, []*DependsOn{
-					{Table: "public.c", Columns: []string{"id"}},
-				}),
-			},
-		},
-		{
-			name: "Self Referencing Cycle",
-			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
-				"public.a": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-				},
-			},
-			tableColsMap: map[string][]string{
-				"public.a": {"id", "a_id", "other"},
-			},
-			primaryKeyMap: map[string][]string{
-				"public.a": {"id"},
-			},
-			subsets: map[string]string{},
-			expect: []*RunConfig{
-				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &where, []string{"id", "a_id", "other"}, []string{"id", "other"}, []*DependsOn{}),
-				buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &where, []string{"id", "a_id"}, []string{"a_id"}, []*DependsOn{
-					{Table: "public.a", Columns: []string{"id"}},
-				}),
-			},
-		},
-		{
-			name: "Double Self Referencing Cycle",
-			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
-				"public.a": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-					{Columns: []string{"aa_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-				},
-			},
-			tableColsMap: map[string][]string{
-				"public.a": {"id", "a_id", "aa_id", "other"},
-			},
-			primaryKeyMap: map[string][]string{
-				"public.a": {"id"},
-			},
-			subsets: map[string]string{},
-			expect: []*RunConfig{
-				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &where,
-					[]string{"id", "a_id", "aa_id", "other"},
-					[]string{"id", "other"},
-					[]*DependsOn{}),
-				buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &where,
-					[]string{"id", "a_id", "aa_id"},
-					[]string{"a_id", "aa_id"},
-					[]*DependsOn{
-						{Table: "public.a", Columns: []string{"id"}},
-					}),
-			},
-		},
-		{
-			name: "Single Cycle Composite Foreign Keys",
-			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
-				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
-				},
-				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-					{Columns: []string{"cc_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"other_id"}}},
-				},
-				"public.c": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-				},
-			},
-			tableColsMap: map[string][]string{
-				"public.a": {"id", "b_id"},
-				"public.b": {"id", "c_id", "cc_id"},
-				"public.c": {"id", "other_id", "a_id"},
-			},
-			primaryKeyMap: map[string][]string{
-				"public.a": {"id"},
-				"public.b": {"id"},
-				"public.c": {"id", "other_id"},
-			},
-			subsets: map[string]string{},
-			expect: []*RunConfig{
-				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &where,
-					[]string{"id", "b_id"},
-					[]string{"id"},
-					[]*DependsOn{}),
-				buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &where,
-					[]string{"id", "b_id"},
-					[]string{"b_id"},
-					[]*DependsOn{
-						{Table: "public.a", Columns: []string{"id"}},
-						{Table: "public.b", Columns: []string{"id"}},
-					}),
-				buildRunConfig("public.c", RunTypeInsert, []string{"id", "other_id"}, &where,
-					[]string{"id", "other_id", "a_id"},
-					[]string{"id", "other_id", "a_id"},
-					[]*DependsOn{
-						{Table: "public.a", Columns: []string{"id"}},
-					}),
-				buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &where,
-					[]string{"id", "c_id", "cc_id"},
-					[]string{"id", "c_id", "cc_id"},
-					[]*DependsOn{
-						{Table: "public.c", Columns: []string{"id", "other_id"}},
-					}),
-			},
-		},
-		{
-			name: "Single Cycle Composite Foreign Keys Nullable",
-			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
-				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
-				},
-				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-					{Columns: []string{"cc_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"other_id"}}},
-				},
-				"public.c": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-				},
-			},
-			tableColsMap: map[string][]string{
-				"public.a": {"id", "b_id"},
-				"public.b": {"id", "c_id", "cc_id"},
-				"public.c": {"id", "other_id", "a_id"},
-			},
-			primaryKeyMap: map[string][]string{
-				"public.a": {"id"},
-				"public.b": {"id"},
-				"public.c": {"id", "other_id"},
-			},
-			subsets: map[string]string{},
-			expect: []*RunConfig{
-				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &where,
-					[]string{"id", "b_id"},
-					[]string{"id", "b_id"},
-					[]*DependsOn{
-						{Table: "public.b", Columns: []string{"id"}},
-					}),
-				buildRunConfig("public.c", RunTypeInsert, []string{"id", "other_id"}, &where,
-					[]string{"id", "other_id", "a_id"},
-					[]string{"id", "other_id", "a_id"},
-					[]*DependsOn{
-						{Table: "public.a", Columns: []string{"id"}},
-					}),
-				buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &where,
-					[]string{"id", "c_id", "cc_id"},
-					[]string{"id"},
-					[]*DependsOn{}),
-				buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &where,
-					[]string{"id", "c_id", "cc_id"},
-					[]string{"c_id", "cc_id"},
-					[]*DependsOn{
-						{Table: "public.b", Columns: []string{"id"}},
-						{Table: "public.c", Columns: []string{"id", "other_id"}},
-					}),
-			},
-		},
-	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap, map[string][][]string{}, map[string][][]string{})
-			require.NoError(t, err)
-			for _, e := range tt.expect {
-				acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
-				require.NotNil(t, acutalConfig)
-				require.ElementsMatch(t, e.SelectColumns(), acutalConfig.SelectColumns())
-				require.ElementsMatch(t, e.InsertColumns(), acutalConfig.InsertColumns())
-				require.ElementsMatch(t, e.DependsOn(), acutalConfig.DependsOn())
-				require.ElementsMatch(t, e.PrimaryKeys(), acutalConfig.PrimaryKeys())
-				require.Equal(t, e.WhereClause(), e.WhereClause())
-			}
-		})
-	}
+	t.Run("Single Cycle", func(t *testing.T) {
+		dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.a": {
+				{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			},
+			"public.b": {
+				{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+			},
+			"public.c": {
+				{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			},
+		}
+		tableColsMap := map[string][]string{
+			"public.a": {"id", "b_id"},
+			"public.b": {"id", "c_id"},
+			"public.c": {"id", "a_id"},
+		}
+		primaryKeyMap := map[string][]string{
+			"public.a": {"id"},
+			"public.b": {"id"},
+			"public.c": {"id"},
+		}
+		subsets := map[string]string{}
+		expect := []*RunConfig{
+			buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &where, []string{"id", "b_id"}, []string{"id"}, []*DependsOn{}),
+			buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &where, []string{"id", "b_id"}, []string{"b_id"}, []*DependsOn{
+				{Table: "public.a", Columns: []string{"id"}},
+				{Table: "public.b", Columns: []string{"id"}},
+			}),
+			buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &where, []string{"id", "a_id"}, []string{"id", "a_id"}, []*DependsOn{
+				{Table: "public.a", Columns: []string{"id"}},
+			}),
+			buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &where, []string{"id", "c_id"}, []string{"id", "c_id"}, []*DependsOn{
+				{Table: "public.c", Columns: []string{"id"}},
+			}),
+		}
+
+		assertRunConfigs(t, dependencies, subsets, primaryKeyMap, tableColsMap, expect)
+	})
+
+	t.Run("Single Cycle Non Cycle Start", func(t *testing.T) {
+		dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.a": {
+				{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+				{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.x", Columns: []string{"id"}}},
+			},
+			"public.b": {
+				{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+			},
+			"public.c": {
+				{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			},
+		}
+		tableColsMap := map[string][]string{
+			"public.a": {"id", "b_id", "x_id"},
+			"public.b": {"id", "c_id"},
+			"public.c": {"id", "a_id"},
+			"public.x": {"id"},
+		}
+		primaryKeyMap := map[string][]string{
+			"public.x": {"id"},
+			"public.a": {"id"},
+			"public.b": {"id"},
+			"public.c": {"id"},
+		}
+		subsets := map[string]string{}
+		expect := []*RunConfig{
+			buildRunConfig("public.x", RunTypeInsert, []string{"id"}, &where, []string{"id"}, []string{"id"}, []*DependsOn{}),
+			buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &where, []string{"id", "b_id", "x_id"}, []string{"id", "x_id"}, []*DependsOn{
+				{Table: "public.x", Columns: []string{"id"}},
+			}),
+			buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &where, []string{"id", "b_id"}, []string{"b_id"}, []*DependsOn{
+				{Table: "public.a", Columns: []string{"id"}},
+				{Table: "public.b", Columns: []string{"id"}},
+			}),
+			buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &where, []string{"id", "a_id"}, []string{"id", "a_id"}, []*DependsOn{
+				{Table: "public.a", Columns: []string{"id"}},
+			}),
+			buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &where, []string{"id", "c_id"}, []string{"id", "c_id"}, []*DependsOn{
+				{Table: "public.c", Columns: []string{"id"}},
+			}),
+		}
+
+		assertRunConfigs(t, dependencies, subsets, primaryKeyMap, tableColsMap, expect)
+	})
+
+	t.Run("Self Referencing Cycle", func(t *testing.T) {
+		dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.a": {
+				{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			},
+		}
+		tableColsMap := map[string][]string{
+			"public.a": {"id", "a_id", "other"},
+		}
+		primaryKeyMap := map[string][]string{
+			"public.a": {"id"},
+		}
+		subsets := map[string]string{}
+		expect := []*RunConfig{
+			buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &where, []string{"id", "a_id", "other"}, []string{"id", "other"}, []*DependsOn{}),
+			buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &where, []string{"id", "a_id"}, []string{"a_id"}, []*DependsOn{
+				{Table: "public.a", Columns: []string{"id"}},
+			}),
+		}
+
+		assertRunConfigs(t, dependencies, subsets, primaryKeyMap, tableColsMap, expect)
+	})
+
+	t.Run("Double Self Referencing Cycle", func(t *testing.T) {
+		dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.a": {
+				{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+				{Columns: []string{"aa_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			},
+		}
+		tableColsMap := map[string][]string{
+			"public.a": {"id", "a_id", "aa_id", "other"},
+		}
+		primaryKeyMap := map[string][]string{
+			"public.a": {"id"},
+		}
+		subsets := map[string]string{}
+		expect := []*RunConfig{
+			buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &where,
+				[]string{"id", "a_id", "aa_id", "other"},
+				[]string{"id", "other"},
+				[]*DependsOn{}),
+			buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &where,
+				[]string{"id", "a_id"},
+				[]string{"a_id"},
+				[]*DependsOn{
+					{Table: "public.a", Columns: []string{"id"}},
+				}),
+			buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &where,
+				[]string{"id", "aa_id"},
+				[]string{"aa_id"},
+				[]*DependsOn{
+					{Table: "public.a", Columns: []string{"id"}},
+				}),
+		}
+
+		assertRunConfigs(t, dependencies, subsets, primaryKeyMap, tableColsMap, expect)
+	})
+
+	t.Run("Single Cycle Composite Foreign Keys", func(t *testing.T) {
+		dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.a": {
+				{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			},
+			"public.b": {
+				{Columns: []string{"c_id", "cc_id"}, NotNullable: []bool{true, true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id", "other_id"}}},
+			},
+			"public.c": {
+				{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			},
+		}
+		tableColsMap := map[string][]string{
+			"public.a": {"id", "b_id"},
+			"public.b": {"id", "c_id", "cc_id"},
+			"public.c": {"id", "other_id", "a_id"},
+		}
+		primaryKeyMap := map[string][]string{
+			"public.a": {"id"},
+			"public.b": {"id"},
+			"public.c": {"id", "other_id"},
+		}
+		subsets := map[string]string{}
+		expect := []*RunConfig{
+			buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &where,
+				[]string{"id", "b_id"},
+				[]string{"id"},
+				[]*DependsOn{}),
+			buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &where,
+				[]string{"id", "b_id"},
+				[]string{"b_id"},
+				[]*DependsOn{
+					{Table: "public.a", Columns: []string{"id"}},
+					{Table: "public.b", Columns: []string{"id"}},
+				}),
+			buildRunConfig("public.c", RunTypeInsert, []string{"id", "other_id"}, &where,
+				[]string{"id", "other_id", "a_id"},
+				[]string{"id", "other_id", "a_id"},
+				[]*DependsOn{
+					{Table: "public.a", Columns: []string{"id"}},
+				}),
+			buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &where,
+				[]string{"id", "c_id", "cc_id"},
+				[]string{"id", "c_id", "cc_id"},
+				[]*DependsOn{
+					{Table: "public.c", Columns: []string{"id", "other_id"}},
+				}),
+		}
+
+		assertRunConfigs(t, dependencies, subsets, primaryKeyMap, tableColsMap, expect)
+	})
+
+	t.Run("Single Cycle Composite Foreign Keys Nullable", func(t *testing.T) {
+		dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.a": {
+				{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			},
+			"public.b": {
+				{Columns: []string{"c_id", "cc_id"}, NotNullable: []bool{false, false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id", "other_id"}}},
+			},
+			"public.c": {
+				{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			},
+		}
+		tableColsMap := map[string][]string{
+			"public.a": {"id", "b_id"},
+			"public.b": {"id", "c_id", "cc_id"},
+			"public.c": {"id", "other_id", "a_id"},
+		}
+		primaryKeyMap := map[string][]string{
+			"public.a": {"id"},
+			"public.b": {"id"},
+			"public.c": {"id", "other_id"},
+		}
+		subsets := map[string]string{}
+		expect := []*RunConfig{
+			buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &where,
+				[]string{"id", "b_id"},
+				[]string{"id", "b_id"},
+				[]*DependsOn{
+					{Table: "public.b", Columns: []string{"id"}},
+				}),
+			buildRunConfig("public.c", RunTypeInsert, []string{"id", "other_id"}, &where,
+				[]string{"id", "other_id", "a_id"},
+				[]string{"id", "other_id", "a_id"},
+				[]*DependsOn{
+					{Table: "public.a", Columns: []string{"id"}},
+				}),
+			buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &where,
+				[]string{"id", "c_id", "cc_id"},
+				[]string{"id"},
+				[]*DependsOn{}),
+			buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &where,
+				[]string{"id", "c_id", "cc_id"},
+				[]string{"c_id", "cc_id"},
+				[]*DependsOn{
+					{Table: "public.b", Columns: []string{"id"}},
+					{Table: "public.c", Columns: []string{"id", "other_id"}},
+				}),
+		}
+
+		assertRunConfigs(t, dependencies, subsets, primaryKeyMap, tableColsMap, expect)
+	})
 }
 
 func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
@@ -353,17 +345,7 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap, map[string][][]string{}, map[string][][]string{})
-			require.NoError(t, err)
-			for _, e := range tt.expect {
-				acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
-				require.NotNil(t, acutalConfig)
-				require.ElementsMatch(t, e.SelectColumns(), acutalConfig.SelectColumns())
-				require.ElementsMatch(t, e.InsertColumns(), acutalConfig.InsertColumns())
-				require.ElementsMatch(t, e.DependsOn(), acutalConfig.DependsOn())
-				require.ElementsMatch(t, e.PrimaryKeys(), acutalConfig.PrimaryKeys())
-				require.Equal(t, e.WhereClause(), e.WhereClause())
-			}
+			assertRunConfigs(t, tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap, tt.expect)
 		})
 	}
 }
@@ -415,8 +397,10 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 			subsets: map[string]string{},
 			expect: []*RunConfig{
 				buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "c_id", "d_id", "other_id"}, []string{"id", "other_id"}, []*DependsOn{}),
-				buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "c_id", "d_id"}, []string{"c_id", "d_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.c", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}),
-				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "b_id"}, []string{"id", "b_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}),
+				buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "c_id"}, []string{"c_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.c", Columns: []string{"id"}}}),
+				buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "d_id"}, []string{"d_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}),
+				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "b_id"}, []string{"id"}, []*DependsOn{}),
+				buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "b_id"}, []string{"b_id"}, []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}),
 				buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "a_id"}, []string{"id", "a_id"}, []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}),
 				buildRunConfig("public.d", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "e_id"}, []string{"id", "e_id"}, []*DependsOn{{Table: "public.e", Columns: []string{"id"}}}),
 				buildRunConfig("public.e", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "b_id"}, []string{"id", "b_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}),
@@ -528,7 +512,8 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 			expect: []*RunConfig{
 				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "b_id"}, []string{"id", "b_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}),
 				buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "c_id", "bb_id", "other_id"}, []string{"id", "other_id"}, []*DependsOn{}),
-				buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "c_id", "bb_id"}, []string{"c_id", "bb_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.c", Columns: []string{"id"}}}),
+				buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "c_id"}, []string{"c_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.c", Columns: []string{"id"}}}),
+				buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "bb_id"}, []string{"bb_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}),
 				buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "a_id"}, []string{"id", "a_id"}, []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}),
 			},
 		},
@@ -536,17 +521,7 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap, map[string][][]string{}, map[string][][]string{})
-			require.NoError(t, err)
-			for _, e := range tt.expect {
-				acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
-				require.NotNil(t, acutalConfig, "expected config for table %s and type %s to exist", e.Table(), e.RunType())
-				assert.ElementsMatch(t, e.SelectColumns(), acutalConfig.SelectColumns(), "select columns mismatch for table %s and type %s", e.Table(), e.RunType())
-				assert.ElementsMatch(t, e.InsertColumns(), acutalConfig.InsertColumns(), "insert columns mismatch for table %s and type %s", e.Table(), e.RunType())
-				assert.ElementsMatch(t, e.DependsOn(), acutalConfig.DependsOn(), "depends on mismatch for table %s and type %s", e.Table(), e.RunType())
-				assert.ElementsMatch(t, e.PrimaryKeys(), acutalConfig.PrimaryKeys(), "primary keys mismatch for table %s and type %s", e.Table(), e.RunType())
-				assert.Equal(t, e.WhereClause(), e.WhereClause(), "where clause mismatch for table %s and type %s", e.Table(), e.RunType())
-			}
+			assertRunConfigs(t, tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap, tt.expect)
 		})
 	}
 }
@@ -646,17 +621,7 @@ func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap, map[string][][]string{}, map[string][][]string{})
-			require.NoError(t, err)
-			for _, e := range tt.expect {
-				acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
-				require.NotNil(t, acutalConfig)
-				require.ElementsMatch(t, e.SelectColumns(), acutalConfig.SelectColumns())
-				require.ElementsMatch(t, e.InsertColumns(), acutalConfig.InsertColumns())
-				require.ElementsMatch(t, e.DependsOn(), acutalConfig.DependsOn())
-				require.ElementsMatch(t, e.PrimaryKeys(), acutalConfig.PrimaryKeys())
-				require.Equal(t, e.WhereClause(), e.WhereClause())
-			}
+			assertRunConfigs(t, tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap, tt.expect)
 		})
 	}
 }
@@ -721,18 +686,7 @@ func Test_GetRunConfigs_CompositeKey(t *testing.T) {
 			[]*DependsOn{{Table: "public.employees", Columns: []string{"employee_id", "department_id"}}}),
 	}
 
-	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap, map[string][][]string{}, map[string][][]string{})
-
-	require.NoError(t, err)
-	for _, e := range expect {
-		acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
-		require.NotNil(t, acutalConfig)
-		require.ElementsMatch(t, e.InsertColumns(), acutalConfig.InsertColumns())
-		require.ElementsMatch(t, e.SelectColumns(), acutalConfig.SelectColumns())
-		require.ElementsMatch(t, e.DependsOn(), acutalConfig.DependsOn())
-		require.ElementsMatch(t, e.PrimaryKeys(), acutalConfig.PrimaryKeys())
-		require.Equal(t, e.WhereClause(), e.WhereClause())
-	}
+	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
 }
 
 func Test_GetRunConfigs_HumanResources(t *testing.T) {
@@ -827,8 +781,8 @@ func Test_GetRunConfigs_HumanResources(t *testing.T) {
 			[]*DependsOn{{Table: "public.locations", Columns: []string{"location_id"}}}),
 		buildRunConfig("public.employees", RunTypeInsert, []string{"employee_id"}, &emptyWhere,
 			[]string{"employee_id", "email", "name", "job_id", "manager_id", "department_id"},
-			[]string{"employee_id", "email", "name", "job_id", "department_id"},
-			[]*DependsOn{{Table: "public.departments", Columns: []string{"department_id"}}, {Table: "public.jobs", Columns: []string{"job_id"}}}),
+			[]string{"employee_id", "email", "name", "job_id"},
+			[]*DependsOn{{Table: "public.jobs", Columns: []string{"job_id"}}}),
 		buildRunConfig("public.dependents", RunTypeInsert, []string{"dependent_id"}, &emptyWhere,
 			[]string{"dependent_id", "name", "employee_id"},
 			[]string{"dependent_id", "name", "employee_id"},
@@ -837,19 +791,13 @@ func Test_GetRunConfigs_HumanResources(t *testing.T) {
 			[]string{"employee_id", "manager_id"},
 			[]string{"manager_id"},
 			[]*DependsOn{{Table: "public.employees", Columns: []string{"employee_id"}}}),
+		buildRunConfig("public.employees", RunTypeUpdate, []string{"employee_id"}, &emptyWhere,
+			[]string{"employee_id", "department_id"},
+			[]string{"department_id"},
+			[]*DependsOn{{Table: "public.employees", Columns: []string{"employee_id"}}, {Table: "public.departments", Columns: []string{"department_id"}}}),
 	}
 
-	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap, map[string][][]string{}, map[string][][]string{})
-	require.NoError(t, err)
-	for _, e := range expect {
-		acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
-		require.NotNil(t, acutalConfig)
-		require.ElementsMatch(t, e.InsertColumns(), acutalConfig.InsertColumns())
-		require.ElementsMatch(t, e.SelectColumns(), acutalConfig.SelectColumns())
-		require.ElementsMatch(t, e.DependsOn(), acutalConfig.DependsOn())
-		require.ElementsMatch(t, e.PrimaryKeys(), acutalConfig.PrimaryKeys())
-		require.Equal(t, e.WhereClause(), e.WhereClause())
-	}
+	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
 }
 
 func Test_GetRunConfigs_SingleTable_WithFks(t *testing.T) {
@@ -904,17 +852,7 @@ func Test_GetRunConfigs_SingleTable_WithFks(t *testing.T) {
 			[]*DependsOn{{Table: "public.employees", Columns: []string{"employee_id"}}}),
 	}
 
-	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap, map[string][][]string{}, map[string][][]string{})
-	require.NoError(t, err)
-	for _, e := range expect {
-		acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
-		require.NotNil(t, acutalConfig)
-		require.ElementsMatch(t, e.InsertColumns(), acutalConfig.InsertColumns())
-		require.ElementsMatch(t, e.SelectColumns(), acutalConfig.SelectColumns())
-		require.ElementsMatch(t, e.DependsOn(), acutalConfig.DependsOn())
-		require.ElementsMatch(t, e.PrimaryKeys(), acutalConfig.PrimaryKeys())
-		require.Equal(t, e.WhereClause(), e.WhereClause())
-	}
+	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
 }
 
 func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
@@ -956,11 +894,17 @@ func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
 			[]string{"id_4", "name_4", "address_4"},
 			[]*DependsOn{}),
 		buildRunConfig("public.table_4", RunTypeUpdate, []string{"id_4"}, &emptyWhere,
-			[]string{"id_4", "prev_id_4", "next_id_4"},
-			[]string{"prev_id_4", "next_id_4"},
+			[]string{"id_4", "prev_id_4"},
+			[]string{"prev_id_4"},
 			[]*DependsOn{
 				{Table: "public.table_4", Columns: []string{"id_4"}},
 				{Table: "public.table_3", Columns: []string{"id_3"}},
+			}),
+		buildRunConfig("public.table_4", RunTypeUpdate, []string{"id_4"}, &emptyWhere,
+			[]string{"id_4", "next_id_4"},
+			[]string{"next_id_4"},
+			[]*DependsOn{
+				{Table: "public.table_4", Columns: []string{"id_4"}},
 				{Table: "public.table_1", Columns: []string{"id_1"}},
 			}),
 		buildRunConfig("public.table_2", RunTypeInsert, []string{"id_2"}, &emptyWhere,
@@ -968,11 +912,17 @@ func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
 			[]string{"id_2", "name_2", "address_2"},
 			[]*DependsOn{}),
 		buildRunConfig("public.table_2", RunTypeUpdate, []string{"id_2"}, &emptyWhere,
-			[]string{"id_2", "prev_id_2", "next_id_2"},
-			[]string{"prev_id_2", "next_id_2"},
+			[]string{"id_2", "prev_id_2"},
+			[]string{"prev_id_2"},
 			[]*DependsOn{
 				{Table: "public.table_2", Columns: []string{"id_2"}},
 				{Table: "public.table_1", Columns: []string{"id_1"}},
+			}),
+		buildRunConfig("public.table_2", RunTypeUpdate, []string{"id_2"}, &emptyWhere,
+			[]string{"id_2", "next_id_2"},
+			[]string{"next_id_2"},
+			[]*DependsOn{
+				{Table: "public.table_2", Columns: []string{"id_2"}},
 				{Table: "public.table_3", Columns: []string{"id_3"}},
 			}),
 		buildRunConfig("public.table_1", RunTypeInsert, []string{"id_1"}, &emptyWhere,
@@ -991,17 +941,7 @@ func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
 			}),
 	}
 
-	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap, map[string][][]string{}, map[string][][]string{})
-	require.NoError(t, err)
-	for _, e := range expect {
-		actualConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual) // Adjust getConfigByTableAndType according to your actual utility functions
-		require.NotNil(t, actualConfig)
-		require.ElementsMatch(t, e.InsertColumns(), actualConfig.InsertColumns())
-		require.ElementsMatch(t, e.SelectColumns(), actualConfig.SelectColumns())
-		require.ElementsMatch(t, e.DependsOn(), actualConfig.DependsOn())
-		require.ElementsMatch(t, e.PrimaryKeys(), actualConfig.PrimaryKeys())
-		require.Equal(t, e.WhereClause(), e.WhereClause())
-	}
+	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
 }
 
 func Test_GetRunConfigs_Multiple_CircularDependency(t *testing.T) {
@@ -1070,17 +1010,7 @@ func Test_GetRunConfigs_Multiple_CircularDependency(t *testing.T) {
 			}),
 	}
 
-	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap, map[string][][]string{}, map[string][][]string{})
-	require.NoError(t, err)
-	for _, e := range expect {
-		actualConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
-		require.NotNil(t, actualConfig, "expected config for table %s and type %s not found", e.Table(), e.RunType())
-		require.ElementsMatch(t, e.InsertColumns(), actualConfig.InsertColumns(), "insert columns mismatch for table %s", e.Table())
-		require.ElementsMatch(t, e.SelectColumns(), actualConfig.SelectColumns(), "select columns mismatch for table %s", e.Table())
-		require.ElementsMatch(t, e.DependsOn(), actualConfig.DependsOn(), "depends on mismatch for table %s", e.Table())
-		require.ElementsMatch(t, e.PrimaryKeys(), actualConfig.PrimaryKeys(), "primary keys mismatch for table %s", e.Table())
-		require.Equal(t, e.WhereClause(), e.WhereClause(), "where clause mismatch for table %s", e.Table())
-	}
+	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
 }
 
 func Test_GetRunConfigs_CircularDependency_MultipleFksPerTable(t *testing.T) {
@@ -1125,32 +1055,30 @@ func Test_GetRunConfigs_CircularDependency_MultipleFksPerTable(t *testing.T) {
 			[]string{"id", "a_id", "ac_id"},
 			[]string{"id", "a_id", "ac_id"},
 			[]*DependsOn{
-				{Table: "public.a", Columns: []string{"id", "c_id"}},
+				{Table: "public.a", Columns: []string{"id"}},
+				{Table: "public.a", Columns: []string{"c_id"}},
 			}),
 		buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere,
 			[]string{"id", "b_id", "acb_id"},
 			[]string{"id"},
 			[]*DependsOn{}),
 		buildRunConfig("public.c", RunTypeUpdate, []string{"id"}, &emptyWhere,
-			[]string{"id", "b_id", "acb_id"},
-			[]string{"b_id", "acb_id"},
+			[]string{"id", "b_id"},
+			[]string{"b_id"},
 			[]*DependsOn{
 				{Table: "public.c", Columns: []string{"id"}},
-				{Table: "public.b", Columns: []string{"id", "ac_id"}},
+				{Table: "public.b", Columns: []string{"id"}},
+			}),
+		buildRunConfig("public.c", RunTypeUpdate, []string{"id"}, &emptyWhere,
+			[]string{"id", "acb_id"},
+			[]string{"acb_id"},
+			[]*DependsOn{
+				{Table: "public.c", Columns: []string{"id"}},
+				{Table: "public.b", Columns: []string{"ac_id"}},
 			}),
 	}
 
-	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap, map[string][][]string{}, map[string][][]string{})
-	require.NoError(t, err)
-	for _, e := range expect {
-		actualConfig := getConfigByTableAndType(e.Table(), e.RunType(), actual)
-		require.NotNil(t, actualConfig, "expected config for table %s and type %s not found", e.Table(), e.RunType())
-		require.ElementsMatch(t, e.InsertColumns(), actualConfig.InsertColumns(), "insert columns mismatch for table %s", e.Table())
-		require.ElementsMatch(t, e.SelectColumns(), actualConfig.SelectColumns(), "select columns mismatch for table %s", e.Table())
-		require.ElementsMatch(t, e.DependsOn(), actualConfig.DependsOn(), "depends on mismatch for table %s", e.Table())
-		require.ElementsMatch(t, e.PrimaryKeys(), actualConfig.PrimaryKeys(), "primary keys mismatch for table %s", e.Table())
-		require.Equal(t, e.WhereClause(), e.WhereClause(), "where clause mismatch for table %s", e.Table())
-	}
+	assertRunConfigs(t, dependencies, map[string]string{}, primaryKeyMap, tablesColMap, expect)
 }
 
 func Test_GetRunConfigs_CircularDependencyNoneNullable(t *testing.T) {
@@ -1306,182 +1234,13 @@ func Test_isValidRunOrder(t *testing.T) {
 	}
 }
 
-func TestFilterConfigsWithWhereClause(t *testing.T) {
-	t.Run("Basic filtering", func(t *testing.T) {
-		t.Parallel()
-		whereClause := "id > 10"
-		configs := []*RunConfig{
-			buildRunConfig("table1", RunTypeInsert, nil, nil, nil, nil, nil),
-			buildRunConfig("table1", RunTypeUpdate, nil, &whereClause, nil, nil, nil),
-			buildRunConfig("table2", RunTypeInsert, nil, nil, nil, nil, nil),
-			buildRunConfig("table2", RunTypeUpdate, nil, nil, nil, nil, nil),
-		}
-
-		filtered := filterConfigsWithWhereClause(configs)
-
-		require.Len(t, filtered, 3)
-		require.Contains(t, filtered, configs[0])
-		require.Contains(t, filtered, configs[2])
-		require.Contains(t, filtered, configs[3])
-	})
-
-	t.Run("Circular dependency", func(t *testing.T) {
-		t.Parallel()
-		whereClause := "id > 10"
-		configs := []*RunConfig{
-			buildRunConfig("table1", RunTypeInsert, nil, &whereClause, nil, nil, nil),
-			buildRunConfig("table1", RunTypeUpdate, nil, &whereClause, nil, nil, []*DependsOn{{Table: "table1"}}),
-			buildRunConfig("table2", RunTypeInsert, nil, nil, nil, nil, []*DependsOn{{Table: "table1"}}),
-			buildRunConfig("table2", RunTypeUpdate, nil, nil, nil, nil, []*DependsOn{{Table: "table1"}, {Table: "table2"}}),
-		}
-
-		filtered := filterConfigsWithWhereClause(configs)
-
-		require.Len(t, filtered, 2)
-		require.Contains(t, filtered, configs[0])
-		require.Contains(t, filtered, configs[2])
-	})
-
-	t.Run("Self-reference", func(t *testing.T) {
-		t.Parallel()
-		whereClause := "id > 10"
-		configs := []*RunConfig{
-			buildRunConfig("table1", RunTypeInsert, nil, &whereClause, nil, nil, nil),
-			buildRunConfig("table1", RunTypeUpdate, nil, &whereClause, nil, nil, []*DependsOn{{Table: "table1"}}),
-		}
-
-		filtered := filterConfigsWithWhereClause(configs)
-
-		require.Len(t, filtered, 1)
-		require.Contains(t, filtered, configs[0])
-	})
-
-	t.Run("Complex dependency chain", func(t *testing.T) {
-		t.Parallel()
-		whereClause := "id > 10"
-		configs := []*RunConfig{
-			buildRunConfig("table1", RunTypeInsert, nil, &whereClause, nil, nil, nil),
-			buildRunConfig("table1", RunTypeUpdate, nil, &whereClause, nil, nil, nil),
-			buildRunConfig("table2", RunTypeInsert, nil, nil, nil, nil, nil),
-			buildRunConfig("table2", RunTypeUpdate, nil, nil, nil, nil, []*DependsOn{{Table: "table1"}}),
-			buildRunConfig("table3", RunTypeInsert, nil, nil, nil, nil, nil),
-			buildRunConfig("table3", RunTypeUpdate, nil, nil, nil, nil, []*DependsOn{{Table: "table2"}}),
-		}
-
-		filtered := filterConfigsWithWhereClause(configs)
-
-		require.Len(t, filtered, 3)
-		require.Contains(t, filtered, configs[0])
-		require.Contains(t, filtered, configs[2])
-		require.Contains(t, filtered, configs[4])
-	})
-
-	t.Run("Mixed where clauses", func(t *testing.T) {
-		t.Parallel()
-		whereClause1 := "id > 10"
-		whereClause2 := "name LIKE 'test%'"
-		configs := []*RunConfig{
-			buildRunConfig("table1", RunTypeInsert, nil, &whereClause1, nil, nil, nil),
-			buildRunConfig("table1", RunTypeUpdate, nil, &whereClause1, nil, nil, nil),
-			buildRunConfig("table2", RunTypeInsert, nil, &whereClause2, nil, nil, nil),
-			buildRunConfig("table2", RunTypeUpdate, nil, &whereClause2, nil, nil, nil),
-			buildRunConfig("table3", RunTypeInsert, nil, nil, nil, nil, nil),
-			buildRunConfig("table3", RunTypeUpdate, nil, nil, nil, nil, nil),
-		}
-
-		filtered := filterConfigsWithWhereClause(configs)
-
-		require.Len(t, filtered, 4)
-		require.Contains(t, filtered, configs[0])
-		require.Contains(t, filtered, configs[2])
-		require.Contains(t, filtered, configs[4])
-		require.Contains(t, filtered, configs[5])
-	})
-
-	t.Run("All inserts, no updates", func(t *testing.T) {
-		t.Parallel()
-		configs := []*RunConfig{
-			buildRunConfig("table1", RunTypeInsert, nil, nil, nil, nil, nil),
-			buildRunConfig("table2", RunTypeInsert, nil, nil, nil, nil, nil),
-			buildRunConfig("table3", RunTypeInsert, nil, nil, nil, nil, nil),
-		}
-
-		filtered := filterConfigsWithWhereClause(configs)
-
-		require.Len(t, filtered, 3)
-		require.Equal(t, configs, filtered)
-	})
-
-	t.Run("Complex scenario with multiple dependencies", func(t *testing.T) {
-		t.Parallel()
-		whereClause := "id > 10"
-		configs := []*RunConfig{
-			buildRunConfig("table1", RunTypeInsert, nil, &whereClause, nil, nil, nil),
-			buildRunConfig("table1", RunTypeUpdate, nil, &whereClause, nil, nil, nil),
-			buildRunConfig("table2", RunTypeInsert, nil, nil, nil, nil, []*DependsOn{{Table: "table1"}, {Table: "table3"}}),
-			buildRunConfig("table2", RunTypeUpdate, nil, nil, nil, nil, []*DependsOn{{Table: "table1"}, {Table: "table3"}, {Table: "table2"}}),
-			buildRunConfig("table3", RunTypeInsert, nil, nil, nil, nil, []*DependsOn{{Table: "table1"}}),
-			buildRunConfig("table3", RunTypeUpdate, nil, nil, nil, nil, []*DependsOn{{Table: "table1"}, {Table: "table3"}}),
-			buildRunConfig("table4", RunTypeInsert, nil, nil, nil, nil, []*DependsOn{{Table: "table2"}, {Table: "table3"}}),
-			buildRunConfig("table4", RunTypeUpdate, nil, nil, nil, nil, []*DependsOn{{Table: "table2"}, {Table: "table3"}, {Table: "table4"}}),
-		}
-
-		filtered := filterConfigsWithWhereClause(configs)
-
-		require.Len(t, filtered, 4)
-		require.Contains(t, filtered, configs[0])
-		require.Contains(t, filtered, configs[2])
-		require.Contains(t, filtered, configs[4])
-		require.Contains(t, filtered, configs[6])
-	})
-}
-
-func Test_OrderByColumns(t *testing.T) {
-	// Create RunConfigs for different order by scenarios.
-
-	// Scenario 1: Table with a primary key mapping.
-	// Even if the select columns are set, the primaryKeyMap should take precedence.
-	configPK := buildRunConfig("tablePK", RunTypeInsert, nil, nil, []string{"unused1", "unused2"}, nil, nil)
-
-	// Scenario 2: Table without a primary key but with a unique constraint.
-	configUC := buildRunConfig("tableUC", RunTypeInsert, nil, nil, []string{"dummy"}, nil, nil)
-
-	// Scenario 3: Table without a primary key or unique constraint, but with a unique index.
-	configUI := buildRunConfig("tableUI", RunTypeInsert, nil, nil, []string{"dummy"}, nil, nil)
-
-	// Scenario 4: Table without primary key, unique constraints, or unique indexes.
-	// The order by should be derived from sorting the select columns.
-	// Provide unsorted select columns.
-	configSC := buildRunConfig("tableSC", RunTypeInsert, nil, nil, []string{"d", "b", "c", "a"}, nil, nil)
-
-	configs := []*RunConfig{configPK, configUC, configUI, configSC}
-
-	// Define maps for primary keys, unique constraints, and unique indexes.
-	primaryKeyMap := map[string][]string{
-		"tablePK": {"id"},
-	}
-
-	uniqueConstraintsMap := map[string][][]string{
-		"tableUC": {{"uc1", "uc2"}},
-	}
-
-	uniqueIndexesMap := map[string][][]string{
-		"tableUI": {{"ui1", "ui2"}},
-	}
-
-	// Invoke setOrderByColumns to set the order by columns for each config.
-	setOrderByColumns(configs, primaryKeyMap, uniqueIndexesMap, uniqueConstraintsMap)
-
-	// Assert the expected order by results.
-	require.Equal(t, []string{"id"}, configPK.OrderByColumns(), "Expected orderByColumns for tablePK to come from the primary key mapping")
-	require.Equal(t, []string{"uc1", "uc2"}, configUC.OrderByColumns(), "Expected orderByColumns for tableUC to come from unique constraints")
-	require.Equal(t, []string{"ui1", "ui2"}, configUI.OrderByColumns(), "Expected orderByColumns for tableUI to come from unique indexes")
-	require.Equal(t, []string{"a", "b", "c", "d"}, configSC.OrderByColumns(), "Expected orderByColumns for tableSC to be a sorted version of its select columns")
-}
-
-func getConfigByTableAndType(table string, runtype RunType, configs []*RunConfig) *RunConfig {
+func getConfigByTableAndType(table string, runtype RunType, insertCols []string, configs []*RunConfig) *RunConfig {
 	for _, c := range configs {
-		if c.Table() == table && c.RunType() == runtype {
+		cCols := slices.Clone(c.InsertColumns())
+		iCols := slices.Clone(insertCols)
+		slices.Sort(cCols)
+		slices.Sort(iCols)
+		if c.Table() == table && c.RunType() == runtype && slices.Equal(cCols, iCols) {
 			return c
 		}
 	}
@@ -1496,11 +1255,39 @@ func buildRunConfig(
 	selectCols, insertCols []string,
 	dependsOn []*DependsOn,
 ) *RunConfig {
-	rc := newRunConfig(table, runtype, pks, where)
-	rc.appendInsertColumns(insertCols...)
-	rc.appendSelectColumns(selectCols...)
-	for _, dp := range dependsOn {
-		rc.appendDependsOn(dp.Table, dp.Columns)
+	rc := &RunConfig{
+		table:         table,
+		runType:       runtype,
+		selectColumns: selectCols,
+		insertColumns: insertCols,
+		primaryKeys:   pks,
+		whereClause:   where,
+		dependsOn:     dependsOn,
 	}
 	return rc
+}
+
+func assertRunConfigs(t *testing.T, dependencies map[string][]*sqlmanager_shared.ForeignConstraint, subsets map[string]string, primaryKeyMap map[string][]string, tableColsMap map[string][]string, expect []*RunConfig) {
+	actual, err := GetRunConfigs(dependencies, subsets, primaryKeyMap, tableColsMap, map[string][][]string{}, map[string][][]string{})
+	require.NoError(t, err)
+	assert.Len(t, actual, len(expect), "expected %d configs but got %d", len(expect), len(actual))
+	for _, e := range expect {
+		acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), e.InsertColumns(), actual)
+		require.NotNil(t, acutalConfig, "expected config for table %s (type: %s, insert columns: %v) to exist", e.Table(), e.RunType(), e.InsertColumns())
+		assert.ElementsMatch(t, e.SelectColumns(), acutalConfig.SelectColumns(),
+			"Select columns mismatch for table %s (type: %s) - expected %v but got %v",
+			e.Table(), e.RunType(), e.SelectColumns(), acutalConfig.SelectColumns())
+		assert.ElementsMatch(t, e.InsertColumns(), acutalConfig.InsertColumns(),
+			"Insert columns mismatch for table %s (type: %s) - expected %v but got %v",
+			e.Table(), e.RunType(), e.InsertColumns(), acutalConfig.InsertColumns())
+		assert.ElementsMatch(t, e.DependsOn(), acutalConfig.DependsOn(),
+			"Dependencies mismatch for table %s (type: %s)",
+			e.Table(), e.RunType())
+		assert.ElementsMatch(t, e.PrimaryKeys(), acutalConfig.PrimaryKeys(),
+			"Primary keys mismatch for table %s (type: %s) - expected %v but got %v",
+			e.Table(), e.RunType(), e.PrimaryKeys(), acutalConfig.PrimaryKeys())
+		assert.Equal(t, e.WhereClause(), e.WhereClause(),
+			"Where clause mismatch for table %s (type: %s) - expected %v but got %v",
+			e.Table(), e.RunType(), e.WhereClause(), e.WhereClause())
+	}
 }
