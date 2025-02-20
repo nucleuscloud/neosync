@@ -5,14 +5,14 @@ import { BaseStore } from '@/util/zustand.stores.util';
 import { AwsFormValues } from '@/yup-validations/connections';
 import { useMutation } from '@connectrpc/connect-query';
 import { ConnectionService } from '@neosync/sdk';
-import { FormEvent, ReactElement, useEffect } from 'react';
-import { ValidationError } from 'yup';
+import { ReactElement, useEffect } from 'react';
 import { create } from 'zustand';
 import {
   AwsAdvancedConfigAccordion,
   AwsCredentialsFormAccordion,
   Name,
 } from '../SharedFormInputs';
+import { useHandleSubmit } from '../useHandleSubmit';
 import Bucket from './Bucket';
 
 interface AwsS3FormStore extends BaseStore<AwsFormValues> {
@@ -73,21 +73,15 @@ export default function AwsS3Form(props: Props): ReactElement {
   const {
     mode,
     initialValues,
-    onSubmit,
+    onSubmit = async () => undefined,
     canViewSecrets = false,
     getValueWithSecrets,
   } = props;
   const { account } = useAccount();
-  const {
-    formData,
-    errors,
-    setFormData,
-    setErrors,
-    setSubmitting,
-    isSubmitting,
-    init,
-    resetForm,
-  } = useFormStore();
+  const store = useFormStore();
+
+  const { formData, errors, isSubmitting, setFormData, resetForm, init } =
+    store;
 
   useEffect(() => {
     if (initialValues) {
@@ -101,41 +95,17 @@ export default function AwsS3Form(props: Props): ReactElement {
     ConnectionService.method.isConnectionNameAvailable
   );
 
-  async function handleSubmit(e: FormEvent): Promise<void> {
-    e.preventDefault();
-    if (isSubmitting || !onSubmit) {
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      setErrors({});
-
-      const validatedData = await AwsFormValues.validate(formData, {
-        abortEarly: false,
-        context: {
-          accountId: account?.id ?? '',
-          isConnectionNameAvailable: isConnectionNameAvailableAsync,
-          originalConnectionName:
-            mode === 'edit' ? initialValues?.connectionName : undefined,
-        },
-      });
-
-      await onSubmit(validatedData);
-    } catch (err) {
-      if (err instanceof ValidationError) {
-        const validationErrors: Record<string, string> = {};
-        err.inner.forEach((error) => {
-          if (error.path) {
-            validationErrors[error.path] = error.message;
-          }
-        });
-        setErrors(validationErrors);
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  const handleSubmit = useHandleSubmit(store, onSubmit, async (values) => {
+    return AwsFormValues.validate(values, {
+      abortEarly: false,
+      context: {
+        accountId: account?.id ?? '',
+        isConnectionNameAvailable: isConnectionNameAvailableAsync,
+        originalConnectionName:
+          mode === 'edit' ? initialValues?.connectionName : undefined,
+      },
+    });
+  });
 
   const isViewMode = mode === 'view';
   const submitText = mode === 'create' ? 'Create' : 'Update';

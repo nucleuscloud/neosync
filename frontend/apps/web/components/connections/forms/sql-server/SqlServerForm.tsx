@@ -10,8 +10,7 @@ import {
   CheckConnectionConfigRequestSchema,
   ConnectionService,
 } from '@neosync/sdk';
-import { FormEvent, ReactElement, useEffect } from 'react';
-import { ValidationError } from 'yup';
+import { ReactElement, useEffect } from 'react';
 import { create } from 'zustand';
 import {
   CheckConnectionButton,
@@ -20,6 +19,7 @@ import {
   SqlConnectionOptions,
   SshTunnelAccordion,
 } from '../SharedFormInputs';
+import { useHandleSubmit } from '../useHandleSubmit';
 import DatabaseCredentials from './DatabaseCredentials';
 
 interface MssqlFormStore extends BaseStore<MssqlFormValues> {
@@ -85,22 +85,16 @@ export default function SqlServerForm(props: Props): ReactElement {
   const {
     mode,
     initialValues,
-    onSubmit,
+    onSubmit = async () => undefined,
     canViewSecrets = false,
     getValueWithSecrets,
     connectionId,
   } = props;
   const { account } = useAccount();
-  const {
-    formData,
-    errors,
-    setFormData,
-    setErrors,
-    setSubmitting,
-    isSubmitting,
-    init,
-    resetForm,
-  } = useFormStore();
+  const store = useFormStore();
+
+  const { formData, errors, isSubmitting, setFormData, resetForm, init } =
+    store;
 
   useEffect(() => {
     if (initialValues) {
@@ -114,42 +108,18 @@ export default function SqlServerForm(props: Props): ReactElement {
     ConnectionService.method.isConnectionNameAvailable
   );
 
-  async function handleSubmit(e: FormEvent): Promise<void> {
-    e.preventDefault();
-    if (isSubmitting || !onSubmit) {
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      setErrors({});
-
-      const validatedData = await MssqlFormValues.validate(formData, {
-        abortEarly: false,
-        context: {
-          accountId: account?.id ?? '',
-          isConnectionNameAvailable: isConnectionNameAvailableAsync,
-          originalConnectionName:
-            mode === 'edit' ? initialValues?.connectionName : undefined,
-          activeTab: formData.activeTab ?? 'url',
-        },
-      });
-
-      await onSubmit(validatedData);
-    } catch (err) {
-      if (err instanceof ValidationError) {
-        const validationErrors: Record<string, string> = {};
-        err.inner.forEach((error) => {
-          if (error.path) {
-            validationErrors[error.path] = error.message;
-          }
-        });
-        setErrors(validationErrors);
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  const handleSubmit = useHandleSubmit(store, onSubmit, async (values) => {
+    return MssqlFormValues.validate(values, {
+      abortEarly: false,
+      context: {
+        accountId: account?.id ?? '',
+        isConnectionNameAvailable: isConnectionNameAvailableAsync,
+        originalConnectionName:
+          mode === 'edit' ? initialValues?.connectionName : undefined,
+        activeTab: values.activeTab ?? 'url',
+      },
+    });
+  });
 
   const isViewMode = mode === 'view';
   const submitText = mode === 'create' ? 'Create' : 'Update';
