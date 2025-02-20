@@ -192,6 +192,4 @@ type SelectQuery struct {
 
 	// If true, this query could return rows that violate foreign key constraints
 	IsNotForeignKeySafeSubset bool
-	// If true, this query subsets data from the table
-	IsSubset bool
 }
