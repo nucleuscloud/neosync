@@ -42,6 +42,7 @@ type ForeignKey struct {
 }
 
 type RunConfig struct {
+	id               string
 	table            string // schema.table  TODO: should use sqlmanager_shared.SchemaTable
 	selectColumns    []string
 	insertColumns    []string
@@ -51,7 +52,6 @@ type RunConfig struct {
 	primaryKeys      []string
 	whereClause      *string
 	orderByColumns   []string // columns to order by
-	selectQuery      *string
 	splitColumnPaths bool
 }
 
@@ -76,6 +76,10 @@ func NewRunConfig(
 		splitColumnPaths: splitColumnPaths,
 		foreignKeys:      foreignKeys,
 	}
+}
+
+func (rc *RunConfig) Id() string {
+	return rc.id
 }
 
 func (rc *RunConfig) Table() string {
@@ -106,10 +110,6 @@ func (rc *RunConfig) WhereClause() *string {
 	return rc.whereClause
 }
 
-func (rc *RunConfig) SelectQuery() *string {
-	return rc.selectQuery
-}
-
 func (rc *RunConfig) OrderByColumns() []string {
 	return rc.orderByColumns
 }
@@ -122,10 +122,6 @@ func (rc *RunConfig) ForeignKeys() []*ForeignKey {
 	return rc.foreignKeys
 }
 
-func (rc *RunConfig) SetSelectQuery(query *string) {
-	rc.selectQuery = query
-}
-
 func (rc *RunConfig) String() string {
 	var sb strings.Builder
 
@@ -133,6 +129,7 @@ func (rc *RunConfig) String() string {
 	if rc == nil {
 		return sb.String()
 	}
+	sb.WriteString(fmt.Sprintf("  Id: %s\n", rc.id))
 	sb.WriteString(fmt.Sprintf("  Table: %s\n", rc.table))
 	sb.WriteString(fmt.Sprintf("  RunType: %s\n", rc.runType))
 	sb.WriteString(fmt.Sprintf("  PrimaryKeys: %v\n", rc.primaryKeys))
@@ -141,12 +138,6 @@ func (rc *RunConfig) String() string {
 		sb.WriteString(fmt.Sprintf("  WhereClause: %s\n", *rc.whereClause))
 	} else {
 		sb.WriteString("  WhereClause: nil\n")
-	}
-
-	if rc.selectQuery != nil {
-		sb.WriteString(fmt.Sprintf("  SelectQuery: %s\n", *rc.selectQuery))
-	} else {
-		sb.WriteString("  SelectQuery: nil\n")
 	}
 
 	sb.WriteString(fmt.Sprintf("  SelectColumns: %v\n", rc.selectColumns))

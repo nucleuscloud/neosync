@@ -2,6 +2,7 @@ package benthosbuilder_builders
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -36,8 +37,8 @@ type sqlSyncBuilder struct {
 	colTransformerMap            map[string]map[string]*mgmtv1alpha1.JobMappingTransformer  // schema.table -> column -> transformer
 	sqlSourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
 	// merged source and destination schema. with preference given to destination schema
-	mergedSchemaColumnMap        map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
-	isNotForeignKeySafeSubsetMap map[string]map[rc.RunType]bool                             // schema.table -> true if the query could return rows that violate foreign key constraints
+	mergedSchemaColumnMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
+	configQueryMap        map[string]*sqlmanager_shared.SelectQuery                  // config id -> query info
 }
 
 func NewSqlSyncBuilder(
@@ -48,12 +49,12 @@ func NewSqlSyncBuilder(
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
 ) bb_internal.BenthosBuilder {
 	return &sqlSyncBuilder{
-		transformerclient:            transformerclient,
-		sqlmanagerclient:             sqlmanagerclient,
-		redisConfig:                  redisConfig,
-		driver:                       databaseDriver,
-		selectQueryBuilder:           selectQueryBuilder,
-		isNotForeignKeySafeSubsetMap: map[string]map[rc.RunType]bool{},
+		transformerclient:  transformerclient,
+		sqlmanagerclient:   sqlmanagerclient,
+		redisConfig:        redisConfig,
+		driver:             databaseDriver,
+		selectQueryBuilder: selectQueryBuilder,
+		// isNotForeignKeySafeSubsetMap: map[string]map[rc.RunType]bool{},
 	}
 }
 
@@ -136,25 +137,27 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	if err != nil {
 		return nil, err
 	}
+	for _, rc := range runConfigs {
+		fmt.Println()
+		fmt.Println(rc.String())
+		fmt.Println()
+	}
 
 	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(filteredForeignKeysMap)
 	b.primaryKeyToForeignKeysMap = primaryKeyToForeignKeysMap
 
-	tableRunTypeQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo)
+	configQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
+	b.configQueryMap = configQueryMap
 
-	// build map of table to runType to isNotForeignKeySafeSubset
-	// used in destination config to determine if foreign key violations should be skipped
-	for table, querymap := range tableRunTypeQueryMap {
-		b.isNotForeignKeySafeSubsetMap[table] = make(map[rc.RunType]bool)
-		for runtype, q := range querymap {
-			b.isNotForeignKeySafeSubsetMap[table][runtype] = q.IsNotForeignKeySafeSubset
-		}
+	for _, query := range configQueryMap {
+		jsonF, _ := json.MarshalIndent(query, "", " ")
+		fmt.Printf("\n\n %s \n\n", string(jsonF))
 	}
 
-	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, tableRunTypeQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.JobRunId, b.redisConfig, primaryKeyToForeignKeysMap)
+	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, configQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.JobRunId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 	}
@@ -178,7 +181,7 @@ func buildBenthosSqlSourceConfigResponses(
 	groupedTableMapping map[string]*tableMapping,
 	runconfigs []*rc.RunConfig,
 	dsnConnectionId string,
-	tableRunTypeQueryMap map[string]map[rc.RunType]*sqlmanager_shared.SelectQuery,
+	configQueryMap map[string]*sqlmanager_shared.SelectQuery,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
@@ -196,9 +199,9 @@ func buildBenthosSqlSourceConfigResponses(
 		if !ok {
 			return nil, fmt.Errorf("missing column mappings for table: %s", config.Table())
 		}
-		query, ok := tableRunTypeQueryMap[config.Table()][config.RunType()]
+		query, ok := configQueryMap[config.Id()]
 		if !ok {
-			return nil, fmt.Errorf("select query not found for table: %s runType: %s", config.Table(), config.RunType())
+			return nil, fmt.Errorf("query info not found for id: %s", config.Id())
 		}
 
 		bc := &neosync_benthos.BenthosConfig{
@@ -257,7 +260,7 @@ func buildBenthosSqlSourceConfigResponses(
 		}
 
 		configs = append(configs, &bb_internal.BenthosSourceConfig{
-			Name:           fmt.Sprintf("%s.%s.%s", config.Table(), config.RunType(), strings.Join(config.InsertColumns(), ",")),
+			Name:           config.Id(),
 			Config:         bc,
 			DependsOn:      config.DependsOn(),
 			RedisDependsOn: buildRedisDependsOnMap(transformedFktoPkMap, config),
@@ -332,8 +335,13 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		return nil, fmt.Errorf("unable to parse destination options: %w", err)
 	}
 
+	query, ok := b.configQueryMap[benthosConfig.Name]
+	if !ok {
+		return nil, fmt.Errorf("query info not found for id: %s", benthosConfig.Name)
+	}
+
 	// skip foreign key violations if the query could return rows that violate foreign key constraints
-	skipForeignKeyViolations := destOpts.SkipForeignKeyViolations || b.isNotForeignKeySafeSubsetMap[tableKey][benthosConfig.RunType]
+	skipForeignKeyViolations := destOpts.SkipForeignKeyViolations || query.IsNotForeignKeySafeSubset
 
 	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
 	if benthosConfig.RunType == rc.RunTypeUpdate {
@@ -346,7 +354,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 						Schema:                   benthosConfig.TableSchema,
 						Table:                    benthosConfig.TableName,
 						Columns:                  benthosConfig.Columns,
-						SkipForeignKeyViolations: skipForeignKeyViolations,
+						SkipForeignKeyViolations: skipForeignKeyViolations || query.IsSubset,
 						MaxInFlight:              int(destOpts.MaxInFlight),
 						WhereColumns:             benthosConfig.PrimaryKeys,
 

@@ -1,6 +1,7 @@
 package runconfigs
 
 import (
+	"fmt"
 	"slices"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -58,6 +59,7 @@ func (b *runConfigBuilder) Build() []*RunConfig {
 
 func (b *runConfigBuilder) buildInsertConfig() *RunConfig {
 	config := &RunConfig{
+		id:             fmt.Sprintf("%s.%s", b.table, RunTypeInsert),
 		table:          b.table,
 		runType:        RunTypeInsert,
 		selectColumns:  b.columns,
@@ -81,6 +83,7 @@ func (b *runConfigBuilder) buildCircularDependencyConfigs() []*RunConfig {
 
 	orderByColumns := b.getOrderByColumns(b.columns)
 	insertConfig := &RunConfig{
+		id:             fmt.Sprintf("%s.%s", b.table, RunTypeInsert),
 		table:          b.table,
 		runType:        RunTypeInsert,
 		selectColumns:  b.columns, // select cols in insert config must be all columns due to S3 as possible output
@@ -100,6 +103,7 @@ func (b *runConfigBuilder) buildCircularDependencyConfigs() []*RunConfig {
 		remainingColumns[col] = true
 	}
 
+	updateConfigCount := 0
 	// build update configs for any nullable foreign keys
 	for _, fc := range b.foreignKeys {
 		if fc == nil || fc.ForeignKey == nil {
@@ -134,7 +138,8 @@ func (b *runConfigBuilder) buildCircularDependencyConfigs() []*RunConfig {
 
 		// For columns that can be null, we do them after the main insert (Update).
 		if len(updateCols) > 0 {
-			updateConfig := b.buildUpdateConfig(fc, updateCols, updateFkCols, where, orderByColumns)
+			updateConfigCount++
+			updateConfig := b.buildUpdateConfig(fc, updateCols, updateFkCols, where, orderByColumns, updateConfigCount)
 			configs = append(configs, updateConfig)
 		}
 	}
@@ -159,6 +164,7 @@ func (b *runConfigBuilder) buildUpdateConfig(
 	updateFkCols []string,
 	where *string,
 	orderByColumns []string,
+	count int,
 ) *RunConfig {
 	dependsOn := []*DependsOn{
 		{
@@ -177,6 +183,7 @@ func (b *runConfigBuilder) buildUpdateConfig(
 
 	selectColumns := slices.Concat(b.primaryKeys, updateCols)
 	return &RunConfig{
+		id:             fmt.Sprintf("%s.%s.%d", b.table, RunTypeUpdate, count),
 		table:          b.table,
 		runType:        RunTypeUpdate,
 		selectColumns:  selectColumns,

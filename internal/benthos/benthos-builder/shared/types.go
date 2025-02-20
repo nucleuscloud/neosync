@@ -28,7 +28,7 @@ type SelectQueryMapBuilder interface {
 		runConfigs []*rc.RunConfig,
 		subsetByForeignKeyConstraints bool,
 		groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
-	) (map[string]map[rc.RunType]*sqlmanager_shared.SelectQuery, error)
+	) (map[string]*sqlmanager_shared.SelectQuery, error)
 }
 
 func WithEnvInterpolation(input string) string {

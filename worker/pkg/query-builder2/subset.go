@@ -13,7 +13,7 @@ func BuildSelectQueryMap(
 	runConfigs []*runcfg.RunConfig,
 	subsetByForeignKeyConstraints bool,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
-) (map[string]map[runcfg.RunType]*sqlmanager_shared.SelectQuery, error) {
+) (map[string]*sqlmanager_shared.SelectQuery, error) {
 	tableDependencies := map[string]*TableConstraints{}
 	for _, rc := range runConfigs {
 		if rc.RunType() != runcfg.RunTypeInsert {
@@ -63,21 +63,19 @@ func BuildSelectQueryMap(
 		}
 	}
 
-	querymap := map[string]map[runcfg.RunType]*sqlmanager_shared.SelectQuery{}
+	querymap := map[string]*sqlmanager_shared.SelectQuery{}
 	for _, cfg := range runConfigs {
-		if _, ok := querymap[cfg.Table()]; !ok {
-			querymap[cfg.Table()] = map[runcfg.RunType]*sqlmanager_shared.SelectQuery{}
-		}
 		schema, table := splitTable(cfg.Table())
-		query, _, pageQuery, isNotForeignKeySafe, err := qb.BuildQuery(schema, table)
+		query, err := qb.BuildQuery(schema, table)
 		if err != nil {
 			return nil, err
 		}
-		querymap[cfg.Table()][cfg.RunType()] = &sqlmanager_shared.SelectQuery{
-			Query:                     query,
-			PageQuery:                 pageQuery,
+		querymap[cfg.Id()] = &sqlmanager_shared.SelectQuery{
+			Query:                     query.Query,
+			PageQuery:                 query.PagedQuery,
 			PageLimit:                 pageLimit,
-			IsNotForeignKeySafeSubset: isNotForeignKeySafe,
+			IsNotForeignKeySafeSubset: query.IsNotForeignKeySafeSubset,
+			IsSubset:                  query.IsSubset,
 		}
 	}
 

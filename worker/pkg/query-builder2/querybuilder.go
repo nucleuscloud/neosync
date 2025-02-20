@@ -135,30 +135,44 @@ func (qb *QueryBuilder) clearPathCache() {
 	qb.pathCache = make(set)
 }
 
-func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement string, args []any, pagesql string, isNotForeignKeySafeSubset bool, err error) {
+type Query struct {
+	Query                     string
+	Args                      []any
+	PagedQuery                string
+	IsNotForeignKeySafeSubset bool
+	IsSubset                  bool
+}
+
+func (qb *QueryBuilder) BuildQuery(schema, tableName string) (*Query, error) {
 	key := qb.getTableKey(schema, tableName)
 	table, ok := qb.tables[key]
 	if !ok {
-		return "", nil, "", false, fmt.Errorf("table not found: %s", key)
+		return nil, fmt.Errorf("table not found: %s", key)
 	}
-	query, pageQuery, notFkSafe, err := qb.buildFlattenedQuery(table)
+	query, pageQuery, qinfo, err := qb.buildFlattenedQuery(table)
 	if query == nil {
-		return "", nil, "", false, fmt.Errorf("received no error, but query was nil for %s.%s", schema, tableName)
+		return nil, fmt.Errorf("received no error, but query was nil for %s.%s", schema, tableName)
 	}
 	if err != nil {
-		return "", nil, "", false, err
+		return nil, err
 	}
 
 	sql, args, err := query.Limit(pageLimit).ToSQL()
 	if err != nil {
-		return "", nil, "", false, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
+		return nil, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
 	}
 
 	pageSql, _, err := pageQuery.Limit(pageLimit).ToSQL()
 	if err != nil {
-		return "", nil, "", false, fmt.Errorf("unable to convery structured page query to string for %s.%s: %w", schema, tableName, err)
+		return nil, fmt.Errorf("unable to convery structured page query to string for %s.%s: %w", schema, tableName, err)
 	}
-	return sql, args, pageSql, notFkSafe, nil
+	return &Query{
+		Query:                     sql,
+		Args:                      args,
+		PagedQuery:                pageSql,
+		IsNotForeignKeySafeSubset: qinfo.isNotForeignKeySafeSubset,
+		IsSubset:                  qinfo.isSubset,
+	}, nil
 }
 
 func (qb *QueryBuilder) buildPageQuery(schema, tableName string, query *goqu.SelectDataset, rootAlias string) *goqu.SelectDataset {
@@ -184,7 +198,12 @@ func (qb *QueryBuilder) buildPageQuery(schema, tableName string, query *goqu.Sel
 	return query.Prepared(true)
 }
 
-func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql, pageSql *goqu.SelectDataset, isNotForeignKeySafeSubset bool, err error) {
+type queryInfo struct {
+	isNotForeignKeySafeSubset bool
+	isSubset                  bool
+}
+
+func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql, pageSql *goqu.SelectDataset, qinfo *queryInfo, err error) {
 	dialect := qb.getDialect()
 	rootAlias := rootTable.Name
 	rootAliasExpression := rootTable.GetIdentifierExpression().As(rootAlias)
@@ -214,20 +233,20 @@ func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (sql, pageSql 
 	}
 
 	// Flatten and add necessary joins
-	var notFkSafe bool
+	queryinfo := &queryInfo{}
 	if qb.subsetByForeignKeyConstraints && len(qb.whereConditions) > 0 {
 		joinedTables := make(map[string]bool)
 		var err error
-		query, notFkSafe, err = qb.addFlattenedJoins(query, rootTable, rootTable, rootAlias, joinedTables, "", false)
+		query, queryinfo, err = qb.addFlattenedJoins(query, rootTable, rootTable, rootAlias, joinedTables, "", false)
 		if err != nil {
-			return nil, nil, false, err
+			return nil, nil, nil, err
 		}
 	}
 
 	// build page query
 	pageQuery := qb.buildPageQuery(rootTable.Schema, rootTable.Name, query, rootAlias)
 
-	return query, pageQuery, notFkSafe, nil
+	return query, pageQuery, queryinfo, nil
 }
 
 func (qb *QueryBuilder) addFlattenedJoins(
@@ -238,16 +257,16 @@ func (qb *QueryBuilder) addFlattenedJoins(
 	joinedTables map[string]bool,
 	prefix string,
 	shouldLeftJoin bool,
-) (sql *goqu.SelectDataset, isNotForeignKeySafeSubset bool, err error) {
+) (sql *goqu.SelectDataset, qinfo *queryInfo, err error) {
 	tableKey := qb.getTableKey(table.Schema, table.Name)
 	rootTableKey := qb.getTableKey(rootTable.Schema, rootTable.Name)
 
+	queryinfo := &queryInfo{isNotForeignKeySafeSubset: false, isSubset: false}
 	if joinedTables[tableKey] {
-		return query, false, nil // Avoid circular dependencies
+		return query, queryinfo, nil // Avoid circular dependencies
 	}
 	joinedTables[tableKey] = true
 
-	var notFkSafe bool
 	for _, fk := range table.ForeignKeys {
 		// Skip self-referencing foreign keys
 		if fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
@@ -267,6 +286,7 @@ func (qb *QueryBuilder) addFlattenedJoins(
 		if !qb.hasPathToWhereCondition(refTable, make(set)) {
 			continue
 		}
+		queryinfo.isSubset = true
 
 		aliasName := qb.generateUniqueAlias(prefix, refTable.Name, joinedTables)
 		joinConditions := []exp.Expression{}
@@ -283,7 +303,7 @@ func (qb *QueryBuilder) addFlattenedJoins(
 					for _, cond := range conditions {
 						qualifiedCondition, err := qb.qualifyWhereCondition(nil, aliasName, cond.Condition)
 						if err != nil {
-							return nil, false, err
+							return nil, queryinfo, err
 						}
 						joinConditions = append(joinConditions, goqu.Literal(qualifiedCondition))
 					}
@@ -297,7 +317,7 @@ func (qb *QueryBuilder) addFlattenedJoins(
 				refTable.GetIdentifierExpression().As(aliasName),
 				goqu.On(joinConditions...),
 			)
-			notFkSafe = true
+			queryinfo.isNotForeignKeySafeSubset = true
 		} else {
 			query = query.InnerJoin(
 				refTable.GetIdentifierExpression().As(aliasName),
@@ -312,7 +332,7 @@ func (qb *QueryBuilder) addFlattenedJoins(
 				for _, cond := range conditions {
 					qualifiedCondition, err := qb.qualifyWhereCondition(nil, aliasName, cond.Condition)
 					if err != nil {
-						return nil, false, err
+						return nil, queryinfo, err
 					}
 					query = query.Where(goqu.L(qualifiedCondition, cond.Args...))
 				}
@@ -321,15 +341,15 @@ func (qb *QueryBuilder) addFlattenedJoins(
 
 		// Recursively add joins for the referenced table
 		var err error
-		var childnotFkSafe bool
-		query, childnotFkSafe, err = qb.addFlattenedJoins(query, rootTable, refTable, aliasName, joinedTables, aliasName+"_", hasNullableFk)
+		var childQueryInfo *queryInfo
+		query, childQueryInfo, err = qb.addFlattenedJoins(query, rootTable, refTable, aliasName, joinedTables, aliasName+"_", hasNullableFk)
 		if err != nil {
-			return nil, false, err
+			return nil, queryinfo, err
 		}
-		notFkSafe = notFkSafe || childnotFkSafe
+		queryinfo.isNotForeignKeySafeSubset = queryinfo.isNotForeignKeySafeSubset || childQueryInfo.isNotForeignKeySafeSubset
 	}
 
-	return query, notFkSafe, nil
+	return query, queryinfo, nil
 }
 
 func (qb *QueryBuilder) generateUniqueAlias(prefix, tableName string, joinedTables map[string]bool) string {
