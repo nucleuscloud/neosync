@@ -16,6 +16,7 @@ import {
 } from '@tanstack/react-table';
 import * as React from 'react';
 
+import { DataTablePagination } from '@/components/table/data-table-pagination';
 import {
   Table,
   TableBody,
@@ -24,7 +25,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { DataTablePagination } from './data-table-pagination';
 import { DataTableToolbar } from './data-table-toolbar';
 
 interface DataTableProps<TData, TValue, TAutoRefreshInterval extends string> {

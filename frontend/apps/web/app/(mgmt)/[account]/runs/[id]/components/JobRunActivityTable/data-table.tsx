@@ -14,6 +14,7 @@ import {
 } from '@tanstack/react-table';
 import * as React from 'react';
 
+import { DataTablePagination } from '@/components/table/data-table-pagination';
 import {
   Table,
   TableBody,
@@ -27,7 +28,6 @@ import {
   JobRunEventMetadata,
   JobRunSyncMetadata,
 } from '@neosync/sdk';
-import { DataTablePagination } from './data-table-pagination';
 
 interface DataTableProps {
   columns: ColumnDef<JobRunEvent>[];

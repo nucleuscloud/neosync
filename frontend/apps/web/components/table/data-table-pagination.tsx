@@ -17,8 +17,8 @@ import {
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
-  setPagination: (val: number) => void;
-  setPageSize: (val: number) => void;
+  setPagination(val: number): void;
+  setPageSize(val: number): void;
 }
 
 export function DataTablePagination<TData>({
