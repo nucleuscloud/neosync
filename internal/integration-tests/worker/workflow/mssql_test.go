@@ -16,6 +16,7 @@ import (
 	testutil_testdata "github.com/nucleuscloud/neosync/internal/testutil/testdata"
 	mssql_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/mssql/alltypes"
 	mssql_commerce "github.com/nucleuscloud/neosync/internal/testutil/testdata/mssql/commerce"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -222,7 +223,7 @@ func test_mssql_cross_schema_foreign_keys(
 	for _, expected := range expectedResults {
 		rowCount, err := mssql.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)
-		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mssql_cross_schema_foreign_keys Table: %s", expected.table))
+		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mssql_cross_schema_foreign_keys Table: %s", expected.table))
 	}
 
 	// TODO: Tear down, fix schema dropping issue. No way to force drop schemas in MSSQL.

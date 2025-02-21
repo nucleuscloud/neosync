@@ -396,6 +396,54 @@ enum AccountRole {
 
 message SetUserRoleResponse {}
 
+message HasPermissionRequest {
+  // The unique identifier of the account to check the permission for.
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The resource to check the permission for.
+  ResourcePermission resource = 2;
+}
+
+message ResourcePermission {
+  // The type of resource to check the permission for.
+  Type type = 1;
+  // The unique identifier of the resource to check the permission for.
+  string id = 2 [(buf.validate.field).string.min_len = 1];
+  // The action to check for.
+  Action action = 3;
+
+  enum Type {
+    TYPE_UNSPECIFIED = 0;
+    TYPE_ACCOUNT = 1;
+    TYPE_CONNECTION = 2;
+    TYPE_JOB = 3;
+  }
+
+  enum Action {
+    ACTION_UNSPECIFIED = 0;
+    ACTION_CREATE = 1;
+    ACTION_READ = 2;
+    ACTION_UPDATE = 3;
+    ACTION_DELETE = 4;
+  }
+}
+
+message HasPermissionResponse {
+  // Whether or not the user has the given permission.
+  bool has_permission = 1;
+}
+
+message HasPermissionsRequest {
+  // The unique identifier of the account to check the permissions for.
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The resources to check the permissions for.
+  repeated ResourcePermission resources = 2;
+}
+
+message HasPermissionsResponse {
+  // Parallel array to the resources, with the same index.
+  repeated bool assertions = 1;
+}
+
 // Service that manages users, accounts, and billing
 service UserAccountService {
   // Retrieves the current user.
@@ -485,4 +533,10 @@ service UserAccountService {
 
   // Sets the users role
   rpc SetUserRole(SetUserRoleRequest) returns (SetUserRoleResponse) {}
+
+  // Checks if the user has the given permission
+  rpc HasPermission(HasPermissionRequest) returns (HasPermissionResponse) {}
+
+  // Bulk check if a user has the given permissions
+  rpc HasPermissions(HasPermissionsRequest) returns (HasPermissionsResponse) {}
 }

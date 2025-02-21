@@ -32,6 +32,8 @@ type Activity struct {
 	redisConfig *neosync_redis.RedisConfig
 
 	metricsEnabled bool
+
+	pageLimit int
 }
 
 func New(
@@ -41,6 +43,7 @@ func New(
 	sqlmanager sql_manager.SqlManagerClient,
 	redisConfig *neosync_redis.RedisConfig,
 	metricsEnabled bool,
+	pageLimit int,
 ) *Activity {
 	return &Activity{
 		jobclient:         jobclient,
@@ -49,6 +52,7 @@ func New(
 		sqlmanager:        sqlmanager,
 		redisConfig:       redisConfig,
 		metricsEnabled:    metricsEnabled,
+		pageLimit:         pageLimit,
 	}
 }
 
@@ -87,6 +91,7 @@ func (a *Activity) GenerateBenthosConfigs(
 		info.WorkflowExecution.RunID,
 		a.redisConfig,
 		a.metricsEnabled,
+		a.pageLimit,
 	)
 	slogger := temporallogger.NewSlogger(logger)
 	return bbuilder.GenerateBenthosConfigsNew(ctx, req, &workflowMetadata{WorkflowId: info.WorkflowExecution.ID, RunId: info.WorkflowExecution.RunID}, slogger)

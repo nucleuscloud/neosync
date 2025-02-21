@@ -25,7 +25,8 @@ func Test_TableSync_SingleIteration(t *testing.T) {
 	env := ts.NewTestWorkflowEnvironment()
 
 	// Register the workflow.
-	tsWf := New()
+	maxIterations := 1
+	tsWf := New(maxIterations)
 	env.RegisterWorkflow(tsWf.TableSync)
 
 	// Register a fake activity implementation.
@@ -51,7 +52,7 @@ func Test_TableSync_SingleIteration(t *testing.T) {
 		TableName:           "table1",
 	}
 
-	env.ExecuteWorkflow((&Workflow{}).TableSync, request)
+	env.ExecuteWorkflow(tsWf.TableSync, request)
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
@@ -69,7 +70,8 @@ func Test_TableSync_MultipleIterations(t *testing.T) {
 	var ts testsuite.WorkflowTestSuite
 	env := ts.NewTestWorkflowEnvironment()
 
-	tsWf := New()
+	maxIterations := 30
+	tsWf := New(maxIterations)
 	env.RegisterWorkflow(tsWf.TableSync)
 
 	// Use a counter so that the first activity call returns a token and the second returns nil.
@@ -104,7 +106,7 @@ func Test_TableSync_MultipleIterations(t *testing.T) {
 		TableName:           "table2",
 	}
 
-	env.ExecuteWorkflow((&Workflow{}).TableSync, request)
+	env.ExecuteWorkflow(tsWf.TableSync, request)
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
 
@@ -122,7 +124,8 @@ func Test_TableSync_ContinueAsNew(t *testing.T) {
 	var ts testsuite.WorkflowTestSuite
 	env := ts.NewTestWorkflowEnvironment()
 
-	tsWf := New()
+	maxIterations := 2
+	tsWf := New(maxIterations)
 	env.RegisterWorkflow(tsWf.TableSync)
 
 	// The activity always returns a non-nil token.
@@ -148,7 +151,7 @@ func Test_TableSync_ContinueAsNew(t *testing.T) {
 		TableName:           "table3",
 	}
 
-	env.ExecuteWorkflow((&Workflow{}).TableSync, request)
+	env.ExecuteWorkflow(tsWf.TableSync, request)
 	// Since the activity always returns a token, after MAX_ITERATIONS the workflow should not complete normally.
 	err := env.GetWorkflowError()
 	require.Error(t, err)

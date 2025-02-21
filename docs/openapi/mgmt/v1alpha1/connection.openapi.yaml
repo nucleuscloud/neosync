@@ -764,6 +764,13 @@ components:
           title: id
           format: uuid
           description: The unique identifier of the connection to get
+        excludeSensitive:
+          type: boolean
+          title: exclude_sensitive
+          description: |-
+            Whether or not to exclude sensitive data from the connection
+             If the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data
+             This behavior exists to preserve backwards compatibility that originally always returned sensitive data
       title: GetConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionResponse:
@@ -784,6 +791,13 @@ components:
           title: account_id
           format: uuid
           description: The unique identifier of the account to get connections for
+        excludeSensitive:
+          type: boolean
+          title: exclude_sensitive
+          description: |-
+            Whether or not to exclude sensitive data from the connection
+             If the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data
+             This behavior exists to preserve backwards compatibility that originally always returned sensitive data
       title: GetConnectionsRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionsResponse:

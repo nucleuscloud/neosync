@@ -1,9 +1,13 @@
+'use client';
+import GcpCloudStorageConnectionForm from '@/components/connections/forms/gcp-cloud-storage/GcpCloudStorageConnectionForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { ReactElement } from 'react';
 import { SiGooglecloud } from 'react-icons/si';
-import GcpCloudStorageForm from './GcpCloudStorageForm';
+import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
 
-export default async function GCPCloudStoragePage() {
+export default function NewGCPCloudStoragePage(): ReactElement {
+  const onSuccess = useOnCreateSuccess();
   return (
     <OverviewContainer
       Header={
@@ -15,7 +19,7 @@ export default async function GCPCloudStoragePage() {
       }
       containerClassName="px-12 md:px-24 lg:px-32"
     >
-      <GcpCloudStorageForm />
+      <GcpCloudStorageConnectionForm mode="create" onSuccess={onSuccess} />
     </OverviewContainer>
   );
 }

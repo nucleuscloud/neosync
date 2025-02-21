@@ -814,3 +814,60 @@ func (s *IntegrationTestSuite) Test_SetBillingMeterEvent() {
 		requireNoErrResp(t, resp, err)
 	})
 }
+
+func (s *IntegrationTestSuite) Test_UserAccountService_HasPermission() {
+	t := s.T()
+
+	t.Run("oss auth", func(t *testing.T) {
+		userclient := s.OSSAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
+		s.setUser(s.ctx, userclient)
+		s.createPersonalAccount(s.ctx, userclient)
+
+		t.Run("ok", func(t *testing.T) {
+			accountId := s.createTeamAccount(s.ctx, userclient, uuid.NewString())
+
+			resp, err := userclient.HasPermission(s.ctx, connect.NewRequest(&mgmtv1alpha1.HasPermissionRequest{
+				AccountId: accountId,
+				Resource: &mgmtv1alpha1.ResourcePermission{
+					Type:   mgmtv1alpha1.ResourcePermission_TYPE_CONNECTION,
+					Id:     uuid.NewString(),
+					Action: mgmtv1alpha1.ResourcePermission_ACTION_CREATE,
+				},
+			}))
+			requireNoErrResp(t, resp, err)
+			require.True(t, resp.Msg.GetHasPermission())
+		})
+	})
+}
+
+func (s *IntegrationTestSuite) Test_UserAccountService_HasPermissions() {
+	t := s.T()
+
+	t.Run("oss auth", func(t *testing.T) {
+		userclient := s.OSSAuthenticatedLicensedClients.Users(integrationtests_test.WithUserId(testAuthUserId))
+		s.setUser(s.ctx, userclient)
+		s.createPersonalAccount(s.ctx, userclient)
+
+		t.Run("ok", func(t *testing.T) {
+			accountId := s.createTeamAccount(s.ctx, userclient, uuid.NewString())
+
+			resp, err := userclient.HasPermissions(s.ctx, connect.NewRequest(&mgmtv1alpha1.HasPermissionsRequest{
+				AccountId: accountId,
+				Resources: []*mgmtv1alpha1.ResourcePermission{
+					{
+						Type:   mgmtv1alpha1.ResourcePermission_TYPE_CONNECTION,
+						Id:     uuid.NewString(),
+						Action: mgmtv1alpha1.ResourcePermission_ACTION_CREATE,
+					},
+					{
+						Type:   mgmtv1alpha1.ResourcePermission_TYPE_JOB,
+						Id:     uuid.NewString(),
+						Action: mgmtv1alpha1.ResourcePermission_ACTION_CREATE,
+					},
+				},
+			}))
+			requireNoErrResp(t, resp, err)
+			require.Equal(t, resp.Msg.GetAssertions(), []bool{true, true})
+		})
+	})
+}

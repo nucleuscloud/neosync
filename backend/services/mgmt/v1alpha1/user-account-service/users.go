@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -821,5 +822,140 @@ func (s *Service) GetSystemInformation(ctx context.Context, req *connect.Request
 			ExpiresAt:      timestamppb.New(s.licenseclient.ExpiresAt()),
 			IsNeosyncCloud: s.cfg.IsNeosyncCloud,
 		},
+	}), nil
+}
+
+func (s *Service) HasPermission(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.HasPermissionRequest],
+) (*connect.Response[mgmtv1alpha1.HasPermissionResponse], error) {
+	userdataclient := s.UserDataClient()
+	user, err := userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := user.EnforceAccountAccess(ctx, req.Msg.GetAccountId()); err != nil {
+		return nil, err
+	}
+
+	hasPermission := false
+	switch req.Msg.GetResource().GetType() {
+	case mgmtv1alpha1.ResourcePermission_TYPE_ACCOUNT:
+		if req.Msg.GetResource().GetId() != req.Msg.GetAccountId() {
+			return connect.NewResponse(&mgmtv1alpha1.HasPermissionResponse{HasPermission: false}), nil
+		}
+		switch req.Msg.GetResource().GetAction() {
+		case mgmtv1alpha1.ResourcePermission_ACTION_CREATE:
+			ok, err := user.Account(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_Create)
+			if err != nil {
+				return nil, err
+			}
+			hasPermission = ok
+		case mgmtv1alpha1.ResourcePermission_ACTION_READ:
+			ok, err := user.Account(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_View)
+			if err != nil {
+				return nil, err
+			}
+			hasPermission = ok
+		case mgmtv1alpha1.ResourcePermission_ACTION_UPDATE:
+			ok, err := user.Account(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_Edit)
+			if err != nil {
+				return nil, err
+			}
+			hasPermission = ok
+		}
+	case mgmtv1alpha1.ResourcePermission_TYPE_CONNECTION:
+		switch req.Msg.GetResource().GetAction() {
+		case mgmtv1alpha1.ResourcePermission_ACTION_CREATE:
+			ok, err := user.Connection(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.ConnectionAction_Create)
+			if err != nil {
+				return nil, err
+			}
+			hasPermission = ok
+		case mgmtv1alpha1.ResourcePermission_ACTION_READ:
+			ok, err := user.Connection(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.ConnectionAction_View)
+			if err != nil {
+				return nil, err
+			}
+			hasPermission = ok
+		case mgmtv1alpha1.ResourcePermission_ACTION_UPDATE:
+			ok, err := user.Connection(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.ConnectionAction_Edit)
+			if err != nil {
+				return nil, err
+			}
+			hasPermission = ok
+		case mgmtv1alpha1.ResourcePermission_ACTION_DELETE:
+			ok, err := user.Connection(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.ConnectionAction_Delete)
+			if err != nil {
+				return nil, err
+			}
+			hasPermission = ok
+		}
+	case mgmtv1alpha1.ResourcePermission_TYPE_JOB:
+		switch req.Msg.GetResource().GetAction() {
+		case mgmtv1alpha1.ResourcePermission_ACTION_CREATE:
+			ok, err := user.Job(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.JobAction_Create)
+			if err != nil {
+				return nil, err
+			}
+			hasPermission = ok
+		case mgmtv1alpha1.ResourcePermission_ACTION_READ:
+			ok, err := user.Job(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.JobAction_View)
+			if err != nil {
+				return nil, err
+			}
+			hasPermission = ok
+		case mgmtv1alpha1.ResourcePermission_ACTION_UPDATE:
+			ok, err := user.Job(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.JobAction_Edit)
+			if err != nil {
+				return nil, err
+			}
+			hasPermission = ok
+		case mgmtv1alpha1.ResourcePermission_ACTION_DELETE:
+			ok, err := user.Job(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.JobAction_Delete)
+			if err != nil {
+				return nil, err
+			}
+			hasPermission = ok
+		}
+	}
+	return connect.NewResponse(&mgmtv1alpha1.HasPermissionResponse{HasPermission: hasPermission}), nil
+}
+
+func (s *Service) HasPermissions(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.HasPermissionsRequest],
+) (*connect.Response[mgmtv1alpha1.HasPermissionsResponse], error) {
+	permissions := make([]bool, len(req.Msg.GetResources()))
+	mu := &sync.Mutex{}
+
+	g, errctx := errgroup.WithContext(ctx)
+	g.SetLimit(10)
+
+	for i, resource := range req.Msg.GetResources() {
+		i, resource := i, resource // https://golang.org/doc/faq#closures_and_goroutines
+		g.Go(func() error {
+			resp, err := s.HasPermission(errctx, connect.NewRequest(&mgmtv1alpha1.HasPermissionRequest{
+				AccountId: req.Msg.GetAccountId(),
+				Resource:  resource,
+			}))
+			if err != nil {
+				return err
+			}
+
+			mu.Lock()
+			permissions[i] = resp.Msg.GetHasPermission()
+			mu.Unlock()
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.HasPermissionsResponse{
+		Assertions: permissions,
 	}), nil
 }

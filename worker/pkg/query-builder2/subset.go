@@ -13,6 +13,7 @@ func BuildSelectQueryMap(
 	runConfigs []*runcfg.RunConfig,
 	subsetByForeignKeyConstraints bool,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+	pageLimit int,
 ) (map[string]*sqlmanager_shared.SelectQuery, error) {
 	tableDependencies := map[string]*TableConstraints{}
 	for _, rc := range runConfigs {
@@ -42,7 +43,7 @@ func BuildSelectQueryMap(
 			Columns: rc.PrimaryKeys(),
 		})
 	}
-	qb := NewQueryBuilderFromSchemaDefinition(groupedColumnInfo, tableDependencies, "public", driver, subsetByForeignKeyConstraints)
+	qb := NewQueryBuilderFromSchemaDefinition(groupedColumnInfo, tableDependencies, "public", driver, subsetByForeignKeyConstraints, pageLimit)
 
 	for _, cfg := range runConfigs {
 		if cfg.RunType() != runcfg.RunTypeInsert {
@@ -92,8 +93,9 @@ func NewQueryBuilderFromSchemaDefinition(
 	defaultSchema string,
 	driver string,
 	subsetByForeignKeyConstraints bool,
+	pageLimit int,
 ) *QueryBuilder {
-	qb := NewQueryBuilder(defaultSchema, driver, subsetByForeignKeyConstraints, groupedColumnInfo)
+	qb := NewQueryBuilder(defaultSchema, driver, subsetByForeignKeyConstraints, groupedColumnInfo, pageLimit)
 
 	for table, columns := range groupedColumnInfo {
 		schema, tableName := splitTable(table)

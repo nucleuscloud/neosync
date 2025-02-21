@@ -1,9 +1,12 @@
+'use client';
+import MongoDbConnectionForm from '@/components/connections/forms/mongodb/MongoDbConnectionForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { ReactElement } from 'react';
 import { DiMongodb } from 'react-icons/di';
-import MongoDBForm from './MongoDBForm';
-
-export default async function Postgres() {
+import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
+export default function NewMongoDBConnectionPage(): ReactElement {
+  const onSuccess = useOnCreateSuccess();
   return (
     <OverviewContainer
       Header={
@@ -15,7 +18,7 @@ export default async function Postgres() {
       }
       containerClassName="px-12 md:px-24 lg:px-32"
     >
-      <MongoDBForm />
+      <MongoDbConnectionForm mode="create" onSuccess={onSuccess} />
     </OverviewContainer>
   );
 }

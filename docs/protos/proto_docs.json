@@ -6603,6 +6603,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "exclude_sensitive",
+              "description": "Whether or not to exclude sensitive data from the connection\nIf the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data\nThis behavior exists to preserve backwards compatibility that originally always returned sensitive data",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -6647,6 +6659,18 @@
               "type": "string",
               "longType": "string",
               "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "exclude_sensitive",
+              "description": "Whether or not to exclude sensitive data from the connection\nIf the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data\nThis behavior exists to preserve backwards compatibility that originally always returned sensitive data",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -17709,6 +17733,67 @@
           ]
         },
         {
+          "name": "Action",
+          "longName": "ResourcePermission.Action",
+          "fullName": "mgmt.v1alpha1.ResourcePermission.Action",
+          "description": "",
+          "values": [
+            {
+              "name": "ACTION_UNSPECIFIED",
+              "number": "0",
+              "description": ""
+            },
+            {
+              "name": "ACTION_CREATE",
+              "number": "1",
+              "description": ""
+            },
+            {
+              "name": "ACTION_READ",
+              "number": "2",
+              "description": ""
+            },
+            {
+              "name": "ACTION_UPDATE",
+              "number": "3",
+              "description": ""
+            },
+            {
+              "name": "ACTION_DELETE",
+              "number": "4",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "Type",
+          "longName": "ResourcePermission.Type",
+          "fullName": "mgmt.v1alpha1.ResourcePermission.Type",
+          "description": "",
+          "values": [
+            {
+              "name": "TYPE_UNSPECIFIED",
+              "number": "0",
+              "description": ""
+            },
+            {
+              "name": "TYPE_ACCOUNT",
+              "number": "1",
+              "description": ""
+            },
+            {
+              "name": "TYPE_CONNECTION",
+              "number": "2",
+              "description": ""
+            },
+            {
+              "name": "TYPE_JOB",
+              "number": "3",
+              "description": ""
+            }
+          ]
+        },
+        {
           "name": "UserAccountType",
           "longName": "UserAccountType",
           "fullName": "mgmt.v1alpha1.UserAccountType",
@@ -18781,6 +18866,126 @@
           ]
         },
         {
+          "name": "HasPermissionRequest",
+          "longName": "HasPermissionRequest",
+          "fullName": "mgmt.v1alpha1.HasPermissionRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The unique identifier of the account to check the permission for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "resource",
+              "description": "The resource to check the permission for.",
+              "label": "",
+              "type": "ResourcePermission",
+              "longType": "ResourcePermission",
+              "fullType": "mgmt.v1alpha1.ResourcePermission",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "HasPermissionResponse",
+          "longName": "HasPermissionResponse",
+          "fullName": "mgmt.v1alpha1.HasPermissionResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "has_permission",
+              "description": "Whether or not the user has the given permission.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "HasPermissionsRequest",
+          "longName": "HasPermissionsRequest",
+          "fullName": "mgmt.v1alpha1.HasPermissionsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The unique identifier of the account to check the permissions for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "resources",
+              "description": "The resources to check the permissions for.",
+              "label": "repeated",
+              "type": "ResourcePermission",
+              "longType": "ResourcePermission",
+              "fullType": "mgmt.v1alpha1.ResourcePermission",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "HasPermissionsResponse",
+          "longName": "HasPermissionsResponse",
+          "fullName": "mgmt.v1alpha1.HasPermissionsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "assertions",
+              "description": "Parallel array to the resources, with the same index.",
+              "label": "repeated",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "InviteUserToTeamAccountRequest",
           "longName": "InviteUserToTeamAccountRequest",
           "fullName": "mgmt.v1alpha1.InviteUserToTeamAccountRequest",
@@ -19089,6 +19294,54 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "ResourcePermission",
+          "longName": "ResourcePermission",
+          "fullName": "mgmt.v1alpha1.ResourcePermission",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "type",
+              "description": "The type of resource to check the permission for.",
+              "label": "",
+              "type": "Type",
+              "longType": "ResourcePermission.Type",
+              "fullType": "mgmt.v1alpha1.ResourcePermission.Type",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "id",
+              "description": "The unique identifier of the resource to check the permission for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "action",
+              "description": "The action to check for.",
+              "label": "",
+              "type": "Action",
+              "longType": "ResourcePermission.Action",
+              "fullType": "mgmt.v1alpha1.ResourcePermission.Action",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "SetAccountOnboardingConfigRequest",
@@ -19872,6 +20125,30 @@
               "responseType": "SetUserRoleResponse",
               "responseLongType": "SetUserRoleResponse",
               "responseFullType": "mgmt.v1alpha1.SetUserRoleResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "HasPermission",
+              "description": "Checks if the user has the given permission",
+              "requestType": "HasPermissionRequest",
+              "requestLongType": "HasPermissionRequest",
+              "requestFullType": "mgmt.v1alpha1.HasPermissionRequest",
+              "requestStreaming": false,
+              "responseType": "HasPermissionResponse",
+              "responseLongType": "HasPermissionResponse",
+              "responseFullType": "mgmt.v1alpha1.HasPermissionResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "HasPermissions",
+              "description": "Bulk check if a user has the given permissions",
+              "requestType": "HasPermissionsRequest",
+              "requestLongType": "HasPermissionsRequest",
+              "requestFullType": "mgmt.v1alpha1.HasPermissionsRequest",
+              "requestStreaming": false,
+              "responseType": "HasPermissionsResponse",
+              "responseLongType": "HasPermissionsResponse",
+              "responseFullType": "mgmt.v1alpha1.HasPermissionsResponse",
               "responseStreaming": false
             }
           ]

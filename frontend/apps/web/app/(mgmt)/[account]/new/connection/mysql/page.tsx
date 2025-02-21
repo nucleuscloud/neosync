@@ -1,9 +1,13 @@
+'use client';
+import MysqlConnectionForm from '@/components/connections/forms/mysql/MysqlConnectionForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { ReactElement } from 'react';
 import { DiMysql } from 'react-icons/di';
-import MysqlForm from './MysqlForm';
+import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
+export default function NewMysqlConnectionPage(): ReactElement {
+  const onSuccess = useOnCreateSuccess();
 
-export default async function Postgres() {
   return (
     <OverviewContainer
       Header={
@@ -15,7 +19,7 @@ export default async function Postgres() {
       }
       containerClassName="px-12 md:px-24 lg:px-32"
     >
-      <MysqlForm />
+      <MysqlConnectionForm mode="create" onSuccess={onSuccess} />
     </OverviewContainer>
   );
 }

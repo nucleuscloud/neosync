@@ -16,10 +16,11 @@ func (a AccountAction) String() string {
 type ConnectionAction string
 
 const (
-	ConnectionAction_Create ConnectionAction = "create"
-	ConnectionAction_Delete ConnectionAction = "delete"
-	ConnectionAction_View   ConnectionAction = "view"
-	ConnectionAction_Edit   ConnectionAction = "edit"
+	ConnectionAction_Create        ConnectionAction = "create"
+	ConnectionAction_Delete        ConnectionAction = "delete"
+	ConnectionAction_View          ConnectionAction = "view"
+	ConnectionAction_ViewSensitive ConnectionAction = "view_sensitive"
+	ConnectionAction_Edit          ConnectionAction = "edit"
 )
 
 func (c ConnectionAction) String() string {

@@ -1,9 +1,13 @@
+'use client';
+import AwsS3ConnectionForm from '@/components/connections/forms/s3/AwsS3ConnectionForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { ReactElement } from 'react';
 import { FaAws } from 'react-icons/fa';
-import AwsS3Form from './AwsS3Form';
+import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
 
-export default async function Aws() {
+export default function NewAwsS3ConnectionPage(): ReactElement {
+  const onSuccess = useOnCreateSuccess();
   return (
     <OverviewContainer
       Header={
@@ -15,7 +19,7 @@ export default async function Aws() {
       }
       containerClassName="px-12 md:px-24 lg:px-32"
     >
-      <AwsS3Form />
+      <AwsS3ConnectionForm mode="create" onSuccess={onSuccess} />
     </OverviewContainer>
   );
 }

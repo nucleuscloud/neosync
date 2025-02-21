@@ -14,6 +14,7 @@ import {
 } from '@tanstack/react-table';
 import * as React from 'react';
 
+import { DataTablePagination } from '@/components/table/data-table-pagination';
 import {
   Table,
   TableBody,
@@ -27,7 +28,7 @@ import {
   JobRunEventMetadata,
   JobRunSyncMetadata,
 } from '@neosync/sdk';
-import { DataTablePagination } from './data-table-pagination';
+import { useLocalStorage } from 'usehooks-ts';
 
 interface DataTableProps {
   columns: ColumnDef<JobRunEvent>[];
@@ -45,7 +46,10 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
   }, [isError]);
 
   const [pagination, setPagination] = React.useState<number>(0);
-  const [pageSize, setPageSize] = React.useState<number>(10);
+  const [pageSize, setPageSize] = useLocalStorage<number>(
+    'job-run-activity-table-page-size',
+    10
+  );
 
   const table = useReactTable({
     data,

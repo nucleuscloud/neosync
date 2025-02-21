@@ -16,14 +16,10 @@ import (
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
-	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
-	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
-	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
 	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
-	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
-	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
-	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
+	datasync_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/register"
+	accounthook_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow/register"
 	tablesync_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow/register"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
@@ -41,9 +37,10 @@ type TestWorkflowEnv struct {
 	neosyncApi    *tcneosyncapi.NeosyncApiTestClient
 	redisconfig   *neosync_redis.RedisConfig
 	fakeEELicense *testutil.FakeEELicense
-
-	TestEnv     *testsuite.TestWorkflowEnvironment
-	Redisclient redis.UniversalClient
+	pageLimit     int
+	maxIterations int
+	TestEnv       *testsuite.TestWorkflowEnvironment
+	Redisclient   redis.UniversalClient
 }
 
 // WithRedis creates redis client with provided URL
@@ -66,6 +63,19 @@ func WithValidEELicense() Option {
 	}
 }
 
+// WithPageLimit sets the page limit for the test workflow
+func WithPageLimit(pageLimit int) Option {
+	return func(c *TestWorkflowEnv) {
+		c.pageLimit = pageLimit
+	}
+}
+
+func WithMaxIterations(maxIterations int) Option {
+	return func(c *TestWorkflowEnv) {
+		c.maxIterations = maxIterations
+	}
+}
+
 // NewTestDataSyncWorkflowEnv creates and configures a new test datasync workflow environment
 func NewTestDataSyncWorkflowEnv(
 	t testing.TB,
@@ -78,6 +88,8 @@ func NewTestDataSyncWorkflowEnv(
 	workflowEnv := &TestWorkflowEnv{
 		neosyncApi:    neosyncApi,
 		fakeEELicense: testutil.NewFakeEELicense(),
+		pageLimit:     10,
+		maxIterations: 5,
 	}
 
 	for _, opt := range opts {
@@ -94,36 +106,26 @@ func NewTestDataSyncWorkflowEnv(
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	transformerclient := neosyncApi.OSSUnauthenticatedLicensedClients.Transformers()
 	userclient := neosyncApi.OSSUnauthenticatedLicensedClients.Users()
-
+	accounthookclient := neosyncApi.OSSUnauthenticatedLicensedClients.AccountHooks()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	genbenthosActivity := genbenthosconfigs_activity.New(
+	var activityMeter metric.Meter
+
+	datasync_workflow_register.Register(
+		env,
+		userclient,
 		jobclient,
 		connclient,
 		transformerclient,
 		dbManagers.SqlManager,
 		workflowEnv.redisconfig,
+		workflowEnv.fakeEELicense,
+		workflowEnv.Redisclient,
 		false,
+		workflowEnv.pageLimit,
 	)
-
-	var activityMeter metric.Meter
-	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
-	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, dbManagers.SqlManager, workflowEnv.fakeEELicense)
-	jobhookTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, dbManagers.SqlManager, workflowEnv.fakeEELicense)
-	accountStatusActivity := accountstatus_activity.New(userclient)
-	posttableSyncActivity := posttablesync_activity.New(jobclient, dbManagers.SqlManager, connclient)
-	redisCleanUpActivity := syncrediscleanup_activity.New(workflowEnv.Redisclient)
-
-	env.RegisterWorkflow(datasync_workflow.Workflow)
-	env.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
-	env.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
-	env.RegisterActivity(redisCleanUpActivity.DeleteRedisHash)
-	env.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
-	env.RegisterActivity(accountStatusActivity.CheckAccountStatus)
-	env.RegisterActivity(jobhookTimingActivity.RunJobHooksByTiming)
-	env.RegisterActivity(posttableSyncActivity.RunPostTableSync)
 
 	tablesync_workflow_register.Register(
 		env,
@@ -133,7 +135,12 @@ func NewTestDataSyncWorkflowEnv(
 		dbManagers.MongoConnManager,
 		activityMeter,
 		benthosstream.NewBenthosStreamManager(),
+		workflowEnv.maxIterations,
 	)
+
+	if workflowEnv.fakeEELicense.IsValid() {
+		accounthook_workflow_register.Register(env, accounthookclient)
+	}
 
 	env.SetTestTimeout(600 * time.Second)
 
@@ -145,7 +152,8 @@ func NewTestDataSyncWorkflowEnv(
 // ExecuteTestDataSyncWorkflow starts the test workflow with the given job ID
 func (w *TestWorkflowEnv) ExecuteTestDataSyncWorkflow(jobId string) {
 	w.TestEnv.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: jobId})
-	w.TestEnv.ExecuteWorkflow(datasync_workflow.Workflow, &datasync_workflow.WorkflowRequest{JobId: jobId})
+	datasyncWorkflow := datasync_workflow.New(w.fakeEELicense)
+	w.TestEnv.ExecuteWorkflow(datasyncWorkflow.Workflow, &datasync_workflow.WorkflowRequest{JobId: jobId})
 }
 
 // RequireActivitiesCompletedSuccessfully verifies all activities completed without errors

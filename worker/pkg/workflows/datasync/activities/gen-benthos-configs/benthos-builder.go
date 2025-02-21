@@ -37,6 +37,8 @@ type benthosBuilder struct {
 	redisConfig *neosync_redis.RedisConfig
 
 	metricsEnabled bool
+
+	pageLimit int
 }
 
 func newBenthosBuilder(
@@ -51,6 +53,8 @@ func newBenthosBuilder(
 	redisConfig *neosync_redis.RedisConfig,
 
 	metricsEnabled bool,
+
+	pageLimit int,
 ) *benthosBuilder {
 	return &benthosBuilder{
 		sqlmanagerclient:  sqlmanagerclient,
@@ -62,6 +66,7 @@ func newBenthosBuilder(
 		runId:             runId,
 		redisConfig:       redisConfig,
 		metricsEnabled:    metricsEnabled,
+		pageLimit:         pageLimit,
 	}
 }
 
@@ -110,6 +115,7 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 			metrics.TemporalWorkflowId: bb_shared.WithEnvInterpolation(metrics.TemporalWorkflowIdEnvKey),
 			metrics.TemporalRunId:      bb_shared.WithEnvInterpolation(metrics.TemporalRunIdEnvKey),
 		},
+		PageLimit: &b.pageLimit,
 	}
 	benthosManager, err := benthosbuilder.NewWorkerBenthosConfigManager(benthosManagerConfig)
 	if err != nil {

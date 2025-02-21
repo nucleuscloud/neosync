@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	continuation_token "github.com/nucleuscloud/neosync/internal/continuation-token"
 	database_record_mapper "github.com/nucleuscloud/neosync/internal/database-record-mapper"
 	record_mapper_builder "github.com/nucleuscloud/neosync/internal/database-record-mapper/builder"
@@ -164,6 +165,10 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 		s.logger.Debug("using paged query")
 		query = *s.pagedQueryStatic
 
+		// MSSQL uses TOP in beginning of query, so we need to append the expected total rows to the args
+		if s.driver == sqlmanager_shared.MssqlDriver {
+			args = append(args, *s.expectedTotalRows)
+		}
 		// Build arguments for lexicographical ordering
 		// To retain this ordering, we need to build the args in a way that match the OR'd statements from the prepared query
 		// For lexi ordering the total number of args follows the algorithm: (n (n + 1)) / 2 where n is the number of order by columns
@@ -179,7 +184,10 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 				args = append(args, lastValues[j])
 			}
 		}
-		args = append(args, *s.expectedTotalRows)
+		// MySQL and Postgres use LIMIT at the end of query, so we need to append the expected total rows to the args
+		if s.driver != sqlmanager_shared.MssqlDriver {
+			args = append(args, *s.expectedTotalRows)
+		}
 	}
 
 	rows, err := db.QueryContext(ctx, query, args...)
