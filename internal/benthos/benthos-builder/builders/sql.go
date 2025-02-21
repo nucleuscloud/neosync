@@ -354,7 +354,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 						Schema:                   benthosConfig.TableSchema,
 						Table:                    benthosConfig.TableName,
 						Columns:                  benthosConfig.Columns,
-						SkipForeignKeyViolations: skipForeignKeyViolations || query.IsSubset,
+						SkipForeignKeyViolations: skipForeignKeyViolations,
 						MaxInFlight:              int(destOpts.MaxInFlight),
 						WhereColumns:             benthosConfig.PrimaryKeys,
 

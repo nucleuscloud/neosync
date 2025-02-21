@@ -209,6 +209,7 @@ func (b *runConfigBuilder) getDependsOn() []*DependsOn {
 
 // getForeignKeys returns foreign keys that are needed for the insert columns
 func (b *runConfigBuilder) getForeignKeys(insertColumns []string) []*ForeignKey {
+	fmt.Println(insertColumns)
 	foreignKeys := []*ForeignKey{}
 	for _, fk := range b.foreignKeys {
 		foreignKey := &ForeignKey{
@@ -216,11 +217,11 @@ func (b *runConfigBuilder) getForeignKeys(insertColumns []string) []*ForeignKey 
 		}
 		for idx, col := range fk.Columns {
 			// by checking insert columns, we can skip foreign keys that are not needed for the insert
-			if slices.Contains(insertColumns, col) {
-				foreignKey.Columns = append(foreignKey.Columns, col)
-				foreignKey.NotNullable = append(foreignKey.NotNullable, fk.NotNullable[idx])
-				foreignKey.ReferenceColumns = append(foreignKey.ReferenceColumns, fk.ForeignKey.Columns[idx])
-			}
+			// if slices.Contains(insertColumns, col) {
+			foreignKey.Columns = append(foreignKey.Columns, col)
+			foreignKey.NotNullable = append(foreignKey.NotNullable, fk.NotNullable[idx])
+			foreignKey.ReferenceColumns = append(foreignKey.ReferenceColumns, fk.ForeignKey.Columns[idx])
+			// }
 		}
 
 		if len(foreignKey.Columns) > 0 {
