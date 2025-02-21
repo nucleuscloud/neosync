@@ -26,7 +26,7 @@ They can also be configured via the API and soon the Terraform provider.
 
 Account Hooks can be via the settings page for your account.
 
-![Account Hooks Settings](/img/hooks/account-hooks-settings.png)
+![Account Hooks Settings](/img/accounthooks/account-hooks-overview.png)
 
 ### Creating a new hook
 
@@ -36,7 +36,7 @@ There are a few different configuration options available to you to further fine
 
 Today, only `Webhook` hooks are supported, with plans for Slack, Discord, and other integrations in the future.
 
-![New Hook Form](/img/hooks/new-hook-form.png)
+![New Hook Form](/img/accounthooks/new-hook-form.png)
 
 ## Execution order strategy
 
