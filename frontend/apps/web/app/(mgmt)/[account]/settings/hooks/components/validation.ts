@@ -64,7 +64,7 @@ const AccountHookEventFormValue = yup
   .string()
   .default(AccountHookEvent.UNSPECIFIED.toString())
   .required('An event is required');
-export type AccountHookEventFormValue = yup.InferType<
+type AccountHookEventFormValue = yup.InferType<
   typeof AccountHookEventFormValue
 >;
 
