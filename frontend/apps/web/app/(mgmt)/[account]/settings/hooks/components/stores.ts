@@ -1,4 +1,5 @@
 import { BaseHookStore } from '@/util/zustand.stores.util';
+import { AccountHookEvent } from '@neosync/sdk';
 import { create } from 'zustand';
 import {
   EditAccountHookFormValues,
@@ -14,6 +15,7 @@ function getInitialEditFormState(): EditAccountHookFormValues {
     },
     description: '',
     enabled: true,
+    events: [AccountHookEvent.UNSPECIFIED.toString()],
   };
 }
 interface EditHookStore extends BaseHookStore<EditAccountHookFormValues> {}
@@ -43,6 +45,7 @@ function getInitialNewFormState(): NewAccountHookFormValues {
     },
     description: '',
     enabled: true,
+    events: [AccountHookEvent.UNSPECIFIED.toString()],
   };
 }
 
