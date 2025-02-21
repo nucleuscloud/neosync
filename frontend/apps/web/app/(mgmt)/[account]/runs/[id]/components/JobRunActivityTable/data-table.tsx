@@ -28,6 +28,7 @@ import {
   JobRunEventMetadata,
   JobRunSyncMetadata,
 } from '@neosync/sdk';
+import { useLocalStorage } from 'usehooks-ts';
 
 interface DataTableProps {
   columns: ColumnDef<JobRunEvent>[];
@@ -45,7 +46,10 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
   }, [isError]);
 
   const [pagination, setPagination] = React.useState<number>(0);
-  const [pageSize, setPageSize] = React.useState<number>(10);
+  const [pageSize, setPageSize] = useLocalStorage<number>(
+    'job-run-activity-table-page-size',
+    10
+  );
 
   const table = useReactTable({
     data,

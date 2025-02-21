@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useLocalStorage } from 'usehooks-ts';
 import { DataTableToolbar } from './data-table-toolbar';
 
 interface DataTableProps<TData, TValue> {
@@ -45,7 +46,10 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
   const [pagination, setPagination] = React.useState<number>(0);
-  const [pageSize, setPageSize] = React.useState<number>(10);
+  const [pageSize, setPageSize] = useLocalStorage<number>(
+    'connections-table-page-size',
+    10
+  );
 
   const table = useReactTable({
     data,

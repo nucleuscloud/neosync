@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useLocalStorage } from 'usehooks-ts';
 import { DataTableToolbar } from './data-table-toolbar';
 
 interface DataTableProps<TData, TValue> {
@@ -34,7 +35,10 @@ export function UserDefinedTransformersDataTable<TData, TValue>({
   data,
 }: DataTableProps<TData, TValue>) {
   const [pagination, setPagination] = React.useState<number>(0);
-  const [pageSize, setPageSize] = React.useState<number>(10);
+  const [pageSize, setPageSize] = useLocalStorage<number>(
+    'user-defined-transformers-table-page-size',
+    10
+  );
 
   const table = useReactTable({
     data,
