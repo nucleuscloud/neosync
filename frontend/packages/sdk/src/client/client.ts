@@ -5,6 +5,7 @@ import {
   createClient,
 } from '@connectrpc/connect';
 
+import { AccountHookService } from './mgmt/v1alpha1/account_hook_pb.js';
 import { AnonymizationService } from './mgmt/v1alpha1/anonymization_pb.js';
 import { ApiKeyService } from './mgmt/v1alpha1/api_key_pb.js';
 import { ConnectionDataService } from './mgmt/v1alpha1/connection_data_pb.js';
@@ -13,7 +14,6 @@ import { JobService } from './mgmt/v1alpha1/job_pb.js';
 import { MetricsService } from './mgmt/v1alpha1/metrics_pb.js';
 import { TransformersService } from './mgmt/v1alpha1/transformer_pb.js';
 import { UserAccountService } from './mgmt/v1alpha1/user_account_pb.js';
-
 export type NeosyncClient = NeosyncV1alpha1Client;
 export type ClientVersion = 'v1alpha1' | 'latest';
 
@@ -26,6 +26,7 @@ export interface NeosyncV1alpha1Client {
   connectiondata: Client<typeof ConnectionDataService>;
   metrics: Client<typeof MetricsService>;
   anonymization: Client<typeof AnonymizationService>;
+  accountHooks: Client<typeof AccountHookService>;
 }
 
 /**
@@ -92,6 +93,7 @@ export function getNeosyncV1alpha1Client(
     connectiondata: createClient(ConnectionDataService, transport),
     metrics: createClient(MetricsService, transport),
     anonymization: createClient(AnonymizationService, transport),
+    accountHooks: createClient(AccountHookService, transport),
   };
 }
 
