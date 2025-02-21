@@ -1,6 +1,7 @@
 package querybuilder2
 
 import (
+	"fmt"
 	"strings"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -71,6 +72,12 @@ func BuildSelectQueryMap(
 		if err != nil {
 			return nil, err
 		}
+		fmt.Println()
+		fmt.Println(cfg.Id())
+		fmt.Println(cfg.RunType())
+		fmt.Println(cfg.InsertColumns())
+		fmt.Println(query)
+		fmt.Println()
 		querymap[cfg.Id()] = &sqlmanager_shared.SelectQuery{
 			Query:                     query,
 			PageQuery:                 pageQuery,

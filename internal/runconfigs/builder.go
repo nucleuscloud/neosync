@@ -50,11 +50,12 @@ func newRunConfigBuilder(
 }
 
 func (b *runConfigBuilder) Build() []*RunConfig {
-	if b.isPartOfCircularDependency {
-		return b.buildCircularDependencyConfigs()
-	} else {
-		return []*RunConfig{b.buildInsertConfig()}
-	}
+	return b.buildCircularDependencyConfigs()
+	// if b.isPartOfCircularDependency {
+	// 	return b.buildCircularDependencyConfigs()
+	// } else {
+	// 	return []*RunConfig{b.buildInsertConfig()}
+	// }
 }
 
 func (b *runConfigBuilder) buildInsertConfig() *RunConfig {
@@ -151,7 +152,7 @@ func (b *runConfigBuilder) buildCircularDependencyConfigs() []*RunConfig {
 		}
 	}
 
-	insertConfig.foreignKeys = b.getForeignKeys(insertConfig.insertColumns)
+	insertConfig.foreignKeys = b.getForeignKeys(insertConfig.selectColumns)
 
 	// Insert config should be at the front, then any update configs follow.
 	configs = append([]*RunConfig{insertConfig}, configs...)
@@ -217,11 +218,11 @@ func (b *runConfigBuilder) getForeignKeys(insertColumns []string) []*ForeignKey 
 		}
 		for idx, col := range fk.Columns {
 			// by checking insert columns, we can skip foreign keys that are not needed for the insert
-			// if slices.Contains(insertColumns, col) {
-			foreignKey.Columns = append(foreignKey.Columns, col)
-			foreignKey.NotNullable = append(foreignKey.NotNullable, fk.NotNullable[idx])
-			foreignKey.ReferenceColumns = append(foreignKey.ReferenceColumns, fk.ForeignKey.Columns[idx])
-			// }
+			if slices.Contains(insertColumns, col) {
+				foreignKey.Columns = append(foreignKey.Columns, col)
+				foreignKey.NotNullable = append(foreignKey.NotNullable, fk.NotNullable[idx])
+				foreignKey.ReferenceColumns = append(foreignKey.ReferenceColumns, fk.ForeignKey.Columns[idx])
+			}
 		}
 
 		if len(foreignKey.Columns) > 0 {
