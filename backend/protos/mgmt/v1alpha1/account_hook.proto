@@ -70,7 +70,7 @@ message AccountHookConfig {
     // Webhook-based hooks
     WebHook webhook = 1;
     // Slack-based hooks
-    // SlackHook slack = 2;
+    SlackHook slack = 2;
     // Future: Discord, Teams, etc.
   }
 
@@ -87,16 +87,10 @@ message AccountHookConfig {
   }
 
   // Slack hook configuration
-  // message SlackHook {
-  //   // The Slack webhook URL.
-  //   string webhook_url = 1 [(buf.validate.field).string.uri = true];
-
-  //   // The Slack channel to post messages to.
-  //   string channel = 2 [(buf.validate.field).string.min_len = 1];
-
-  //   // The message template to use.
-  //   string message_template = 3 [(buf.validate.field).string.min_len = 1];
-  // }
+  message SlackHook {
+    // The Slack channel to post messages to.
+    string channel = 1 [(buf.validate.field).string.min_len = 1];
+  }
 }
 
 message GetAccountHooksRequest {
