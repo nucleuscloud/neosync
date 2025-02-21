@@ -180,7 +180,7 @@ export function AccountHookEvents(props: AccountHookEventsProps): ReactElement {
     <div className="flex flex-col gap-4">
       <FormHeader
         title="Events"
-        description="The events that will trigger this hook"
+        description="The events that will trigger this hook. Wildcard will trigger for all events."
         isErrored={!!error}
       />
       <ToggleGroup
