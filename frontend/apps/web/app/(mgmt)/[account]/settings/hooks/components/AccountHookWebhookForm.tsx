@@ -36,6 +36,7 @@ export default function AccountHookWebhookForm(props: Props): ReactElement {
           title="Webhook Secret"
           description="The secret that will be used to authenticate the webhook"
           isErrored={!!errors['config.webhook.secret']}
+          isRequired={true}
         />
         <PasswordInput
           id="secret"

@@ -81,8 +81,9 @@ export function Enabled(props: EnabledProps): ReactElement {
       <FormHeader
         htmlFor="enabled"
         title="Enabled"
-        description="Whether or not this hook will be invoked during a job run"
+        description="Whether or not this hook will be invoked when events occur"
         isErrored={!!error}
+        isRequired={true}
       />
       <ToggleGroup
         className="flex justify-start"

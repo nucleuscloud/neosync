@@ -46,7 +46,7 @@ export default function HooksCard(props: Props): ReactElement {
   return (
     <div className="job-hooks-card-container flex flex-col gap-5">
       <SubPageHeader
-        header="Job Hooks"
+        header="Account Hooks"
         rightHeaderIcon={
           isGetAccountHooksFetching ? (
             <div>
@@ -54,7 +54,7 @@ export default function HooksCard(props: Props): ReactElement {
             </div>
           ) : null
         }
-        description="Manage hooks that execute at specific points in a job run's lifecycle"
+        description="Manage hooks that execute when events occur"
         extraHeading={
           <NewHookButton accountId={accountId} onCreated={refetch} />
         }
