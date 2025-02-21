@@ -194,24 +194,28 @@ export function AccountHookEvents(props: AccountHookEventsProps): ReactElement {
         <ToggleGroupItem
           key={AccountHookEvent.UNSPECIFIED}
           value={AccountHookEvent.UNSPECIFIED.toString()}
+          className="border-2"
         >
           Wildcard
         </ToggleGroupItem>
         <ToggleGroupItem
           key={AccountHookEvent.JOB_RUN_CREATED}
           value={AccountHookEvent.JOB_RUN_CREATED.toString()}
+          className="border-2"
         >
           Job Run Created
         </ToggleGroupItem>
         <ToggleGroupItem
           key={AccountHookEvent.JOB_RUN_FAILED}
           value={AccountHookEvent.JOB_RUN_FAILED.toString()}
+          className="border-2"
         >
           Job Run Failed
         </ToggleGroupItem>
         <ToggleGroupItem
           key={AccountHookEvent.JOB_RUN_SUCCEEDED}
           value={AccountHookEvent.JOB_RUN_SUCCEEDED.toString()}
+          className="border-2"
         >
           Job Run Succeeded
         </ToggleGroupItem>
