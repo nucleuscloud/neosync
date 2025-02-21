@@ -5,6 +5,7 @@ import {
   AccountHookConfig,
   AccountHookConfig_WebHookSchema,
   AccountHookConfigSchema,
+  AccountHookEvent,
   AccountHookSchema,
   NewAccountHook,
   NewAccountHookSchema,
@@ -59,12 +60,29 @@ export type AccountHookConfigFormValues = yup.InferType<
   typeof AccountHookConfigFormValues
 >;
 
+const AccountHookEventFormValue = yup
+  .string()
+  .default(AccountHookEvent.UNSPECIFIED.toString())
+  .required('Event is required');
+export type AccountHookEventFormValue = yup.InferType<
+  typeof AccountHookEventFormValue
+>;
+
+const AccountHookEventsFormValue = yup
+  .array()
+  .of(AccountHookEventFormValue)
+  .min(1, 'At least one event is required');
+export type AccountHookEventsFormValue = yup.InferType<
+  typeof AccountHookEventsFormValue
+>;
+
 export const EditAccountHookFormValues = yup.object().shape({
   name: AccountHookNameFormValue,
   description: AccountHookDescriptionFormValue,
   enabled: EnabledFormValue,
   hookType: HookTypeFormValue,
   config: AccountHookConfigFormValues,
+  events: AccountHookEventsFormValue.required('Events are required'),
 });
 export type EditAccountHookFormValues = yup.InferType<
   typeof EditAccountHookFormValues
@@ -79,6 +97,7 @@ export function toEditFormData(input: AccountHook): EditAccountHookFormValues {
     config: {
       webhook: toWebhookConfig(input.config ?? create(AccountHookConfigSchema)),
     },
+    events: input.events.map((event) => event.toString()),
   };
 }
 
@@ -88,6 +107,7 @@ export const NewAccountHookFormValues = yup.object({
   enabled: EnabledFormValue,
   hookType: HookTypeFormValue,
   config: AccountHookConfigFormValues,
+  events: AccountHookEventsFormValue.required('Events are required'),
 });
 export type NewAccountHookFormValues = yup.InferType<
   typeof NewAccountHookFormValues
@@ -136,6 +156,7 @@ export function editFormDataToAccountHook(
     description: newValues.description,
     enabled: newValues.enabled,
     config: newValues.config,
+    events: newValues.events,
   });
 }
 
@@ -147,6 +168,7 @@ export function newFormDataToNewAccountHook(
     description: values.description,
     enabled: values.enabled,
     config: toAccountHookConfig(values),
+    events: values.events.map((event) => parseInt(event, 10)),
   });
 }
 

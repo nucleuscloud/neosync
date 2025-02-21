@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { AccountHook } from '@neosync/sdk';
 import {
   AccountHookConfig,
+  AccountHookEvents,
   Description,
   Enabled,
   HookType,
@@ -86,6 +87,11 @@ export function EditHookForm({ hook, onSubmit }: EditHookFormProps) {
         error={errors.enabled}
         value={formData.enabled}
         onChange={(value) => setFormData({ enabled: value })}
+      />
+      <AccountHookEvents
+        error={errors.events}
+        value={formData.events}
+        onChange={(value) => setFormData({ events: value })}
       />
       <HookType
         error={errors.hookType}

@@ -3,9 +3,14 @@ import FormHeader from '@/components/forms/FormHeader';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { AccountHookEvent } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import AccountHookWebhookForm from './AccountHookWebhookForm';
-import { AccountHookConfigFormValues, HookTypeFormValue } from './validation';
+import {
+  AccountHookConfigFormValues,
+  AccountHookEventsFormValue,
+  HookTypeFormValue,
+} from './validation';
 
 interface NameProps {
   error?: string;
@@ -158,6 +163,60 @@ export function AccountHookConfig(props: AccountHookConfigProps): ReactElement {
           errors={errors}
         />
       )}
+    </div>
+  );
+}
+
+interface AccountHookEventsProps {
+  error?: string;
+  value: AccountHookEventsFormValue;
+  onChange(value: AccountHookEventsFormValue): void;
+}
+
+export function AccountHookEvents(props: AccountHookEventsProps): ReactElement {
+  const { error, value, onChange } = props;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <FormHeader
+        title="Events"
+        description="The events that will trigger this hook"
+        isErrored={!!error}
+      />
+      <ToggleGroup
+        className="flex justify-start"
+        type="multiple"
+        value={value}
+        onValueChange={(value) => {
+          onChange(value as AccountHookEventsFormValue);
+        }}
+      >
+        <ToggleGroupItem
+          key={AccountHookEvent.UNSPECIFIED}
+          value={AccountHookEvent.UNSPECIFIED.toString()}
+        >
+          Wildcard
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          key={AccountHookEvent.JOB_RUN_CREATED}
+          value={AccountHookEvent.JOB_RUN_CREATED.toString()}
+        >
+          Job Run Created
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          key={AccountHookEvent.JOB_RUN_FAILED}
+          value={AccountHookEvent.JOB_RUN_FAILED.toString()}
+        >
+          Job Run Failed
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          key={AccountHookEvent.JOB_RUN_SUCCEEDED}
+          value={AccountHookEvent.JOB_RUN_SUCCEEDED.toString()}
+        >
+          Job Run Succeeded
+        </ToggleGroupItem>
+      </ToggleGroup>
+      <FormErrorMessage message={error} />
     </div>
   );
 }

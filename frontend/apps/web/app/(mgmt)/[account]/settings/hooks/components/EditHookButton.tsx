@@ -35,6 +35,7 @@ export default function EditHookButton(props: Props): ReactElement {
         description: values.description,
         enabled: values.enabled,
         name: values.name,
+        events: values.events,
       });
       toast.success('Successfully updated account hook!');
       onEdited();

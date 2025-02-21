@@ -6,6 +6,7 @@ import { FormEvent, ReactElement } from 'react';
 import { ValidationError } from 'yup';
 import {
   AccountHookConfig,
+  AccountHookEvents,
   Description,
   Enabled,
   HookType,
@@ -77,6 +78,11 @@ export default function NewHookForm(props: Props): ReactElement {
         error={errors.enabled}
         value={formData.enabled}
         onChange={(value) => setFormData({ enabled: value })}
+      />
+      <AccountHookEvents
+        error={errors.events}
+        value={formData.events}
+        onChange={(value) => setFormData({ events: value })}
       />
       <HookType
         error={errors.hookType}

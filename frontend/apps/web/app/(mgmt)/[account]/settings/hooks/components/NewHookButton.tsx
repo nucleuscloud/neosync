@@ -37,6 +37,7 @@ export default function NewHookButton(props: Props): ReactElement {
           description: values.description,
           enabled: values.enabled,
           name: values.name,
+          events: values.events,
         },
       });
       toast.success('Successfully created account hook!');
