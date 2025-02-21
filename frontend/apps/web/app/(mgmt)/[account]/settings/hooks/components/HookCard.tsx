@@ -30,11 +30,6 @@ export default function HookCard(props: Props): ReactElement {
               </p>
 
               <div className="flex items-center gap-4 pt-2 flex-wrap">
-                {/* <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-                  <ClockIcon className="flex-shrink-0" />
-                  <p>{hookTiming}</p>
-                </div> */}
-
                 <Badge variant={hook.enabled ? 'success' : 'outline'}>
                   {hook.enabled ? 'Enabled' : 'Disabled'}
                 </Badge>
