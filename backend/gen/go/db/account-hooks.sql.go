@@ -126,6 +126,7 @@ SELECT id, name, description, account_id, events, config, created_by_user_id, cr
 WHERE account_id = $1
   AND enabled = true
   AND events && $2::int[]
+ORDER BY created_at ASC
 `
 
 type GetActiveAccountHooksByEventParams struct {
