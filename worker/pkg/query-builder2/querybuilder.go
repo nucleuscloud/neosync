@@ -3,6 +3,7 @@ package querybuilder2
 import (
 	"crypto/md5" //nolint:gosec // This is not being used for a purpose that requires security
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -122,6 +123,8 @@ func (qb *QueryBuilder) clearPathCache() {
 }
 
 func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement string, args []any, pagesql string, isNotForeignKeySafeSubset bool, err error) {
+	fmt.Println("---------------------------------")
+	fmt.Println("Building query for", schema, tableName)
 	key := qb.getTableKey(schema, tableName)
 	table, ok := qb.tables[key]
 	if !ok {
@@ -148,6 +151,9 @@ func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement strin
 		// MSSQL TOP needs to be cast to int
 		pageSql = strings.Replace(pageSql, "TOP (@p1)", "TOP (CAST(@p1 AS INT))", 1)
 	}
+	fmt.Println("sql", sql)
+	fmt.Println()
+	fmt.Println()
 	return sql, args, pageSql, notFkSafe, nil
 }
 
@@ -232,12 +238,24 @@ func (qb *QueryBuilder) addFlattenedJoins(
 	tableKey := qb.getTableKey(table.Schema, table.Name)
 	rootTableKey := qb.getTableKey(rootTable.Schema, rootTable.Name)
 
+	fmt.Println()
+	fmt.Println("tableKey", tableKey, "rootTableKey", rootTableKey)
+	jsonF, _ := json.MarshalIndent(qb.whereConditions, "", " ")
+	fmt.Printf("\n whereConditions: %s \n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(qb.tablesWithWhereConditions, "", " ")
+	fmt.Printf("\n tablesWithWhereConditions: %s \n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(qb.pathCache, "", " ")
+	fmt.Printf("\n pathCache: %s \n", string(jsonF))
+	fmt.Println()
+	fmt.Println()
+	fmt.Println()
+
 	if joinedTables[tableKey] {
 		return query, false, nil // Avoid circular dependencies
 	}
 	joinedTables[tableKey] = true
 
-	var notFkSafe bool
+	notFkSafe := shouldLeftJoin
 	for _, fk := range table.ForeignKeys {
 		// Skip self-referencing foreign keys
 		if fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
@@ -258,61 +276,35 @@ func (qb *QueryBuilder) addFlattenedJoins(
 			continue
 		}
 
+		// if direct link to where condition then no need to join
+
 		aliasName := qb.generateUniqueAlias(prefix, refTable.Name, joinedTables)
-		joinConditions := []exp.Expression{}
-		hasNullableFk := shouldLeftJoin
+		joinConditions := make([]exp.Expression, len(fk.Columns))
 		for i, col := range fk.Columns {
-			notNullable := fk.NotNullable[i]
-			if !notNullable {
-				hasNullableFk = true
-			}
-			joinConditions = append(joinConditions, goqu.T(aliasName).Col(fk.ReferenceColumns[i]).Eq(goqu.T(tableAlias).Col(col)))
-			// when left joining need to have the condition on the join in order to include rows will null foreign keys
-			if shouldLeftJoin {
-				if conditions, ok := qb.whereConditions[refKey]; ok {
-					for _, cond := range conditions {
-						qualifiedCondition, err := qb.qualifyWhereCondition(nil, aliasName, cond.Condition)
-						if err != nil {
-							return nil, false, err
-						}
-						joinConditions = append(joinConditions, goqu.Literal(qualifiedCondition))
-					}
-				}
-			}
+			joinConditions[i] = goqu.T(aliasName).Col(fk.ReferenceColumns[i]).Eq(goqu.T(tableAlias).Col(col))
 		}
 
-		if hasNullableFk {
-			// use left join when foreign key is nullable
-			query = query.LeftJoin(
-				refTable.GetIdentifierExpression().As(aliasName),
-				goqu.On(joinConditions...),
-			)
-			notFkSafe = true
-		} else {
-			query = query.InnerJoin(
-				refTable.GetIdentifierExpression().As(aliasName),
-				goqu.On(joinConditions...),
-			)
-		}
+		notFkSafe = true
+		query = query.InnerJoin(
+			refTable.GetIdentifierExpression().As(aliasName),
+			goqu.On(joinConditions...),
+		)
 
 		// Add WHERE conditions for the joined table
-		// only add condition to where if not doing a left join
-		if !shouldLeftJoin {
-			if conditions, ok := qb.whereConditions[refKey]; ok {
-				for _, cond := range conditions {
-					qualifiedCondition, err := qb.qualifyWhereCondition(nil, aliasName, cond.Condition)
-					if err != nil {
-						return nil, false, err
-					}
-					query = query.Where(goqu.L(qualifiedCondition, cond.Args...))
+		if conditions, ok := qb.whereConditions[refKey]; ok {
+			for _, cond := range conditions {
+				qualifiedCondition, err := qb.qualifyWhereCondition(nil, aliasName, cond.Condition)
+				if err != nil {
+					return nil, false, err
 				}
+				query = query.Where(goqu.L(qualifiedCondition, cond.Args...))
 			}
 		}
 
 		// Recursively add joins for the referenced table
 		var err error
 		var childnotFkSafe bool
-		query, childnotFkSafe, err = qb.addFlattenedJoins(query, rootTable, refTable, aliasName, joinedTables, aliasName+"_", hasNullableFk)
+		query, childnotFkSafe, err = qb.addFlattenedJoins(query, rootTable, refTable, aliasName, joinedTables, aliasName+"_", notFkSafe)
 		if err != nil {
 			return nil, false, err
 		}
