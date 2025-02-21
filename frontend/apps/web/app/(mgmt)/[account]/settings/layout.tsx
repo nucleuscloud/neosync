@@ -104,6 +104,11 @@ function useGetNavSettings(): Item[] {
     !isSystemConfigLoading && systemAppConfigData?.isNeosyncCloud
       ? items
       : items.filter((item) => item.ref !== 'billing');
+  // filter out hooks if account hooks are not enabled
+  items =
+    !isSystemConfigLoading && !systemAppConfigData?.isAccountHooksEnabled
+      ? items.filter((item) => item.ref !== 'hooks')
+      : items;
 
   return items;
 }
@@ -134,6 +139,11 @@ function getAllNavSettings(accountName: string): Item[] {
       href: `/${accountName}/settings/usage`,
       ref: 'usage',
       title: 'Usage',
+    },
+    {
+      href: `/${accountName}/settings/hooks`,
+      ref: 'hooks',
+      title: 'Hooks',
     },
   ];
 }
