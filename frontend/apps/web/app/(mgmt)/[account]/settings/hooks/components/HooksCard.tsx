@@ -90,7 +90,7 @@ function NoAccountHooks(props: NoAccountHooksProps): ReactElement {
   return (
     <EmptyState
       title="No Hooks yet"
-      description="Hooks are events that are invoked during a job run to allow for further customization of a sync"
+      description="Hooks are invoked when specified events occur in your account to notify you or trigger further actions"
       icon={<MdWebhook className="w-8 h-8 text-primary" />}
       extra={button}
     />
