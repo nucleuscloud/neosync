@@ -271,6 +271,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'guides/account-hooks',
+      label: 'Account Hooks',
+    },
+    {
+      type: 'doc',
       id: 'guides/rbac',
       label: 'RBAC',
     },

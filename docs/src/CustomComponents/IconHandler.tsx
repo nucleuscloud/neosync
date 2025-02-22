@@ -208,6 +208,7 @@ export function IconHandler(name: string): ReactElement {
     case 'Python':
       return <FaPython />;
     case 'Job Hooks':
+    case 'Account Hooks':
       return <MdWebhook />;
     default:
       return <LayersIcon />;

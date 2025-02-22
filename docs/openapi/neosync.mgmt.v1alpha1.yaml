@@ -4972,6 +4972,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookEvent'
           title: events
+          minItems: 1
           description: The events that will trigger this hook.
         config:
           allOf:

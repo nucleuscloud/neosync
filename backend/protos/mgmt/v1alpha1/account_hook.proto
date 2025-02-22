@@ -141,7 +141,7 @@ message UpdateAccountHookRequest {
   string description = 3 [(buf.validate.field).string.min_len = 1];
 
   // The events that will trigger this hook.
-  repeated AccountHookEvent events = 4;
+  repeated AccountHookEvent events = 4 [(buf.validate.field).repeated.min_items = 1];
 
   // Hook-type specific configuration.
   AccountHookConfig config = 5;
