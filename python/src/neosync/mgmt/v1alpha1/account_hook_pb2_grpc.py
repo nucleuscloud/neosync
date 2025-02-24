@@ -64,6 +64,11 @@ class AccountHookServiceStub(object):
                 request_serializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.HandleSlackOAuthCallbackRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.HandleSlackOAuthCallbackResponse.FromString,
                 _registered_method=True)
+        self.TestSlackConnection = channel.unary_unary(
+                '/mgmt.v1alpha1.AccountHookService/TestSlackConnection',
+                request_serializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.TestSlackConnectionRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.TestSlackConnectionResponse.FromString,
+                _registered_method=True)
 
 
 class AccountHookServiceServicer(object):
@@ -139,6 +144,13 @@ class AccountHookServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def TestSlackConnection(self, request, context):
+        """Tests the Slack connection by using the stored access token to initiate an auth test api call to slack.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_AccountHookServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -191,6 +203,11 @@ def add_AccountHookServiceServicer_to_server(servicer, server):
                     servicer.HandleSlackOAuthCallback,
                     request_deserializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.HandleSlackOAuthCallbackRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.HandleSlackOAuthCallbackResponse.SerializeToString,
+            ),
+            'TestSlackConnection': grpc.unary_unary_rpc_method_handler(
+                    servicer.TestSlackConnection,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.TestSlackConnectionRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.TestSlackConnectionResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -463,6 +480,33 @@ class AccountHookService(object):
             '/mgmt.v1alpha1.AccountHookService/HandleSlackOAuthCallback',
             mgmt_dot_v1alpha1_dot_account__hook__pb2.HandleSlackOAuthCallbackRequest.SerializeToString,
             mgmt_dot_v1alpha1_dot_account__hook__pb2.HandleSlackOAuthCallbackResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def TestSlackConnection(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/mgmt.v1alpha1.AccountHookService/TestSlackConnection',
+            mgmt_dot_v1alpha1_dot_account__hook__pb2.TestSlackConnectionRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_account__hook__pb2.TestSlackConnectionResponse.FromString,
             options,
             channel_credentials,
             insecure,

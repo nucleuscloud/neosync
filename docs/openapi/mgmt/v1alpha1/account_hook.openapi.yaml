@@ -491,6 +491,39 @@ components:
           description: The updated account hook.
       title: SetAccountHookEnabledResponse
       additionalProperties: false
+    mgmt.v1alpha1.TestSlackConnectionRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to test the Slack connection for.
+      title: TestSlackConnectionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.TestSlackConnectionResponse:
+      type: object
+      properties:
+        slack:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TestSlackConnectionResponse.SlackResponse'
+          title: slack
+          description: The response from the Slack API.
+      title: TestSlackConnectionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.TestSlackConnectionResponse.SlackResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          title: url
+          description: The URL of the Slack that is connected.
+        team:
+          type: string
+          title: team
+          description: The team name of the Slack that is connected.
+      title: SlackResponse
+      additionalProperties: false
     mgmt.v1alpha1.UpdateAccountHookRequest:
       type: object
       properties:
@@ -956,5 +989,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.HandleSlackOAuthCallbackResponse'
+  /mgmt.v1alpha1.AccountHookService/TestSlackConnection:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: TestSlackConnection
+      description: Tests the Slack connection by using the stored access token to initiate an auth test api call to slack.
+      operationId: mgmt.v1alpha1.AccountHookService.TestSlackConnection
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.TestSlackConnectionRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.TestSlackConnectionResponse'
 tags:
   - name: mgmt.v1alpha1.AccountHookService

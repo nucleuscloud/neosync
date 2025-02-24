@@ -152,7 +152,7 @@ type NeosyncApiRuncontext struct {
 type NeosyncApiSlackOauthConnection struct {
 	ID              pgtype.UUID
 	AccountID       pgtype.UUID
-	AccessToken     string
+	OauthV2Response []byte
 	CreatedAt       pgtype.Timestamptz
 	UpdatedAt       pgtype.Timestamptz
 	CreatedByUserID pgtype.UUID

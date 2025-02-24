@@ -102,3 +102,11 @@ func (s *Service) HandleSlackOAuthCallback(ctx context.Context, req *connect.Req
 	}
 	return connect.NewResponse(resp), nil
 }
+
+func (s *Service) TestSlackConnection(ctx context.Context, req *connect.Request[mgmtv1alpha1.TestSlackConnectionRequest]) (*connect.Response[mgmtv1alpha1.TestSlackConnectionResponse], error) {
+	resp, err := s.hookservice.TestSlackConnection(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}

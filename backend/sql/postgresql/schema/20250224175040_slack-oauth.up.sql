@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS neosync_api.slack_oauth_connections (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 
   account_id uuid NOT NULL,
-  access_token text NOT NULL,
+  oauth_v2_response jsonb NOT NULL,
 
   created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,

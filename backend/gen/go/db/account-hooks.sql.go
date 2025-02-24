@@ -60,27 +60,27 @@ func (q *Queries) CreateAccountHook(ctx context.Context, db DBTX, arg CreateAcco
 	return i, err
 }
 
-const createSlackAccessToken = `-- name: CreateSlackAccessToken :one
-INSERT INTO neosync_api.slack_oauth_connections (account_id, access_token, created_by_user_id, updated_by_user_id)
+const createSlackOAuthConnection = `-- name: CreateSlackOAuthConnection :one
+INSERT INTO neosync_api.slack_oauth_connections (account_id, oauth_v2_response, created_by_user_id, updated_by_user_id)
 VALUES ($1, $2, $3, $4)
 ON CONFLICT (account_id) DO UPDATE
-SET access_token = EXCLUDED.access_token,
+SET oauth_v2_response = EXCLUDED.oauth_v2_response,
     updated_at = CURRENT_TIMESTAMP,
     updated_by_user_id = $4
-RETURNING id, account_id, access_token, created_at, updated_at, created_by_user_id, updated_by_user_id
+RETURNING id, account_id, oauth_v2_response, created_at, updated_at, created_by_user_id, updated_by_user_id
 `
 
-type CreateSlackAccessTokenParams struct {
+type CreateSlackOAuthConnectionParams struct {
 	AccountID       pgtype.UUID
-	AccessToken     string
+	OauthV2Response []byte
 	CreatedByUserID pgtype.UUID
 	UpdatedByUserID pgtype.UUID
 }
 
-func (q *Queries) CreateSlackAccessToken(ctx context.Context, db DBTX, arg CreateSlackAccessTokenParams) (NeosyncApiSlackOauthConnection, error) {
-	row := db.QueryRow(ctx, createSlackAccessToken,
+func (q *Queries) CreateSlackOAuthConnection(ctx context.Context, db DBTX, arg CreateSlackOAuthConnectionParams) (NeosyncApiSlackOauthConnection, error) {
+	row := db.QueryRow(ctx, createSlackOAuthConnection,
 		arg.AccountID,
-		arg.AccessToken,
+		arg.OauthV2Response,
 		arg.CreatedByUserID,
 		arg.UpdatedByUserID,
 	)
@@ -88,7 +88,7 @@ func (q *Queries) CreateSlackAccessToken(ctx context.Context, db DBTX, arg Creat
 	err := row.Scan(
 		&i.ID,
 		&i.AccountID,
-		&i.AccessToken,
+		&i.OauthV2Response,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.CreatedByUserID,
@@ -97,13 +97,13 @@ func (q *Queries) CreateSlackAccessToken(ctx context.Context, db DBTX, arg Creat
 	return i, err
 }
 
-const deleteSlackAccessToken = `-- name: DeleteSlackAccessToken :exec
+const deleteSlackOAuthConnection = `-- name: DeleteSlackOAuthConnection :exec
 DELETE FROM neosync_api.slack_oauth_connections
 WHERE account_id = $1
 `
 
-func (q *Queries) DeleteSlackAccessToken(ctx context.Context, db DBTX, accountID pgtype.UUID) error {
-	_, err := db.Exec(ctx, deleteSlackAccessToken, accountID)
+func (q *Queries) DeleteSlackOAuthConnection(ctx context.Context, db DBTX, accountID pgtype.UUID) error {
+	_, err := db.Exec(ctx, deleteSlackOAuthConnection, accountID)
 	return err
 }
 
@@ -215,7 +215,7 @@ func (q *Queries) GetActiveAccountHooksByEvent(ctx context.Context, db DBTX, arg
 }
 
 const getSlackAccessToken = `-- name: GetSlackAccessToken :one
-SELECT access_token
+SELECT (oauth_v2_response->>'access_token')::TEXT as access_token
 FROM neosync_api.slack_oauth_connections
 WHERE account_id = $1
 `

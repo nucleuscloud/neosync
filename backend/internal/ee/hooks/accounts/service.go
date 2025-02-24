@@ -36,6 +36,7 @@ type Interface interface {
 	GetActiveAccountHooksByEvent(ctx context.Context, req *mgmtv1alpha1.GetActiveAccountHooksByEventRequest) (*mgmtv1alpha1.GetActiveAccountHooksByEventResponse, error)
 	GetSlackConnectionUrl(ctx context.Context, req *mgmtv1alpha1.GetSlackConnectionUrlRequest) (*mgmtv1alpha1.GetSlackConnectionUrlResponse, error)
 	HandleSlackOAuthCallback(ctx context.Context, req *mgmtv1alpha1.HandleSlackOAuthCallbackRequest) (*mgmtv1alpha1.HandleSlackOAuthCallbackResponse, error)
+	TestSlackConnection(ctx context.Context, req *mgmtv1alpha1.TestSlackConnectionRequest) (*mgmtv1alpha1.TestSlackConnectionResponse, error)
 }
 
 type config struct {
@@ -455,9 +456,14 @@ func (s *Service) HandleSlackOAuthCallback(
 	logger.Debug("slack oauth state validated")
 
 	slackCode := req.GetCode()
-	accessToken, err := s.slackClient.ExchangeCodeForAccessToken(slackCode)
+	oauthResp, err := s.slackClient.ExchangeCodeForAccessToken(ctx, slackCode)
 	if err != nil {
 		return nil, fmt.Errorf("unable to exchange slack code for access token: %w", err)
+	}
+
+	oauthRespBytes, err := json.Marshal(oauthResp)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshal slack oauth response: %w", err)
 	}
 
 	accountId, err := neosyncdb.ToUuid(req.GetAccountId())
@@ -465,9 +471,9 @@ func (s *Service) HandleSlackOAuthCallback(
 		return nil, err
 	}
 
-	_, err = s.db.Q.CreateSlackAccessToken(ctx, s.db.Db, db_queries.CreateSlackAccessTokenParams{
+	_, err = s.db.Q.CreateSlackOAuthConnection(ctx, s.db.Db, db_queries.CreateSlackOAuthConnectionParams{
 		AccountID:       accountId,
-		AccessToken:     accessToken,
+		OauthV2Response: oauthRespBytes,
 		CreatedByUserID: user.PgId(),
 		UpdatedByUserID: user.PgId(),
 	})
@@ -476,4 +482,51 @@ func (s *Service) HandleSlackOAuthCallback(
 	}
 
 	return &mgmtv1alpha1.HandleSlackOAuthCallbackResponse{}, nil
+}
+
+func (s *Service) TestSlackConnection(
+	ctx context.Context,
+	req *mgmtv1alpha1.TestSlackConnectionRequest,
+) (*mgmtv1alpha1.TestSlackConnectionResponse, error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("accountId", req.GetAccountId())
+
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(req.GetAccountId()), rbac.AccountAction_View); err != nil {
+		return nil, err
+	}
+
+	accountId, err := neosyncdb.ToUuid(req.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Debug("retrieving slack access token")
+
+	accessToken, err := s.db.Q.GetSlackAccessToken(ctx, s.db.Db, accountId)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, fmt.Errorf("unable to get slack access token: %w", err)
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("slack oauth connection not found")
+	}
+
+	if accessToken == "" {
+		return nil, nucleuserrors.NewNotFound("slack access token not found")
+	}
+
+	logger.Debug("testing slack connection")
+	testResp, err := s.slackClient.Test(ctx, accessToken)
+	if err != nil {
+		return nil, fmt.Errorf("unable to test slack connection: %w", err)
+	}
+	logger.Debug("slack connection test successful")
+	return &mgmtv1alpha1.TestSlackConnectionResponse{
+		Slack: &mgmtv1alpha1.TestSlackConnectionResponse_SlackResponse{
+			Url:  testResp.URL,
+			Team: testResp.Team,
+		},
+	}, nil
 }

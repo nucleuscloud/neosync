@@ -856,6 +856,90 @@
           ]
         },
         {
+          "name": "TestSlackConnectionRequest",
+          "longName": "TestSlackConnectionRequest",
+          "fullName": "mgmt.v1alpha1.TestSlackConnectionRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account ID to test the Slack connection for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TestSlackConnectionResponse",
+          "longName": "TestSlackConnectionResponse",
+          "fullName": "mgmt.v1alpha1.TestSlackConnectionResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "slack",
+              "description": "The response from the Slack API.",
+              "label": "",
+              "type": "SlackResponse",
+              "longType": "TestSlackConnectionResponse.SlackResponse",
+              "fullType": "mgmt.v1alpha1.TestSlackConnectionResponse.SlackResponse",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SlackResponse",
+          "longName": "TestSlackConnectionResponse.SlackResponse",
+          "fullName": "mgmt.v1alpha1.TestSlackConnectionResponse.SlackResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "url",
+              "description": "The URL of the Slack that is connected.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "team",
+              "description": "The team name of the Slack that is connected.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "UpdateAccountHookRequest",
           "longName": "UpdateAccountHookRequest",
           "fullName": "mgmt.v1alpha1.UpdateAccountHookRequest",
@@ -1101,6 +1185,18 @@
               "responseType": "HandleSlackOAuthCallbackResponse",
               "responseLongType": "HandleSlackOAuthCallbackResponse",
               "responseFullType": "mgmt.v1alpha1.HandleSlackOAuthCallbackResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "TestSlackConnection",
+              "description": "Tests the Slack connection by using the stored access token to initiate an auth test api call to slack.",
+              "requestType": "TestSlackConnectionRequest",
+              "requestLongType": "TestSlackConnectionRequest",
+              "requestFullType": "mgmt.v1alpha1.TestSlackConnectionRequest",
+              "requestStreaming": false,
+              "responseType": "TestSlackConnectionResponse",
+              "responseLongType": "TestSlackConnectionResponse",
+              "responseFullType": "mgmt.v1alpha1.TestSlackConnectionResponse",
               "responseStreaming": false
             }
           ]

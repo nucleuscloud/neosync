@@ -1,18 +1,22 @@
 package ee_slack
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"time"
 
 	sym_encrypt "github.com/nucleuscloud/neosync/internal/encrypt/sym"
+	"github.com/slack-go/slack"
 )
 
 type Interface interface {
 	GetAuthorizeUrl(accountId, userId string) (string, error)
 	ValidateState(state, accountId, userId string) error
-	ExchangeCodeForAccessToken(code string) (string, error)
+	ExchangeCodeForAccessToken(ctx context.Context, code string) (*slack.OAuthV2Response, error)
+	Test(ctx context.Context, accessToken string) (*slack.AuthTestResponse, error)
 }
 
 type Client struct {
@@ -21,9 +25,10 @@ type Client struct {
 }
 
 type config struct {
-	appClientId string
-	scope       string
-	redirectUrl string
+	appClientId     string
+	appClientSecret string
+	scope           string
+	redirectUrl     string
 }
 
 type Option func(*config)
@@ -111,8 +116,25 @@ func (c *Client) ValidateState(state, accountId, userId string) error {
 	return nil
 }
 
-func (c *Client) ExchangeCodeForAccessToken(code string) (string, error) {
-	return "todo", nil
+func (c *Client) ExchangeCodeForAccessToken(ctx context.Context, code string) (*slack.OAuthV2Response, error) {
+	resp, err := slack.GetOAuthV2ResponseContext(ctx, &http.Client{}, c.cfg.appClientId, c.cfg.appClientSecret, code, c.cfg.redirectUrl)
+	if err != nil {
+		return nil, fmt.Errorf("unable to exchange code for access token: %w", err)
+	}
+	if resp.Err() != nil {
+		return nil, fmt.Errorf("unable to exchange code for access token: %w", resp.Err())
+	}
+	return resp, nil
+}
+
+func (c *Client) Test(ctx context.Context, accessToken string) (*slack.AuthTestResponse, error) {
+	api := slack.New(accessToken)
+
+	resp, err := api.AuthTestContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to test slack connection: %w", err)
+	}
+	return resp, nil
 }
 
 type slackOauthState struct {

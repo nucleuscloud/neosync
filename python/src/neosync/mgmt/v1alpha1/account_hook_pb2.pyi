@@ -220,3 +220,22 @@ class HandleSlackOAuthCallbackRequest(_message.Message):
 class HandleSlackOAuthCallbackResponse(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
+
+class TestSlackConnectionRequest(_message.Message):
+    __slots__ = ("account_id",)
+    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    account_id: str
+    def __init__(self, account_id: _Optional[str] = ...) -> None: ...
+
+class TestSlackConnectionResponse(_message.Message):
+    __slots__ = ("slack",)
+    class SlackResponse(_message.Message):
+        __slots__ = ("url", "team")
+        URL_FIELD_NUMBER: _ClassVar[int]
+        TEAM_FIELD_NUMBER: _ClassVar[int]
+        url: str
+        team: str
+        def __init__(self, url: _Optional[str] = ..., team: _Optional[str] = ...) -> None: ...
+    SLACK_FIELD_NUMBER: _ClassVar[int]
+    slack: TestSlackConnectionResponse.SlackResponse
+    def __init__(self, slack: _Optional[_Union[TestSlackConnectionResponse.SlackResponse, _Mapping]] = ...) -> None: ...

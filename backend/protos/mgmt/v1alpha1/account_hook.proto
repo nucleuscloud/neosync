@@ -218,6 +218,23 @@ message HandleSlackOAuthCallbackRequest {
 
 message HandleSlackOAuthCallbackResponse {}
 
+message TestSlackConnectionRequest {
+  // The account ID to test the Slack connection for.
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message TestSlackConnectionResponse {
+  // The response from the Slack API.
+  SlackResponse slack = 1;
+
+  message SlackResponse {
+    // The URL of the Slack that is connected.
+    string url = 1;
+    // The team name of the Slack that is connected.
+    string team = 2;
+  }
+}
+
 service AccountHookService {
   // Retrieves all account hooks.
   rpc GetAccountHooks(GetAccountHooksRequest) returns (GetAccountHooksResponse) {
@@ -249,4 +266,7 @@ service AccountHookService {
 
   // Handles the Slack OAuth callback.
   rpc HandleSlackOAuthCallback(HandleSlackOAuthCallbackRequest) returns (HandleSlackOAuthCallbackResponse) {}
+
+  // Tests the Slack connection by using the stored access token to initiate an auth test api call to slack.
+  rpc TestSlackConnection(TestSlackConnectionRequest) returns (TestSlackConnectionResponse) {}
 }
