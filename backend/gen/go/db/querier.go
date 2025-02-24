@@ -27,9 +27,11 @@ type Querier interface {
 	CreateMachineUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
 	CreateNonMachineUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
 	CreatePersonalAccount(ctx context.Context, db DBTX, arg CreatePersonalAccountParams) (NeosyncApiAccount, error)
+	CreateSlackAccessToken(ctx context.Context, db DBTX, arg CreateSlackAccessTokenParams) (NeosyncApiSlackOauthConnection, error)
 	CreateTeamAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error)
 	CreateUserDefinedTransformer(ctx context.Context, db DBTX, arg CreateUserDefinedTransformerParams) (NeosyncApiTransformer, error)
 	DeleteJob(ctx context.Context, db DBTX, id pgtype.UUID) error
+	DeleteSlackAccessToken(ctx context.Context, db DBTX, accountID pgtype.UUID) error
 	DeleteUserDefinedTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) error
 	DoesJobHaveConnectionId(ctx context.Context, db DBTX, arg DoesJobHaveConnectionIdParams) (bool, error)
 	GetAccount(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccount, error)
@@ -67,6 +69,7 @@ type Querier interface {
 	GetJobsByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiJob, error)
 	GetPersonalAccountByUserId(ctx context.Context, db DBTX, userid pgtype.UUID) (NeosyncApiAccount, error)
 	GetRunContextByKey(ctx context.Context, db DBTX, arg GetRunContextByKeyParams) (NeosyncApiRuncontext, error)
+	GetSlackAccessToken(ctx context.Context, db DBTX, accountID pgtype.UUID) (string, error)
 	GetTeamAccountsByUserId(ctx context.Context, db DBTX, userid pgtype.UUID) ([]NeosyncApiAccount, error)
 	GetTemporalConfigByAccount(ctx context.Context, db DBTX, id pgtype.UUID) (*pg_models.TemporalConfig, error)
 	GetTemporalConfigByUserAccount(ctx context.Context, db DBTX, arg GetTemporalConfigByUserAccountParams) (*pg_models.TemporalConfig, error)
@@ -116,6 +119,7 @@ type Querier interface {
 	UpdateJobSchedule(ctx context.Context, db DBTX, arg UpdateJobScheduleParams) (NeosyncApiJob, error)
 	UpdateJobSource(ctx context.Context, db DBTX, arg UpdateJobSourceParams) (NeosyncApiJob, error)
 	UpdateJobVirtualForeignKeys(ctx context.Context, db DBTX, arg UpdateJobVirtualForeignKeysParams) (NeosyncApiJob, error)
+	UpdateSlackAccessToken(ctx context.Context, db DBTX, arg UpdateSlackAccessTokenParams) (NeosyncApiSlackOauthConnection, error)
 	UpdateTemporalConfigByAccount(ctx context.Context, db DBTX, arg UpdateTemporalConfigByAccountParams) (NeosyncApiAccount, error)
 	UpdateUserDefinedTransformer(ctx context.Context, db DBTX, arg UpdateUserDefinedTransformerParams) (NeosyncApiTransformer, error)
 }

@@ -60,6 +60,40 @@ func (q *Queries) CreateAccountHook(ctx context.Context, db DBTX, arg CreateAcco
 	return i, err
 }
 
+const createSlackAccessToken = `-- name: CreateSlackAccessToken :one
+INSERT INTO neosync_api.slack_oauth_connections (account_id, access_token)
+VALUES ($1, $2)
+RETURNING id, account_id, access_token, created_at, updated_at
+`
+
+type CreateSlackAccessTokenParams struct {
+	AccountID   pgtype.UUID
+	AccessToken string
+}
+
+func (q *Queries) CreateSlackAccessToken(ctx context.Context, db DBTX, arg CreateSlackAccessTokenParams) (NeosyncApiSlackOauthConnection, error) {
+	row := db.QueryRow(ctx, createSlackAccessToken, arg.AccountID, arg.AccessToken)
+	var i NeosyncApiSlackOauthConnection
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.AccessToken,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const deleteSlackAccessToken = `-- name: DeleteSlackAccessToken :exec
+DELETE FROM neosync_api.slack_oauth_connections
+WHERE account_id = $1
+`
+
+func (q *Queries) DeleteSlackAccessToken(ctx context.Context, db DBTX, accountID pgtype.UUID) error {
+	_, err := db.Exec(ctx, deleteSlackAccessToken, accountID)
+	return err
+}
+
 const getAccountHookById = `-- name: GetAccountHookById :one
 SELECT id, name, description, account_id, events, config, created_by_user_id, created_at, updated_by_user_id, updated_at, enabled, hook_type from neosync_api.account_hooks WHERE id = $1
 `
@@ -165,6 +199,19 @@ func (q *Queries) GetActiveAccountHooksByEvent(ctx context.Context, db DBTX, arg
 		return nil, err
 	}
 	return items, nil
+}
+
+const getSlackAccessToken = `-- name: GetSlackAccessToken :one
+SELECT access_token
+FROM neosync_api.slack_oauth_connections
+WHERE account_id = $1
+`
+
+func (q *Queries) GetSlackAccessToken(ctx context.Context, db DBTX, accountID pgtype.UUID) (string, error) {
+	row := db.QueryRow(ctx, getSlackAccessToken, accountID)
+	var access_token string
+	err := row.Scan(&access_token)
+	return access_token, err
 }
 
 const isAccountHookNameAvailable = `-- name: IsAccountHookNameAvailable :one
@@ -276,6 +323,31 @@ func (q *Queries) UpdateAccountHook(ctx context.Context, db DBTX, arg UpdateAcco
 		&i.UpdatedAt,
 		&i.Enabled,
 		&i.HookType,
+	)
+	return i, err
+}
+
+const updateSlackAccessToken = `-- name: UpdateSlackAccessToken :one
+UPDATE neosync_api.slack_oauth_connections
+SET access_token = $1
+WHERE account_id = $2
+RETURNING id, account_id, access_token, created_at, updated_at
+`
+
+type UpdateSlackAccessTokenParams struct {
+	AccessToken string
+	AccountID   pgtype.UUID
+}
+
+func (q *Queries) UpdateSlackAccessToken(ctx context.Context, db DBTX, arg UpdateSlackAccessTokenParams) (NeosyncApiSlackOauthConnection, error) {
+	row := db.QueryRow(ctx, updateSlackAccessToken, arg.AccessToken, arg.AccountID)
+	var i NeosyncApiSlackOauthConnection
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.AccessToken,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

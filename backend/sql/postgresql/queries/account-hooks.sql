@@ -46,3 +46,23 @@ WHERE account_id = $1
   AND enabled = true
   AND events && sqlc.arg(events)::int[]
 ORDER BY created_at ASC;
+
+-- name: GetSlackAccessToken :one
+SELECT access_token
+FROM neosync_api.slack_oauth_connections
+WHERE account_id = $1;
+
+-- name: CreateSlackAccessToken :one
+INSERT INTO neosync_api.slack_oauth_connections (account_id, access_token)
+VALUES ($1, $2)
+RETURNING *;
+
+-- name: DeleteSlackAccessToken :exec
+DELETE FROM neosync_api.slack_oauth_connections
+WHERE account_id = $1;
+
+-- name: UpdateSlackAccessToken :one
+UPDATE neosync_api.slack_oauth_connections
+SET access_token = $1
+WHERE account_id = $2
+RETURNING *;

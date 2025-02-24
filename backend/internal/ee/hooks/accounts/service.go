@@ -403,3 +403,11 @@ func (s *Service) UpdateAccountHook(ctx context.Context, req *mgmtv1alpha1.Updat
 		Hook: dto,
 	}, nil
 }
+
+func (s *Service) GetSlackConnectionUrl(ctx context.Context, req *mgmtv1alpha1.GetSlackConnectionUrlRequest) (*mgmtv1alpha1.GetSlackConnectionUrlResponse, error) {
+	return nil, nucleuserrors.NewNotImplemented("not implemented")
+}
+
+func (s *Service) HandleSlackOAuthCallback(ctx context.Context, req *mgmtv1alpha1.HandleSlackOAuthCallbackRequest) (*mgmtv1alpha1.HandleSlackOAuthCallbackResponse, error) {
+	return nil, nucleuserrors.NewNotImplemented("not implemented")
+}

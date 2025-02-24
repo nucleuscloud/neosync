@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS neosync_api.slack_oauth_connections (
     REFERENCES neosync_api.accounts(id)
     ON DELETE CASCADE,
 
-  CONSTRAINT slack_oauth_connections_account_id_access_token_unique UNIQUE (account_id, access_token)
+  CONSTRAINT slack_oauth_connections_account_id_unique UNIQUE (account_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_slack_oauth_connections_account_id
