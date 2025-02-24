@@ -148,6 +148,15 @@ type NeosyncApiRuncontext struct {
 	UpdatedByID pgtype.UUID
 }
 
+// Stores Slack OAuth connections for a given account
+type NeosyncApiSlackOauthConnection struct {
+	ID          pgtype.UUID
+	AccountID   pgtype.UUID
+	AccessToken string
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+}
+
 type NeosyncApiTransformer struct {
 	ID                pgtype.UUID
 	CreatedAt         pgtype.Timestamp

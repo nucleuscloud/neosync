@@ -60,7 +60,7 @@ class NewAccountHook(_message.Message):
     def __init__(self, name: _Optional[str] = ..., description: _Optional[str] = ..., events: _Optional[_Iterable[_Union[AccountHookEvent, str]]] = ..., config: _Optional[_Union[AccountHookConfig, _Mapping]] = ..., enabled: bool = ...) -> None: ...
 
 class AccountHookConfig(_message.Message):
-    __slots__ = ("webhook",)
+    __slots__ = ("webhook", "slack")
     class WebHook(_message.Message):
         __slots__ = ("url", "secret", "disable_ssl_verification")
         URL_FIELD_NUMBER: _ClassVar[int]
@@ -70,9 +70,16 @@ class AccountHookConfig(_message.Message):
         secret: str
         disable_ssl_verification: bool
         def __init__(self, url: _Optional[str] = ..., secret: _Optional[str] = ..., disable_ssl_verification: bool = ...) -> None: ...
+    class SlackHook(_message.Message):
+        __slots__ = ("channel",)
+        CHANNEL_FIELD_NUMBER: _ClassVar[int]
+        channel: str
+        def __init__(self, channel: _Optional[str] = ...) -> None: ...
     WEBHOOK_FIELD_NUMBER: _ClassVar[int]
+    SLACK_FIELD_NUMBER: _ClassVar[int]
     webhook: AccountHookConfig.WebHook
-    def __init__(self, webhook: _Optional[_Union[AccountHookConfig.WebHook, _Mapping]] = ...) -> None: ...
+    slack: AccountHookConfig.SlackHook
+    def __init__(self, webhook: _Optional[_Union[AccountHookConfig.WebHook, _Mapping]] = ..., slack: _Optional[_Union[AccountHookConfig.SlackHook, _Mapping]] = ...) -> None: ...
 
 class GetAccountHooksRequest(_message.Message):
     __slots__ = ("account_id",)
@@ -187,3 +194,29 @@ class GetActiveAccountHooksByEventResponse(_message.Message):
     HOOKS_FIELD_NUMBER: _ClassVar[int]
     hooks: _containers.RepeatedCompositeFieldContainer[AccountHook]
     def __init__(self, hooks: _Optional[_Iterable[_Union[AccountHook, _Mapping]]] = ...) -> None: ...
+
+class GetSlackConnectionUrlRequest(_message.Message):
+    __slots__ = ("account_id",)
+    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    account_id: str
+    def __init__(self, account_id: _Optional[str] = ...) -> None: ...
+
+class GetSlackConnectionUrlResponse(_message.Message):
+    __slots__ = ("url",)
+    URL_FIELD_NUMBER: _ClassVar[int]
+    url: str
+    def __init__(self, url: _Optional[str] = ...) -> None: ...
+
+class HandleSlackOAuthCallbackRequest(_message.Message):
+    __slots__ = ("account_id", "state", "code")
+    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    STATE_FIELD_NUMBER: _ClassVar[int]
+    CODE_FIELD_NUMBER: _ClassVar[int]
+    account_id: str
+    state: str
+    code: str
+    def __init__(self, account_id: _Optional[str] = ..., state: _Optional[str] = ..., code: _Optional[str] = ...) -> None: ...
+
+class HandleSlackOAuthCallbackResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...

@@ -185,16 +185,24 @@ components:
       allOf:
         - anyOf:
             - required:
+                - slack
+            - required:
                 - webhook
             - not:
                 anyOf:
                   - required:
+                      - slack
+                  - required:
                       - webhook
       anyOf:
+        - required:
+            - slack
         - required:
             - webhook
         - not:
             anyOf:
+              - required:
+                  - slack
               - required:
                   - webhook
       properties:
@@ -202,13 +210,26 @@ components:
           allOf:
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookConfig.WebHook'
           title: webhook
-          description: |-
-            Webhook-based hooks Slack-based hooks
-             SlackHook slack = 2;
-             Future: Discord, Teams, etc.
+          description: Webhook-based hooks
+        slack:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookConfig.SlackHook'
+          title: slack
+          description: 'Slack-based hooks Future: Discord, Teams, etc.'
       title: AccountHookConfig
       additionalProperties: false
       description: Hook-specific configuration
+    mgmt.v1alpha1.AccountHookConfig.SlackHook:
+      type: object
+      properties:
+        channel:
+          type: string
+          title: channel
+          minLength: 1
+          description: The Slack channel to post messages to.
+      title: SlackHook
+      additionalProperties: false
+      description: Slack hook configuration
     mgmt.v1alpha1.AccountHookConfig.WebHook:
       type: object
       properties:
@@ -345,6 +366,49 @@ components:
           title: hooks
           description: The list of active account hooks.
       title: GetActiveAccountHooksByEventResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetSlackConnectionUrlRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to retrieve the Slack connection URL for.
+      title: GetSlackConnectionUrlRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetSlackConnectionUrlResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          title: url
+          description: The Slack connection URL.
+      title: GetSlackConnectionUrlResponse
+      additionalProperties: false
+    mgmt.v1alpha1.HandleSlackOAuthCallbackRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to handle the Slack OAuth callback for.
+        state:
+          type: string
+          title: state
+          minLength: 1
+          description: The Slack state.
+        code:
+          type: string
+          title: code
+          minLength: 1
+          description: The Slack code.
+      title: HandleSlackOAuthCallbackRequest
+      additionalProperties: false
+    mgmt.v1alpha1.HandleSlackOAuthCallbackResponse:
+      type: object
+      title: HandleSlackOAuthCallbackResponse
       additionalProperties: false
     mgmt.v1alpha1.IsAccountHookNameAvailableRequest:
       type: object
@@ -820,5 +884,77 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.GetActiveAccountHooksByEventResponse'
+  /mgmt.v1alpha1.AccountHookService/GetSlackConnectionUrl:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: GetSlackConnectionUrl
+      description: Retrieves the Slack connection url that allows a user to connect their Slack workspace to Neosync.
+      operationId: mgmt.v1alpha1.AccountHookService.GetSlackConnectionUrl
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetSlackConnectionUrlRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetSlackConnectionUrlResponse'
+  /mgmt.v1alpha1.AccountHookService/HandleSlackOAuthCallback:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: HandleSlackOAuthCallback
+      description: Handles the Slack OAuth callback.
+      operationId: mgmt.v1alpha1.AccountHookService.HandleSlackOAuthCallback
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.HandleSlackOAuthCallbackRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.HandleSlackOAuthCallbackResponse'
 tags:
   - name: mgmt.v1alpha1.AccountHookService

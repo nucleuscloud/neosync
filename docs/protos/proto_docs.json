@@ -196,7 +196,7 @@
           "fields": [
             {
               "name": "webhook",
-              "description": "Webhook-based hooks\n\nSlack-based hooks\nSlackHook slack = 2;\nFuture: Discord, Teams, etc.",
+              "description": "Webhook-based hooks",
               "label": "",
               "type": "WebHook",
               "longType": "AccountHookConfig.WebHook",
@@ -204,6 +204,42 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "slack",
+              "description": "Slack-based hooks\n\nFuture: Discord, Teams, etc.",
+              "label": "",
+              "type": "SlackHook",
+              "longType": "AccountHookConfig.SlackHook",
+              "fullType": "mgmt.v1alpha1.AccountHookConfig.SlackHook",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SlackHook",
+          "longName": "AccountHookConfig.SlackHook",
+          "fullName": "mgmt.v1alpha1.AccountHookConfig.SlackHook",
+          "description": "Slack hook configuration",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "channel",
+              "description": "The Slack channel to post messages to.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]
@@ -519,6 +555,113 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "GetSlackConnectionUrlRequest",
+          "longName": "GetSlackConnectionUrlRequest",
+          "fullName": "mgmt.v1alpha1.GetSlackConnectionUrlRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account ID to retrieve the Slack connection URL for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetSlackConnectionUrlResponse",
+          "longName": "GetSlackConnectionUrlResponse",
+          "fullName": "mgmt.v1alpha1.GetSlackConnectionUrlResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "url",
+              "description": "The Slack connection URL.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "HandleSlackOAuthCallbackRequest",
+          "longName": "HandleSlackOAuthCallbackRequest",
+          "fullName": "mgmt.v1alpha1.HandleSlackOAuthCallbackRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account ID to handle the Slack OAuth callback for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "state",
+              "description": "The Slack state.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "code",
+              "description": "The Slack code.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "HandleSlackOAuthCallbackResponse",
+          "longName": "HandleSlackOAuthCallbackResponse",
+          "fullName": "mgmt.v1alpha1.HandleSlackOAuthCallbackResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "IsAccountHookNameAvailableRequest",
@@ -932,6 +1075,33 @@
               "options": {
                 "idempotency_level": "NO_SIDE_EFFECTS"
               }
+            },
+            {
+              "name": "GetSlackConnectionUrl",
+              "description": "Retrieves the Slack connection url that allows a user to connect their Slack workspace to Neosync.",
+              "requestType": "GetSlackConnectionUrlRequest",
+              "requestLongType": "GetSlackConnectionUrlRequest",
+              "requestFullType": "mgmt.v1alpha1.GetSlackConnectionUrlRequest",
+              "requestStreaming": false,
+              "responseType": "GetSlackConnectionUrlResponse",
+              "responseLongType": "GetSlackConnectionUrlResponse",
+              "responseFullType": "mgmt.v1alpha1.GetSlackConnectionUrlResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            },
+            {
+              "name": "HandleSlackOAuthCallback",
+              "description": "Handles the Slack OAuth callback.",
+              "requestType": "HandleSlackOAuthCallbackRequest",
+              "requestLongType": "HandleSlackOAuthCallbackRequest",
+              "requestFullType": "mgmt.v1alpha1.HandleSlackOAuthCallbackRequest",
+              "requestStreaming": false,
+              "responseType": "HandleSlackOAuthCallbackResponse",
+              "responseLongType": "HandleSlackOAuthCallbackResponse",
+              "responseFullType": "mgmt.v1alpha1.HandleSlackOAuthCallbackResponse",
+              "responseStreaming": false
             }
           ]
         }

@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file mgmt/v1alpha1/account_hook.proto.
  */
 export const file_mgmt_v1alpha1_account_hook: GenFile = /*@__PURE__*/
-  fileDesc("CiBtZ210L3YxYWxwaGExL2FjY291bnRfaG9vay5wcm90bxINbWdtdC52MWFscGhhMSLcAgoLQWNjb3VudEhvb2sSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRISCgphY2NvdW50X2lkGAQgASgJEi8KBmV2ZW50cxgFIAMoDjIfLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2tFdmVudBIwCgZjb25maWcYBiABKAsyIC5tZ210LnYxYWxwaGExLkFjY291bnRIb29rQ29uZmlnEhoKEmNyZWF0ZWRfYnlfdXNlcl9pZBgHIAEoCRIuCgpjcmVhdGVkX2F0GAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIaChJ1cGRhdGVkX2J5X3VzZXJfaWQYCSABKAkSLgoKdXBkYXRlZF9hdBgKIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDwoHZW5hYmxlZBgLIAEoCCLdAQoOTmV3QWNjb3VudEhvb2sSJwoEbmFtZRgBIAEoCUIZukgWchQyEl5bYS16MC05LV17MywxMDB9JBIcCgtkZXNjcmlwdGlvbhgCIAEoCUIHukgEcgIQARI5CgZldmVudHMYAyADKA4yHy5tZ210LnYxYWxwaGExLkFjY291bnRIb29rRXZlbnRCCLpIBZIBAggBEjgKBmNvbmZpZxgEIAEoCzIgLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2tDb25maWdCBrpIA8gBARIPCgdlbmFibGVkGAUgASgIIr4BChFBY2NvdW50SG9va0NvbmZpZxI7Cgd3ZWJob29rGAEgASgLMigubWdtdC52MWFscGhhMS5BY2NvdW50SG9va0NvbmZpZy5XZWJIb29rSAAaWwoHV2ViSG9vaxIVCgN1cmwYASABKAlCCLpIBXIDiAEBEhcKBnNlY3JldBgCIAEoCUIHukgEcgIQARIgChhkaXNhYmxlX3NzbF92ZXJpZmljYXRpb24YAyABKAhCDwoGY29uZmlnEgW6SAIIASI2ChZHZXRBY2NvdW50SG9va3NSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBIkQKF0dldEFjY291bnRIb29rc1Jlc3BvbnNlEikKBWhvb2tzGAEgAygLMhoubWdtdC52MWFscGhhMS5BY2NvdW50SG9vayItChVHZXRBY2NvdW50SG9va1JlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIkIKFkdldEFjY291bnRIb29rUmVzcG9uc2USKAoEaG9vaxgBIAEoCzIaLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2sibQoYQ3JlYXRlQWNjb3VudEhvb2tSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBEjMKBGhvb2sYAiABKAsyHS5tZ210LnYxYWxwaGExLk5ld0FjY291bnRIb29rQga6SAPIAQEiRQoZQ3JlYXRlQWNjb3VudEhvb2tSZXNwb25zZRIoCgRob29rGAEgASgLMhoubWdtdC52MWFscGhhMS5BY2NvdW50SG9vayL1AQoYVXBkYXRlQWNjb3VudEhvb2tSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABARInCgRuYW1lGAIgASgJQhm6SBZyFDISXlthLXowLTktXXszLDEwMH0kEhwKC2Rlc2NyaXB0aW9uGAMgASgJQge6SARyAhABEjkKBmV2ZW50cxgEIAMoDjIfLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2tFdmVudEIIukgFkgECCAESMAoGY29uZmlnGAUgASgLMiAubWdtdC52MWFscGhhMS5BY2NvdW50SG9va0NvbmZpZxIPCgdlbmFibGVkGAYgASgIIkUKGVVwZGF0ZUFjY291bnRIb29rUmVzcG9uc2USKAoEaG9vaxgBIAEoCzIaLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2siMAoYRGVsZXRlQWNjb3VudEhvb2tSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABASJFChlEZWxldGVBY2NvdW50SG9va1Jlc3BvbnNlEigKBGhvb2sYASABKAsyGi5tZ210LnYxYWxwaGExLkFjY291bnRIb29rImoKIUlzQWNjb3VudEhvb2tOYW1lQXZhaWxhYmxlUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABARInCgRuYW1lGAIgASgJQhm6SBZyFDISXlthLXowLTktXXszLDEwMH0kIjoKIklzQWNjb3VudEhvb2tOYW1lQXZhaWxhYmxlUmVzcG9uc2USFAoMaXNfYXZhaWxhYmxlGAEgASgIIkUKHFNldEFjY291bnRIb29rRW5hYmxlZFJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBEg8KB2VuYWJsZWQYAiABKAgiSQodU2V0QWNjb3VudEhvb2tFbmFibGVkUmVzcG9uc2USKAoEaG9vaxgBIAEoCzIaLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2sicwojR2V0QWN0aXZlQWNjb3VudEhvb2tzQnlFdmVudFJlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQESLgoFZXZlbnQYAiABKA4yHy5tZ210LnYxYWxwaGExLkFjY291bnRIb29rRXZlbnQiUQokR2V0QWN0aXZlQWNjb3VudEhvb2tzQnlFdmVudFJlc3BvbnNlEikKBWhvb2tzGAEgAygLMhoubWdtdC52MWFscGhhMS5BY2NvdW50SG9vayqvAQoQQWNjb3VudEhvb2tFdmVudBIiCh5BQ0NPVU5UX0hPT0tfRVZFTlRfVU5TUEVDSUZJRUQQABImCiJBQ0NPVU5UX0hPT0tfRVZFTlRfSk9CX1JVTl9DUkVBVEVEEAESJQohQUNDT1VOVF9IT09LX0VWRU5UX0pPQl9SVU5fRkFJTEVEEAISKAokQUNDT1VOVF9IT09LX0VWRU5UX0pPQl9SVU5fU1VDQ0VFREVEEAMyqAcKEkFjY291bnRIb29rU2VydmljZRJlCg9HZXRBY2NvdW50SG9va3MSJS5tZ210LnYxYWxwaGExLkdldEFjY291bnRIb29rc1JlcXVlc3QaJi5tZ210LnYxYWxwaGExLkdldEFjY291bnRIb29rc1Jlc3BvbnNlIgOQAgESYgoOR2V0QWNjb3VudEhvb2sSJC5tZ210LnYxYWxwaGExLkdldEFjY291bnRIb29rUmVxdWVzdBolLm1nbXQudjFhbHBoYTEuR2V0QWNjb3VudEhvb2tSZXNwb25zZSIDkAIBEmgKEUNyZWF0ZUFjY291bnRIb29rEicubWdtdC52MWFscGhhMS5DcmVhdGVBY2NvdW50SG9va1JlcXVlc3QaKC5tZ210LnYxYWxwaGExLkNyZWF0ZUFjY291bnRIb29rUmVzcG9uc2UiABJoChFVcGRhdGVBY2NvdW50SG9vaxInLm1nbXQudjFhbHBoYTEuVXBkYXRlQWNjb3VudEhvb2tSZXF1ZXN0GigubWdtdC52MWFscGhhMS5VcGRhdGVBY2NvdW50SG9va1Jlc3BvbnNlIgASaAoRRGVsZXRlQWNjb3VudEhvb2sSJy5tZ210LnYxYWxwaGExLkRlbGV0ZUFjY291bnRIb29rUmVxdWVzdBooLm1nbXQudjFhbHBoYTEuRGVsZXRlQWNjb3VudEhvb2tSZXNwb25zZSIAEoMBChpJc0FjY291bnRIb29rTmFtZUF2YWlsYWJsZRIwLm1nbXQudjFhbHBoYTEuSXNBY2NvdW50SG9va05hbWVBdmFpbGFibGVSZXF1ZXN0GjEubWdtdC52MWFscGhhMS5Jc0FjY291bnRIb29rTmFtZUF2YWlsYWJsZVJlc3BvbnNlIgASdAoVU2V0QWNjb3VudEhvb2tFbmFibGVkEisubWdtdC52MWFscGhhMS5TZXRBY2NvdW50SG9va0VuYWJsZWRSZXF1ZXN0GiwubWdtdC52MWFscGhhMS5TZXRBY2NvdW50SG9va0VuYWJsZWRSZXNwb25zZSIAEowBChxHZXRBY3RpdmVBY2NvdW50SG9va3NCeUV2ZW50EjIubWdtdC52MWFscGhhMS5HZXRBY3RpdmVBY2NvdW50SG9va3NCeUV2ZW50UmVxdWVzdBozLm1nbXQudjFhbHBoYTEuR2V0QWN0aXZlQWNjb3VudEhvb2tzQnlFdmVudFJlc3BvbnNlIgOQAgFCzAEKEWNvbS5tZ210LnYxYWxwaGExQhBBY2NvdW50SG9va1Byb3RvUAFaUGdpdGh1Yi5jb20vbnVjbGV1c2Nsb3VkL25lb3N5bmMvYmFja2VuZC9nZW4vZ28vcHJvdG9zL21nbXQvdjFhbHBoYTE7bWdtdHYxYWxwaGExogIDTVhYqgINTWdtdC5WMWFscGhhMcoCDU1nbXRcVjFhbHBoYTHiAhlNZ210XFYxYWxwaGExXEdQQk1ldGFkYXRh6gIOTWdtdDo6VjFhbHBoYTFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_timestamp]);
+  fileDesc("CiBtZ210L3YxYWxwaGExL2FjY291bnRfaG9vay5wcm90bxINbWdtdC52MWFscGhhMSLcAgoLQWNjb3VudEhvb2sSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRISCgphY2NvdW50X2lkGAQgASgJEi8KBmV2ZW50cxgFIAMoDjIfLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2tFdmVudBIwCgZjb25maWcYBiABKAsyIC5tZ210LnYxYWxwaGExLkFjY291bnRIb29rQ29uZmlnEhoKEmNyZWF0ZWRfYnlfdXNlcl9pZBgHIAEoCRIuCgpjcmVhdGVkX2F0GAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIaChJ1cGRhdGVkX2J5X3VzZXJfaWQYCSABKAkSLgoKdXBkYXRlZF9hdBgKIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDwoHZW5hYmxlZBgLIAEoCCLdAQoOTmV3QWNjb3VudEhvb2sSJwoEbmFtZRgBIAEoCUIZukgWchQyEl5bYS16MC05LV17MywxMDB9JBIcCgtkZXNjcmlwdGlvbhgCIAEoCUIHukgEcgIQARI5CgZldmVudHMYAyADKA4yHy5tZ210LnYxYWxwaGExLkFjY291bnRIb29rRXZlbnRCCLpIBZIBAggBEjgKBmNvbmZpZxgEIAEoCzIgLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2tDb25maWdCBrpIA8gBARIPCgdlbmFibGVkGAUgASgIIqICChFBY2NvdW50SG9va0NvbmZpZxI7Cgd3ZWJob29rGAEgASgLMigubWdtdC52MWFscGhhMS5BY2NvdW50SG9va0NvbmZpZy5XZWJIb29rSAASOwoFc2xhY2sYAiABKAsyKi5tZ210LnYxYWxwaGExLkFjY291bnRIb29rQ29uZmlnLlNsYWNrSG9va0gAGlsKB1dlYkhvb2sSFQoDdXJsGAEgASgJQgi6SAVyA4gBARIXCgZzZWNyZXQYAiABKAlCB7pIBHICEAESIAoYZGlzYWJsZV9zc2xfdmVyaWZpY2F0aW9uGAMgASgIGiUKCVNsYWNrSG9vaxIYCgdjaGFubmVsGAEgASgJQge6SARyAhABQg8KBmNvbmZpZxIFukgCCAEiNgoWR2V0QWNjb3VudEhvb2tzUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABASJEChdHZXRBY2NvdW50SG9va3NSZXNwb25zZRIpCgVob29rcxgBIAMoCzIaLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2siLQoVR2V0QWNjb3VudEhvb2tSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABASJCChZHZXRBY2NvdW50SG9va1Jlc3BvbnNlEigKBGhvb2sYASABKAsyGi5tZ210LnYxYWxwaGExLkFjY291bnRIb29rIm0KGENyZWF0ZUFjY291bnRIb29rUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABARIzCgRob29rGAIgASgLMh0ubWdtdC52MWFscGhhMS5OZXdBY2NvdW50SG9va0IGukgDyAEBIkUKGUNyZWF0ZUFjY291bnRIb29rUmVzcG9uc2USKAoEaG9vaxgBIAEoCzIaLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2si9QEKGFVwZGF0ZUFjY291bnRIb29rUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQESJwoEbmFtZRgCIAEoCUIZukgWchQyEl5bYS16MC05LV17MywxMDB9JBIcCgtkZXNjcmlwdGlvbhgDIAEoCUIHukgEcgIQARI5CgZldmVudHMYBCADKA4yHy5tZ210LnYxYWxwaGExLkFjY291bnRIb29rRXZlbnRCCLpIBZIBAggBEjAKBmNvbmZpZxgFIAEoCzIgLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2tDb25maWcSDwoHZW5hYmxlZBgGIAEoCCJFChlVcGRhdGVBY2NvdW50SG9va1Jlc3BvbnNlEigKBGhvb2sYASABKAsyGi5tZ210LnYxYWxwaGExLkFjY291bnRIb29rIjAKGERlbGV0ZUFjY291bnRIb29rUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQEiRQoZRGVsZXRlQWNjb3VudEhvb2tSZXNwb25zZRIoCgRob29rGAEgASgLMhoubWdtdC52MWFscGhhMS5BY2NvdW50SG9vayJqCiFJc0FjY291bnRIb29rTmFtZUF2YWlsYWJsZVJlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQESJwoEbmFtZRgCIAEoCUIZukgWchQyEl5bYS16MC05LV17MywxMDB9JCI6CiJJc0FjY291bnRIb29rTmFtZUF2YWlsYWJsZVJlc3BvbnNlEhQKDGlzX2F2YWlsYWJsZRgBIAEoCCJFChxTZXRBY2NvdW50SG9va0VuYWJsZWRSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABARIPCgdlbmFibGVkGAIgASgIIkkKHVNldEFjY291bnRIb29rRW5hYmxlZFJlc3BvbnNlEigKBGhvb2sYASABKAsyGi5tZ210LnYxYWxwaGExLkFjY291bnRIb29rInMKI0dldEFjdGl2ZUFjY291bnRIb29rc0J5RXZlbnRSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBEi4KBWV2ZW50GAIgASgOMh8ubWdtdC52MWFscGhhMS5BY2NvdW50SG9va0V2ZW50IlEKJEdldEFjdGl2ZUFjY291bnRIb29rc0J5RXZlbnRSZXNwb25zZRIpCgVob29rcxgBIAMoCzIaLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2siPAocR2V0U2xhY2tDb25uZWN0aW9uVXJsUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABASIsCh1HZXRTbGFja0Nvbm5lY3Rpb25VcmxSZXNwb25zZRILCgN1cmwYASABKAkibgofSGFuZGxlU2xhY2tPQXV0aENhbGxiYWNrUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABARIWCgVzdGF0ZRgCIAEoCUIHukgEcgIQARIVCgRjb2RlGAMgASgJQge6SARyAhABIiIKIEhhbmRsZVNsYWNrT0F1dGhDYWxsYmFja1Jlc3BvbnNlKq8BChBBY2NvdW50SG9va0V2ZW50EiIKHkFDQ09VTlRfSE9PS19FVkVOVF9VTlNQRUNJRklFRBAAEiYKIkFDQ09VTlRfSE9PS19FVkVOVF9KT0JfUlVOX0NSRUFURUQQARIlCiFBQ0NPVU5UX0hPT0tfRVZFTlRfSk9CX1JVTl9GQUlMRUQQAhIoCiRBQ0NPVU5UX0hPT0tfRVZFTlRfSk9CX1JVTl9TVUNDRUVERUQQAzKgCQoSQWNjb3VudEhvb2tTZXJ2aWNlEmUKD0dldEFjY291bnRIb29rcxIlLm1nbXQudjFhbHBoYTEuR2V0QWNjb3VudEhvb2tzUmVxdWVzdBomLm1nbXQudjFhbHBoYTEuR2V0QWNjb3VudEhvb2tzUmVzcG9uc2UiA5ACARJiCg5HZXRBY2NvdW50SG9vaxIkLm1nbXQudjFhbHBoYTEuR2V0QWNjb3VudEhvb2tSZXF1ZXN0GiUubWdtdC52MWFscGhhMS5HZXRBY2NvdW50SG9va1Jlc3BvbnNlIgOQAgESaAoRQ3JlYXRlQWNjb3VudEhvb2sSJy5tZ210LnYxYWxwaGExLkNyZWF0ZUFjY291bnRIb29rUmVxdWVzdBooLm1nbXQudjFhbHBoYTEuQ3JlYXRlQWNjb3VudEhvb2tSZXNwb25zZSIAEmgKEVVwZGF0ZUFjY291bnRIb29rEicubWdtdC52MWFscGhhMS5VcGRhdGVBY2NvdW50SG9va1JlcXVlc3QaKC5tZ210LnYxYWxwaGExLlVwZGF0ZUFjY291bnRIb29rUmVzcG9uc2UiABJoChFEZWxldGVBY2NvdW50SG9vaxInLm1nbXQudjFhbHBoYTEuRGVsZXRlQWNjb3VudEhvb2tSZXF1ZXN0GigubWdtdC52MWFscGhhMS5EZWxldGVBY2NvdW50SG9va1Jlc3BvbnNlIgASgwEKGklzQWNjb3VudEhvb2tOYW1lQXZhaWxhYmxlEjAubWdtdC52MWFscGhhMS5Jc0FjY291bnRIb29rTmFtZUF2YWlsYWJsZVJlcXVlc3QaMS5tZ210LnYxYWxwaGExLklzQWNjb3VudEhvb2tOYW1lQXZhaWxhYmxlUmVzcG9uc2UiABJ0ChVTZXRBY2NvdW50SG9va0VuYWJsZWQSKy5tZ210LnYxYWxwaGExLlNldEFjY291bnRIb29rRW5hYmxlZFJlcXVlc3QaLC5tZ210LnYxYWxwaGExLlNldEFjY291bnRIb29rRW5hYmxlZFJlc3BvbnNlIgASjAEKHEdldEFjdGl2ZUFjY291bnRIb29rc0J5RXZlbnQSMi5tZ210LnYxYWxwaGExLkdldEFjdGl2ZUFjY291bnRIb29rc0J5RXZlbnRSZXF1ZXN0GjMubWdtdC52MWFscGhhMS5HZXRBY3RpdmVBY2NvdW50SG9va3NCeUV2ZW50UmVzcG9uc2UiA5ACARJ3ChVHZXRTbGFja0Nvbm5lY3Rpb25VcmwSKy5tZ210LnYxYWxwaGExLkdldFNsYWNrQ29ubmVjdGlvblVybFJlcXVlc3QaLC5tZ210LnYxYWxwaGExLkdldFNsYWNrQ29ubmVjdGlvblVybFJlc3BvbnNlIgOQAgESfQoYSGFuZGxlU2xhY2tPQXV0aENhbGxiYWNrEi4ubWdtdC52MWFscGhhMS5IYW5kbGVTbGFja09BdXRoQ2FsbGJhY2tSZXF1ZXN0Gi8ubWdtdC52MWFscGhhMS5IYW5kbGVTbGFja09BdXRoQ2FsbGJhY2tSZXNwb25zZSIAQswBChFjb20ubWdtdC52MWFscGhhMUIQQWNjb3VudEhvb2tQcm90b1ABWlBnaXRodWIuY29tL251Y2xldXNjbG91ZC9uZW9zeW5jL2JhY2tlbmQvZ2VuL2dvL3Byb3Rvcy9tZ210L3YxYWxwaGExO21nbXR2MWFscGhhMaICA01YWKoCDU1nbXQuVjFhbHBoYTHKAg1NZ210XFYxYWxwaGEx4gIZTWdtdFxWMWFscGhhMVxHUEJNZXRhZGF0YeoCDk1nbXQ6OlYxYWxwaGExYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message mgmt.v1alpha1.AccountHook
@@ -164,14 +164,20 @@ export type AccountHookConfig = Message<"mgmt.v1alpha1.AccountHookConfig"> & {
     /**
      * Webhook-based hooks
      *
-     * Slack-based hooks
-     * SlackHook slack = 2;
-     * Future: Discord, Teams, etc.
-     *
      * @generated from field: mgmt.v1alpha1.AccountHookConfig.WebHook webhook = 1;
      */
     value: AccountHookConfig_WebHook;
     case: "webhook";
+  } | {
+    /**
+     * Slack-based hooks
+     *
+     * Future: Discord, Teams, etc.
+     *
+     * @generated from field: mgmt.v1alpha1.AccountHookConfig.SlackHook slack = 2;
+     */
+    value: AccountHookConfig_SlackHook;
+    case: "slack";
   } | { case: undefined; value?: undefined };
 };
 
@@ -216,6 +222,27 @@ export type AccountHookConfig_WebHook = Message<"mgmt.v1alpha1.AccountHookConfig
  */
 export const AccountHookConfig_WebHookSchema: GenMessage<AccountHookConfig_WebHook> = /*@__PURE__*/
   messageDesc(file_mgmt_v1alpha1_account_hook, 2, 0);
+
+/**
+ * Slack hook configuration
+ *
+ * @generated from message mgmt.v1alpha1.AccountHookConfig.SlackHook
+ */
+export type AccountHookConfig_SlackHook = Message<"mgmt.v1alpha1.AccountHookConfig.SlackHook"> & {
+  /**
+   * The Slack channel to post messages to.
+   *
+   * @generated from field: string channel = 1;
+   */
+  channel: string;
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.AccountHookConfig.SlackHook.
+ * Use `create(AccountHookConfig_SlackHookSchema)` to create a new message.
+ */
+export const AccountHookConfig_SlackHookSchema: GenMessage<AccountHookConfig_SlackHook> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 2, 1);
 
 /**
  * @generated from message mgmt.v1alpha1.GetAccountHooksRequest
@@ -587,6 +614,90 @@ export const GetActiveAccountHooksByEventResponseSchema: GenMessage<GetActiveAcc
   messageDesc(file_mgmt_v1alpha1_account_hook, 18);
 
 /**
+ * @generated from message mgmt.v1alpha1.GetSlackConnectionUrlRequest
+ */
+export type GetSlackConnectionUrlRequest = Message<"mgmt.v1alpha1.GetSlackConnectionUrlRequest"> & {
+  /**
+   * The account ID to retrieve the Slack connection URL for.
+   *
+   * @generated from field: string account_id = 1;
+   */
+  accountId: string;
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.GetSlackConnectionUrlRequest.
+ * Use `create(GetSlackConnectionUrlRequestSchema)` to create a new message.
+ */
+export const GetSlackConnectionUrlRequestSchema: GenMessage<GetSlackConnectionUrlRequest> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 19);
+
+/**
+ * @generated from message mgmt.v1alpha1.GetSlackConnectionUrlResponse
+ */
+export type GetSlackConnectionUrlResponse = Message<"mgmt.v1alpha1.GetSlackConnectionUrlResponse"> & {
+  /**
+   * The Slack connection URL.
+   *
+   * @generated from field: string url = 1;
+   */
+  url: string;
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.GetSlackConnectionUrlResponse.
+ * Use `create(GetSlackConnectionUrlResponseSchema)` to create a new message.
+ */
+export const GetSlackConnectionUrlResponseSchema: GenMessage<GetSlackConnectionUrlResponse> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 20);
+
+/**
+ * @generated from message mgmt.v1alpha1.HandleSlackOAuthCallbackRequest
+ */
+export type HandleSlackOAuthCallbackRequest = Message<"mgmt.v1alpha1.HandleSlackOAuthCallbackRequest"> & {
+  /**
+   * The account ID to handle the Slack OAuth callback for.
+   *
+   * @generated from field: string account_id = 1;
+   */
+  accountId: string;
+
+  /**
+   * The Slack state.
+   *
+   * @generated from field: string state = 2;
+   */
+  state: string;
+
+  /**
+   * The Slack code.
+   *
+   * @generated from field: string code = 3;
+   */
+  code: string;
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.HandleSlackOAuthCallbackRequest.
+ * Use `create(HandleSlackOAuthCallbackRequestSchema)` to create a new message.
+ */
+export const HandleSlackOAuthCallbackRequestSchema: GenMessage<HandleSlackOAuthCallbackRequest> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 21);
+
+/**
+ * @generated from message mgmt.v1alpha1.HandleSlackOAuthCallbackResponse
+ */
+export type HandleSlackOAuthCallbackResponse = Message<"mgmt.v1alpha1.HandleSlackOAuthCallbackResponse"> & {
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.HandleSlackOAuthCallbackResponse.
+ * Use `create(HandleSlackOAuthCallbackResponseSchema)` to create a new message.
+ */
+export const HandleSlackOAuthCallbackResponseSchema: GenMessage<HandleSlackOAuthCallbackResponse> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 22);
+
+/**
  * Enum of all possible events that can trigger an account hook.
  *
  * @generated from enum mgmt.v1alpha1.AccountHookEvent
@@ -710,6 +821,26 @@ export const AccountHookService: GenService<{
     methodKind: "unary";
     input: typeof GetActiveAccountHooksByEventRequestSchema;
     output: typeof GetActiveAccountHooksByEventResponseSchema;
+  },
+  /**
+   * Retrieves the Slack connection url that allows a user to connect their Slack workspace to Neosync.
+   *
+   * @generated from rpc mgmt.v1alpha1.AccountHookService.GetSlackConnectionUrl
+   */
+  getSlackConnectionUrl: {
+    methodKind: "unary";
+    input: typeof GetSlackConnectionUrlRequestSchema;
+    output: typeof GetSlackConnectionUrlResponseSchema;
+  },
+  /**
+   * Handles the Slack OAuth callback.
+   *
+   * @generated from rpc mgmt.v1alpha1.AccountHookService.HandleSlackOAuthCallback
+   */
+  handleSlackOAuthCallback: {
+    methodKind: "unary";
+    input: typeof HandleSlackOAuthCallbackRequestSchema;
+    output: typeof HandleSlackOAuthCallbackResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_mgmt_v1alpha1_account_hook, 0);
