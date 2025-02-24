@@ -17,6 +17,7 @@ type Interface interface {
 	ValidateState(state, accountId, userId string) error
 	ExchangeCodeForAccessToken(ctx context.Context, code string) (*slack.OAuthV2Response, error)
 	Test(ctx context.Context, accessToken string) (*slack.AuthTestResponse, error)
+	SendMessage(ctx context.Context, accessToken, channelId string, options ...slack.MsgOption) error
 }
 
 type Client struct {
@@ -135,6 +136,15 @@ func (c *Client) Test(ctx context.Context, accessToken string) (*slack.AuthTestR
 		return nil, fmt.Errorf("unable to test slack connection: %w", err)
 	}
 	return resp, nil
+}
+
+func (c *Client) SendMessage(ctx context.Context, accessToken, channelId string, options ...slack.MsgOption) error {
+	api := slack.New(accessToken)
+	_, _, err := api.PostMessageContext(ctx, channelId, options...)
+	if err != nil {
+		return fmt.Errorf("unable to send message: %w", err)
+	}
+	return nil
 }
 
 type slackOauthState struct {

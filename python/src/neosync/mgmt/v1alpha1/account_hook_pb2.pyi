@@ -239,3 +239,15 @@ class TestSlackConnectionResponse(_message.Message):
     SLACK_FIELD_NUMBER: _ClassVar[int]
     slack: TestSlackConnectionResponse.SlackResponse
     def __init__(self, slack: _Optional[_Union[TestSlackConnectionResponse.SlackResponse, _Mapping]] = ...) -> None: ...
+
+class SendSlackMessageRequest(_message.Message):
+    __slots__ = ("account_hook_id", "event")
+    ACCOUNT_HOOK_ID_FIELD_NUMBER: _ClassVar[int]
+    EVENT_FIELD_NUMBER: _ClassVar[int]
+    account_hook_id: str
+    event: bytes
+    def __init__(self, account_hook_id: _Optional[str] = ..., event: _Optional[bytes] = ...) -> None: ...
+
+class SendSlackMessageResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...

@@ -493,6 +493,44 @@ paths:
                 $ref: '#/components/schemas/connect.error'
       security:
         - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/SendSlackMessage:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: SendSlackMessage
+      description: For sending slack messages from the worker.
+      operationId: mgmt.v1alpha1.AccountHookService.SendSlackMessage
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SendSlackMessageRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SendSlackMessageResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.AnonymizationService/AnonymizeMany:
     post:
       tags:
@@ -5109,6 +5147,25 @@ components:
       title: NewAccountHook
       required:
         - config
+      additionalProperties: false
+    mgmt.v1alpha1.SendSlackMessageRequest:
+      type: object
+      properties:
+        accountHookId:
+          type: string
+          title: account_hook_id
+          format: uuid
+          description: The account hook ID to send the Slack message to.
+        event:
+          type: string
+          title: event
+          format: byte
+          description: The marshaled event that was emitted by the worker.
+      title: SendSlackMessageRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SendSlackMessageResponse:
+      type: object
+      title: SendSlackMessageResponse
       additionalProperties: false
     mgmt.v1alpha1.SetAccountHookEnabledRequest:
       type: object

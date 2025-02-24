@@ -235,6 +235,15 @@ message TestSlackConnectionResponse {
   }
 }
 
+message SendSlackMessageRequest {
+  // The account hook ID to send the Slack message to.
+  string account_hook_id = 1 [(buf.validate.field).string.uuid = true];
+  // The marshaled event that was emitted by the worker.
+  bytes event = 2;
+}
+
+message SendSlackMessageResponse {}
+
 service AccountHookService {
   // Retrieves all account hooks.
   rpc GetAccountHooks(GetAccountHooksRequest) returns (GetAccountHooksResponse) {
@@ -271,4 +280,7 @@ service AccountHookService {
   rpc TestSlackConnection(TestSlackConnectionRequest) returns (TestSlackConnectionResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
+
+  // For sending slack messages from the worker.
+  rpc SendSlackMessage(SendSlackMessageRequest) returns (SendSlackMessageResponse) {}
 }

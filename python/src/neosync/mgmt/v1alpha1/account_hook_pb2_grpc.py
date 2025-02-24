@@ -69,6 +69,11 @@ class AccountHookServiceStub(object):
                 request_serializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.TestSlackConnectionRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.TestSlackConnectionResponse.FromString,
                 _registered_method=True)
+        self.SendSlackMessage = channel.unary_unary(
+                '/mgmt.v1alpha1.AccountHookService/SendSlackMessage',
+                request_serializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.SendSlackMessageRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.SendSlackMessageResponse.FromString,
+                _registered_method=True)
 
 
 class AccountHookServiceServicer(object):
@@ -151,6 +156,13 @@ class AccountHookServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SendSlackMessage(self, request, context):
+        """For sending slack messages from the worker.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_AccountHookServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -208,6 +220,11 @@ def add_AccountHookServiceServicer_to_server(servicer, server):
                     servicer.TestSlackConnection,
                     request_deserializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.TestSlackConnectionRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.TestSlackConnectionResponse.SerializeToString,
+            ),
+            'SendSlackMessage': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendSlackMessage,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.SendSlackMessageRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_account__hook__pb2.SendSlackMessageResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -507,6 +524,33 @@ class AccountHookService(object):
             '/mgmt.v1alpha1.AccountHookService/TestSlackConnection',
             mgmt_dot_v1alpha1_dot_account__hook__pb2.TestSlackConnectionRequest.SerializeToString,
             mgmt_dot_v1alpha1_dot_account__hook__pb2.TestSlackConnectionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SendSlackMessage(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/mgmt.v1alpha1.AccountHookService/SendSlackMessage',
+            mgmt_dot_v1alpha1_dot_account__hook__pb2.SendSlackMessageRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_account__hook__pb2.SendSlackMessageResponse.FromString,
             options,
             channel_credentials,
             insecure,

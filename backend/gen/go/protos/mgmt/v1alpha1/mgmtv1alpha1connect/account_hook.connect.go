@@ -66,6 +66,9 @@ const (
 	// AccountHookServiceTestSlackConnectionProcedure is the fully-qualified name of the
 	// AccountHookService's TestSlackConnection RPC.
 	AccountHookServiceTestSlackConnectionProcedure = "/mgmt.v1alpha1.AccountHookService/TestSlackConnection"
+	// AccountHookServiceSendSlackMessageProcedure is the fully-qualified name of the
+	// AccountHookService's SendSlackMessage RPC.
+	AccountHookServiceSendSlackMessageProcedure = "/mgmt.v1alpha1.AccountHookService/SendSlackMessage"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -82,6 +85,7 @@ var (
 	accountHookServiceGetSlackConnectionUrlMethodDescriptor        = accountHookServiceServiceDescriptor.Methods().ByName("GetSlackConnectionUrl")
 	accountHookServiceHandleSlackOAuthCallbackMethodDescriptor     = accountHookServiceServiceDescriptor.Methods().ByName("HandleSlackOAuthCallback")
 	accountHookServiceTestSlackConnectionMethodDescriptor          = accountHookServiceServiceDescriptor.Methods().ByName("TestSlackConnection")
+	accountHookServiceSendSlackMessageMethodDescriptor             = accountHookServiceServiceDescriptor.Methods().ByName("SendSlackMessage")
 )
 
 // AccountHookServiceClient is a client for the mgmt.v1alpha1.AccountHookService service.
@@ -108,6 +112,8 @@ type AccountHookServiceClient interface {
 	HandleSlackOAuthCallback(context.Context, *connect.Request[v1alpha1.HandleSlackOAuthCallbackRequest]) (*connect.Response[v1alpha1.HandleSlackOAuthCallbackResponse], error)
 	// Tests the Slack connection by using the stored access token to initiate an auth test api call to slack.
 	TestSlackConnection(context.Context, *connect.Request[v1alpha1.TestSlackConnectionRequest]) (*connect.Response[v1alpha1.TestSlackConnectionResponse], error)
+	// For sending slack messages from the worker.
+	SendSlackMessage(context.Context, *connect.Request[v1alpha1.SendSlackMessageRequest]) (*connect.Response[v1alpha1.SendSlackMessageResponse], error)
 }
 
 // NewAccountHookServiceClient constructs a client for the mgmt.v1alpha1.AccountHookService service.
@@ -191,6 +197,12 @@ func NewAccountHookServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
+		sendSlackMessage: connect.NewClient[v1alpha1.SendSlackMessageRequest, v1alpha1.SendSlackMessageResponse](
+			httpClient,
+			baseURL+AccountHookServiceSendSlackMessageProcedure,
+			connect.WithSchema(accountHookServiceSendSlackMessageMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -207,6 +219,7 @@ type accountHookServiceClient struct {
 	getSlackConnectionUrl        *connect.Client[v1alpha1.GetSlackConnectionUrlRequest, v1alpha1.GetSlackConnectionUrlResponse]
 	handleSlackOAuthCallback     *connect.Client[v1alpha1.HandleSlackOAuthCallbackRequest, v1alpha1.HandleSlackOAuthCallbackResponse]
 	testSlackConnection          *connect.Client[v1alpha1.TestSlackConnectionRequest, v1alpha1.TestSlackConnectionResponse]
+	sendSlackMessage             *connect.Client[v1alpha1.SendSlackMessageRequest, v1alpha1.SendSlackMessageResponse]
 }
 
 // GetAccountHooks calls mgmt.v1alpha1.AccountHookService.GetAccountHooks.
@@ -264,6 +277,11 @@ func (c *accountHookServiceClient) TestSlackConnection(ctx context.Context, req 
 	return c.testSlackConnection.CallUnary(ctx, req)
 }
 
+// SendSlackMessage calls mgmt.v1alpha1.AccountHookService.SendSlackMessage.
+func (c *accountHookServiceClient) SendSlackMessage(ctx context.Context, req *connect.Request[v1alpha1.SendSlackMessageRequest]) (*connect.Response[v1alpha1.SendSlackMessageResponse], error) {
+	return c.sendSlackMessage.CallUnary(ctx, req)
+}
+
 // AccountHookServiceHandler is an implementation of the mgmt.v1alpha1.AccountHookService service.
 type AccountHookServiceHandler interface {
 	// Retrieves all account hooks.
@@ -288,6 +306,8 @@ type AccountHookServiceHandler interface {
 	HandleSlackOAuthCallback(context.Context, *connect.Request[v1alpha1.HandleSlackOAuthCallbackRequest]) (*connect.Response[v1alpha1.HandleSlackOAuthCallbackResponse], error)
 	// Tests the Slack connection by using the stored access token to initiate an auth test api call to slack.
 	TestSlackConnection(context.Context, *connect.Request[v1alpha1.TestSlackConnectionRequest]) (*connect.Response[v1alpha1.TestSlackConnectionResponse], error)
+	// For sending slack messages from the worker.
+	SendSlackMessage(context.Context, *connect.Request[v1alpha1.SendSlackMessageRequest]) (*connect.Response[v1alpha1.SendSlackMessageResponse], error)
 }
 
 // NewAccountHookServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -367,6 +387,12 @@ func NewAccountHookServiceHandler(svc AccountHookServiceHandler, opts ...connect
 		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
+	accountHookServiceSendSlackMessageHandler := connect.NewUnaryHandler(
+		AccountHookServiceSendSlackMessageProcedure,
+		svc.SendSlackMessage,
+		connect.WithSchema(accountHookServiceSendSlackMessageMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.AccountHookService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AccountHookServiceGetAccountHooksProcedure:
@@ -391,6 +417,8 @@ func NewAccountHookServiceHandler(svc AccountHookServiceHandler, opts ...connect
 			accountHookServiceHandleSlackOAuthCallbackHandler.ServeHTTP(w, r)
 		case AccountHookServiceTestSlackConnectionProcedure:
 			accountHookServiceTestSlackConnectionHandler.ServeHTTP(w, r)
+		case AccountHookServiceSendSlackMessageProcedure:
+			accountHookServiceSendSlackMessageHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -442,4 +470,8 @@ func (UnimplementedAccountHookServiceHandler) HandleSlackOAuthCallback(context.C
 
 func (UnimplementedAccountHookServiceHandler) TestSlackConnection(context.Context, *connect.Request[v1alpha1.TestSlackConnectionRequest]) (*connect.Response[v1alpha1.TestSlackConnectionResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AccountHookService.TestSlackConnection is not implemented"))
+}
+
+func (UnimplementedAccountHookServiceHandler) SendSlackMessage(context.Context, *connect.Request[v1alpha1.SendSlackMessageRequest]) (*connect.Response[v1alpha1.SendSlackMessageResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AccountHookService.SendSlackMessage is not implemented"))
 }

@@ -110,3 +110,11 @@ func (s *Service) TestSlackConnection(ctx context.Context, req *connect.Request[
 	}
 	return connect.NewResponse(resp), nil
 }
+
+func (s *Service) SendSlackMessage(ctx context.Context, req *connect.Request[mgmtv1alpha1.SendSlackMessageRequest]) (*connect.Response[mgmtv1alpha1.SendSlackMessageResponse], error) {
+	resp, err := s.hookservice.SendSlackMessage(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}

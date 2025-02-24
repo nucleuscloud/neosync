@@ -796,6 +796,53 @@
           ]
         },
         {
+          "name": "SendSlackMessageRequest",
+          "longName": "SendSlackMessageRequest",
+          "fullName": "mgmt.v1alpha1.SendSlackMessageRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_hook_id",
+              "description": "The account hook ID to send the Slack message to.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "event",
+              "description": "The marshaled event that was emitted by the worker.",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SendSlackMessageResponse",
+          "longName": "SendSlackMessageResponse",
+          "fullName": "mgmt.v1alpha1.SendSlackMessageResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "SetAccountHookEnabledRequest",
           "longName": "SetAccountHookEnabledRequest",
           "fullName": "mgmt.v1alpha1.SetAccountHookEnabledRequest",
@@ -1201,6 +1248,18 @@
               "options": {
                 "idempotency_level": "NO_SIDE_EFFECTS"
               }
+            },
+            {
+              "name": "SendSlackMessage",
+              "description": "For sending slack messages from the worker.",
+              "requestType": "SendSlackMessageRequest",
+              "requestLongType": "SendSlackMessageRequest",
+              "requestFullType": "mgmt.v1alpha1.SendSlackMessageRequest",
+              "requestStreaming": false,
+              "responseType": "SendSlackMessageResponse",
+              "responseLongType": "SendSlackMessageResponse",
+              "responseFullType": "mgmt.v1alpha1.SendSlackMessageResponse",
+              "responseStreaming": false
             }
           ]
         }
