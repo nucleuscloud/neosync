@@ -197,6 +197,27 @@ message GetActiveAccountHooksByEventResponse {
   repeated AccountHook hooks = 1;
 }
 
+message GetSlackConnectionUrlRequest {
+  // The account ID to retrieve the Slack connection URL for.
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetSlackConnectionUrlResponse {
+  // The Slack connection URL.
+  string url = 1;
+}
+
+message HandleSlackOAuthCallbackRequest {
+  // The account ID to handle the Slack OAuth callback for.
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The Slack state.
+  string state = 2 [(buf.validate.field).string.min_len = 1];
+  // The Slack code.
+  string code = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+message HandleSlackOAuthCallbackResponse {}
+
 service AccountHookService {
   // Retrieves all account hooks.
   rpc GetAccountHooks(GetAccountHooksRequest) returns (GetAccountHooksResponse) {
@@ -220,4 +241,10 @@ service AccountHookService {
   rpc GetActiveAccountHooksByEvent(GetActiveAccountHooksByEventRequest) returns (GetActiveAccountHooksByEventResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
+
+  // Retrieves the Slack connection url that allows a user to connect their Slack workspace to Neosync.
+  rpc GetSlackConnectionUrl(GetSlackConnectionUrlRequest) returns (GetSlackConnectionUrlResponse) {}
+
+  // Handles the Slack OAuth callback.
+  rpc HandleSlackOAuthCallback(HandleSlackOAuthCallbackRequest) returns (HandleSlackOAuthCallbackResponse) {}
 }
