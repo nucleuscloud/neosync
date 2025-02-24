@@ -132,3 +132,6 @@ packages:
   github.com/nucleuscloud/neosync/backend/pkg/sqldbtx:
     interfaces:
       DBTX:
+  github.com/nucleuscloud/neosync/internal/encrypt/sym:
+    interfaces:
+      Interface:

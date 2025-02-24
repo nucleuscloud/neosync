@@ -23,6 +23,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/connectrpc/validate"
+	sym_encrypt "github.com/nucleuscloud/neosync/internal/encrypt/sym"
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	pyroscope_env "github.com/nucleuscloud/neosync/internal/pyroscope"
@@ -74,6 +75,7 @@ import (
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	"github.com/nucleuscloud/neosync/internal/ee/rbac/enforcer"
+	ee_slack "github.com/nucleuscloud/neosync/internal/ee/slack"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
@@ -518,7 +520,19 @@ func serve(ctx context.Context) error {
 
 	if cascadelicense.IsValid() {
 		slogger.Debug("enabling account hooks service")
-		accountHookService := v1alpha1_accounthookservice.New(accounthooks.New(db, userdataclient))
+
+		encryptor, err := sym_encrypt.NewEncryptor(viper.GetString("NEOSYNC_SYM_ENCRYPTION_PASSWORD"))
+		if err != nil {
+			return err
+		}
+		slackClient := ee_slack.NewClient(
+			encryptor,
+			ee_slack.WithAppClientId(viper.GetString("SLACK_APP_CLIENT_ID")),
+			ee_slack.WithScope(viper.GetString("SLACK_SCOPE")),
+			ee_slack.WithRedirectUrl(viper.GetString("SLACK_REDIRECT_URL")),
+		)
+
+		accountHookService := v1alpha1_accounthookservice.New(accounthooks.New(db, userdataclient, slackClient))
 
 		api.Handle(
 			mgmtv1alpha1connect.NewAccountHookServiceHandler(
