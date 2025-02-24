@@ -555,6 +555,65 @@ func (_c *MockAccountHookServiceClient_SetAccountHookEnabled_Call) RunAndReturn(
 	return _c
 }
 
+// TestSlackConnection provides a mock function with given fields: _a0, _a1
+func (_m *MockAccountHookServiceClient) TestSlackConnection(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.TestSlackConnectionRequest]) (*connect.Response[mgmtv1alpha1.TestSlackConnectionResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TestSlackConnection")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.TestSlackConnectionResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.TestSlackConnectionRequest]) (*connect.Response[mgmtv1alpha1.TestSlackConnectionResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.TestSlackConnectionRequest]) *connect.Response[mgmtv1alpha1.TestSlackConnectionResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.TestSlackConnectionResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.TestSlackConnectionRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockAccountHookServiceClient_TestSlackConnection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TestSlackConnection'
+type MockAccountHookServiceClient_TestSlackConnection_Call struct {
+	*mock.Call
+}
+
+// TestSlackConnection is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.TestSlackConnectionRequest]
+func (_e *MockAccountHookServiceClient_Expecter) TestSlackConnection(_a0 interface{}, _a1 interface{}) *MockAccountHookServiceClient_TestSlackConnection_Call {
+	return &MockAccountHookServiceClient_TestSlackConnection_Call{Call: _e.mock.On("TestSlackConnection", _a0, _a1)}
+}
+
+func (_c *MockAccountHookServiceClient_TestSlackConnection_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.TestSlackConnectionRequest])) *MockAccountHookServiceClient_TestSlackConnection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.TestSlackConnectionRequest]))
+	})
+	return _c
+}
+
+func (_c *MockAccountHookServiceClient_TestSlackConnection_Call) Return(_a0 *connect.Response[mgmtv1alpha1.TestSlackConnectionResponse], _a1 error) *MockAccountHookServiceClient_TestSlackConnection_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockAccountHookServiceClient_TestSlackConnection_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.TestSlackConnectionRequest]) (*connect.Response[mgmtv1alpha1.TestSlackConnectionResponse], error)) *MockAccountHookServiceClient_TestSlackConnection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateAccountHook provides a mock function with given fields: _a0, _a1
 func (_m *MockAccountHookServiceClient) UpdateAccountHook(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.UpdateAccountHookRequest]) (*connect.Response[mgmtv1alpha1.UpdateAccountHookResponse], error) {
 	ret := _m.Called(_a0, _a1)
