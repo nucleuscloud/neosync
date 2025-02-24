@@ -243,7 +243,9 @@ service AccountHookService {
   }
 
   // Retrieves the Slack connection url that allows a user to connect their Slack workspace to Neosync.
-  rpc GetSlackConnectionUrl(GetSlackConnectionUrlRequest) returns (GetSlackConnectionUrlResponse) {}
+  rpc GetSlackConnectionUrl(GetSlackConnectionUrlRequest) returns (GetSlackConnectionUrlResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // Handles the Slack OAuth callback.
   rpc HandleSlackOAuthCallback(HandleSlackOAuthCallbackRequest) returns (HandleSlackOAuthCallbackResponse) {}
