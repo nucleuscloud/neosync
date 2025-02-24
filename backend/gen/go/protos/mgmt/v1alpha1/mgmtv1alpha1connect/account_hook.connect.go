@@ -188,6 +188,7 @@ func NewAccountHookServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			httpClient,
 			baseURL+AccountHookServiceTestSlackConnectionProcedure,
 			connect.WithSchema(accountHookServiceTestSlackConnectionMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -363,6 +364,7 @@ func NewAccountHookServiceHandler(svc AccountHookServiceHandler, opts ...connect
 		AccountHookServiceTestSlackConnectionProcedure,
 		svc.TestSlackConnection,
 		connect.WithSchema(accountHookServiceTestSlackConnectionMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/mgmt.v1alpha1.AccountHookService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

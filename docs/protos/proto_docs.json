@@ -1197,7 +1197,10 @@
               "responseType": "TestSlackConnectionResponse",
               "responseLongType": "TestSlackConnectionResponse",
               "responseFullType": "mgmt.v1alpha1.TestSlackConnectionResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             }
           ]
         }

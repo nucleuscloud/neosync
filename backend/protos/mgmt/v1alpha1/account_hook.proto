@@ -268,5 +268,7 @@ service AccountHookService {
   rpc HandleSlackOAuthCallback(HandleSlackOAuthCallbackRequest) returns (HandleSlackOAuthCallbackResponse) {}
 
   // Tests the Slack connection by using the stored access token to initiate an auth test api call to slack.
-  rpc TestSlackConnection(TestSlackConnectionRequest) returns (TestSlackConnectionResponse) {}
+  rpc TestSlackConnection(TestSlackConnectionRequest) returns (TestSlackConnectionResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }
