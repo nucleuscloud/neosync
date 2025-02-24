@@ -7,10 +7,23 @@ CREATE TABLE IF NOT EXISTS neosync_api.slack_oauth_connections (
   created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
+  created_by_user_id uuid NULL,
+  updated_by_user_id uuid NULL,
+
   CONSTRAINT fk_slack_oauth_connections_account
     FOREIGN KEY (account_id)
     REFERENCES neosync_api.accounts(id)
     ON DELETE CASCADE,
+
+  CONSTRAINT fk_slack_oauth_connections_created_by_user
+    FOREIGN KEY (created_by_user_id)
+    REFERENCES neosync_api.users(id)
+    ON DELETE SET NULL,
+
+  CONSTRAINT fk_slack_oauth_connections_updated_by_user
+    FOREIGN KEY (updated_by_user_id)
+    REFERENCES neosync_api.users(id)
+    ON DELETE SET NULL,
 
   CONSTRAINT slack_oauth_connections_account_id_unique UNIQUE (account_id)
 );

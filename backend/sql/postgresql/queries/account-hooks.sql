@@ -53,16 +53,14 @@ FROM neosync_api.slack_oauth_connections
 WHERE account_id = $1;
 
 -- name: CreateSlackAccessToken :one
-INSERT INTO neosync_api.slack_oauth_connections (account_id, access_token)
-VALUES ($1, $2)
+INSERT INTO neosync_api.slack_oauth_connections (account_id, access_token, created_by_user_id, updated_by_user_id)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (account_id) DO UPDATE
+SET access_token = EXCLUDED.access_token,
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by_user_id = $4
 RETURNING *;
 
 -- name: DeleteSlackAccessToken :exec
 DELETE FROM neosync_api.slack_oauth_connections
 WHERE account_id = $1;
-
--- name: UpdateSlackAccessToken :one
-UPDATE neosync_api.slack_oauth_connections
-SET access_token = $1
-WHERE account_id = $2
-RETURNING *;

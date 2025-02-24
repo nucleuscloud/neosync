@@ -882,6 +882,64 @@ func (_c *MockQuerier_CreatePersonalAccount_Call) RunAndReturn(run func(context.
 	return _c
 }
 
+// CreateSlackAccessToken provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) CreateSlackAccessToken(ctx context.Context, db DBTX, arg CreateSlackAccessTokenParams) (NeosyncApiSlackOauthConnection, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateSlackAccessToken")
+	}
+
+	var r0 NeosyncApiSlackOauthConnection
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateSlackAccessTokenParams) (NeosyncApiSlackOauthConnection, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateSlackAccessTokenParams) NeosyncApiSlackOauthConnection); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiSlackOauthConnection)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, CreateSlackAccessTokenParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_CreateSlackAccessToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSlackAccessToken'
+type MockQuerier_CreateSlackAccessToken_Call struct {
+	*mock.Call
+}
+
+// CreateSlackAccessToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg CreateSlackAccessTokenParams
+func (_e *MockQuerier_Expecter) CreateSlackAccessToken(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_CreateSlackAccessToken_Call {
+	return &MockQuerier_CreateSlackAccessToken_Call{Call: _e.mock.On("CreateSlackAccessToken", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_CreateSlackAccessToken_Call) Run(run func(ctx context.Context, db DBTX, arg CreateSlackAccessTokenParams)) *MockQuerier_CreateSlackAccessToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(CreateSlackAccessTokenParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_CreateSlackAccessToken_Call) Return(_a0 NeosyncApiSlackOauthConnection, _a1 error) *MockQuerier_CreateSlackAccessToken_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_CreateSlackAccessToken_Call) RunAndReturn(run func(context.Context, DBTX, CreateSlackAccessTokenParams) (NeosyncApiSlackOauthConnection, error)) *MockQuerier_CreateSlackAccessToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateTeamAccount provides a mock function with given fields: ctx, db, accountSlug
 func (_m *MockQuerier) CreateTeamAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, accountSlug)
@@ -1042,6 +1100,54 @@ func (_c *MockQuerier_DeleteJob_Call) Return(_a0 error) *MockQuerier_DeleteJob_C
 }
 
 func (_c *MockQuerier_DeleteJob_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) error) *MockQuerier_DeleteJob_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteSlackAccessToken provides a mock function with given fields: ctx, db, accountID
+func (_m *MockQuerier) DeleteSlackAccessToken(ctx context.Context, db DBTX, accountID pgtype.UUID) error {
+	ret := _m.Called(ctx, db, accountID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteSlackAccessToken")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r0 = rf(ctx, db, accountID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockQuerier_DeleteSlackAccessToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSlackAccessToken'
+type MockQuerier_DeleteSlackAccessToken_Call struct {
+	*mock.Call
+}
+
+// DeleteSlackAccessToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - accountID pgtype.UUID
+func (_e *MockQuerier_Expecter) DeleteSlackAccessToken(ctx interface{}, db interface{}, accountID interface{}) *MockQuerier_DeleteSlackAccessToken_Call {
+	return &MockQuerier_DeleteSlackAccessToken_Call{Call: _e.mock.On("DeleteSlackAccessToken", ctx, db, accountID)}
+}
+
+func (_c *MockQuerier_DeleteSlackAccessToken_Call) Run(run func(ctx context.Context, db DBTX, accountID pgtype.UUID)) *MockQuerier_DeleteSlackAccessToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_DeleteSlackAccessToken_Call) Return(_a0 error) *MockQuerier_DeleteSlackAccessToken_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockQuerier_DeleteSlackAccessToken_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) error) *MockQuerier_DeleteSlackAccessToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3212,6 +3318,64 @@ func (_c *MockQuerier_GetRunContextByKey_Call) Return(_a0 NeosyncApiRuncontext, 
 }
 
 func (_c *MockQuerier_GetRunContextByKey_Call) RunAndReturn(run func(context.Context, DBTX, GetRunContextByKeyParams) (NeosyncApiRuncontext, error)) *MockQuerier_GetRunContextByKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetSlackAccessToken provides a mock function with given fields: ctx, db, accountID
+func (_m *MockQuerier) GetSlackAccessToken(ctx context.Context, db DBTX, accountID pgtype.UUID) (string, error) {
+	ret := _m.Called(ctx, db, accountID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSlackAccessToken")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (string, error)); ok {
+		return rf(ctx, db, accountID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) string); ok {
+		r0 = rf(ctx, db, accountID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, accountID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetSlackAccessToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSlackAccessToken'
+type MockQuerier_GetSlackAccessToken_Call struct {
+	*mock.Call
+}
+
+// GetSlackAccessToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - accountID pgtype.UUID
+func (_e *MockQuerier_Expecter) GetSlackAccessToken(ctx interface{}, db interface{}, accountID interface{}) *MockQuerier_GetSlackAccessToken_Call {
+	return &MockQuerier_GetSlackAccessToken_Call{Call: _e.mock.On("GetSlackAccessToken", ctx, db, accountID)}
+}
+
+func (_c *MockQuerier_GetSlackAccessToken_Call) Run(run func(ctx context.Context, db DBTX, accountID pgtype.UUID)) *MockQuerier_GetSlackAccessToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetSlackAccessToken_Call) Return(_a0 string, _a1 error) *MockQuerier_GetSlackAccessToken_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetSlackAccessToken_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (string, error)) *MockQuerier_GetSlackAccessToken_Call {
 	_c.Call.Return(run)
 	return _c
 }

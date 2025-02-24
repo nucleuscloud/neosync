@@ -2,8 +2,13 @@ package accounthooks
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"time"
 
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -404,10 +409,180 @@ func (s *Service) UpdateAccountHook(ctx context.Context, req *mgmtv1alpha1.Updat
 	}, nil
 }
 
-func (s *Service) GetSlackConnectionUrl(ctx context.Context, req *mgmtv1alpha1.GetSlackConnectionUrlRequest) (*mgmtv1alpha1.GetSlackConnectionUrlResponse, error) {
-	return nil, nucleuserrors.NewNotImplemented("not implemented")
+var (
+	// We're using a 32 byte long secret key.
+	// This is probably something you generate first
+	// then put into and environment variable.
+	secretKey string = "N1PCdw3M2B1TfJhoaY2mL736p2vCUc47"
+)
+
+func encrypt(plaintext string) (string, error) {
+	aes, err := aes.NewCipher([]byte(secretKey))
+	if err != nil {
+		return "", err
+	}
+
+	gcm, err := cipher.NewGCM(aes)
+	if err != nil {
+		return "", err
+	}
+
+	// We need a 12-byte nonce for GCM (modifiable if you use cipher.NewGCMWithNonceSize())
+	// A nonce should always be randomly generated for every encryption.
+	nonce := make([]byte, gcm.NonceSize())
+	_, err = rand.Read(nonce)
+	if err != nil {
+		return "", err
+	}
+
+	// ciphertext here is actually nonce+ciphertext
+	// So that when we decrypt, just knowing the nonce size
+	// is enough to separate it from the ciphertext.
+	ciphertext := gcm.Seal(nonce, nonce, []byte(plaintext), nil)
+
+	return string(ciphertext), nil
 }
 
-func (s *Service) HandleSlackOAuthCallback(ctx context.Context, req *mgmtv1alpha1.HandleSlackOAuthCallbackRequest) (*mgmtv1alpha1.HandleSlackOAuthCallbackResponse, error) {
-	return nil, nucleuserrors.NewNotImplemented("not implemented")
+func decrypt(ciphertext string) (string, error) {
+	aesCipher, err := aes.NewCipher([]byte(secretKey))
+	if err != nil {
+		return "", err
+	}
+
+	gcm, err := cipher.NewGCM(aesCipher)
+	if err != nil {
+		return "", err
+	}
+
+	// Since we know the ciphertext is actually nonce+ciphertext
+	// And len(nonce) == NonceSize(). We can separate the two.
+	nonceSize := gcm.NonceSize()
+	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+
+	plaintext, err := gcm.Open(nil, []byte(nonce), []byte(ciphertext), nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(plaintext), nil
+}
+
+type slackOauthState struct {
+	AccountId string `json:"accountId"`
+	UserId    string `json:"userId"`
+	Timestamp int64  `json:"timestamp"`
+}
+
+func (s *Service) GetSlackConnectionUrl(
+	ctx context.Context,
+	req *mgmtv1alpha1.GetSlackConnectionUrlRequest,
+) (*mgmtv1alpha1.GetSlackConnectionUrlResponse, error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("accountId", req.GetAccountId())
+
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(req.GetAccountId()), rbac.AccountAction_Edit); err != nil {
+		return nil, err
+	}
+
+	slackClientId := "33336676.569200954261"
+	slackRedirectUrl := "https://hooks.neosync.dev/slack/oauth/callback"
+
+	state := &slackOauthState{
+		AccountId: req.GetAccountId(),
+		UserId:    user.Id(),
+		Timestamp: time.Now().Unix(),
+	}
+
+	stateBits, err := json.Marshal(state)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshal slack oauth state: %w", err)
+	}
+
+	stateEncrypted, err := encrypt(string(stateBits))
+	if err != nil {
+		return nil, fmt.Errorf("unable to encrypt slack oauth state: %w", err)
+	}
+	logger.Debug("slack state encrypted")
+
+	slackUrl := &url.URL{
+		Scheme: "https",
+		Host:   "slack.com",
+		Path:   "/oauth/v2/authorize",
+		RawQuery: url.Values{
+			"scope":        {"channels:join,channels:read,chat:write"},
+			"client_id":    {slackClientId},
+			"redirect_uri": {slackRedirectUrl},
+			"state":        {stateEncrypted},
+		}.Encode(),
+	}
+
+	return &mgmtv1alpha1.GetSlackConnectionUrlResponse{
+		Url: slackUrl.String(),
+	}, nil
+}
+
+func (s *Service) HandleSlackOAuthCallback(
+	ctx context.Context,
+	req *mgmtv1alpha1.HandleSlackOAuthCallbackRequest,
+) (*mgmtv1alpha1.HandleSlackOAuthCallbackResponse, error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("accountId", req.GetAccountId())
+
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(req.GetAccountId()), rbac.AccountAction_Edit); err != nil {
+		return nil, err
+	}
+
+	stateEncrypted := req.GetState()
+	stateDecrypted, err := decrypt(stateEncrypted)
+	if err != nil {
+		return nil, fmt.Errorf("unable to decrypt slack oauth state: %w", err)
+	}
+	logger.Debug("slack state decrypted")
+	var state slackOauthState
+	if err := json.Unmarshal([]byte(stateDecrypted), &state); err != nil {
+		return nil, fmt.Errorf("unable to unmarshal slack oauth state: %w", err)
+	}
+
+	if state.AccountId != req.GetAccountId() {
+		return nil, nucleuserrors.NewBadRequest("invalid account id")
+	}
+
+	if state.UserId != user.Id() {
+		return nil, nucleuserrors.NewBadRequest("invalid user id")
+	}
+
+	// Validate timestamp is within 15 minutes
+	if time.Now().Unix()-state.Timestamp > 900 {
+		return nil, nucleuserrors.NewBadRequest("oauth state expired")
+	}
+
+	slackCode := req.GetCode()
+	_ = slackCode
+
+	accountId, err := neosyncdb.ToUuid(req.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken := "" // todo: exchange code for access token
+
+	_, err = s.db.Q.CreateSlackAccessToken(ctx, s.db.Db, db_queries.CreateSlackAccessTokenParams{
+		AccountID:       accountId,
+		AccessToken:     accessToken,
+		CreatedByUserID: user.PgId(),
+		UpdatedByUserID: user.PgId(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to store slack access token: %w", err)
+	}
+
+	return &mgmtv1alpha1.HandleSlackOAuthCallbackResponse{}, nil
 }

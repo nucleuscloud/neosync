@@ -61,18 +61,29 @@ func (q *Queries) CreateAccountHook(ctx context.Context, db DBTX, arg CreateAcco
 }
 
 const createSlackAccessToken = `-- name: CreateSlackAccessToken :one
-INSERT INTO neosync_api.slack_oauth_connections (account_id, access_token)
-VALUES ($1, $2)
-RETURNING id, account_id, access_token, created_at, updated_at
+INSERT INTO neosync_api.slack_oauth_connections (account_id, access_token, created_by_user_id, updated_by_user_id)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (account_id) DO UPDATE
+SET access_token = EXCLUDED.access_token,
+    updated_at = CURRENT_TIMESTAMP,
+    updated_by_user_id = $4
+RETURNING id, account_id, access_token, created_at, updated_at, created_by_user_id, updated_by_user_id
 `
 
 type CreateSlackAccessTokenParams struct {
-	AccountID   pgtype.UUID
-	AccessToken string
+	AccountID       pgtype.UUID
+	AccessToken     string
+	CreatedByUserID pgtype.UUID
+	UpdatedByUserID pgtype.UUID
 }
 
 func (q *Queries) CreateSlackAccessToken(ctx context.Context, db DBTX, arg CreateSlackAccessTokenParams) (NeosyncApiSlackOauthConnection, error) {
-	row := db.QueryRow(ctx, createSlackAccessToken, arg.AccountID, arg.AccessToken)
+	row := db.QueryRow(ctx, createSlackAccessToken,
+		arg.AccountID,
+		arg.AccessToken,
+		arg.CreatedByUserID,
+		arg.UpdatedByUserID,
+	)
 	var i NeosyncApiSlackOauthConnection
 	err := row.Scan(
 		&i.ID,
@@ -80,6 +91,8 @@ func (q *Queries) CreateSlackAccessToken(ctx context.Context, db DBTX, arg Creat
 		&i.AccessToken,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedByUserID,
+		&i.UpdatedByUserID,
 	)
 	return i, err
 }
@@ -323,31 +336,6 @@ func (q *Queries) UpdateAccountHook(ctx context.Context, db DBTX, arg UpdateAcco
 		&i.UpdatedAt,
 		&i.Enabled,
 		&i.HookType,
-	)
-	return i, err
-}
-
-const updateSlackAccessToken = `-- name: UpdateSlackAccessToken :one
-UPDATE neosync_api.slack_oauth_connections
-SET access_token = $1
-WHERE account_id = $2
-RETURNING id, account_id, access_token, created_at, updated_at
-`
-
-type UpdateSlackAccessTokenParams struct {
-	AccessToken string
-	AccountID   pgtype.UUID
-}
-
-func (q *Queries) UpdateSlackAccessToken(ctx context.Context, db DBTX, arg UpdateSlackAccessTokenParams) (NeosyncApiSlackOauthConnection, error) {
-	row := db.QueryRow(ctx, updateSlackAccessToken, arg.AccessToken, arg.AccountID)
-	var i NeosyncApiSlackOauthConnection
-	err := row.Scan(
-		&i.ID,
-		&i.AccountID,
-		&i.AccessToken,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 	)
 	return i, err
 }
