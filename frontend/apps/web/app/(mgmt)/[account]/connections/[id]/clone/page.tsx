@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { ReactElement, use } from 'react';
 import { useGetConnectionComponentDetails } from '../components/useGetConnectionComponentDetails';
 
-export default function CloneConnectionPage(props: PageProps): ReactElement<any> {
+export default function CloneConnectionPage(props: PageProps): ReactElement {
   const params = use(props.params);
   const id = params?.id ?? '';
 
@@ -39,7 +39,7 @@ interface CloneFormProps {
   connection: Connection;
 }
 
-function CloneForm(props: CloneFormProps): ReactElement<any> {
+function CloneForm(props: CloneFormProps): ReactElement {
   const { connection } = props;
   const router = useRouter();
   const { account } = useAccount();

@@ -9,7 +9,7 @@ import { TransformerConfigProps } from './util';
 
 interface Props extends TransformerConfigProps<GenerateUuid> {}
 
-export default function GenerateUuidForm(props: Props): ReactElement<any> {
+export default function GenerateUuidForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

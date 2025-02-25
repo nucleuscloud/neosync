@@ -6,7 +6,7 @@ import ConfirmationDialog, {
 
 type Props = ConfirmationDialogProps;
 
-export default function DeleteConfirmationDialog(props: Props): ReactElement<any> {
+export default function DeleteConfirmationDialog(props: Props): ReactElement {
   return (
     <ConfirmationDialog
       buttonText={'Delete'}

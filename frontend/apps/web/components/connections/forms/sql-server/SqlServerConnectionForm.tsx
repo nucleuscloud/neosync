@@ -15,7 +15,7 @@ import SqlServerForm from './SqlServerForm';
 
 export default function SqlServerConnectionForm(
   props: ConnectionFormProps
-): ReactElement<any> {
+): ReactElement {
   const { mode } = props;
 
   const connectionProps = {

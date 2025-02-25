@@ -10,7 +10,7 @@ interface Props {
 }
 
 // Displays an alert if the user does not have a valid license
-export default function SystemLicenseAlert(props: Props): ReactElement<any> | null {
+export default function SystemLicenseAlert(props: Props): ReactElement | null {
   const {
     title = 'License Required',
     description = 'This feature is only available to customers with a valid license.',

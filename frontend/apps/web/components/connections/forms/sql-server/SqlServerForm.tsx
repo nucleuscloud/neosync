@@ -82,7 +82,7 @@ interface Props {
   connectionId?: string;
 }
 
-export default function SqlServerForm(props: Props): ReactElement<any> {
+export default function SqlServerForm(props: Props): ReactElement {
   const {
     mode,
     initialValues,

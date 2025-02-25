@@ -18,11 +18,11 @@ import { InfoCircledIcon, ReloadIcon } from '@radix-ui/react-icons';
 import Error from 'next/error';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useState, use } from 'react';
+import { ReactElement, use, useEffect, useState } from 'react';
 import { useSessionStorage } from 'usehooks-ts';
 import RemoveAccountApiKeyButton from './components/RemoveAccountApiKeyButton';
 
-export default function AccountApiKeyPage(props: PageProps): ReactElement<any> {
+export default function AccountApiKeyPage(props: PageProps): ReactElement {
   const params = use(props.params);
   const id = params?.id ?? '';
   const router = useRouter();
@@ -106,7 +106,7 @@ interface ApiKeyDetailsProps {
   keyValue?: string;
 }
 
-function ApiKeyDetails(props: ApiKeyDetailsProps): ReactElement<any> {
+function ApiKeyDetails(props: ApiKeyDetailsProps): ReactElement {
   const { apiKey, keyValue } = props;
   return (
     <div className="flex flex-col gap-3">

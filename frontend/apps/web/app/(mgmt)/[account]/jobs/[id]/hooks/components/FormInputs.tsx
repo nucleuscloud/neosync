@@ -14,7 +14,7 @@ interface NameProps {
   onChange(value: string): void;
 }
 
-export function Name(props: NameProps): ReactElement<any> {
+export function Name(props: NameProps): ReactElement {
   const { error, value, onChange } = props;
 
   return (
@@ -44,7 +44,7 @@ interface DescriptionProps {
   onChange(value: string): void;
 }
 
-export function Description(props: DescriptionProps): ReactElement<any> {
+export function Description(props: DescriptionProps): ReactElement {
   const { error, value, onChange } = props;
 
   return (
@@ -73,7 +73,7 @@ interface PriorityProps {
   onChange(value: number): void;
 }
 
-export function Priority(props: PriorityProps): ReactElement<any> {
+export function Priority(props: PriorityProps): ReactElement {
   const { error, value, onChange } = props;
 
   return (
@@ -103,7 +103,7 @@ interface EnabledProps {
   onChange(value: boolean): void;
 }
 
-export function Enabled(props: EnabledProps): ReactElement<any> {
+export function Enabled(props: EnabledProps): ReactElement {
   const { error, value, onChange } = props;
 
   return (
@@ -139,7 +139,7 @@ interface HookTypeProps {
   onChange(value: HookTypeFormValue): void;
 }
 
-export function HookType(props: HookTypeProps): ReactElement<any> {
+export function HookType(props: HookTypeProps): ReactElement {
   const { error, value, onChange } = props;
 
   return (
@@ -174,7 +174,7 @@ interface JobConfigProps {
   jobConnections: Connection[];
 }
 
-export function JobConfig(props: JobConfigProps): ReactElement<any> {
+export function JobConfig(props: JobConfigProps): ReactElement {
   const { errors, hookType, value, onChange, jobConnections } = props;
 
   return (

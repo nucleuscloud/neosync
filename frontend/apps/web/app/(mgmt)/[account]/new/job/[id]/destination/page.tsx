@@ -59,7 +59,7 @@ const FormValues = Yup.object({
 });
 type FormValues = Yup.InferType<typeof FormValues>;
 
-export default function Page(props: PageProps): ReactElement<any> {
+export default function Page(props: PageProps): ReactElement {
   const params = use(props.params);
   const id = params?.id ?? '';
   const { account } = useAccount();

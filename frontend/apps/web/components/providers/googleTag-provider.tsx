@@ -3,7 +3,7 @@ import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import Script from 'next/script';
 import { ReactElement } from 'react';
 
-export function GoogleScriptProvider(): ReactElement<any> {
+export function GoogleScriptProvider(): ReactElement {
   const { data: systemAppConfig, isLoading } = useGetSystemAppConfig();
 
   if (

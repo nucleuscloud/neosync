@@ -30,7 +30,7 @@ interface Props {
 export default function WorkflowSettingsCard({
   job,
   mutate,
-}: Props): ReactElement<any> {
+}: Props): ReactElement {
   const form = useForm<WorkflowSettingsSchema>({
     mode: 'onChange',
     resolver: yupResolver<WorkflowSettingsSchema>(WorkflowSettingsSchema),

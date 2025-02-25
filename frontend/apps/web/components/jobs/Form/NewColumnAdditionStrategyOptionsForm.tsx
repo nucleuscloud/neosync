@@ -14,7 +14,7 @@ interface Props {
 
 export default function NewColumnAdditionStrategyOptionsForm(
   props: Props
-): ReactElement<any> {
+): ReactElement {
   const { value, setValue, disableAutoMap } = props;
 
   return (
@@ -63,7 +63,7 @@ interface StrategyRadioItemProps {
   label: string;
 }
 
-function StrategyRadioItem(props: StrategyRadioItemProps): ReactElement<any> {
+function StrategyRadioItem(props: StrategyRadioItemProps): ReactElement {
   const { value, label } = props;
   return (
     <div className="flex items-center gap-2">

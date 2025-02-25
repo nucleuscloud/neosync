@@ -32,7 +32,7 @@ interface DestinationOptionsProps {
 
 export default function DestinationOptionsForm(
   props: DestinationOptionsProps
-): ReactElement<any> {
+): ReactElement {
   const {
     connection,
     value,
@@ -150,7 +150,7 @@ interface DynamoDbOptionsProps {
   tableMappingsProps: TableMappingsCardProps;
 }
 
-function DynamoDbOptions(props: DynamoDbOptionsProps): ReactElement<any> {
+function DynamoDbOptions(props: DynamoDbOptionsProps): ReactElement {
   const { hideDynamoDbTableMappings, tableMappingsProps } = props;
 
   return (

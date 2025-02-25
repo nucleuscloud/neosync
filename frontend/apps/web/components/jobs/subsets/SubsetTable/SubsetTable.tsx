@@ -32,7 +32,7 @@ interface Props<TData, TValue> {
 
 export default function SubsetTable<TData, TValue>(
   props: Props<TData, TValue>
-): ReactElement<any> {
+): ReactElement {
   const { data, columns, onEdit, onReset, hasLocalChange, onBulkEdit } = props;
 
   const table = useReactTable({

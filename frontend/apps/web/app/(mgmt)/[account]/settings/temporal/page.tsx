@@ -34,7 +34,7 @@ import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
-export default function Temporal(): ReactElement<any> {
+export default function Temporal(): ReactElement {
   const { account } = useAccount();
   const { data: systemAppConfigData, isLoading: isSystemAppConfigDataLoading } =
     useGetSystemAppConfig();

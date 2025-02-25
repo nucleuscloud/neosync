@@ -11,7 +11,7 @@ interface Props {
   completeForm: () => Promise<void>;
 }
 
-export default function WelcomeOverview(props: Props): ReactElement<any> {
+export default function WelcomeOverview(props: Props): ReactElement {
   const { onNextStep, setIsDialogOpen, completeForm } = props;
   const theme = useTheme();
 

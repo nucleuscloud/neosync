@@ -10,7 +10,7 @@ import DynamoDbForm from './DynamoDbForm';
 
 export default function DynamoDbConnectionForm(
   props: ConnectionFormProps
-): ReactElement<any> {
+): ReactElement {
   const { mode } = props;
 
   const connectionProps = {

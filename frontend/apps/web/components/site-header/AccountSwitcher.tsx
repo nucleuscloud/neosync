@@ -36,7 +36,7 @@ import { CreateNewTeamDialog } from './CreateNewTeamDialog';
 
 interface Props {}
 
-export default function AccountSwitcher(_: Props): ReactElement<any> | null {
+export default function AccountSwitcher(_: Props): ReactElement | null {
   const { account, setAccount } = useAccount();
   const { data, isLoading } = useQuery(
     UserAccountService.method.getUserAccounts
@@ -110,7 +110,7 @@ interface AccountSwitcherPopoverProps {
 
 function AccountSwitcherPopover(
   props: AccountSwitcherPopoverProps
-): ReactElement<any> {
+): ReactElement {
   const {
     activeAccount,
     accounts,

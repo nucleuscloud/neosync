@@ -7,7 +7,7 @@ import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { ReactElement } from 'react';
 import HooksCard from './components/HooksCard';
 
-export default function Page(): ReactElement<any> {
+export default function Page(): ReactElement {
   const { account } = useAccount();
   const { data: configData, isLoading } = useGetSystemAppConfig();
   if (isLoading || !account?.id) {
@@ -23,7 +23,7 @@ export default function Page(): ReactElement<any> {
   );
 }
 
-function HooksDisabledAlert(): ReactElement<any> {
+function HooksDisabledAlert(): ReactElement {
   return (
     <div>
       <Alert variant="warning">

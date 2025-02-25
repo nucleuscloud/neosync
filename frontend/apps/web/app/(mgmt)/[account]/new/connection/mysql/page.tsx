@@ -5,7 +5,7 @@ import PageHeader from '@/components/headers/PageHeader';
 import { ReactElement } from 'react';
 import { DiMysql } from 'react-icons/di';
 import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
-export default function NewMysqlConnectionPage(): ReactElement<any> {
+export default function NewMysqlConnectionPage(): ReactElement {
   const onSuccess = useOnCreateSuccess();
 
   return (

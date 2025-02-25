@@ -49,7 +49,7 @@ interface NameProps {
   onChange(value: string): void;
 }
 
-export function Name(props: NameProps): ReactElement<any> {
+export function Name(props: NameProps): ReactElement {
   const { error, value, onChange } = props;
 
   return (
@@ -82,7 +82,7 @@ interface SqlConnectionOptionsProps {
 
 export function SqlConnectionOptions(
   props: SqlConnectionOptionsProps
-): ReactElement<any> {
+): ReactElement {
   const { value, onChange, errors } = props;
 
   return (
@@ -182,7 +182,7 @@ interface ClientTlsAccordionProps
 
 export function ClientTlsAccordion(
   props: ClientTlsAccordionProps
-): ReactElement<any> {
+): ReactElement {
   return (
     <Accordion type="single" collapsible className="w-full">
       <AccordionItem value="client-tls">
@@ -205,7 +205,7 @@ interface ClientTlsProps extends SecretRevealProps<ClientTlsFormValues> {
   errors: Record<string, string>;
 }
 
-function ClientTls(props: ClientTlsProps): ReactElement<any> {
+function ClientTls(props: ClientTlsProps): ReactElement {
   const { value, onChange, errors, isViewMode, canViewSecrets, onRevealClick } =
     props;
 
@@ -305,7 +305,7 @@ interface SshTunnelAccordionProps
 
 export function SshTunnelAccordion(
   props: SshTunnelAccordionProps
-): ReactElement<any> {
+): ReactElement {
   return (
     <Accordion type="single" collapsible className="w-full">
       <AccordionItem value="ssh-tunnel">
@@ -328,7 +328,7 @@ interface SSHTunnelProps extends SecretRevealProps<SshTunnelFormValues> {
   errors: Record<string, string>;
 }
 
-function SSHTunnel(props: SSHTunnelProps): ReactElement<any> {
+function SSHTunnel(props: SSHTunnelProps): ReactElement {
   const { value, onChange, errors, isViewMode, canViewSecrets, onRevealClick } =
     props;
 
@@ -474,7 +474,7 @@ interface CheckConnectionButtonProps {
 
 export function CheckConnectionButton(
   props: CheckConnectionButtonProps
-): ReactElement<any> {
+): ReactElement {
   const {
     isValid,
     getRequest,
@@ -566,7 +566,7 @@ interface ErrorAlertProps {
   description: string;
 }
 
-function ErrorAlert(props: ErrorAlertProps): ReactElement<any> {
+function ErrorAlert(props: ErrorAlertProps): ReactElement {
   const { title, description } = props;
   return (
     <Alert variant="destructive">
@@ -585,7 +585,7 @@ interface AwsAdvancedConfigAccordionProps {
 
 export function AwsAdvancedConfigAccordion(
   props: AwsAdvancedConfigAccordionProps
-): ReactElement<any> {
+): ReactElement {
   return (
     <Accordion type="single" collapsible className="w-full">
       <AccordionItem value="advanced">
@@ -609,7 +609,7 @@ interface AwsAdvancedConfigProps {
   errors: Record<string, string>;
 }
 
-function AwsAdvancedConfig(props: AwsAdvancedConfigProps): ReactElement<any> {
+function AwsAdvancedConfig(props: AwsAdvancedConfigProps): ReactElement {
   const { value, onChange, errors } = props;
 
   return (
@@ -655,7 +655,7 @@ interface AwsCredentialsFormAccordionProps
 
 export function AwsCredentialsFormAccordion(
   props: AwsCredentialsFormAccordionProps
-): ReactElement<any> {
+): ReactElement {
   return (
     <Accordion type="single" collapsible className="w-full">
       <AccordionItem value="credentials">
@@ -675,7 +675,7 @@ interface AwsCredentialsFormProps
   errors: Record<string, string>;
 }
 
-function AwsCredentialsForm(props: AwsCredentialsFormProps): ReactElement<any> {
+function AwsCredentialsForm(props: AwsCredentialsFormProps): ReactElement {
   const { value, onChange, errors, isViewMode, canViewSecrets, onRevealClick } =
     props;
 

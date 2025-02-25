@@ -13,10 +13,10 @@ interface Props {
   open: boolean;
   onOpenChange(open: boolean): void;
 
-  body: ReactElement<any>;
+  body: ReactElement;
 }
 
-export default function EditItemDialog(props: Props): ReactElement<any> {
+export default function EditItemDialog(props: Props): ReactElement {
   const { open, onOpenChange, body } = props;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

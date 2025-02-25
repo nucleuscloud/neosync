@@ -42,7 +42,7 @@ import {
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, useEffect, useState, use } from 'react';
+import { ReactElement, use, useEffect, useState } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
@@ -53,7 +53,7 @@ import { SingleTableConnectFormValues } from '../../../job-form-validations';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
 
-export default function Page(props: PageProps): ReactElement<any> {
+export default function Page(props: PageProps): ReactElement {
   const searchParams = use(props.searchParams);
   const { account } = useAccount();
   const router = useRouter();

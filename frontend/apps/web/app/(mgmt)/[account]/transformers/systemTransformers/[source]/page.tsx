@@ -42,7 +42,7 @@ function getTransformerSource(sourceStr: string): TransformerSource {
   return sourceNum as TransformerSource;
 }
 
-export default function ViewSystemTransformers(props: PageProps): ReactElement<any> {
+export default function ViewSystemTransformers(props: PageProps): ReactElement {
   const params = use(props.params);
   const sourceParam = getTransformerSource(params?.source ?? '');
   const { data: systemTransformerData, isLoading } = useQuery(
@@ -179,7 +179,7 @@ interface CloneTransformerProps {
   source: TransformerSource;
 }
 
-function CloneTransformerButton(props: CloneTransformerProps): ReactElement<any> {
+function CloneTransformerButton(props: CloneTransformerProps): ReactElement {
   const { source } = props;
   const { account } = useAccount();
   return (

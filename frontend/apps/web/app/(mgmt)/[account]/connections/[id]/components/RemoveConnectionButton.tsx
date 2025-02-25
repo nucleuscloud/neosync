@@ -14,7 +14,7 @@ interface Props {
   connectionId: string;
 }
 
-export default function RemoveConnectionButton(props: Props): ReactElement<any> {
+export default function RemoveConnectionButton(props: Props): ReactElement {
   const { connectionId } = props;
   const router = useRouter();
   const account = useAccount();

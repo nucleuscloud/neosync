@@ -10,7 +10,7 @@ interface FormHeaderProps {
 }
 
 // This is intended to replace the shadcn form headers by supporting stateless error states
-export default function FormHeader(props: FormHeaderProps): ReactElement<any> {
+export default function FormHeader(props: FormHeaderProps): ReactElement {
   const { title, description, containerClassName, isErrored } = props;
   return (
     <div className={containerClassName}>

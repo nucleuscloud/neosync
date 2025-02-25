@@ -43,7 +43,7 @@ export interface ApiKeyValueSessionStore {
   keyValue: string;
 }
 
-export default function NewApiKeyForm(): ReactElement<any> {
+export default function NewApiKeyForm(): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
   const form = useForm<ApiKeyFormValues>({

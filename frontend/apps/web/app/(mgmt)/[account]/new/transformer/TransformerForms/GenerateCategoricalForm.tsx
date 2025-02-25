@@ -9,7 +9,7 @@ import { TransformerConfigProps } from './util';
 
 interface Props extends TransformerConfigProps<GenerateCategorical> {}
 
-export default function GenerateCategoricalForm(props: Props): ReactElement<any> {
+export default function GenerateCategoricalForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

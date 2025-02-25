@@ -33,7 +33,7 @@ export default function WelcomeRouter({
   setIsDialogOpen,
   onPreviousStep,
   completeForm,
-}: Props & PageProps): ReactElement<any> {
+}: Props & PageProps): ReactElement {
   const [sessionToken, setSessionToken] = useState<string>('');
   const searchParams = useSearchParams();
   const { account } = useAccount();

@@ -4,7 +4,7 @@ import { PageProps } from '@/components/types';
 import { ReactElement, use } from 'react';
 import SourceConnectionCard from './components/SourceConnectionCard';
 
-export default function Page(props: PageProps): ReactElement<any> {
+export default function Page(props: PageProps): ReactElement {
   const params = use(props.params);
   const id = params?.id ?? '';
   return (

@@ -14,9 +14,9 @@ import {
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { RangedMetricName } from '@neosync/sdk';
 import { format } from 'date-fns';
-import { ReactElement, useState, use } from 'react';
+import { ReactElement, use, useState } from 'react';
 
-export default function UsagePage(props: PageProps): ReactElement<any> {
+export default function UsagePage(props: PageProps): ReactElement {
   const params = use(props.params);
   const id = params?.id ?? '';
   const [period, setPeriod] = useState<UsagePeriod>('current');

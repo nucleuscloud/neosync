@@ -14,7 +14,7 @@ interface Props {
   accountId: string;
 }
 
-export default function HooksCard(props: Props): ReactElement<any> {
+export default function HooksCard(props: Props): ReactElement {
   const { accountId } = props;
   const {
     data: getAccountHooksResp,
@@ -85,7 +85,7 @@ interface NoAccountHooksProps {
   button: ReactNode;
 }
 
-function NoAccountHooks(props: NoAccountHooksProps): ReactElement<any> {
+function NoAccountHooks(props: NoAccountHooksProps): ReactElement {
   const { button } = props;
   return (
     <EmptyState

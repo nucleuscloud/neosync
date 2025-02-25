@@ -10,7 +10,7 @@ import { TransformerConfigProps } from './util';
 
 interface Props extends TransformerConfigProps<GenerateString> {}
 
-export default function GenerateStringForm(props: Props): ReactElement<any> {
+export default function GenerateStringForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

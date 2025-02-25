@@ -16,7 +16,7 @@ import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { RangedMetricName } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 
-export default function UsagePage(): ReactElement<any> {
+export default function UsagePage(): ReactElement {
   const [period, setPeriod] = useState<UsagePeriod>('current');
   const { data: configData, isLoading } = useGetSystemAppConfig();
   const { account } = useAccount();

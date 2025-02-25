@@ -55,7 +55,9 @@ import { ReactElement, use } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
-export default function RegenerateAccountApiKey(props: PageProps): ReactElement<any> {
+export default function RegenerateAccountApiKey(
+  props: PageProps
+): ReactElement {
   const params = use(props.params);
   const id = params?.id ?? '';
   const router = useRouter();

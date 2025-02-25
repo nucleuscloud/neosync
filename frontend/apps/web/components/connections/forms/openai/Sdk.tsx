@@ -16,7 +16,7 @@ interface Props {
   onRevealPassword?(): Promise<string>;
 }
 
-export default function Sdk(props: Props): ReactElement<any> {
+export default function Sdk(props: Props): ReactElement {
   const {
     errors,
     value,
@@ -51,7 +51,7 @@ interface SdkUrlProps {
   onChange(value: string): void;
 }
 
-function SdkUrl(props: SdkUrlProps): ReactElement<any> {
+function SdkUrl(props: SdkUrlProps): ReactElement {
   const { error, value, onChange } = props;
 
   return (
@@ -82,7 +82,7 @@ interface SdkApiKeyProps {
   onRevealPassword?(): Promise<string>;
 }
 
-function SdkApiKey(props: SdkApiKeyProps): ReactElement<any> {
+function SdkApiKey(props: SdkApiKeyProps): ReactElement {
   const {
     error,
     value,

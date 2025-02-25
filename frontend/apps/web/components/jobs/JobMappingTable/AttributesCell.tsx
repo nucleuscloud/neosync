@@ -13,11 +13,11 @@ interface Props {
   value: string;
 }
 
-export default function AttributesCell(props: Props): ReactElement<any> {
+export default function AttributesCell(props: Props): ReactElement {
   const { generatedType, identityType, value } = props;
 
   return (
-    (<span className="max-w-[500px] truncate font-medium">
+    <span className="max-w-[500px] truncate font-medium">
       <div className="flex flex-col lg:flex-row items-start gap-1">
         {generatedType && (
           <div>
@@ -40,7 +40,7 @@ export default function AttributesCell(props: Props): ReactElement<any> {
         )}
         {!generatedType && identityType && (
           // the API treats generatedType and identityType as mutually exclusive
-          (<div>
+          <div>
             <TooltipProvider>
               <Tooltip delayDuration={200}>
                 <TooltipTrigger type="button">
@@ -54,7 +54,7 @@ export default function AttributesCell(props: Props): ReactElement<any> {
                 <TooltipContent>{value}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          </div>)
+          </div>
         )}
         {identityType && (
           <div>
@@ -74,7 +74,7 @@ export default function AttributesCell(props: Props): ReactElement<any> {
           </div>
         )}
       </div>
-    </span>)
+    </span>
   );
 }
 

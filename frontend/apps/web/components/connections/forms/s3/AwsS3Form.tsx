@@ -69,7 +69,7 @@ interface Props {
   getValueWithSecrets?(): Promise<AwsFormValues | undefined>;
 }
 
-export default function AwsS3Form(props: Props): ReactElement<any> {
+export default function AwsS3Form(props: Props): ReactElement {
   const {
     mode,
     initialValues,

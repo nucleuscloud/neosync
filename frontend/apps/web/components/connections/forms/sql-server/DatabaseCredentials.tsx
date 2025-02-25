@@ -26,7 +26,7 @@ interface Props extends SecretRevealProps<MssqlFormValues> {
   setActiveTab(tab: MssqlActiveConnectionTab): void;
 }
 
-export default function DatabaseCredentials(props: Props): ReactElement<any> {
+export default function DatabaseCredentials(props: Props): ReactElement {
   const {
     urlValue,
     onUrlValueChange,
@@ -72,7 +72,7 @@ interface ActiveTabProps {
   setActiveTab(tab: MssqlActiveConnectionTab): void;
 }
 
-function ActiveTabSelector(props: ActiveTabProps): ReactElement<any> {
+function ActiveTabSelector(props: ActiveTabProps): ReactElement {
   const { activeTab, setActiveTab } = props;
 
   return (
@@ -104,7 +104,7 @@ interface UrlTabProps extends SecretRevealProps<MssqlFormValues['url']> {
   error?: string;
 }
 
-function UrlTab(props: UrlTabProps): ReactElement<any> {
+function UrlTab(props: UrlTabProps): ReactElement {
   const {
     urlValue,
     onUrlValueChange,
@@ -158,7 +158,7 @@ interface UrlEnvTabProps {
   error?: string;
 }
 
-function UrlEnvTab(props: UrlEnvTabProps): ReactElement<any> {
+function UrlEnvTab(props: UrlEnvTabProps): ReactElement {
   const { envVarValue, onEnvVarValueChange, error } = props;
 
   return (

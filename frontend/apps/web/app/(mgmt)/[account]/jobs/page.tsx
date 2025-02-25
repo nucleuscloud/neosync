@@ -31,7 +31,7 @@ export default function Jobs() {
 
 interface JobTableProps {}
 
-function JobTable(props: JobTableProps): ReactElement<any> {
+function JobTable(props: JobTableProps): ReactElement {
   const {} = props;
   const { account } = useAccount();
   const {
@@ -107,7 +107,7 @@ function JobTable(props: JobTableProps): ReactElement<any> {
   );
 }
 
-function NewJobButton(): ReactElement<any> {
+function NewJobButton(): ReactElement {
   const { account } = useAccount();
   const posthog = usePostHog();
   return (

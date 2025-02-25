@@ -64,7 +64,7 @@ interface Props {
   connectionId?: string;
 }
 
-export default function MongoDbForm(props: Props): ReactElement<any> {
+export default function MongoDbForm(props: Props): ReactElement {
   const {
     mode,
     initialValues,

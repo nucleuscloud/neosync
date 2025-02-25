@@ -90,7 +90,7 @@ const ALL_PLANS: Plan[] = [
   },
 ];
 
-export default function Billing(): ReactElement<any> {
+export default function Billing(): ReactElement {
   const { account } = useAccount();
   const { data: systemAppConfigData, isLoading: isSystemAppConfigDataLoading } =
     useGetSystemAppConfig();
@@ -123,7 +123,7 @@ interface ManageSubscriptionProps {
   account: UserAccount;
 }
 
-function ManageSubscription(props: ManageSubscriptionProps): ReactElement<any> {
+function ManageSubscription(props: ManageSubscriptionProps): ReactElement {
   const { account } = props;
 
   const { data: isAccountStatusValidResp, isLoading } = useQuery(
@@ -222,7 +222,7 @@ function Plans({
   upgradeHref,
   plans,
   isStripeEnabled,
-}: PlansProps): ReactElement<any> {
+}: PlansProps): ReactElement {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-row gap-3 justify-between items-center ">
@@ -357,7 +357,7 @@ interface GetStartedButtonProps {
   accountSlug: string;
 }
 
-function GetStartedButton(props: GetStartedButtonProps): ReactElement<any> {
+function GetStartedButton(props: GetStartedButtonProps): ReactElement {
   const { accountSlug } = props;
   return (
     <Button type="button" className="w-full">
@@ -366,7 +366,7 @@ function GetStartedButton(props: GetStartedButtonProps): ReactElement<any> {
   );
 }
 
-function CreateNewTeamButton(): ReactElement<any> {
+function CreateNewTeamButton(): ReactElement {
   const form = useForm<CreateTeamFormValues>({
     mode: 'onChange',
     resolver: yupResolver(CreateTeamFormValues),

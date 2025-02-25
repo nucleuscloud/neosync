@@ -5,7 +5,7 @@ interface NumberedInputProps extends Omit<InputProps, 'onChange'> {
   onChange(value: number): void;
 }
 
-export default function NumberedInput(props: NumberedInputProps): ReactElement<any> {
+export default function NumberedInput(props: NumberedInputProps): ReactElement {
   const { onChange, ...rest } = props;
 
   return (

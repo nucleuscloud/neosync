@@ -9,7 +9,7 @@ import { TransformerConfigProps } from './util';
 
 interface Props extends TransformerConfigProps<TransformFloat64> {}
 
-export default function TransformFloat64Form(props: Props): ReactElement<any> {
+export default function TransformFloat64Form(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

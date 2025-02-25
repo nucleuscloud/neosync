@@ -14,7 +14,7 @@ interface Props {
   job: Job;
 }
 
-export default function JobCloneButton(props: Props): ReactElement<any> {
+export default function JobCloneButton(props: Props): ReactElement {
   const { job } = props;
   const { account } = useAccount();
   const router = useRouter();

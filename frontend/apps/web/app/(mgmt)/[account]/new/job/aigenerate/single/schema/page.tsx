@@ -45,7 +45,7 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, useEffect, useMemo, useState, use } from 'react';
+import { ReactElement, use, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
@@ -62,7 +62,7 @@ import { getAiSampleTableColumns } from './SampleTable/SampleTableColumns';
 import SelectModelNames from './SelectModelNames';
 import { SampleRecord } from './types';
 
-export default function Page(props: PageProps): ReactElement<any> {
+export default function Page(props: PageProps): ReactElement {
   const searchParams = use(props.searchParams);
   const { account } = useAccount();
   const router = useRouter();

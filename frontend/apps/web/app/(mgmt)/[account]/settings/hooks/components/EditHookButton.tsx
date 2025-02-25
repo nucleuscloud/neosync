@@ -20,7 +20,7 @@ interface Props {
   hook: AccountHook;
 }
 
-export default function EditHookButton(props: Props): ReactElement<any> {
+export default function EditHookButton(props: Props): ReactElement {
   const { hook, onEdited } = props;
   const { mutateAsync: updateHook } = useMutation(
     AccountHookService.method.updateAccountHook

@@ -12,7 +12,7 @@ interface Props {
   extra?: ReactNode;
 }
 
-export default function EmptyState(props: Props): ReactElement<any> {
+export default function EmptyState(props: Props): ReactElement {
   const { title, description, icon, extra } = props;
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center bg-gray-50 dark:bg-gray-900/20 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
@@ -34,7 +34,7 @@ interface EmptyStateLinkButtonProps {
 }
 export function EmptyStateLinkButton(
   props: EmptyStateLinkButtonProps
-): ReactElement<any> {
+): ReactElement {
   const { buttonIconSide, href, buttonIcon = <PlusIcon />, buttonText } = props;
   return (
     <NextLink href={href}>

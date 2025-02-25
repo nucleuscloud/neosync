@@ -41,7 +41,7 @@ interface FileUploadProps<T> {
   onSuccess?: (fileName: File, data: T) => void;
   onError?: (fileName: string, error: string) => void;
   onRemove?: (fileName: string) => void;
-  renderFileExtra?: (fileName: string, data?: T) => ReactElement<any>;
+  renderFileExtra?: (fileName: string, data?: T) => ReactElement;
 }
 
 // Used for the hidden input
@@ -54,7 +54,7 @@ export function FileUpload<T>({
   onError,
   onRemove,
   renderFileExtra,
-}: FileUploadProps<T>): ReactElement<any> {
+}: FileUploadProps<T>): ReactElement {
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -215,11 +215,11 @@ interface UploadedFilesProps<T> {
   processing: Record<string, boolean>;
   errors: Record<string, string>;
   processedData: Record<string, T>;
-  renderFileExtra?: (fileName: string, data?: T) => ReactElement<any>;
+  renderFileExtra?: (fileName: string, data?: T) => ReactElement;
   removeFile(fileToRemove: File): void;
 }
 
-function UploadedFiles<T>(props: UploadedFilesProps<T>): ReactElement<any> {
+function UploadedFiles<T>(props: UploadedFilesProps<T>): ReactElement {
   const {
     files,
     processing,

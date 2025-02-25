@@ -17,7 +17,7 @@ interface Props {
   jobId: string;
 }
 
-export default function HooksCard(props: Props): ReactElement<any> {
+export default function HooksCard(props: Props): ReactElement {
   const { jobId } = props;
   const {
     data: getJobHooksResp,
@@ -131,7 +131,7 @@ interface NoJobHooksProps {
   button: ReactNode;
 }
 
-function NoJobHooks(props: NoJobHooksProps): ReactElement<any> {
+function NoJobHooks(props: NoJobHooksProps): ReactElement {
   const { button } = props;
   return (
     <EmptyState

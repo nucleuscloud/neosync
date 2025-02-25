@@ -120,7 +120,7 @@ interface Props {
   accountId: string;
 }
 
-export default function MembersTable(props: Props): ReactElement<any> {
+export default function MembersTable(props: Props): ReactElement {
   const { accountId } = props;
   const { data, isLoading, refetch, isFetching } = useQuery(
     UserAccountService.method.getTeamAccountMembers,
@@ -181,7 +181,7 @@ interface DataTableProps {
   onUpdated(userId: string): void;
 }
 
-function DataTable(props: DataTableProps): React.ReactElement<any> {
+function DataTable(props: DataTableProps): React.ReactElement {
   const { data, columns, onDeleted, onUpdated } = props;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);

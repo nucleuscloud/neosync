@@ -14,7 +14,7 @@ interface Props extends TransformerConfigProps<GenerateStringPhoneNumber> {}
 
 export default function GenerateStringPhoneNumberNumberForm(
   props: Props
-): ReactElement<any> {
+): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

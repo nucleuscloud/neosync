@@ -24,7 +24,7 @@ import { TransformerConfigProps } from './util';
 
 interface Props extends TransformerConfigProps<GenerateJavascript> {}
 
-export default function GenerateJavascriptForm(props: Props): ReactElement<any> {
+export default function GenerateJavascriptForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   const options = {

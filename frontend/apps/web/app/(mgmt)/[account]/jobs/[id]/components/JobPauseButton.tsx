@@ -19,7 +19,7 @@ export default function JobPauseButton({
   status,
   onNewStatus,
   jobId,
-}: Props): ReactElement<any> {
+}: Props): ReactElement {
   const { mutateAsync: setJobPaused } = useMutation(JobService.method.pauseJob);
   const [buttonText, setButtonText] = useState(
     status === JobStatus.PAUSED ? 'Resume Job' : 'Pause Job'

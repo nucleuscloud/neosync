@@ -20,7 +20,7 @@ import { TransformerConfigProps } from './util';
 
 interface Props extends TransformerConfigProps<GenerateIpAddress> {}
 
-export default function GenerateIpAddressForm(props: Props): ReactElement<any> {
+export default function GenerateIpAddressForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

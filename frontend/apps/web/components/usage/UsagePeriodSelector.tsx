@@ -13,7 +13,7 @@ interface Props {
   setPeriod(newVal: UsagePeriod): void;
 }
 
-export default function UsagePeriodSelector(props: Props): ReactElement<any> {
+export default function UsagePeriodSelector(props: Props): ReactElement {
   const { period, setPeriod } = props;
   return (
     <Select

@@ -24,7 +24,7 @@ import {
 import { isAiDataGenJob, isDataGenJob } from '../util';
 import DestinationConnectionCard from './components/DestinationConnectionCard';
 
-export default function Page(props: PageProps): ReactElement<any> {
+export default function Page(props: PageProps): ReactElement {
   const params = use(props.params);
   const id = params?.id ?? '';
   const { account } = useAccount();
@@ -118,7 +118,7 @@ interface NewDestinationButtonProps {
   jobId: string;
 }
 
-function NewDestinationButton(props: NewDestinationButtonProps): ReactElement<any> {
+function NewDestinationButton(props: NewDestinationButtonProps): ReactElement {
   const { jobId } = props;
   const { account } = useAccount();
   return (

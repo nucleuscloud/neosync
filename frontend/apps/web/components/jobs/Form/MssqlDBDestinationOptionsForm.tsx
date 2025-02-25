@@ -16,7 +16,7 @@ interface Props {
 
 export default function MssqlDBDestinationOptionsForm(
   props: Props
-): ReactElement<any> {
+): ReactElement {
   const { value, setValue, errors } = props;
   return (
     <div className="flex flex-col gap-2">
@@ -142,7 +142,7 @@ export default function MssqlDBDestinationOptionsForm(
 interface FormItemContainerProps {
   children: ReactNode;
 }
-function FormItemContainer(props: FormItemContainerProps): ReactElement<any> {
+function FormItemContainer(props: FormItemContainerProps): ReactElement {
   const { children } = props;
   return <div className="flex flex-col gap-2">{children}</div>;
 }
@@ -150,7 +150,7 @@ function FormItemContainer(props: FormItemContainerProps): ReactElement<any> {
 interface FormInputContainerProps {
   children: ReactNode;
 }
-function FormInputContainer(props: FormInputContainerProps): ReactElement<any> {
+function FormInputContainer(props: FormInputContainerProps): ReactElement {
   const { children } = props;
   return <div className="flex flex-col gap-1">{children}</div>;
 }
@@ -158,7 +158,7 @@ function FormInputContainer(props: FormInputContainerProps): ReactElement<any> {
 interface FormItemBorderProps {
   children: ReactNode;
 }
-function FormItemBorder(props: FormItemBorderProps): ReactElement<any> {
+function FormItemBorder(props: FormItemBorderProps): ReactElement {
   const { children } = props;
   return (
     <div className="rounded-lg border p-3 shadow-xs dark:border-gray-700">

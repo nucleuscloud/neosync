@@ -21,7 +21,7 @@ interface Props {
   onCreated(): void;
 }
 
-export default function NewHookButton(props: Props): ReactElement<any> {
+export default function NewHookButton(props: Props): ReactElement {
   const { accountId, onCreated } = props;
   const { mutateAsync: createHook } = useMutation(
     AccountHookService.method.createAccountHook

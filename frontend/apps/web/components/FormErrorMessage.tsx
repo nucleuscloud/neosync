@@ -8,7 +8,7 @@ interface Props {
   className?: string;
 }
 
-export default function FormErrorMessage(props: Props): ReactElement<any> | null {
+export default function FormErrorMessage(props: Props): ReactElement | null {
   const { message, id, className } = props;
 
   if (!message) {

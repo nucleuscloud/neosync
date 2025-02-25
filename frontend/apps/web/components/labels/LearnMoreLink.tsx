@@ -8,7 +8,7 @@ interface Props {
   classNames?: string;
 }
 
-export default function LearnMoreLink(props: Props): ReactElement<any> {
+export default function LearnMoreLink(props: Props): ReactElement {
   const { href, classNames } = props;
 
   return (

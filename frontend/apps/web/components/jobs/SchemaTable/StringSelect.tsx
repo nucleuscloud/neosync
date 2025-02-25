@@ -25,7 +25,7 @@ interface Props {
   text: string;
 }
 
-export function StringSelect(props: Props): ReactElement<any> {
+export function StringSelect(props: Props): ReactElement {
   const { value, values, setValue, text, badgeValueMap } = props;
   const [open, setOpen] = useState(false);
 

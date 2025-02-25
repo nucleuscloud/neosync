@@ -5,7 +5,7 @@ import PageHeader from '@/components/headers/PageHeader';
 import { ReactElement } from 'react';
 import { DiMongodb } from 'react-icons/di';
 import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
-export default function NewMongoDBConnectionPage(): ReactElement<any> {
+export default function NewMongoDBConnectionPage(): ReactElement {
   const onSuccess = useOnCreateSuccess();
   return (
     <OverviewContainer

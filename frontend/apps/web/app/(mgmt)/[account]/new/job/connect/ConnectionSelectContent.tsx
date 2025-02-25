@@ -16,7 +16,7 @@ interface Props {
   // Provide a value to include the new connection item
   newConnectionValue?: string;
 }
-export default function ConnectionSelectContent(props: Props): ReactElement<any> {
+export default function ConnectionSelectContent(props: Props): ReactElement {
   const {
     postgres = [],
     mysql = [],

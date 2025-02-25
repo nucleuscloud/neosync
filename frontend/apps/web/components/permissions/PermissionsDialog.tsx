@@ -34,7 +34,7 @@ interface Props {
   connectionType: PermissionConnectionType;
 }
 
-export default function PermissionsDialog(props: Props): ReactElement<any> {
+export default function PermissionsDialog(props: Props): ReactElement {
   const {
     openPermissionDialog,
     setOpenPermissionDialog,
@@ -96,7 +96,7 @@ interface TestConnectionResultProps {
 
 export function TestConnectionResult(
   props: TestConnectionResultProps
-): ReactElement<any> {
+): ReactElement {
   const { isConnected, connectionName, hasPrivileges } = props;
 
   if (isConnected && !hasPrivileges) {
@@ -119,7 +119,7 @@ interface SuccessAlertProps {
   description: string;
 }
 
-function SuccessAlert(props: SuccessAlertProps): ReactElement<any> {
+function SuccessAlert(props: SuccessAlertProps): ReactElement {
   const { description } = props;
   return (
     <Alert variant="success">
@@ -137,7 +137,7 @@ interface WarningAlertProps {
   description: string;
 }
 
-function WarningAlert(props: WarningAlertProps): ReactElement<any> {
+function WarningAlert(props: WarningAlertProps): ReactElement {
   const { description } = props;
   return (
     <Alert variant="warning">
@@ -155,7 +155,7 @@ interface ErrorAlertProps {
   description: string;
 }
 
-function ErrorAlert(props: ErrorAlertProps): ReactElement<any> {
+function ErrorAlert(props: ErrorAlertProps): ReactElement {
   const { description } = props;
   return (
     <Alert variant="destructive">

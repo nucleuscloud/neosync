@@ -9,7 +9,7 @@ interface Props {
   onPreviousStep: () => void;
 }
 
-export default function Sync(props: Props): ReactElement<any> {
+export default function Sync(props: Props): ReactElement {
   const { onNextStep, onPreviousStep } = props;
 
   return (

@@ -14,7 +14,7 @@ interface Props {
   onChange(role: AccountRole): void;
 }
 
-export default function SelectAccountRole(props: Props): ReactElement<any> {
+export default function SelectAccountRole(props: Props): ReactElement {
   const { role, onChange } = props;
 
   return (

@@ -15,7 +15,7 @@ import { GoWorkflow } from 'react-icons/go';
 import { getColumns } from './components/ConnectionsTable/columns';
 import { DataTable } from './components/ConnectionsTable/data-table';
 
-export default function Connections(): ReactElement<any> {
+export default function Connections(): ReactElement {
   return (
     <OverviewContainer
       Header={
@@ -33,7 +33,7 @@ export default function Connections(): ReactElement<any> {
 
 interface ConnectionTableProps {}
 
-function ConnectionTable(props: ConnectionTableProps): ReactElement<any> {
+function ConnectionTable(props: ConnectionTableProps): ReactElement {
   const {} = props;
   const { account } = useAccount();
   const { data, isLoading, refetch } = useQuery(
@@ -83,7 +83,7 @@ function ConnectionTable(props: ConnectionTableProps): ReactElement<any> {
 
 interface NewConnectionButtonprops {}
 
-function NewConnectionButton(props: NewConnectionButtonprops): ReactElement<any> {
+function NewConnectionButton(props: NewConnectionButtonprops): ReactElement {
   const {} = props;
   const { account } = useAccount();
   return (

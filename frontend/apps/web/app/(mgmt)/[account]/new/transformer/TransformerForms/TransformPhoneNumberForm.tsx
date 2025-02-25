@@ -8,7 +8,7 @@ import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 interface Props extends TransformerConfigProps<TransformPhoneNumber> {}
 
-export default function TransformPhoneNumberForm(props: Props): ReactElement<any> {
+export default function TransformPhoneNumberForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

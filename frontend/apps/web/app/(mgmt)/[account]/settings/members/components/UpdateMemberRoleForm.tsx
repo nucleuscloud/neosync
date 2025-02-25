@@ -50,7 +50,7 @@ interface Props {
   onCancel(): void;
 }
 
-export default function UpdateMemberRoleForm(props: Props): ReactElement<any> {
+export default function UpdateMemberRoleForm(props: Props): ReactElement {
   const { member, onSubmit, onCancel } = props;
   const {
     formData,
@@ -138,7 +138,7 @@ interface AccountRoleFieldProps {
   value: AccountRole;
   onChange(value: AccountRole): void;
 }
-function AccountRoleField(props: AccountRoleFieldProps): ReactElement<any> {
+function AccountRoleField(props: AccountRoleFieldProps): ReactElement {
   const { error, value, onChange } = props;
 
   return (

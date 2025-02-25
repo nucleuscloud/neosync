@@ -13,7 +13,7 @@ interface Props extends SecretRevealProps<MongoDbFormValues> {
   errors: Record<string, string>;
 }
 
-export default function DatabaseCredentials(props: Props): ReactElement<any> {
+export default function DatabaseCredentials(props: Props): ReactElement {
   const {
     urlValue,
     onUrlValueChange,
@@ -46,7 +46,7 @@ interface UrlTabProps extends SecretRevealProps<MongoDbFormValues['url']> {
   error?: string;
 }
 
-function UrlTab(props: UrlTabProps): ReactElement<any> {
+function UrlTab(props: UrlTabProps): ReactElement {
   const {
     urlValue,
     onUrlValueChange,

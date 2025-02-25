@@ -39,7 +39,7 @@ export interface FormStep {
   component: JSX.Element;
 }
 
-export default function WelcomeDialog(): ReactElement<any> {
+export default function WelcomeDialog(): ReactElement {
   const { account } = useAccount();
   const {
     data,

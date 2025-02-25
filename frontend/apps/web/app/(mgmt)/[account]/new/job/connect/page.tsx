@@ -39,7 +39,7 @@ import {
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, useEffect, useState, use } from 'react';
+import { ReactElement, use, useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../../../components/jobs/Form/DestinationOptionsForm';
@@ -64,7 +64,7 @@ interface DestinationValidationState {
   response?: CheckConnectionConfigByIdResponse;
 }
 
-export default function Page(props: PageProps): ReactElement<any> {
+export default function Page(props: PageProps): ReactElement {
   const searchParams = use(props.searchParams);
   const { account } = useAccount();
   const router = useRouter();

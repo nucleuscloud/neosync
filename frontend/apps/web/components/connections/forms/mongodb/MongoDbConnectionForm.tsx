@@ -11,7 +11,7 @@ import MongoDbForm from './MongoDbForm';
 
 export default function MongoDbConnectionForm(
   props: ConnectionFormProps
-): ReactElement<any> {
+): ReactElement {
   const { mode } = props;
 
   const connectionProps = {

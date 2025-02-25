@@ -21,7 +21,7 @@ interface Props {
   dialogButton: ReactNode;
 }
 
-export default function UpdateMemberRoleDialog(props: Props): ReactElement<any> {
+export default function UpdateMemberRoleDialog(props: Props): ReactElement {
   const { member, onUpdated, dialogButton } = props;
   const { mutateAsync: updateUserRole } = useMutation(
     UserAccountService.method.setUserRole

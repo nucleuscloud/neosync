@@ -6,7 +6,7 @@ import { ReactElement } from 'react';
 import { FaAws } from 'react-icons/fa';
 import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
 
-export default function NewAwsS3ConnectionPage(): ReactElement<any> {
+export default function NewAwsS3ConnectionPage(): ReactElement {
   const onSuccess = useOnCreateSuccess();
   return (
     <OverviewContainer

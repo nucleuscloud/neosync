@@ -10,7 +10,7 @@ import GcpCloudStorageForm from './GcpCloudStorageForm';
 
 export default function GcpCloudStorageConnectionForm(
   props: ConnectionFormProps
-): ReactElement<any> {
+): ReactElement {
   const { mode } = props;
 
   const connectionProps = {

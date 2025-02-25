@@ -34,7 +34,7 @@ interface DataTableProps<TData, TValue> {
 export default function AiSchemaPageTable<TData, TValue>({
   columns,
   data,
-}: DataTableProps<TData, TValue>): ReactElement<any> {
+}: DataTableProps<TData, TValue>): ReactElement {
   const table = useReactTable({
     data,
     columns,
@@ -73,7 +73,7 @@ export default function AiSchemaPageTable<TData, TValue>({
   });
 
   return (
-    (<div>
+    <div>
       <div className="flex flex-row items-center gap-2 pt-4">
         <div className="flex">
           <GoWorkflow className="h-4 w-4" />
@@ -133,9 +133,9 @@ export default function AiSchemaPageTable<TData, TValue>({
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const row = rows[virtualRow.index];
               return (
-                (<TableRow
+                <TableRow
                   data-index={virtualRow.index} //needed for dynamic row height measurement
-                  ref={node => {
+                  ref={(node) => {
                     rowVirtualizer.measureElement(node);
                   }} //measure dynamic row height
                   key={row.id}
@@ -162,7 +162,7 @@ export default function AiSchemaPageTable<TData, TValue>({
                       </td>
                     );
                   })}
-                </TableRow>)
+                </TableRow>
               );
             })}
           </TableBody>
@@ -174,6 +174,6 @@ export default function AiSchemaPageTable<TData, TValue>({
         {new Intl.NumberFormat('en-US').format(table.getRowModel().rows.length)}
         )
       </div>
-    </div>)
+    </div>
   );
 }

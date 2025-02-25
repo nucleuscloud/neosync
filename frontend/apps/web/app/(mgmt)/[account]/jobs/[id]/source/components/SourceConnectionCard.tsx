@@ -12,7 +12,7 @@ interface Props {
   jobId: string;
 }
 
-export default function SourceConnectionCard({ jobId }: Props): ReactElement<any> {
+export default function SourceConnectionCard({ jobId }: Props): ReactElement {
   const { data, isLoading } = useQuery(
     JobService.method.getJob,
     { id: jobId },

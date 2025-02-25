@@ -6,7 +6,7 @@ import { ReactElement } from 'react';
 import { useGetConnectionsMetadata } from '../../connections/util';
 import ConnectionCard from './components/ConnectionCard';
 
-export default function NewConnectionPage(): ReactElement<any> {
+export default function NewConnectionPage(): ReactElement {
   const searchParams = useSearchParams();
   const connectionTypes = new Set(searchParams.getAll('connectionType'));
 

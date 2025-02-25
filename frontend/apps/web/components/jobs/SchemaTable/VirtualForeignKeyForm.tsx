@@ -24,7 +24,7 @@ interface Props {
   constraintHandler: SchemaConstraintHandler;
 }
 
-export function VirtualForeignKeyForm(props: Props): ReactElement<any> {
+export function VirtualForeignKeyForm(props: Props): ReactElement {
   const {
     schema,
     selectedTables,

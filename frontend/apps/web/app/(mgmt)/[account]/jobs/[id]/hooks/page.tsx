@@ -7,7 +7,7 @@ import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { ReactElement, use } from 'react';
 import HooksCard from './components/HooksCard';
 
-export default function Page(props: PageProps): ReactElement<any> {
+export default function Page(props: PageProps): ReactElement {
   const params = use(props.params);
   const id = params?.id ?? '';
   const { data: configData, isLoading } = useGetSystemAppConfig();
@@ -24,7 +24,7 @@ export default function Page(props: PageProps): ReactElement<any> {
   );
 }
 
-function HooksDisabledAlert(): ReactElement<any> {
+function HooksDisabledAlert(): ReactElement {
   return (
     <div>
       <Alert variant="warning">

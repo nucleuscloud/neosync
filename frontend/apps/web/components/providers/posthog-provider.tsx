@@ -58,7 +58,7 @@ export function PHProvider({ children }: PHProps) {
 }
 
 // Handles setting global user data for the user so that it doesn't have to be set on every capture call.
-export function PostHogIdentifier(): ReactElement<any> {
+export function PostHogIdentifier(): ReactElement {
   const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
     useGetSystemAppConfig();
   const { data: userData, isLoading: isUserDataLoading } = useNeosyncUser();

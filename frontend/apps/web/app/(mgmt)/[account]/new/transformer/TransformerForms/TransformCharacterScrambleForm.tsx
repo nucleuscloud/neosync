@@ -25,7 +25,7 @@ type ValidRegex = 'valid' | 'invalid' | 'null';
 
 export default function TransformCharacterScrambleForm(
   props: Props
-): ReactElement<any> {
+): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   const [isValidatingRegex, setIsValidatingRegex] = useState<boolean>(false);

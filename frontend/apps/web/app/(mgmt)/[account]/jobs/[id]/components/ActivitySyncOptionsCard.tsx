@@ -30,7 +30,7 @@ interface Props {
 export default function ActivitySyncOptionsCard({
   job,
   mutate,
-}: Props): ReactElement<any> {
+}: Props): ReactElement {
   const form = useForm<ActivityOptionsFormValues>({
     mode: 'onChange',
     resolver: yupResolver<ActivityOptionsFormValues>(ActivityOptionsFormValues),

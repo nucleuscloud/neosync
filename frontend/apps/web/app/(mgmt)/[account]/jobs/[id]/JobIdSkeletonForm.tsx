@@ -1,7 +1,7 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReactElement } from 'react';
 
-export default function JobIdSkeletonForm(): ReactElement<any> {
+export default function JobIdSkeletonForm(): ReactElement {
   return (
     <div>
       <div className="space-y-4 pt-10">

@@ -3,7 +3,7 @@ import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import Script from 'next/script';
 import { ReactElement } from 'react';
 
-export function UnifyScriptProvider(): ReactElement<any> {
+export function UnifyScriptProvider(): ReactElement {
   const { data: systemAppConfig, isLoading } = useGetSystemAppConfig();
 
   if (

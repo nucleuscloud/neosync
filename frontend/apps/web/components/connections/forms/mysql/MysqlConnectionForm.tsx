@@ -15,7 +15,7 @@ import MysqlForm from './MysqlForm';
 
 export default function MysqlConnectionForm(
   props: ConnectionFormProps
-): ReactElement<any> {
+): ReactElement {
   const { mode } = props;
 
   const connectionProps = {

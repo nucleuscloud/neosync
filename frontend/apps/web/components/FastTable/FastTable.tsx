@@ -49,7 +49,7 @@ interface Props<TData> {
  * It's also very important to set your estimateRowSize function to be the correct height of your row. Otherwise it is a guess and will have to be re-calculated, which hurts performance.
  * Configuring the overscan helps smooth out scrolling, but will increase CPU. For fast systems this is very noticeable and helps with reducing white flashing during quick scrolls.
  */
-export default function FastTable<TData>(props: Props<TData>): ReactElement<any> {
+export default function FastTable<TData>(props: Props<TData>): ReactElement {
   const {
     table,
     estimateRowSize = () => 53,

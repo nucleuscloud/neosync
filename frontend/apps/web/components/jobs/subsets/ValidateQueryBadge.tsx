@@ -6,7 +6,7 @@ interface Props {
   resp?: CheckSqlQueryResponse;
 }
 
-export default function ValidateQueryBadge(props: Props): ReactElement<any> | null {
+export default function ValidateQueryBadge(props: Props): ReactElement | null {
   const { resp } = props;
   if (!resp) {
     return null;

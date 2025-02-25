@@ -22,7 +22,7 @@ export interface Props {
   destinationDetailsRecord: Record<string, DestinationDetails>;
 }
 
-export default function TableMappingsCard(props: Props): ReactElement<any> {
+export default function TableMappingsCard(props: Props): ReactElement {
   const { mappings, onUpdate, destinationDetailsRecord } = props;
   const columns = useMemo(
     () => getTableMappingsColumns({ destinationDetailsRecord, onUpdate }),

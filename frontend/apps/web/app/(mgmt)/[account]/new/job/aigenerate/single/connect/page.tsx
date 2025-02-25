@@ -33,7 +33,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { ConnectionConfigSchema, ConnectionService } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, useEffect, use } from 'react';
+import { ReactElement, use, useEffect } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
@@ -44,7 +44,7 @@ import { SingleTableAiConnectFormValues } from '../../../job-form-validations';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
 
-export default function Page(props: PageProps): ReactElement<any> {
+export default function Page(props: PageProps): ReactElement {
   const searchParams = use(props.searchParams);
   const { account } = useAccount();
   const router = useRouter();

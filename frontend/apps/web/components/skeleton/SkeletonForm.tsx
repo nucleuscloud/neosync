@@ -3,7 +3,7 @@ import { Skeleton } from '../ui/skeleton';
 
 interface Props {}
 
-export default function SkeletonForm(props: Props): ReactElement<any> {
+export default function SkeletonForm(props: Props): ReactElement {
   const {} = props;
   return (
     <div className="px-32 space-y-10">

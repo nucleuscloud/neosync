@@ -25,7 +25,7 @@ interface Props extends TransformerConfigProps<TransformJavascript> {}
 
 export type ValidCode = 'valid' | 'invalid' | 'null';
 
-export default function TransformJavascriptForm(props: Props): ReactElement<any> {
+export default function TransformJavascriptForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   const options = {

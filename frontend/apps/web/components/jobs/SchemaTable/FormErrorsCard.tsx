@@ -32,7 +32,7 @@ interface Props {
   onValidate?(): void;
 }
 
-export default function FormErrorsCard(props: Props): ReactElement<any> {
+export default function FormErrorsCard(props: Props): ReactElement {
   const { formErrors, isValidating, onValidate } = props;
 
   const { errors, warnings } = formErrorsToMessages(formErrors);

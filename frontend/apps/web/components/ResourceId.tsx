@@ -10,7 +10,7 @@ interface Props {
   copyButtonVariant?: ButtonProps['variant'];
 }
 // Component that displays a resource identifier and a copy text button
-export default function ResourceId(props: Props): ReactElement<any> {
+export default function ResourceId(props: Props): ReactElement {
   const {
     labelText,
     copyText,

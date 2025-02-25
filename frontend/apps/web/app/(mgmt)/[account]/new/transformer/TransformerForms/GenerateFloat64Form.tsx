@@ -11,7 +11,7 @@ import { TransformerConfigProps } from './util';
 
 interface Props extends TransformerConfigProps<GenerateFloat64> {}
 
-export default function GenerateFloat64Form(props: Props): ReactElement<any> {
+export default function GenerateFloat64Form(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

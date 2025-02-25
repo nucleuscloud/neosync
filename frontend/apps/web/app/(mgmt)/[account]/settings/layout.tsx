@@ -50,7 +50,7 @@ export default function SettingsLayout({
   );
 }
 
-function NavSettings(): ReactElement<any> {
+function NavSettings(): ReactElement {
   const pathname = usePathname();
   const items = useGetNavSettings();
   return (

@@ -13,7 +13,7 @@ interface Props {
   errors: Record<string, string>;
 }
 
-export default function AccountHookWebhookForm(props: Props): ReactElement<any> {
+export default function AccountHookWebhookForm(props: Props): ReactElement {
   const { values, setValues, errors } = props;
   return (
     <>

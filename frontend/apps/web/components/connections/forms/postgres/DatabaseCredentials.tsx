@@ -37,7 +37,7 @@ interface Props extends SecretRevealProps<PostgresFormValues> {
   setActiveTab(tab: ActiveConnectionTab): void;
 }
 
-export default function DatabaseCredentials(props: Props): ReactElement<any> {
+export default function DatabaseCredentials(props: Props): ReactElement {
   const {
     dbValue,
     onDbValueChange,
@@ -98,7 +98,7 @@ interface ActiveTabProps {
   setActiveTab(tab: ActiveConnectionTab): void;
 }
 
-function ActiveTabSelector(props: ActiveTabProps): ReactElement<any> {
+function ActiveTabSelector(props: ActiveTabProps): ReactElement {
   const { activeTab, setActiveTab } = props;
 
   return (
@@ -134,7 +134,7 @@ interface UrlTabProps extends SecretRevealProps<PostgresFormValues['url']> {
   error?: string;
 }
 
-function UrlTab(props: UrlTabProps): ReactElement<any> {
+function UrlTab(props: UrlTabProps): ReactElement {
   const {
     urlValue,
     onUrlValueChange,
@@ -188,7 +188,7 @@ interface UrlEnvTabProps {
   error?: string;
 }
 
-function UrlEnvTab(props: UrlEnvTabProps): ReactElement<any> {
+function UrlEnvTab(props: UrlEnvTabProps): ReactElement {
   const { envVarValue, onEnvVarValueChange, error } = props;
 
   return (
@@ -222,7 +222,7 @@ interface HostTabProps extends SecretRevealProps<PostgresFormValues['db']> {
   errors: Record<string, string>;
 }
 
-function HostTab(props: HostTabProps): ReactElement<any> {
+function HostTab(props: HostTabProps): ReactElement {
   const {
     dbValue,
     onDbValueChange,

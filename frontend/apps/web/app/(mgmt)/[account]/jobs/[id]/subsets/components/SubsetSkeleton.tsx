@@ -1,7 +1,7 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReactElement } from 'react';
 
-export default function SubsetSkeleton(): ReactElement<any> {
+export default function SubsetSkeleton(): ReactElement {
   return (
     <div className="space-y-4">
       <Skeleton className="h-20 w-3/4" />

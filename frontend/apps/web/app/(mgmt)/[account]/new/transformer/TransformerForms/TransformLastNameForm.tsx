@@ -9,7 +9,7 @@ import { TransformerConfigProps } from './util';
 
 interface Props extends TransformerConfigProps<TransformLastName> {}
 
-export default function TransformLastNameForm(props: Props): ReactElement<any> {
+export default function TransformLastNameForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
   return (
     <div className="flex flex-col w-full space-y-4 ">

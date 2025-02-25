@@ -21,7 +21,7 @@ interface Props {
   jobConnections: Connection[];
 }
 
-export default function EditHookButton(props: Props): ReactElement<any> {
+export default function EditHookButton(props: Props): ReactElement {
   const { hook, onEdited, jobConnections } = props;
   const { mutateAsync: updateHook } = useMutation(
     JobService.method.updateJobHook

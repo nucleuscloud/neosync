@@ -20,7 +20,7 @@ interface Props {
   jobConnections: Connection[];
 }
 
-export default function NewHookForm(props: Props): ReactElement<any> {
+export default function NewHookForm(props: Props): ReactElement {
   const { onSubmit, jobConnections } = props;
   const {
     formData,

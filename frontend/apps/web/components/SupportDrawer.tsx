@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { ReactElement } from 'react';
 import { PiBookOpenText } from 'react-icons/pi';
 
-export default function SupportDrawer(): ReactElement<any> {
+export default function SupportDrawer(): ReactElement {
   const supportLinks = [
     {
       name: 'Documentation',

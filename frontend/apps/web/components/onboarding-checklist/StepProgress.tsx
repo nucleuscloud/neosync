@@ -8,7 +8,7 @@ interface Props {
   stepOrder: FormStepName[];
 }
 
-export default function StepProgress(props: Props): ReactElement<any> {
+export default function StepProgress(props: Props): ReactElement {
   const { steps, currentStep, stepOrder } = props;
 
   return (

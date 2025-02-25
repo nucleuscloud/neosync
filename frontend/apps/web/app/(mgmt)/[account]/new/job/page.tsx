@@ -19,11 +19,11 @@ import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, useEffect, useState, use } from 'react';
+import { ReactElement, use, useEffect, useState } from 'react';
 import { AiOutlineExperiment } from 'react-icons/ai';
 import { NewJobType } from './job-form-validations';
 
-export default function NewJob(props: PageProps): ReactElement<any> {
+export default function NewJob(props: PageProps): ReactElement {
   const params = use(props.params);
   const [sessionToken, setSessionToken] = useState<string>('');
   const searchParams = useSearchParams();

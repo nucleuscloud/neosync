@@ -20,7 +20,7 @@ import { TransformerConfigProps } from './util';
 
 interface Props extends TransformerConfigProps<GenerateEmail> {}
 
-export default function GenerateEmailForm(props: Props): ReactElement<any> {
+export default function GenerateEmailForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

@@ -21,7 +21,7 @@ import { ModeToggle } from './ModeToggle';
 import NeosyncVersion from './NeosyncVersion';
 import { UserNav } from './UserNav';
 
-export default function SiteHeader(): ReactElement<any> {
+export default function SiteHeader(): ReactElement {
   const systemAppConfig = getSystemAppConfig();
 
   return (
@@ -41,7 +41,7 @@ export default function SiteHeader(): ReactElement<any> {
   );
 }
 
-function SupportSheet(): ReactElement<any> {
+function SupportSheet(): ReactElement {
   return (
     <Sheet>
       <SheetTrigger asChild>

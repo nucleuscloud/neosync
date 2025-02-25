@@ -13,7 +13,7 @@ interface SubsetOptionsProps {
 }
 export default function SubsetOptionsForm(
   props: SubsetOptionsProps
-): ReactElement<any> {
+): ReactElement {
   const { maxColNum } = props;
   const grid = maxColNum ? `lg:grid-cols-${maxColNum}` : 'lg:grid-cols-3';
   return (

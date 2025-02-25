@@ -16,7 +16,7 @@ import { usePostHog } from 'posthog-js/react';
 import { ReactElement } from 'react';
 import { toast } from 'sonner';
 
-export function UserNav(): ReactElement<any> | null {
+export function UserNav(): ReactElement | null {
   const session = useSession();
   const posthog = usePostHog();
 
@@ -85,6 +85,6 @@ export function UserNav(): ReactElement<any> | null {
   );
 }
 
-function getAvatarFallback(name?: string | null): string | ReactElement<any> {
+function getAvatarFallback(name?: string | null): string | ReactElement {
   return !!name ? name[0].toUpperCase() : <GearIcon />;
 }

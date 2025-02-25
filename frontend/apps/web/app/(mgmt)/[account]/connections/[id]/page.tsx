@@ -12,7 +12,7 @@ import { ReactElement, use } from 'react';
 import { useGetConnectionComponentDetails } from './components/useGetConnectionComponentDetails';
 import ViewActions from './components/ViewActions';
 
-export default function ConnectionPage(props: PageProps): ReactElement<any> {
+export default function ConnectionPage(props: PageProps): ReactElement {
   const params = use(props.params);
   const id = params?.id ?? '';
   const { account } = useAccount();

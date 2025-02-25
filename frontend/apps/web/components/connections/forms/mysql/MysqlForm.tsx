@@ -87,7 +87,7 @@ interface Props {
   connectionId?: string;
 }
 
-export default function MysqlForm(props: Props): ReactElement<any> {
+export default function MysqlForm(props: Props): ReactElement {
   const {
     mode,
     initialValues,

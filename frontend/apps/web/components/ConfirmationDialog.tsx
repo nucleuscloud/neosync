@@ -27,7 +27,7 @@ export interface Props {
   onConfirm(): void | Promise<void>;
 }
 
-export default function ConfirmationDialog(props: Props): ReactElement<any> {
+export default function ConfirmationDialog(props: Props): ReactElement {
   const {
     trigger = <Button type="button">Press to Confirm</Button>,
     headerText = 'Are you sure?',

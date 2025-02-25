@@ -12,7 +12,7 @@ import { ReactElement, useMemo } from 'react';
 import { getColumns } from './components/ApiKeysTable/columns';
 import { DataTable } from './components/ApiKeysTable/data-table';
 
-export default function ApiKeys(): ReactElement<any> {
+export default function ApiKeys(): ReactElement {
   return (
     <div className="flex flex-col gap-5">
       <SubPageHeader
@@ -28,7 +28,7 @@ export default function ApiKeys(): ReactElement<any> {
 }
 
 interface ApiKeyTableProps {}
-function ApiKeyTable(props: ApiKeyTableProps): ReactElement<any> {
+function ApiKeyTable(props: ApiKeyTableProps): ReactElement {
   const {} = props;
   const { account } = useAccount();
 
@@ -64,7 +64,7 @@ function ApiKeyTable(props: ApiKeyTableProps): ReactElement<any> {
 
 interface NewApiKeyButtonProps {}
 
-function NewApiKeyButton(props: NewApiKeyButtonProps): ReactElement<any> {
+function NewApiKeyButton(props: NewApiKeyButtonProps): ReactElement {
   const {} = props;
   const { account } = useAccount();
 

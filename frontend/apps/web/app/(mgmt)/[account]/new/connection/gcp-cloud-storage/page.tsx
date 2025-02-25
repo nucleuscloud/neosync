@@ -6,7 +6,7 @@ import { ReactElement } from 'react';
 import { SiGooglecloud } from 'react-icons/si';
 import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
 
-export default function NewGCPCloudStoragePage(): ReactElement<any> {
+export default function NewGCPCloudStoragePage(): ReactElement {
   const onSuccess = useOnCreateSuccess();
   return (
     <OverviewContainer

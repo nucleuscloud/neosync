@@ -32,7 +32,7 @@ interface Props {
 const DEFAULT_ACCOUNT_NAME = 'personal';
 const STORAGE_ACCOUNT_KEY = 'account';
 
-export default function AccountProvider(props: Props): ReactElement<any> {
+export default function AccountProvider(props: Props): ReactElement {
   const { children } = props;
   const { account } = useParams();
   const accountName = useGetAccountName();

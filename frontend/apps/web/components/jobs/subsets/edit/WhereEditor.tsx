@@ -22,7 +22,7 @@ const BASE_EDITOR_OPTS: editor.IStandaloneEditorConstructionOptions = {
   lineNumbers: 'on',
 };
 
-export default function WhereEditor(props: Props): ReactElement<any> {
+export default function WhereEditor(props: Props): ReactElement {
   const { whereClause, onWhereChange, columns } = props;
 
   const theme = useMonacoTheme();

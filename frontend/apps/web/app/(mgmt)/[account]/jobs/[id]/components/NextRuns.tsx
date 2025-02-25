@@ -20,7 +20,7 @@ interface Props {
   status?: JobStatus;
 }
 
-export default function JobNextRuns({ jobId, status }: Props): ReactElement<any> {
+export default function JobNextRuns({ jobId, status }: Props): ReactElement {
   const { data, isLoading, error } = useQuery(
     JobService.method.getJobNextRuns,
     { jobId },

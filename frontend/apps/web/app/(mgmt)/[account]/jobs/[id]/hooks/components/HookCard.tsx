@@ -21,7 +21,7 @@ interface Props {
   onEdited(): void;
 }
 
-export default function HookCard(props: Props): ReactElement<any> {
+export default function HookCard(props: Props): ReactElement {
   const { hook, onDeleted, onEdited, jobConnections, jobConnectionsMap } =
     props;
   const hookTiming = getHookTiming(hook.config ?? create(JobHookConfigSchema));
@@ -105,7 +105,7 @@ interface HookConnectionBadgeProps {
 }
 function HookConnectionBadge(
   props: HookConnectionBadgeProps
-): ReactElement<any> | null {
+): ReactElement | null {
   const { config, connMap } = props;
 
   switch (config.config.case) {
@@ -129,7 +129,7 @@ interface SqlHookConnectionBadgeProps {
 }
 function SqlHookConnectionBadge(
   props: SqlHookConnectionBadgeProps
-): ReactElement<any> {
+): ReactElement {
   const { config, connMap } = props;
   const connection = connMap.get(config.connectionId);
   return (
