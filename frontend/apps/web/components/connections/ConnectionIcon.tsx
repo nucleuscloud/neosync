@@ -5,10 +5,10 @@ import {
 import { NeonLogo } from '@/app/(mgmt)/[account]/new/connection/neon/NeonLogo';
 import { OpenAiLogo } from '@/app/(mgmt)/[account]/new/connection/openai/OpenAiLogo';
 import { SupabaseLogo } from '@/app/(mgmt)/[account]/new/connection/supabase/SupabaseLogo';
+import { MysqlIcon } from '@/public/icons/Mysql';
 import { useTheme } from 'next-themes';
 import { ReactElement } from 'react';
-import { IconContext } from 'react-icons';
-import { DiMongodb, DiMsqlServer, DiMysql, DiPostgresql } from 'react-icons/di';
+import { DiMongodb, DiMsqlServer, DiPostgresql } from 'react-icons/di';
 import { FaAws } from 'react-icons/fa';
 import { SiGooglecloud } from 'react-icons/si';
 
@@ -32,68 +32,34 @@ export default function ConnectionIcon(props: Props): ReactElement | null {
     case 'pgConfig': {
       switch (connectionTypeVariant) {
         case 'neon': {
-          return (
-            <IconContext.Provider value={{ style: { width, height } }}>
-              <NeonLogo />
-            </IconContext.Provider>
-          );
+          return <NeonLogo />;
         }
         case 'supabase': {
-          return (
-            <IconContext.Provider value={{ style: { width, height } }}>
-              <SupabaseLogo />
-            </IconContext.Provider>
-          );
+          return <SupabaseLogo />;
         }
       }
-      return (
-        <IconContext.Provider value={{ style: { width, height } }}>
-          <DiPostgresql />
-        </IconContext.Provider>
-      );
+      return <DiPostgresql style={{ width, height }} />;
     }
     case 'mysqlConfig': {
-      return (
-        <IconContext.Provider value={{ style: { width, height } }}>
-          <DiMysql />
-        </IconContext.Provider>
-      );
+      return <MysqlIcon theme={resolvedTheme} />;
     }
-    case 'awsS3Config':
+    case 'awsS3Config': {
+      return <FaAws style={{ width, height }} />;
+    }
     case 'dynamodbConfig': {
-      return (
-        <IconContext.Provider value={{ style: { width, height } }}>
-          <FaAws />
-        </IconContext.Provider>
-      );
+      return <FaAws style={{ width, height }} />;
     }
     case 'openaiConfig': {
-      return (
-        <IconContext.Provider value={{ style: { width, height } }}>
-          <OpenAiLogo bg={resolvedTheme === 'dark' ? 'white' : '#272F30'} />
-        </IconContext.Provider>
-      );
+      return <OpenAiLogo bg={resolvedTheme === 'dark' ? 'white' : '#272F30'} />;
     }
     case 'mongoConfig': {
-      return (
-        <IconContext.Provider value={{ style: { width, height } }}>
-          <DiMongodb />
-        </IconContext.Provider>
-      );
+      return <DiMongodb style={{ width, height }} />;
     }
     case 'gcpCloudstorageConfig': {
-      return (
-        <IconContext.Provider value={{ style: { width, height } }}>
-          <SiGooglecloud />
-        </IconContext.Provider>
-      );
+      return <SiGooglecloud style={{ width, height }} />;
     }
     case 'mssqlConfig': {
-      return (
-        <IconContext.Provider value={{ style: { width, height } }}>
-          <DiMsqlServer />
-        </IconContext.Provider>
-      );
+      return <DiMsqlServer style={{ width, height }} />;
     }
 
     default:
