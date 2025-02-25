@@ -2,10 +2,13 @@ import path from 'path';
 import * as url from 'url';
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
-export default {
+/** @type {import('next').NextConfig} */
+const config = {
   reactStrictMode: true,
   output: 'standalone',
   experimental: {
     outputFileTracingRoot: path.join(__dirname, '../../'),
   },
 };
+
+export default config;
