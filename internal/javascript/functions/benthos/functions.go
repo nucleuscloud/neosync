@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"runtime/debug"
 	"strings"
 
 	"github.com/dop251/goja"
@@ -30,8 +31,21 @@ func Get() []*javascript_functions.FunctionDefinition {
 }
 
 func getV0Fetch(namespace string) *javascript_functions.FunctionDefinition {
-	return javascript_functions.NewFunctionDefinition(namespace, "v0_fetch", func(r javascript_functions.Runner) javascript_functions.Function {
-		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (any, error) {
+	fnName := "v0_fetch"
+	return javascript_functions.NewFunctionDefinition(namespace, fnName, func(r javascript_functions.Runner) javascript_functions.Function {
+		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (result any, err error) {
+			defer func() {
+				if r := recover(); r != nil {
+					// we set the named "err" argument to the error so that it can be returned
+					err = fmt.Errorf("panic recovered: %s.%s: %v", namespace, fnName, r)
+					l.Error(
+						"recovered from panic in custom benthos function",
+						"error", err,
+						"function", fmt.Sprintf("%s.%s", namespace, fnName),
+						"stack", string(debug.Stack()),
+					)
+				}
+			}()
 			var (
 				url         string
 				httpHeaders map[string]any
@@ -79,8 +93,21 @@ func getV0Fetch(namespace string) *javascript_functions.FunctionDefinition {
 }
 
 func getV0MsgSetString(namespace string) *javascript_functions.FunctionDefinition {
-	return javascript_functions.NewFunctionDefinition(namespace, "v0_msg_set_string", func(r javascript_functions.Runner) javascript_functions.Function {
-		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (any, error) {
+	fnName := "v0_msg_set_string"
+	return javascript_functions.NewFunctionDefinition(namespace, fnName, func(r javascript_functions.Runner) javascript_functions.Function {
+		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (result any, err error) {
+			defer func() {
+				if r := recover(); r != nil {
+					// we set the named "err" argument to the error so that it can be returned
+					err = fmt.Errorf("panic recovered: %s.%s: %v", namespace, fnName, r)
+					l.Error(
+						"recovered from panic in custom benthos function",
+						"error", err,
+						"function", fmt.Sprintf("%s.%s", namespace, fnName),
+						"stack", string(debug.Stack()),
+					)
+				}
+			}()
 			var value string
 			if err := javascript_functions.ParseFunctionArguments(call, &value); err != nil {
 				return nil, err
@@ -93,8 +120,21 @@ func getV0MsgSetString(namespace string) *javascript_functions.FunctionDefinitio
 }
 
 func getV0MsgAsString(namespace string) *javascript_functions.FunctionDefinition {
-	return javascript_functions.NewFunctionDefinition(namespace, "v0_msg_as_string", func(r javascript_functions.Runner) javascript_functions.Function {
-		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (any, error) {
+	fnName := "v0_msg_as_string"
+	return javascript_functions.NewFunctionDefinition(namespace, fnName, func(r javascript_functions.Runner) javascript_functions.Function {
+		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (result any, err error) {
+			defer func() {
+				if r := recover(); r != nil {
+					// we set the named "err" argument to the error so that it can be returned
+					err = fmt.Errorf("panic recovered: %s.%s: %v", namespace, fnName, r)
+					l.Error(
+						"recovered from panic in custom benthos function",
+						"error", err,
+						"function", fmt.Sprintf("%s.%s", namespace, fnName),
+						"stack", string(debug.Stack()),
+					)
+				}
+			}()
 			b, err := r.ValueApi().AsBytes()
 			if err != nil {
 				return nil, err
@@ -105,8 +145,21 @@ func getV0MsgAsString(namespace string) *javascript_functions.FunctionDefinition
 }
 
 func getV0MsgSetStructured(namespace string) *javascript_functions.FunctionDefinition {
-	return javascript_functions.NewFunctionDefinition(namespace, "v0_msg_set_structured", func(r javascript_functions.Runner) javascript_functions.Function {
-		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (any, error) {
+	fnName := "v0_msg_set_structured"
+	return javascript_functions.NewFunctionDefinition(namespace, fnName, func(r javascript_functions.Runner) javascript_functions.Function {
+		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (result any, err error) {
+			defer func() {
+				if r := recover(); r != nil {
+					// we set the named "err" argument to the error so that it can be returned
+					err = fmt.Errorf("panic recovered: %s.%s: %v", namespace, fnName, r)
+					l.Error(
+						"recovered from panic in custom benthos function",
+						"error", err,
+						"function", fmt.Sprintf("%s.%s", namespace, fnName),
+						"stack", string(debug.Stack()),
+					)
+				}
+			}()
 			var value any
 			if err := javascript_functions.ParseFunctionArguments(call, &value); err != nil {
 				return nil, err
@@ -119,16 +172,42 @@ func getV0MsgSetStructured(namespace string) *javascript_functions.FunctionDefin
 }
 
 func getV0MsgAsStructured(namespace string) *javascript_functions.FunctionDefinition {
-	return javascript_functions.NewFunctionDefinition(namespace, "v0_msg_as_structured", func(r javascript_functions.Runner) javascript_functions.Function {
-		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (any, error) {
+	fnName := "v0_msg_as_structured"
+	return javascript_functions.NewFunctionDefinition(namespace, fnName, func(r javascript_functions.Runner) javascript_functions.Function {
+		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (result any, err error) {
+			defer func() {
+				if r := recover(); r != nil {
+					// we set the named "err" argument to the error so that it can be returned
+					err = fmt.Errorf("panic recovered: %s.%s: %v", namespace, fnName, r)
+					l.Error(
+						"recovered from panic in custom benthos function",
+						"error", err,
+						"function", fmt.Sprintf("%s.%s", namespace, fnName),
+						"stack", string(debug.Stack()),
+					)
+				}
+			}()
 			return r.ValueApi().AsStructured()
 		}
 	})
 }
 
 func getV0MsgSetMeta(namespace string) *javascript_functions.FunctionDefinition {
-	return javascript_functions.NewFunctionDefinition(namespace, "v0_msg_set_meta", func(r javascript_functions.Runner) javascript_functions.Function {
-		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (any, error) {
+	fnName := "v0_msg_set_meta"
+	return javascript_functions.NewFunctionDefinition(namespace, fnName, func(r javascript_functions.Runner) javascript_functions.Function {
+		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (result any, err error) {
+			defer func() {
+				if r := recover(); r != nil {
+					// we set the named "err" argument to the error so that it can be returned
+					err = fmt.Errorf("panic recovered: %s.%s: %v", namespace, fnName, r)
+					l.Error(
+						"recovered from panic in custom benthos function",
+						"error", err,
+						"function", fmt.Sprintf("%s.%s", namespace, fnName),
+						"stack", string(debug.Stack()),
+					)
+				}
+			}()
 			var key string
 			var value any
 			if err := javascript_functions.ParseFunctionArguments(call, &key, &value); err != nil {
@@ -141,8 +220,21 @@ func getV0MsgSetMeta(namespace string) *javascript_functions.FunctionDefinition 
 }
 
 func getV0MsgGetMeta(namespace string) *javascript_functions.FunctionDefinition {
-	return javascript_functions.NewFunctionDefinition(namespace, "v0_msg_get_meta", func(r javascript_functions.Runner) javascript_functions.Function {
-		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (any, error) {
+	fnName := "v0_msg_get_meta"
+	return javascript_functions.NewFunctionDefinition(namespace, fnName, func(r javascript_functions.Runner) javascript_functions.Function {
+		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (result any, err error) {
+			defer func() {
+				if r := recover(); r != nil {
+					// we set the named "err" argument to the error so that it can be returned
+					err = fmt.Errorf("panic recovered: %s.%s: %v", namespace, fnName, r)
+					l.Error(
+						"recovered from panic in custom benthos function",
+						"error", err,
+						"function", fmt.Sprintf("%s.%s", namespace, fnName),
+						"stack", string(debug.Stack()),
+					)
+				}
+			}()
 			var key string
 			if err := javascript_functions.ParseFunctionArguments(call, &key); err != nil {
 				return nil, err
@@ -157,8 +249,21 @@ func getV0MsgGetMeta(namespace string) *javascript_functions.FunctionDefinition 
 }
 
 func getV0MsgMetaExists(namespace string) *javascript_functions.FunctionDefinition {
-	return javascript_functions.NewFunctionDefinition(namespace, "v0_msg_exists_meta", func(r javascript_functions.Runner) javascript_functions.Function {
-		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (any, error) {
+	fnName := "v0_msg_exists_meta"
+	return javascript_functions.NewFunctionDefinition(namespace, fnName, func(r javascript_functions.Runner) javascript_functions.Function {
+		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (result any, err error) {
+			defer func() {
+				if r := recover(); r != nil {
+					// we set the named "err" argument to the error so that it can be returned
+					err = fmt.Errorf("panic recovered: %s.%s: %v", namespace, fnName, r)
+					l.Error(
+						"recovered from panic in custom benthos function",
+						"error", err,
+						"function", fmt.Sprintf("%s.%s", namespace, fnName),
+						"stack", string(debug.Stack()),
+					)
+				}
+			}()
 			var key string
 			if err := javascript_functions.ParseFunctionArguments(call, &key); err != nil {
 				return nil, err
