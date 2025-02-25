@@ -54,6 +54,18 @@ func (f *FunctionDefinition) Ctor() Ctor {
 
 type Function func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (any, error)
 
+// getTypeString returns a string representation of the type of a goja.Value
+// Returns "null" for nil or null values, and "undefined" for undefined values
+func getTypeString(arg goja.Value) string {
+	if arg == nil || goja.IsNull(arg) {
+		return "null"
+	}
+	if goja.IsUndefined(arg) {
+		return "undefined"
+	}
+	return arg.ExportType().String()
+}
+
 // Takes in a goja function call and returns the parsed arguments into the provided pointers.
 // Returns an error if the arguments are not of the expected type.
 func ParseFunctionArguments(call goja.FunctionCall, ptrs ...any) error {
@@ -91,15 +103,11 @@ func ParseFunctionArguments(call goja.FunctionCall, ptrs ...any) error {
 		case *any:
 			*p = arg.Export()
 		default:
-			return fmt.Errorf("encountered unhandled type %T while trying to parse %v into %v", arg.ExportType().String(), arg, p)
+			typeStr := getTypeString(arg)
+			return fmt.Errorf("encountered unhandled type %s while trying to parse %v into %v", typeStr, arg, ptr)
 		}
 		if err != nil {
-			var typeStr string
-			if arg != nil && !goja.IsNull(arg) {
-				typeStr = arg.ExportType().String()
-			} else {
-				typeStr = "null"
-			}
+			typeStr := getTypeString(arg)
 			return fmt.Errorf("could not parse %v (%s) into %v (%T): %v", arg, typeStr, ptr, ptr, err)
 		}
 	}
