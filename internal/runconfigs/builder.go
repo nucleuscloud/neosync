@@ -144,11 +144,11 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]SubsetPath {
 					if len(fc.ForeignKey.Columns) > 0 && len(fc.Columns) > 0 {
 						referenceSchema, referenceTable := sqlmanager_shared.SplitTableKey(fc.ForeignKey.Table)
 						js = JoinStep{
-							FromKey: fc.ForeignKey.Columns[0],
-							ToKey:   fc.Columns[0],
+							ToKey:   entry.current,
+							FromKey: child,
 							// Create a new ForeignKey value from fc.ForeignKey.
 							Fk: &ForeignKey{
-								Columns:          fc.ForeignKey.Columns,
+								Columns:          fc.Columns,
 								NotNullable:      fc.NotNullable,
 								ReferenceSchema:  referenceSchema,
 								ReferenceTable:   referenceTable,
@@ -170,16 +170,27 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]SubsetPath {
 			newPath := append(entry.path, child)
 			// Reverse the path so it goes from the child up to the where clause root.
 			revPath := reverseSlice(newPath)
+			revJoinSteps := reverseJoinSteps(newJoinSteps)
 			result[child] = append(result[child], SubsetPath{
 				Root:      entry.src,
 				Subset:    b.whereClauses[entry.src],
 				Path:      revPath,
-				JoinSteps: newJoinSteps,
+				JoinSteps: revJoinSteps,
 			})
 			queue = append(queue, bfsEntry{src: entry.src, current: child, path: newPath, joinSteps: newJoinSteps})
 		}
 	}
 
+	return result
+}
+
+// reverseJoinSteps reverses a slice of JoinSteps.
+func reverseJoinSteps(steps []JoinStep) []JoinStep {
+	n := len(steps)
+	result := make([]JoinStep, n)
+	for i, v := range steps {
+		result[n-1-i] = v
+	}
 	return result
 }
 
