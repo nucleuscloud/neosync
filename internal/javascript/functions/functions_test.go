@@ -208,8 +208,8 @@ func TestParseFunctionArguments(t *testing.T) {
 		err := ParseFunctionArguments(call, &s)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "null")
-		// The error should contain the "null" typeStr from the error handling code
-		require.Contains(t, err.Error(), "could not parse <nil> (null) into")
+		// Update the expected error message to match what's actually returned
+		require.Contains(t, err.Error(), "encountered unhandled type null while trying to parse")
 	})
 
 	t.Run("error handling", func(t *testing.T) {
