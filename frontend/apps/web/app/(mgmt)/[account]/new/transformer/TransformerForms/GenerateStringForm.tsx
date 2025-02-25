@@ -15,7 +15,7 @@ export default function GenerateStringForm(props: Props): ReactElement {
 
   return (
     <div className="flex flex-col w-full space-y-4">
-      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-xs">
         <div className="space-y-0.5 w-[80%]">
           <FormLabel>Minimum Length</FormLabel>
           <FormDescription>
@@ -45,7 +45,7 @@ export default function GenerateStringForm(props: Props): ReactElement {
           <FormErrorMessage message={errors?.min?.message} />
         </div>
       </div>
-      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-xs">
         <div className="space-y-0.5 w-[80%]">
           <FormLabel>Maximum Length</FormLabel>
           <FormDescription>

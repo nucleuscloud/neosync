@@ -25,7 +25,7 @@ export default function SiteHeader(): ReactElement {
   const systemAppConfig = getSystemAppConfig();
 
   return (
-    <header className="supports-backdrop-blur:bg-background/60 sticky top-0 z-50 w-full border-b dark:border-b-gray-700 bg-background dark:hover:text-white backdrop-blur">
+    <header className="supports-backdrop-blur:bg-background/60 sticky top-0 z-50 w-full border-b dark:border-b-gray-700 bg-background dark:hover:text-white backdrop-blur-sm">
       <div className="container flex h-14 items-center">
         <MainNav />
         <MobileNav />

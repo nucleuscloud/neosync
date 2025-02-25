@@ -115,7 +115,7 @@ export default function WelcomeRouter({
               className={cn(
                 'cursor-pointer p-2',
                 selectedJobType === jd.type
-                  ? 'border border-black shadow-sm dark:border-gray-500'
+                  ? 'border border-black shadow-xs dark:border-gray-500'
                   : 'hover:border hover:border-gray-500 dark:border-gray-700 dark:hover:border-gray-600'
               )}
               onClick={() => handleJobSelection(jd.type, jd.href)}
