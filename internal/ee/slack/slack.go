@@ -19,7 +19,7 @@ type Interface interface {
 	ExchangeCodeForAccessToken(ctx context.Context, code string) (*slack.OAuthV2Response, error)
 	Test(ctx context.Context, accessToken string) (*slack.AuthTestResponse, error)
 	SendMessage(ctx context.Context, accessToken, channelId string, options ...slack.MsgOption) error
-	JoinChannel(ctx context.Context, accessToken, channelId string) error
+	JoinChannel(ctx context.Context, accessToken, channelId string, logger *slog.Logger) error
 	GetPublicChannels(ctx context.Context, accessToken string) ([]slack.Channel, error)
 }
 
