@@ -61,7 +61,7 @@ func ParseFunctionArguments(call goja.FunctionCall, ptrs ...any) error {
 		return fmt.Errorf("have %d arguments, but only %d pointers to parse into", len(call.Arguments), len(ptrs))
 	}
 
-	for i := 0; i < len(call.Arguments); i++ {
+	for i := range call.Arguments {
 		arg, ptr := call.Argument(i), ptrs[i]
 
 		if goja.IsUndefined(arg) {
@@ -94,7 +94,13 @@ func ParseFunctionArguments(call goja.FunctionCall, ptrs ...any) error {
 			return fmt.Errorf("encountered unhandled type %T while trying to parse %v into %v", arg.ExportType().String(), arg, p)
 		}
 		if err != nil {
-			return fmt.Errorf("could not parse %v (%s) into %v (%T): %v", arg, arg.ExportType().String(), ptr, ptr, err)
+			var typeStr string
+			if arg != nil && !goja.IsNull(arg) {
+				typeStr = arg.ExportType().String()
+			} else {
+				typeStr = "null"
+			}
+			return fmt.Errorf("could not parse %v (%s) into %v (%T): %v", arg, typeStr, ptr, ptr, err)
 		}
 	}
 
@@ -103,6 +109,9 @@ func ParseFunctionArguments(call goja.FunctionCall, ptrs ...any) error {
 
 func getMapFromValue(val goja.Value) (map[string]any, error) {
 	outVal := val.Export()
+	if outVal == nil {
+		return map[string]any{}, nil
+	}
 	v, ok := outVal.(map[string]any)
 	if !ok {
 		return nil, errors.New("value is not of type map")
@@ -112,6 +121,9 @@ func getMapFromValue(val goja.Value) (map[string]any, error) {
 
 func getSliceFromValue(val goja.Value) ([]any, error) {
 	outVal := val.Export()
+	if outVal == nil {
+		return []any{}, nil
+	}
 	v, ok := outVal.([]any)
 	if !ok {
 		return nil, errors.New("value is not of type slice")
@@ -121,6 +133,9 @@ func getSliceFromValue(val goja.Value) ([]any, error) {
 
 func getMapSliceFromValue(val goja.Value) ([]map[string]any, error) {
 	outVal := val.Export()
+	if outVal == nil {
+		return []map[string]any{}, nil
+	}
 	if v, ok := outVal.([]map[string]any); ok {
 		return v, nil
 	}

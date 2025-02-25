@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"runtime/debug"
 	"strings"
 
 	"github.com/dop251/goja"
@@ -34,8 +35,21 @@ func Get() ([]*javascript_functions.FunctionDefinition, error) {
 }
 
 func getPatchStructuredMessage(namespace string) *javascript_functions.FunctionDefinition {
-	return javascript_functions.NewFunctionDefinition(namespace, "patchStructuredMessage", func(r javascript_functions.Runner) javascript_functions.Function {
-		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (any, error) {
+	fnName := "patchStructuredMessage"
+	return javascript_functions.NewFunctionDefinition(namespace, fnName, func(r javascript_functions.Runner) javascript_functions.Function {
+		return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (result any, err error) {
+			defer func() {
+				if r := recover(); r != nil {
+					// we set the named "err" argument to the error so that it can be returned
+					err = fmt.Errorf("panic: %s.%s: %v", namespace, fnName, r)
+					l.Error(
+						"recovered from panic in custom neosync function",
+						"error", err,
+						"function", fmt.Sprintf("%s.%s", namespace, fnName),
+						"stack", string(debug.Stack()),
+					)
+				}
+			}()
 			var updates map[string]any
 			if err := javascript_functions.ParseFunctionArguments(call, &updates); err != nil {
 				return nil, err
@@ -88,10 +102,23 @@ func getNeosyncGenerators() ([]*javascript_functions.FunctionDefinition, error) 
 		}
 
 		fn := javascript_functions.NewFunctionDefinition(namespace, templateData.Name, func(r javascript_functions.Runner) javascript_functions.Function {
-			return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (any, error) {
+			return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (result any, err error) {
+				defer func() {
+					if r := recover(); r != nil {
+						// we set the named "err" argument to the error so that it can be returned
+						err = fmt.Errorf("panic: %s.%s: %v", namespace, templateData.Name, r)
+						l.Error(
+							"recovered from panic in custom neosync function",
+							"error", err,
+							"function", fmt.Sprintf("%s.%s", namespace, templateData.Name),
+							"stack", string(debug.Stack()),
+						)
+					}
+				}()
 				var (
 					opts map[string]any
 				)
+
 				if err := javascript_functions.ParseFunctionArguments(call, &opts); err != nil {
 					return nil, err
 				}
@@ -117,11 +144,24 @@ func getNeosyncTransformers() ([]*javascript_functions.FunctionDefinition, error
 		}
 
 		fn := javascript_functions.NewFunctionDefinition(namespace, templateData.Name, func(r javascript_functions.Runner) javascript_functions.Function {
-			return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (any, error) {
+			return func(ctx context.Context, call goja.FunctionCall, rt *goja.Runtime, l *slog.Logger) (result any, err error) {
+				defer func() {
+					if r := recover(); r != nil {
+						// we set the named "err" argument to the error so that it can be returned
+						err = fmt.Errorf("panic: %s.%s: %v", namespace, templateData.Name, r)
+						l.Error(
+							"recovered from panic in custom neosync function",
+							"error", err,
+							"function", fmt.Sprintf("%s.%s", namespace, templateData.Name),
+							"stack", string(debug.Stack()),
+						)
+					}
+				}()
 				var (
 					value any
 					opts  map[string]any
 				)
+
 				if err := javascript_functions.ParseFunctionArguments(call, &value, &opts); err != nil {
 					return nil, err
 				}
