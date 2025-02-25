@@ -8,7 +8,7 @@ interface Props {
   className?: string;
 }
 
-export default function Spinner(props: Props): ReactElement {
+export default function Spinner(props: Props): ReactElement<any> {
   const { className } = props;
   return <UpdateIcon className={cn('animate-spin', className)} />;
 }

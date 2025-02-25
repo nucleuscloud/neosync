@@ -67,7 +67,7 @@ interface Props {
   connectionId?: string;
 }
 
-export default function DynamoDbForm(props: Props): ReactElement {
+export default function DynamoDbForm(props: Props): ReactElement<any> {
   const {
     mode,
     initialValues,

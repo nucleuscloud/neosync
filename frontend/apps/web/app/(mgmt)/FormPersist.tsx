@@ -10,7 +10,7 @@ const isBrowser = () => typeof window !== 'undefined';
 
 export default function FormPersist<T extends FieldValues>(
   props: FormPersistProps<T>
-): ReactElement {
+): ReactElement<any> {
   const { form, formKey } = props;
   useFormPersist(formKey, {
     control: form.control,

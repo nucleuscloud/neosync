@@ -22,7 +22,7 @@ interface Props {
   onCreated(): void;
 }
 
-export default function NewHookButton(props: Props): ReactElement {
+export default function NewHookButton(props: Props): ReactElement<any> {
   const { jobId, jobConnections, onCreated } = props;
   const { mutateAsync: createHook } = useMutation(
     JobService.method.createJobHook

@@ -14,7 +14,7 @@ interface Props {
   isResetDisabled: boolean;
 }
 
-export default function ActionsCell(props: Props): ReactElement {
+export default function ActionsCell(props: Props): ReactElement<any> {
   const { onEdit, onReset, isResetDisabled } = props;
   return (
     <div className="flex gap-2">
@@ -28,7 +28,7 @@ interface EditActionProps {
   onClick(): void;
 }
 
-function EditAction(props: EditActionProps): ReactElement {
+function EditAction(props: EditActionProps): ReactElement<any> {
   const { onClick } = props;
   return (
     <Button
@@ -48,7 +48,7 @@ interface ResetActionProps {
   isDisabled: boolean;
 }
 
-function ResetAction(props: ResetActionProps): ReactElement {
+function ResetAction(props: ResetActionProps): ReactElement<any> {
   const { onClick, isDisabled } = props;
   return (
     <TooltipProvider>

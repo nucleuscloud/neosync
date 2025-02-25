@@ -7,7 +7,7 @@ import { ReactElement, useMemo } from 'react';
 import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
 import { OpenAiLogo } from './OpenAiLogo';
 
-export default function OpenAi(): ReactElement {
+export default function OpenAi(): ReactElement<any> {
   const { resolvedTheme } = useTheme();
   const logoBg = useMemo(
     () => (resolvedTheme === 'dark' ? 'white' : '#272F30'),

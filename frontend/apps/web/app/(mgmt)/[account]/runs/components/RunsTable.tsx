@@ -24,7 +24,7 @@ const INTERVAL_SELECT_OPTIONS: JobRunsAutoRefreshInterval[] = [
 
 interface RunsTableProps {}
 
-export default function RunsTable(props: RunsTableProps): ReactElement {
+export default function RunsTable(props: RunsTableProps): ReactElement<any> {
   const {} = props;
   const { account } = useAccount();
   const [refreshInterval, setAutoRefreshInterval] =

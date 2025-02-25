@@ -4,10 +4,11 @@ import { PageProps } from '@/components/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import { ReactElement } from 'react';
+import { ReactElement, use } from 'react';
 import HooksCard from './components/HooksCard';
 
-export default function Page({ params }: PageProps): ReactElement {
+export default function Page(props: PageProps): ReactElement<any> {
+  const params = use(props.params);
   const id = params?.id ?? '';
   const { data: configData, isLoading } = useGetSystemAppConfig();
   if (isLoading) {
@@ -23,7 +24,7 @@ export default function Page({ params }: PageProps): ReactElement {
   );
 }
 
-function HooksDisabledAlert(): ReactElement {
+function HooksDisabledAlert(): ReactElement<any> {
   return (
     <div>
       <Alert variant="warning">

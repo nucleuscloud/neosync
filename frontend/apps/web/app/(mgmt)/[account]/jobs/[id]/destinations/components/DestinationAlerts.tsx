@@ -22,7 +22,7 @@ export default function DestinationAlerts({
   connectionId,
   jobmappings,
   initTableSchemaEnabled,
-}: Props): ReactElement {
+}: Props): ReactElement<any> {
   const { data: validateSchemaResponse, isLoading: isValidatingSchema } =
     useQuery(
       JobService.method.validateSchema,

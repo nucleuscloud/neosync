@@ -124,7 +124,7 @@ interface Props {
   accountId: string;
 }
 
-export function InvitesTable(props: Props): React.ReactElement {
+export function InvitesTable(props: Props): React.ReactElement<any> {
   const { accountId } = props;
   const { data, isLoading, refetch, isFetching } = useQuery(
     UserAccountService.method.getTeamAccountInvites,
@@ -178,7 +178,7 @@ interface DataTableProps {
   columns: ColumnDef<MemberInviteRow>[];
   onDeleted(id: string): void;
 }
-function DataTable(props: DataTableProps): React.ReactElement {
+function DataTable(props: DataTableProps): React.ReactElement<any> {
   const { data, columns, onDeleted } = props;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);

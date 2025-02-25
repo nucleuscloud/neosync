@@ -10,7 +10,7 @@ import { ReactElement } from 'react';
 interface Props {
   isRootTable: boolean;
 }
-export default function RootTableCell(props: Props): ReactElement {
+export default function RootTableCell(props: Props): ReactElement<any> {
   const { isRootTable } = props;
   return (
     <div className="flex justify-center pr-4">

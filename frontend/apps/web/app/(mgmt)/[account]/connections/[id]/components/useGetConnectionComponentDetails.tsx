@@ -14,14 +14,14 @@ import { ReactElement } from 'react';
 import ModeView from './ModeView';
 
 interface ConnectionComponent {
-  body: ReactElement;
-  header: ReactElement;
+  body: ReactElement<any>;
+  header: ReactElement<any>;
 }
 
 type BaseConnectionComponentDetailsProps = {
   connection?: Connection;
-  extraPageHeading?: ReactElement;
-  subHeading?: ReactElement;
+  extraPageHeading?: ReactElement<any>;
+  subHeading?: ReactElement<any>;
 };
 
 type ViewModeProps = BaseConnectionComponentDetailsProps & {

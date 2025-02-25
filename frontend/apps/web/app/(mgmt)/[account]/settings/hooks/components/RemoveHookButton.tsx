@@ -11,7 +11,7 @@ interface Props {
   onDeleted(): void;
   hook: Pick<AccountHook, 'id' | 'name'>;
 }
-export default function RemoveHookButton(props: Props): ReactElement {
+export default function RemoveHookButton(props: Props): ReactElement<any> {
   const { hook, onDeleted } = props;
   const { mutateAsync: removeHook } = useMutation(
     AccountHookService.method.deleteAccountHook

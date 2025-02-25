@@ -39,7 +39,7 @@ interface Props {
   form: UseFormReturn<CreateTeamFormValues>;
 }
 
-export function CreateNewTeamDialog(props: Props): ReactElement {
+export function CreateNewTeamDialog(props: Props): ReactElement<any> {
   const {
     open,
     onOpenChange,
@@ -132,7 +132,7 @@ export function CreateNewTeamDialog(props: Props): ReactElement {
 }
 
 interface ShowSubscriptionInfoProps {}
-function ShowSubscriptionInfo(props: ShowSubscriptionInfoProps): ReactElement {
+function ShowSubscriptionInfo(props: ShowSubscriptionInfoProps): ReactElement<any> {
   const {} = props;
 
   return (

@@ -90,7 +90,7 @@ interface Props {
   connectionId?: string;
 }
 
-export default function PostgresForm(props: Props): ReactElement {
+export default function PostgresForm(props: Props): ReactElement<any> {
   const {
     mode,
     initialValues,

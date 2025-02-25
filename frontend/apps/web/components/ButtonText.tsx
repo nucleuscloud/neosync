@@ -7,7 +7,7 @@ interface Props {
   rightIcon?: ReactNode;
 }
 
-export default function ButtonText(props: Props): ReactElement {
+export default function ButtonText(props: Props): ReactElement<any> {
   const { leftIcon, text, rightIcon } = props;
   return (
     <div className="flex flex-row gap-1 items-center">

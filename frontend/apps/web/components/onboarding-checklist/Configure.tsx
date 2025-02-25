@@ -8,7 +8,7 @@ interface Props {
   onPreviousStep: () => void;
 }
 
-export default function Config(props: Props): ReactElement {
+export default function Config(props: Props): ReactElement<any> {
   const { onNextStep, onPreviousStep } = props;
 
   return (
@@ -81,7 +81,7 @@ interface TransformerSelectorProps {
   text: string;
 }
 
-function TransformerSelector(props: TransformerSelectorProps): ReactElement {
+function TransformerSelector(props: TransformerSelectorProps): ReactElement<any> {
   const { text } = props;
   return (
     <div className="flex justify-between border border-gray-300 dark:border-gray-600 p-2 rounded w-[100px]">

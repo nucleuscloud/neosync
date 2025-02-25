@@ -16,7 +16,7 @@ interface Props {
 
 let browserQueryClient: QueryClient | undefined = undefined;
 
-export default function TanstackQueryProvider(props: Props): ReactElement {
+export default function TanstackQueryProvider(props: Props): ReactElement<any> {
   const { children } = props;
 
   if (isServer) {
@@ -55,7 +55,7 @@ export default function TanstackQueryProvider(props: Props): ReactElement {
 // This is a query provider that ignores 404 errors.
 export function TanstackQueryProviderIgnore404Errors(
   props: Props
-): ReactElement {
+): ReactElement<any> {
   const { children } = props;
 
   if (isServer) {

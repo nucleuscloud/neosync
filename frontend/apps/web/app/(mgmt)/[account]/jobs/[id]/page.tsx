@@ -12,7 +12,7 @@ import { create } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
 import { GetJobResponseSchema, JobService } from '@neosync/sdk';
 import { useQueryClient } from '@tanstack/react-query';
-import { ReactElement } from 'react';
+import { ReactElement, use } from 'react';
 import ActivitySyncOptionsCard from './components/ActivitySyncOptionsCard';
 import JobNextRuns from './components/NextRuns';
 import JobRecentRuns from './components/RecentRuns';
@@ -20,7 +20,8 @@ import JobScheduleCard from './components/ScheduleCard';
 import WorkflowSettingsCard from './components/WorkflowSettingsCard';
 import JobIdSkeletonForm from './JobIdSkeletonForm';
 
-export default function Page({ params }: PageProps): ReactElement {
+export default function Page(props: PageProps): ReactElement<any> {
+  const params = use(props.params);
   const id = params?.id ?? '';
   const { data, isLoading } = useQuery(
     JobService.method.getJob,

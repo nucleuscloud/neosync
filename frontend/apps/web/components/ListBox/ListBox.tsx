@@ -19,7 +19,7 @@ interface Props<TData> {
   noDataMessage?: string;
 }
 
-export default function ListBox<TData>(props: Props<TData>): ReactElement {
+export default function ListBox<TData>(props: Props<TData>): ReactElement<any> {
   const { table, tableContainerClassName, isDataLoading, noDataMessage } =
     props;
   const { rows } = table.getRowModel();
@@ -37,7 +37,7 @@ export default function ListBox<TData>(props: Props<TData>): ReactElement {
   }
 
   return (
-    <div
+    (<div
       className={cn(
         'h-[164px] relative w-full rounded-md border border-gray-300 dark:border-gray-700 ',
         tableContainerClassName,
@@ -84,9 +84,11 @@ export default function ListBox<TData>(props: Props<TData>): ReactElement {
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const row = rows[virtualRow.index];
             return (
-              <TableRow
+              (<TableRow
                 data-index={virtualRow.index} // needed for dynamic row height measurement
-                ref={(node) => rowVirtualizer.measureElement(node)} // measure dynamic row height
+                ref={node => {
+                  rowVirtualizer.measureElement(node);
+                }} // measure dynamic row height
                 key={row.id}
                 style={{
                   transform: `translateY(${virtualRow.start}px)`,
@@ -112,11 +114,11 @@ export default function ListBox<TData>(props: Props<TData>): ReactElement {
                     </TableCell>
                   );
                 })}
-              </TableRow>
+              </TableRow>)
             );
           })}
         </TableBody>
       </StickyHeaderTable>
-    </div>
+    </div>)
   );
 }

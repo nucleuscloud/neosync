@@ -19,7 +19,7 @@ interface Props {
   iconHeight?: string;
 }
 
-export default function ConnectionIcon(props: Props): ReactElement | null {
+export default function ConnectionIcon(props: Props): ReactElement<any> | null {
   const { connectionType, connectionTypeVariant, iconWidth, iconHeight } =
     props;
 

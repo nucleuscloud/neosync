@@ -55,7 +55,7 @@ interface Props {
   jobId: string;
 }
 
-export default function SubsetCard(props: Props): ReactElement {
+export default function SubsetCard(props: Props): ReactElement<any> {
   const { jobId } = props;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkEditDialogOpen, setIsBulkEditDialogOpen] = useState(false);

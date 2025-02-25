@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import posthog from 'posthog-js';
 import { PostHogProvider, usePostHog } from 'posthog-js/react';
-import { ReactElement, ReactNode, useEffect } from 'react';
+import { ReactElement, ReactNode, useEffect, type JSX } from 'react';
 import { useAccount } from './account-provider';
 
 // Enables posthog, as well as turns on pageview tracking.
@@ -58,7 +58,7 @@ export function PHProvider({ children }: PHProps) {
 }
 
 // Handles setting global user data for the user so that it doesn't have to be set on every capture call.
-export function PostHogIdentifier(): ReactElement {
+export function PostHogIdentifier(): ReactElement<any> {
   const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
     useGetSystemAppConfig();
   const { data: userData, isLoading: isUserDataLoading } = useNeosyncUser();

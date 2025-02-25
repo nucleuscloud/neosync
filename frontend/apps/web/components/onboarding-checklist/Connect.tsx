@@ -14,7 +14,7 @@ interface Props {
   onPreviousStep: () => void;
 }
 
-export default function Connect(props: Props): ReactElement {
+export default function Connect(props: Props): ReactElement<any> {
   const { onPreviousStep, onNextStep } = props;
 
   const theme = useTheme();

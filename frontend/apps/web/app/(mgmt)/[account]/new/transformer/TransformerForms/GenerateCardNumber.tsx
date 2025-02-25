@@ -10,7 +10,7 @@ import { TransformerConfigProps } from './util';
 
 interface Props extends TransformerConfigProps<GenerateCardNumber> {}
 
-export default function GenerateCardNumberForm(props: Props): ReactElement {
+export default function GenerateCardNumberForm(props: Props): ReactElement<any> {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

@@ -9,7 +9,7 @@ interface Props {
 
 export default function ValidateQueryErrorAlert(
   props: Props
-): ReactElement | null {
+): ReactElement<any> | null {
   const { validateResp, rowCountError } = props;
 
   const hasSqlError =

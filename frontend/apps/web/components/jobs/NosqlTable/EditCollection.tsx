@@ -17,7 +17,7 @@ interface Props {
   onEdit(updatedObject: Pick<NosqlJobMappingRow, 'collection'>): void;
 }
 
-export default function EditCollection(props: Props): ReactElement {
+export default function EditCollection(props: Props): ReactElement<any> {
   const { text, collections, onEdit } = props;
 
   const [isEditingMapping, setIsEditingMapping] = useState(false);

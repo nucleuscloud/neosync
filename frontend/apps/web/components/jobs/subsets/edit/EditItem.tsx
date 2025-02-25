@@ -39,7 +39,7 @@ interface Props {
   connectionType: ValidSubsetConnectionType;
   columns: string[];
 }
-export default function EditItem(props: Props): ReactElement {
+export default function EditItem(props: Props): ReactElement<any> {
   const {
     item,
     onItem,

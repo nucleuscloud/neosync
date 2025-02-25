@@ -79,7 +79,7 @@ interface Props {
   onApplyDefaultClick(override: boolean): void;
 }
 
-export function SchemaTable(props: Props): ReactElement {
+export function SchemaTable(props: Props): ReactElement<any> {
   const {
     data,
     virtualForeignKeys,

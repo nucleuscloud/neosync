@@ -37,7 +37,7 @@ function parseUint8ArrayToInitSchemaReport(
 }
 export default function JobRunActivityErrors(
   props: JobRunActivityErrorsProps
-): ReactElement {
+): ReactElement<any> {
   return (
     <TanstackQueryProviderIgnore404Errors>
       <JobRunErrorViewer {...props} />
@@ -45,7 +45,7 @@ export default function JobRunActivityErrors(
   );
 }
 
-function JobRunErrorViewer(props: JobRunActivityErrorsProps): ReactElement {
+function JobRunErrorViewer(props: JobRunActivityErrorsProps): ReactElement<any> {
   const { jobRunId, accountId } = props;
 
   const { data: runContextData, error: runContextError } = useQuery(

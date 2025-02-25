@@ -12,7 +12,7 @@ import { TransformerConfigProps } from './util';
 
 interface Props extends TransformerConfigProps<TransformE164PhoneNumber> {}
 
-export default function TransformE164NumberForm(props: Props): ReactElement {
+export default function TransformE164NumberForm(props: Props): ReactElement<any> {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

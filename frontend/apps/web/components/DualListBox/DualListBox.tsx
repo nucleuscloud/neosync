@@ -33,7 +33,7 @@ interface Props {
   mode?: Mode;
 }
 
-export default function DualListBox(props: Props): ReactElement {
+export default function DualListBox(props: Props): ReactElement<any> {
   const { options, selected, onChange, mode = 'many' } = props;
 
   const [leftSelected, setLeftSelected] = useState<RowSelectionState>({});

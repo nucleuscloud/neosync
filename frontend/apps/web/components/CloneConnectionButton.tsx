@@ -11,7 +11,7 @@ interface CloneConnectionProps {
 
 export function CloneConnectionButton(
   props: CloneConnectionProps
-): ReactElement {
+): ReactElement<any> {
   const { id } = props;
   const { account } = useAccount();
 

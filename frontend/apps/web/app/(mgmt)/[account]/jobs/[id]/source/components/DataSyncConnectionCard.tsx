@@ -117,7 +117,7 @@ interface Props {
   jobId: string;
 }
 
-export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
+export default function DataSyncConnectionCard({ jobId }: Props): ReactElement<any> {
   const { account } = useAccount();
   const {
     data,

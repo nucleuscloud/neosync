@@ -1,5 +1,5 @@
 import { cn } from '@/libs/utils';
-import { ReactNode } from 'react';
+import { ReactNode, type JSX } from 'react';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 

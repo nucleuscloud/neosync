@@ -10,7 +10,7 @@ interface Props {
 
 export default function PostgresDBSourceOptionsForm(
   props: Props
-): ReactElement {
+): ReactElement<any> {
   const { value, setValue } = props;
 
   return (

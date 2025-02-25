@@ -14,7 +14,7 @@ interface Props extends TransformerConfigProps<TransformInt64PhoneNumber> {}
 
 export default function TransformIntPhoneNumberForm(
   props: Props
-): ReactElement {
+): ReactElement<any> {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

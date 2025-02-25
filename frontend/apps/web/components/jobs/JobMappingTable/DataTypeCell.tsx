@@ -12,7 +12,7 @@ interface Props {
   value: string;
 }
 
-export default function DataTypeCell(props: Props): ReactElement {
+export default function DataTypeCell(props: Props): ReactElement<any> {
   const { value } = props;
   return (
     <TooltipProvider>

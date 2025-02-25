@@ -25,7 +25,7 @@ interface Props {
   errors: Record<string, string>;
 }
 
-export default function JobConfigSqlForm(props: Props): ReactElement {
+export default function JobConfigSqlForm(props: Props): ReactElement<any> {
   const { values, setValues, jobConnections, errors } = props;
   return (
     <>
@@ -93,7 +93,7 @@ const editorOptions: editor.IStandaloneEditorConstructionOptions = {
   lineNumbers: 'off',
 };
 
-function EditSqlQuery(props: EditSqlQueryProps): ReactElement {
+function EditSqlQuery(props: EditSqlQueryProps): ReactElement<any> {
   const { query, setQuery } = props;
 
   const theme = useMonacoTheme();
@@ -128,7 +128,7 @@ interface SelectConnectionsProps {
   setSelectedConnectionId(id: string): void;
   error?: string;
 }
-function SelectConnections(props: SelectConnectionsProps): ReactElement {
+function SelectConnections(props: SelectConnectionsProps): ReactElement<any> {
   const {
     jobConnections,
     selectedConnectionId,

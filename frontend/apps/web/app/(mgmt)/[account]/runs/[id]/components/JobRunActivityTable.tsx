@@ -13,7 +13,7 @@ interface JobRunActivityTableProps {
 
 export default function JobRunActivityTable(
   props: JobRunActivityTableProps
-): ReactElement {
+): ReactElement<any> {
   const { jobRunEvents, onViewSelectClicked, jobStatus } = props;
 
   const columns = useMemo(() => getColumns({ onViewSelectClicked }), []);

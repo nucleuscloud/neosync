@@ -33,7 +33,7 @@ const SUPPORTED_STORAGECLASSES = [
 
 export default function AwsS3DestinationOptionsForm(
   props: Props
-): ReactElement {
+): ReactElement<any> {
   const { value, setValue, errors } = props;
 
   return (
@@ -145,7 +145,7 @@ export default function AwsS3DestinationOptionsForm(
   );
 }
 
-function Header(): ReactElement {
+function Header(): ReactElement<any> {
   return (
     <div>
       <h2 className="text-md font-semibold tracking-tight">S3 Configuration</h2>
@@ -159,7 +159,7 @@ function Header(): ReactElement {
 interface FormItemContainerProps {
   children: ReactNode;
 }
-function FormItemContainer(props: FormItemContainerProps): ReactElement {
+function FormItemContainer(props: FormItemContainerProps): ReactElement<any> {
   const { children } = props;
   return <div className="flex flex-col gap-2">{children}</div>;
 }
@@ -167,7 +167,7 @@ function FormItemContainer(props: FormItemContainerProps): ReactElement {
 interface FormInputContainerProps {
   children: ReactNode;
 }
-function FormInputContainer(props: FormInputContainerProps): ReactElement {
+function FormInputContainer(props: FormInputContainerProps): ReactElement<any> {
   const { children } = props;
   return <div className="flex flex-col gap-1">{children}</div>;
 }

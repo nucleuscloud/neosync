@@ -10,7 +10,7 @@ interface Props {
   onClick?(): void;
 }
 
-export default function UpgradeButton(props: Props): ReactElement {
+export default function UpgradeButton(props: Props): ReactElement<any> {
   const { href, target, onClick } = props;
 
   return (

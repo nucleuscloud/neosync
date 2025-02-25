@@ -75,7 +75,7 @@ interface Props {
   jobId: string;
 }
 
-export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
+export default function DataGenConnectionCard({ jobId }: Props): ReactElement<any> {
   const { account } = useAccount();
 
   const [validateMappingsResponse, setValidateMappingsResponse] = useState<

@@ -15,7 +15,7 @@ import PostgresForm from './PostgresForm';
 
 export default function PostgresConnectionForm(
   props: ConnectionFormProps
-): ReactElement {
+): ReactElement<any> {
   const { mode } = props;
 
   const connectionProps = {

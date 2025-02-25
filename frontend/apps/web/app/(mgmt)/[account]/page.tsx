@@ -6,7 +6,7 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { ReactElement } from 'react';
 
-export default function AccountPage(): ReactElement {
+export default function AccountPage(): ReactElement<any> {
   const { account } = useAccount();
   return (
     <AccountPageRedirect>

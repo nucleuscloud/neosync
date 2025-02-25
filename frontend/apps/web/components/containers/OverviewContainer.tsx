@@ -11,7 +11,7 @@ interface Props {
 /**
  * The purpose of this component is to offer a standardized way of defining pages with a header
  */
-export default function OverviewContainer(props: Props): ReactElement {
+export default function OverviewContainer(props: Props): ReactElement<any> {
   const { containerClassName, Header, children, childrenStackClassnames } =
     props;
 

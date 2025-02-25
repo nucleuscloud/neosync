@@ -19,7 +19,7 @@ import { SystemTransformersDataTable } from './components/SystemTransformersTabl
 import { getUserDefinedTransformerColumns } from './components/UserDefinedTransformersTable/columns';
 import { UserDefinedTransformersDataTable } from './components/UserDefinedTransformersTable/data-table';
 
-export default function Transformers(): ReactElement {
+export default function Transformers(): ReactElement<any> {
   const searchParams = useSearchParams();
   const defaultTab = getTableTabFromParams(searchParams);
   return (
@@ -54,7 +54,7 @@ interface TransformersTableProps {
   defaultTab: TableTab;
 }
 
-function TransformersTable(props: TransformersTableProps): ReactElement {
+function TransformersTable(props: TransformersTableProps): ReactElement<any> {
   const { defaultTab } = props;
   const { data, isLoading: isSystemTransformersLoading } = useQuery(
     TransformersService.method.getSystemTransformers
@@ -135,7 +135,7 @@ function TransformersTable(props: TransformersTableProps): ReactElement {
   );
 }
 
-function NewTransformerButton(): ReactElement {
+function NewTransformerButton(): ReactElement<any> {
   const { account } = useAccount();
   return (
     <NextLink href={`/${account?.name}/new/transformer`}>

@@ -34,7 +34,7 @@ interface DataTableProps<TData, TValue> {
 export default function TableMappingsTable<TData, TValue>({
   columns,
   data,
-}: DataTableProps<TData, TValue>): ReactElement {
+}: DataTableProps<TData, TValue>): ReactElement<any> {
   const table = useReactTable({
     data,
     columns,
@@ -65,7 +65,7 @@ export default function TableMappingsTable<TData, TValue>({
   });
 
   return (
-    <div>
+    (<div>
       <div className="flex flex-row items-center gap-2 pt-4 ">
         <div className="flex">
           <GoWorkflow className="h-4 w-4" />
@@ -123,9 +123,11 @@ export default function TableMappingsTable<TData, TValue>({
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const row = rows[virtualRow.index];
               return (
-                <TableRow
+                (<TableRow
                   data-index={virtualRow.index} //needed for dynamic row height measurement
-                  ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+                  ref={node => {
+                    rowVirtualizer.measureElement(node);
+                  }} //measure dynamic row height
                   key={row.id}
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
@@ -148,7 +150,7 @@ export default function TableMappingsTable<TData, TValue>({
                       </td>
                     );
                   })}
-                </TableRow>
+                </TableRow>)
               );
             })}
           </TableBody>
@@ -160,6 +162,6 @@ export default function TableMappingsTable<TData, TValue>({
         {new Intl.NumberFormat('en-US').format(table.getRowModel().rows.length)}
         )
       </div>
-    </div>
+    </div>)
   );
 }

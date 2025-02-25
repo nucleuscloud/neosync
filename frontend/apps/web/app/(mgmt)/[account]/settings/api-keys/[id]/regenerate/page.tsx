@@ -51,13 +51,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { addDays, endOfDay, format, startOfDay } from 'date-fns';
 import Error from 'next/error';
 import { useRouter } from 'next/navigation';
-import { ReactElement } from 'react';
+import { ReactElement, use } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
-export default function RegenerateAccountApiKey({
-  params,
-}: PageProps): ReactElement {
+export default function RegenerateAccountApiKey(props: PageProps): ReactElement<any> {
+  const params = use(props.params);
   const id = params?.id ?? '';
   const router = useRouter();
   const { account } = useAccount();

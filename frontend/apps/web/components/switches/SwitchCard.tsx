@@ -8,7 +8,7 @@ interface Props {
   onCheckedChange: (value: boolean) => void;
   title: string;
   // provide a component that will show up to the right of the title
-  postTitle?: ReactElement;
+  postTitle?: ReactElement<any>;
   description?: string;
   containerClassName?: string;
   titleClassName?: string;
@@ -22,7 +22,7 @@ export default function SwitchCard({
   postTitle,
   containerClassName,
   titleClassName,
-}: Props): ReactElement {
+}: Props): ReactElement<any> {
   return (
     <div
       className={cn(

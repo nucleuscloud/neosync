@@ -6,7 +6,7 @@ import { ReactElement } from 'react';
 import { DiPostgresql } from 'react-icons/di';
 import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
 
-export default function NewPostgresPage(): ReactElement {
+export default function NewPostgresPage(): ReactElement<any> {
   const onSuccess = useOnCreateSuccess();
   return (
     <OverviewContainer

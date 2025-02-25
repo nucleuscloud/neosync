@@ -6,7 +6,7 @@ import { ReactElement } from 'react';
 import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
 import { SupabaseLogo } from './SupabaseLogo';
 
-export default function NewSupabasePage(): ReactElement {
+export default function NewSupabasePage(): ReactElement<any> {
   const onSuccess = useOnCreateSuccess();
   return (
     <OverviewContainer

@@ -29,7 +29,7 @@ interface ExtractedJobMappings {
   mappings: JobMapping[];
 }
 
-export default function ImportJobMappingsButton(props: Props): ReactElement {
+export default function ImportJobMappingsButton(props: Props): ReactElement<any> {
   const { onImport } = props;
   const [jmExtracted, setJmExtracted] = useState<
     Record<string, ExtractedJobMappings>
@@ -150,7 +150,7 @@ interface BodyProps {
   setTruncateAll(value: boolean): void;
 }
 
-function Body(props: BodyProps): ReactElement {
+function Body(props: BodyProps): ReactElement<any> {
   const {
     setJobMappings,
     overrideOverlapping,

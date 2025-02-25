@@ -27,8 +27,8 @@ import { Button } from '../ui/button';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  ConnectionAlert: ReactElement;
-  TestConnectionButton?: ReactElement;
+  ConnectionAlert: ReactElement<any>;
+  TestConnectionButton?: ReactElement<any>;
 }
 
 export default function PermissionsDataTable<TData, TValue>({
@@ -36,7 +36,7 @@ export default function PermissionsDataTable<TData, TValue>({
   data,
   ConnectionAlert,
   TestConnectionButton,
-}: DataTableProps<TData, TValue>): ReactElement {
+}: DataTableProps<TData, TValue>): ReactElement<any> {
   const table = useReactTable({
     data,
     columns,
@@ -67,7 +67,7 @@ export default function PermissionsDataTable<TData, TValue>({
   });
 
   return (
-    <div className="space-y-4">
+    (<div className="space-y-4">
       <div className="flex flex-col lg:flex-row items-center gap-2 lg:gap-4 justify-between">
         <div>{ConnectionAlert}</div>
         <div className="flex flex-col lg:flex-row items-center gap-2">
@@ -134,9 +134,11 @@ export default function PermissionsDataTable<TData, TValue>({
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const row = rows[virtualRow.index];
               return (
-                <TableRow
+                (<TableRow
                   data-index={virtualRow.index} //needed for dynamic row height measurement
-                  ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+                  ref={node => {
+                    rowVirtualizer.measureElement(node);
+                  }} //measure dynamic row height
                   key={row.id}
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
@@ -159,12 +161,12 @@ export default function PermissionsDataTable<TData, TValue>({
                       </td>
                     );
                   })}
-                </TableRow>
+                </TableRow>)
               );
             })}
           </TableBody>
         </StickyHeaderTable>
       </div>
-    </div>
+    </div>)
   );
 }

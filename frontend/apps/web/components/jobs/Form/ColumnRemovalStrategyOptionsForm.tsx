@@ -13,7 +13,7 @@ interface Props {
 
 export default function ColumnRemovalStrategyOptionsForm(
   props: Props
-): ReactElement {
+): ReactElement<any> {
   const { value, setValue } = props;
 
   return (
@@ -57,7 +57,7 @@ interface StrategyRadioItemProps {
   label: string;
 }
 
-function StrategyRadioItem(props: StrategyRadioItemProps): ReactElement {
+function StrategyRadioItem(props: StrategyRadioItemProps): ReactElement<any> {
   const { value, label } = props;
   return (
     <div className="flex items-center gap-2">

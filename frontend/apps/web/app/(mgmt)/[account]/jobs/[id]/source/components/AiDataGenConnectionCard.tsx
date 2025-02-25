@@ -68,7 +68,7 @@ interface Props {
 
 export default function AiDataGenConnectionCard({
   jobId,
-}: Props): ReactElement {
+}: Props): ReactElement<any> {
   const { account } = useAccount();
 
   const {

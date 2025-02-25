@@ -6,7 +6,7 @@ import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
 import { JobService, JobStatus } from '@neosync/sdk';
 import { PauseIcon, PlayIcon } from '@radix-ui/react-icons';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useEffect, useState, type JSX } from 'react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -19,7 +19,7 @@ export default function JobPauseButton({
   status,
   onNewStatus,
   jobId,
-}: Props): ReactElement {
+}: Props): ReactElement<any> {
   const { mutateAsync: setJobPaused } = useMutation(JobService.method.pauseJob);
   const [buttonText, setButtonText] = useState(
     status === JobStatus.PAUSED ? 'Resume Job' : 'Pause Job'

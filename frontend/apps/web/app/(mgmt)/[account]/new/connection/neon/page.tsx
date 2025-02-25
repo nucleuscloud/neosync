@@ -6,7 +6,7 @@ import { ReactElement } from 'react';
 import { useOnCreateSuccess } from '../components/useOnCreateSuccess';
 import { NeonLogo } from './NeonLogo';
 
-export default function NewPostgresNeonPage(): ReactElement {
+export default function NewPostgresNeonPage(): ReactElement<any> {
   const onSuccess = useOnCreateSuccess();
   return (
     <OverviewContainer

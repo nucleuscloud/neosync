@@ -104,7 +104,7 @@ interface AddNewNosqlRecordFormContext {
   isDuplicateKey: (value: string, schema: string, table: string) => boolean;
 }
 
-export default function AddNewNosqlRecord(props: Props): ReactElement {
+export default function AddNewNosqlRecord(props: Props): ReactElement<any> {
   const { collections, onSubmit, transformerHandler, isDuplicateKey } = props;
 
   const { account } = useAccount();

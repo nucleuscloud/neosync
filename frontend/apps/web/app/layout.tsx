@@ -20,7 +20,7 @@ export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
-}): Promise<ReactElement> {
+}): Promise<ReactElement<any>> {
   return (
     <html lang="en" suppressHydrationWarning>
       <head />

@@ -5,7 +5,7 @@ import { useAccount } from '@/components/providers/account-provider';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
 
-export default function Settings(): ReactElement {
+export default function Settings(): ReactElement<any> {
   const { account, isLoading: isAccountLoading } = useAccount();
   const router = useRouter();
   useEffect(() => {

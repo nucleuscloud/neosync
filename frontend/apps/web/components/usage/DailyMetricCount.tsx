@@ -43,7 +43,7 @@ interface Props {
   identifier: string;
 }
 
-export default function DailyMetricCount(props: Props): ReactElement {
+export default function DailyMetricCount(props: Props): ReactElement<any> {
   const { period, metric, idtype, identifier } = props;
   const { account } = useAccount();
   const [start, end] = periodToDateRange(period);

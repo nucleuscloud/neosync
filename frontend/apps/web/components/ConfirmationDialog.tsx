@@ -1,6 +1,6 @@
 import { cn } from '@/libs/utils';
 import { AlertDialogTitle } from '@radix-ui/react-alert-dialog';
-import { ReactElement, ReactNode, useState } from 'react';
+import { ReactElement, ReactNode, useState, type JSX } from 'react';
 import ButtonText from './ButtonText';
 import Spinner from './Spinner';
 import {
@@ -27,7 +27,7 @@ export interface Props {
   onConfirm(): void | Promise<void>;
 }
 
-export default function ConfirmationDialog(props: Props): ReactElement {
+export default function ConfirmationDialog(props: Props): ReactElement<any> {
   const {
     trigger = <Button type="button">Press to Confirm</Button>,
     headerText = 'Are you sure?',

@@ -10,7 +10,7 @@ import { TransformerConfigProps } from './util';
 
 interface Props extends TransformerConfigProps<GenerateGender> {}
 
-export default function GenerateGenderForm(props: Props): ReactElement {
+export default function GenerateGenderForm(props: Props): ReactElement<any> {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

@@ -17,7 +17,7 @@ import {
   UserAccountService,
 } from '@neosync/sdk';
 import { useQueryClient } from '@tanstack/react-query';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useEffect, useState, type JSX } from 'react';
 import { toast } from 'sonner';
 import { useAccount } from '../providers/account-provider';
 import Configure from './Configure';
@@ -39,7 +39,7 @@ export interface FormStep {
   component: JSX.Element;
 }
 
-export default function WelcomeDialog(): ReactElement {
+export default function WelcomeDialog(): ReactElement<any> {
   const { account } = useAccount();
   const {
     data,

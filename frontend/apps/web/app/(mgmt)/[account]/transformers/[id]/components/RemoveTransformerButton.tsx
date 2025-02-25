@@ -14,7 +14,7 @@ interface Props {
   transformerID: string;
 }
 
-export default function RemoveTransformerButton(props: Props): ReactElement {
+export default function RemoveTransformerButton(props: Props): ReactElement<any> {
   const { transformerID } = props;
   const router = useRouter();
   const { account } = useAccount();

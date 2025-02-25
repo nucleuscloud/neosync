@@ -12,7 +12,7 @@ interface Props {
   isDuplicate(val: string, currValue?: string): boolean;
 }
 
-export default function EditDocumentKey(props: Props): ReactElement {
+export default function EditDocumentKey(props: Props): ReactElement<any> {
   const { text, onEdit, isDuplicate } = props;
   const [isEditingMapping, setIsEditingMapping] = useState(false);
   const [inputValue, setInputValue] = useState<string>(text);

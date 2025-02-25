@@ -22,7 +22,7 @@ interface Props {
   onSubmit(values: NewAccountHook): Promise<void>;
 }
 
-export default function NewHookForm(props: Props): ReactElement {
+export default function NewHookForm(props: Props): ReactElement<any> {
   const { onSubmit } = props;
   const {
     formData,

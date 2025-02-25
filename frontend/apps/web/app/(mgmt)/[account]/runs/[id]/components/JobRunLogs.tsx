@@ -20,7 +20,7 @@ export default function JobRunLogs({
   accountId,
   runId,
   isRunning,
-}: JobRunLogsProps): ReactElement {
+}: JobRunLogsProps): ReactElement<any> {
   const [selectedLogLevel, setSelectedLogLevel] = useState<LogLevel>(
     LogLevel.UNSPECIFIED
   );

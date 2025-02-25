@@ -22,7 +22,7 @@ interface Props {
 
 export default function ApplyDefaultTransformersButton(
   props: Props
-): ReactElement {
+): ReactElement<any> {
   const { isDisabled, onClick } = props;
   const form = useForm<DefaultTransformerFormValues>({
     resolver: yupResolver(DefaultTransformerFormValues),
@@ -52,7 +52,7 @@ export default function ApplyDefaultTransformersButton(
 interface FormBodyProps {
   form: UseFormReturn<DefaultTransformerFormValues>;
 }
-function FormBody(props: FormBodyProps): ReactElement {
+function FormBody(props: FormBodyProps): ReactElement<any> {
   const { form } = props;
   return (
     <div>

@@ -10,7 +10,7 @@ interface Props {
   name: string;
 }
 
-export default function Step(props: Props): ReactElement {
+export default function Step(props: Props): ReactElement<any> {
   const { isActive, isCompleted, isLastStep, name } = props;
 
   return (
@@ -32,7 +32,7 @@ interface StepCircleProps {
   isActive: boolean;
 }
 
-function StepCircle(props: StepCircleProps): ReactElement {
+function StepCircle(props: StepCircleProps): ReactElement<any> {
   const { isCompleted, isLastStep, name, isActive } = props;
   return (
     <div className="flex flex-row">

@@ -8,7 +8,7 @@ interface Props {
   setValue(newVal: MssqlSourceOptionsFormValues): void;
 }
 
-export default function MssqlDBSourceOptionsForm(props: Props): ReactElement {
+export default function MssqlDBSourceOptionsForm(props: Props): ReactElement<any> {
   const { value, setValue } = props;
 
   return (

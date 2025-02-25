@@ -36,10 +36,10 @@ interface Props {
 
   errors?: FieldErrors<TransformerConfig>;
 
-  NoConfigComponent?: ReactElement;
+  NoConfigComponent?: ReactElement<any>;
 }
 // handles rendering custom transformer configs
-export default function TransformerForm(props: Props): ReactElement {
+export default function TransformerForm(props: Props): ReactElement<any> {
   const { value, disabled, setValue, errors, NoConfigComponent } = props;
   const valConfig = value.config; // de-refs so that typescript is able to keep the conditional typing as it doesn't work well if you keep it on value itself
 

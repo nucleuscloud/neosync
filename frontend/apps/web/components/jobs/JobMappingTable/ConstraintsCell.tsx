@@ -15,7 +15,7 @@ interface Props {
   isUnique: boolean;
 }
 
-export default function ConstraintsCell(props: Props): ReactElement {
+export default function ConstraintsCell(props: Props): ReactElement<any> {
   const { isPrimaryKey, foreignKey, virtualForeignKey, isUnique } = props;
   const [isForeignKey, fkCols] = foreignKey;
   const [isVirtualForeignKey, vfkCols] = virtualForeignKey;
@@ -73,7 +73,7 @@ interface HoverBadgeProps {
   badgeClassName?: string;
 }
 
-function HoverBadge(props: HoverBadgeProps): ReactElement {
+function HoverBadge(props: HoverBadgeProps): ReactElement<any> {
   const { badgeText, tooltipContent, badgeClassName } = props;
   return (
     <TooltipProvider>

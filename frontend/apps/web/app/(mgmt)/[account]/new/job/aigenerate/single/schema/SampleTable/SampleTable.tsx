@@ -19,7 +19,7 @@ interface Props {
   columns: ColumnDef<SampleRecord>[];
   records: SampleRecord[];
 }
-export default function SampleTable(props: Props): ReactElement {
+export default function SampleTable(props: Props): ReactElement<any> {
   const { records, columns } = props;
 
   const table = useReactTable({

@@ -39,7 +39,7 @@ import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { formatDuration, intervalToDuration } from 'date-fns';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { ReactElement, useEffect, useMemo, useState, use, type JSX } from 'react';
 import { toast } from 'sonner';
 import { format as formatSql } from 'sql-formatter';
 import yaml from 'yaml';
@@ -48,7 +48,8 @@ import JobRunActivityErrors from './components/JobRunActivityErrors';
 import JobRunActivityTable from './components/JobRunActivityTable';
 import JobRunLogs from './components/JobRunLogs';
 
-export default function Page({ params }: PageProps): ReactElement {
+export default function Page(props: PageProps): ReactElement<any> {
+  const params = use(props.params);
   const { account } = useAccount();
   const accountId = account?.id || '';
   const id = decodeURIComponent(params?.id ?? '');
@@ -429,7 +430,7 @@ interface ViewSelectDialogProps {
   query: SelectQuery;
 }
 
-function ViewSelectDialog(props: ViewSelectDialogProps): ReactElement {
+function ViewSelectDialog(props: ViewSelectDialogProps): ReactElement<any> {
   const { isDialogOpen, setIsDialogOpen, query } = props;
   const { resolvedTheme } = useTheme();
 
@@ -490,7 +491,7 @@ interface StatCardProps {
   content?: JSX.Element | string;
 }
 
-function StatCard(props: StatCardProps): ReactElement {
+function StatCard(props: StatCardProps): ReactElement<any> {
   const { header, content } = props;
   return (
     <Card>
@@ -518,7 +519,7 @@ interface AlertProps {
   description: string;
 }
 
-function AlertDestructive(props: AlertProps): ReactElement {
+function AlertDestructive(props: AlertProps): ReactElement<any> {
   return (
     <Alert variant="destructive">
       <AlertTitle>{`${props.title}: ${props.description}`}</AlertTitle>
@@ -530,7 +531,7 @@ interface ButtonProps {
   jobId?: string;
 }
 
-function ButtonLink(props: ButtonProps): ReactElement {
+function ButtonLink(props: ButtonProps): ReactElement<any> {
   const router = useRouter();
   const { account } = useAccount();
   if (!props.jobId) {

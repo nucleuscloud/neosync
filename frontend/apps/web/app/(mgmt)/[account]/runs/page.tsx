@@ -4,7 +4,7 @@ import PageHeader from '@/components/headers/PageHeader';
 import { ReactElement } from 'react';
 import RunsTable from './components/RunsTable';
 
-export default function JobRuns(): ReactElement {
+export default function JobRuns(): ReactElement<any> {
   return (
     <OverviewContainer
       Header={<PageHeader header="Runs" />}

@@ -25,7 +25,7 @@ interface Props {
 const sharedContainerClassName = 'flex flex-row gap-3 px-2 max-w-28';
 const sharedBadgeClassName = 'flex flex-row gap-3';
 
-export default function JobRunStatus(props: Props): ReactElement {
+export default function JobRunStatus(props: Props): ReactElement<any> {
   const { status, containerClassName, badgeClassName } = props;
 
   switch (status) {

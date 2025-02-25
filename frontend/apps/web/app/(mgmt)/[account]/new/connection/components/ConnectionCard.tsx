@@ -19,7 +19,7 @@ interface Props {
   connection: ConnectionMeta;
 }
 
-export default function ConnectionCard(props: Props): ReactElement {
+export default function ConnectionCard(props: Props): ReactElement<any> {
   const { connection } = props;
   const router = useRouter();
   const { account } = useAccount();

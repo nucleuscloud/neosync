@@ -50,7 +50,7 @@ const defaultRowHeight = 40;
 
 type RunStatus = 'running' | 'completed' | 'failed' | 'canceled' | 'terminated';
 
-export default function RunTimeline(props: Props): ReactElement {
+export default function RunTimeline(props: Props): ReactElement<any> {
   const { tasks, jobStatus } = props;
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [selectedStatuses, setSelectedStatuses] = useState<RunStatus[]>([
@@ -207,7 +207,7 @@ interface LeftActivityBarProps {
   expandedTaskId: string;
 }
 
-function LeftActivityBar(props: LeftActivityBarProps): ReactElement {
+function LeftActivityBar(props: LeftActivityBarProps): ReactElement<any> {
   const { filteredTasks, toggleExpandedRowBody, jobStatus, expandedTaskId } =
     props;
   return (
@@ -374,7 +374,7 @@ interface TableHeaderProps {
   totalDuration: number;
 }
 
-function TableHeader(props: TableHeaderProps): ReactElement {
+function TableHeader(props: TableHeaderProps): ReactElement<any> {
   const {
     formatDate,
     getPositionPercentage,
@@ -644,7 +644,7 @@ interface ExpandedRowProps {
   task: JobRunEvent;
 }
 
-function ExpandedRow(props: ExpandedRowProps): ReactElement {
+function ExpandedRow(props: ExpandedRowProps): ReactElement<any> {
   const { toggleExpandedRowBody, isExpanded, isLastItem, task } = props;
 
   return (
@@ -679,7 +679,7 @@ interface ExpandedRowBodyProps {
   task: JobRunEvent;
 }
 
-function ExpandedRowBody(props: ExpandedRowBodyProps): ReactElement {
+function ExpandedRowBody(props: ExpandedRowBodyProps): ReactElement<any> {
   const { task } = props;
   const getLabel = (type: string) => {
     switch (type) {

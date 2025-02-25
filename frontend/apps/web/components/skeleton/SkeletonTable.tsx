@@ -3,7 +3,7 @@ import { Skeleton } from '../ui/skeleton';
 
 interface Props {}
 
-export default function SkeletonTable(props: Props): ReactElement {
+export default function SkeletonTable(props: Props): ReactElement<any> {
   const {} = props;
   return (
     <div className="space-y-4">

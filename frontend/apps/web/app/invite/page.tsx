@@ -14,7 +14,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-export default function InvitePage(): ReactElement {
+export default function InvitePage(): ReactElement<any> {
   const { status } = useSession();
   const { setAccount, mutateUserAccount } = useAccount();
   const { isLoading: isUserLoading, error: userError } = useNeosyncUser();

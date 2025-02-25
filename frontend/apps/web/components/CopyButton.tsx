@@ -21,7 +21,7 @@ interface Props {
   buttonVariant?: ButtonProps['variant'];
   buttonText?: string;
 }
-export function CopyButton(props: Props): ReactElement {
+export function CopyButton(props: Props): ReactElement<any> {
   const {
     onHoverText,
     onCopiedText,

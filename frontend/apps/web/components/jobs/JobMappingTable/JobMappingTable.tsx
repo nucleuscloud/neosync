@@ -71,7 +71,7 @@ declare module '@tanstack/react-table' {
 
 export default function JobMappingTable<TData, TValue>(
   props: Props<TData, TValue>
-): ReactElement {
+): ReactElement<any> {
   const {
     data,
     columns,

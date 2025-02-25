@@ -20,7 +20,7 @@ interface TestConnectionBadgeProps {
 
 export default function TestConnectionBadge(
   props: TestConnectionBadgeProps
-): ReactElement {
+): ReactElement<any> {
   const { validationResponse, connectionId, accountName } = props;
 
   return (
@@ -43,7 +43,7 @@ interface ValidationResponseBadgeProps {
 
 function ValidationResponseBadge(
   props: ValidationResponseBadgeProps
-): ReactElement | null {
+): ReactElement<any> | null {
   const { validationResponse, accountName, connectionId } = props;
   const url = `/${accountName}/connections/${connectionId}/permissions`;
 

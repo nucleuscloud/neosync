@@ -47,7 +47,7 @@ import {
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
+import { ReactElement, useCallback, useEffect, useMemo, useState, use } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
@@ -79,7 +79,8 @@ export interface ColumnMetadata {
   isNullable: DatabaseColumn[];
 }
 
-export default function Page({ searchParams }: PageProps): ReactElement {
+export default function Page(props: PageProps): ReactElement<any> {
+  const searchParams = use(props.searchParams);
   const { account } = useAccount();
   const router = useRouter();
   const posthog = usePostHog();

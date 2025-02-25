@@ -17,7 +17,7 @@ interface Props {
   delayDuration?: number;
 }
 
-export default function TruncatedText(props: Props): ReactElement {
+export default function TruncatedText(props: Props): ReactElement<any> {
   const {
     text,
     truncatedContainerClassName,

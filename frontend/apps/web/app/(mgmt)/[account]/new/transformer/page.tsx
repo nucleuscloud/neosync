@@ -61,7 +61,7 @@ function getTransformerSource(sourceStr: string): TransformerSource {
   return sourceNum as TransformerSource;
 }
 
-export default function NewTransformer(): ReactElement {
+export default function NewTransformer(): ReactElement<any> {
   const { account } = useAccount();
 
   const { data, isLoading } = useQuery(

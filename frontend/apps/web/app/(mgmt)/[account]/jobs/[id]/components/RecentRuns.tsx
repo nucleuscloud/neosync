@@ -40,7 +40,7 @@ interface Props {
   jobId: string;
 }
 
-export default function JobRecentRuns({ jobId }: Props): ReactElement {
+export default function JobRecentRuns({ jobId }: Props): ReactElement<any> {
   const { account } = useAccount();
   const {
     data: recentRunsData,

@@ -39,7 +39,7 @@ interface Props {
   accountId: string;
   onInvited(): void;
 }
-export default function InviteUserForm(props: Props): ReactElement {
+export default function InviteUserForm(props: Props): ReactElement<any> {
   const { accountId, onInvited } = props;
   const { data: systemAppData } = useGetSystemAppConfig();
   const isRbacEnabled = systemAppData?.isRbacEnabled ?? false;
@@ -176,7 +176,7 @@ interface InviteCreatedDialogProps {
   token: string;
 }
 
-function InviteCreatedDialog(props: InviteCreatedDialogProps): ReactElement {
+function InviteCreatedDialog(props: InviteCreatedDialogProps): ReactElement<any> {
   const { open, setOpen, token } = props;
   const { data: systemAppData } = useGetSystemAppConfig();
   const link = buildInviteLink(systemAppData?.publicAppBaseUrl ?? '', token);

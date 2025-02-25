@@ -18,7 +18,7 @@ interface Props {
   columns: string[];
 }
 
-export default function EditItems(props: Props): ReactElement {
+export default function EditItems(props: Props): ReactElement<any> {
   const { item, onItem, onSave, onCancel, columns } = props;
 
   function onWhereChange(whereClause: string): void {

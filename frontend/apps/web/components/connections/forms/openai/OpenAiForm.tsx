@@ -51,7 +51,7 @@ interface Props {
   getValueWithSecrets?(): Promise<OpenAiFormValues | undefined>;
 }
 
-export default function OpenAiForm(props: Props): ReactElement {
+export default function OpenAiForm(props: Props): ReactElement<any> {
   const {
     mode,
     initialValues,

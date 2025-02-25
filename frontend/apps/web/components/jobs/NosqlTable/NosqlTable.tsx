@@ -69,7 +69,7 @@ interface Props {
   ): void;
 }
 
-export default function NosqlTable(props: Props): ReactElement {
+export default function NosqlTable(props: Props): ReactElement<any> {
   const {
     data,
     schema,

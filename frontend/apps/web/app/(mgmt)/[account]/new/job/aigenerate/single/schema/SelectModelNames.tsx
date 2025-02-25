@@ -18,7 +18,7 @@ const COMMON_MODELS = {
   OpenAI: ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo'],
 };
 
-export default function SelectModelNames(props: Props): ReactElement {
+export default function SelectModelNames(props: Props): ReactElement<any> {
   const { onSelected } = props;
   const [value, setValue] = useState('');
   return (

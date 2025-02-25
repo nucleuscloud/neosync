@@ -18,7 +18,7 @@ interface Props {
   connection: Connection;
 }
 
-export default function ViewActions(props: Props): ReactElement | null {
+export default function ViewActions(props: Props): ReactElement<any> | null {
   const { connection } = props;
   const router = useRouter();
   const { account } = useAccount();

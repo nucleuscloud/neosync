@@ -24,7 +24,7 @@ interface Props {
   identifier: string;
 }
 
-export default function MetricCount(props: Props): ReactElement {
+export default function MetricCount(props: Props): ReactElement<any> {
   const { period, metric, identifier, idtype } = props;
   const { account } = useAccount();
   const [start, end] = periodToDateRange(period);

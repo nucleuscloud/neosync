@@ -9,7 +9,7 @@ interface Props {
   count?: number;
 }
 
-export default function ExportJobMappingsButton(props: Props): ReactElement {
+export default function ExportJobMappingsButton(props: Props): ReactElement<any> {
   const { onClick, count } = props;
   const [prettyPrint, setPrettyPrint] = useState<boolean>(false);
   const headerText = useHeaderText(count);
@@ -58,7 +58,7 @@ interface BodyProps {
   setPrettyPrint(value: boolean): void;
 }
 
-function Body(props: BodyProps): ReactElement {
+function Body(props: BodyProps): ReactElement<any> {
   const { prettyPrint, setPrettyPrint } = props;
 
   return (

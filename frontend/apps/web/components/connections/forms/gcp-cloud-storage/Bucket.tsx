@@ -10,7 +10,7 @@ interface Props {
   errors: Record<string, string>;
 }
 
-export default function Bucket(props: Props): ReactElement {
+export default function Bucket(props: Props): ReactElement<any> {
   const { value, onChange, errors } = props;
 
   return (

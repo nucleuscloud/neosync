@@ -10,7 +10,7 @@ import AwsS3Form from './AwsS3Form';
 
 export default function AwsS3ConnectionForm(
   props: ConnectionFormProps
-): ReactElement {
+): ReactElement<any> {
   const { mode } = props;
 
   const connectionProps = {

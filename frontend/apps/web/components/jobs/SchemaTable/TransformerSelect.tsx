@@ -48,7 +48,7 @@ interface Props {
   notFoundText?: string;
 }
 
-export default function TransformerSelect(props: Props): ReactElement {
+export default function TransformerSelect(props: Props): ReactElement<any> {
   const {
     getTransformers,
     value,

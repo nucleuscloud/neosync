@@ -25,7 +25,7 @@ interface UpgradeProps {
   isLoading: boolean;
 }
 
-export default function Upgrade(props: UpgradeProps): ReactElement | null {
+export default function Upgrade(props: UpgradeProps): ReactElement<any> | null {
   const { calendlyLink, isNeosyncCloud, isAccountStatusValidResp, isLoading } =
     props;
   const { account } = useAccount();
@@ -61,7 +61,7 @@ interface UpgradeInfoDialogProps {
   reason?: string;
 }
 
-function UpgradeInfoDialog(props: UpgradeInfoDialogProps): ReactElement {
+function UpgradeInfoDialog(props: UpgradeInfoDialogProps): ReactElement<any> {
   const { upgradeHref, accountStatus, reason } = props;
   const [open, onOpenChange] = useState(false);
 
@@ -108,7 +108,7 @@ interface IncludedReasonProps {
   reason: string;
 }
 
-function IncludedReason(props: IncludedReasonProps): ReactElement {
+function IncludedReason(props: IncludedReasonProps): ReactElement<any> {
   const { accountStatus, reason } = props;
 
   switch (accountStatus) {

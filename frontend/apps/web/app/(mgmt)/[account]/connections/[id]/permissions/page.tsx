@@ -26,7 +26,7 @@ import {
 import { UpdateIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import Error from 'next/error';
-import { useMemo } from 'react';
+import { useMemo, use } from 'react';
 import { toast } from 'sonner';
 import ViewActions from '../components/ViewActions';
 import { useGetConnectionComponentDetails } from '../components/useGetConnectionComponentDetails';
@@ -48,7 +48,8 @@ function getPermissionColumnType(
   }
 }
 
-export default function PermissionsPage({ params }: PageProps) {
+export default function PermissionsPage(props: PageProps) {
+  const params = use(props.params);
   const id = params?.id ?? '';
   const { account } = useAccount();
   const { data, isLoading } = useQuery(

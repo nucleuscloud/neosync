@@ -58,7 +58,7 @@ export default function DestinationConnectionCard({
   isDeleteDisabled,
   jobSourceId,
   jobmappings,
-}: Props): ReactElement {
+}: Props): ReactElement<any> {
   const { mutateAsync: setJobDestConnection } = useMutation(
     JobService.method.updateJobDestinationConnection
   );
@@ -224,7 +224,7 @@ interface DeleteButtonProps {
   onDelete(): Promise<void> | void;
 }
 
-function DeleteButton(props: DeleteButtonProps): ReactElement {
+function DeleteButton(props: DeleteButtonProps): ReactElement<any> {
   const { isDisabled, onDelete } = props;
   return (
     <DeleteConfirmationDialog

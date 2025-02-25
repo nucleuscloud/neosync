@@ -11,7 +11,7 @@ interface Props {
   onEdited(): void;
 }
 
-export default function HookCard(props: Props): ReactElement {
+export default function HookCard(props: Props): ReactElement<any> {
   const { hook, onDeleted, onEdited } = props;
 
   return (

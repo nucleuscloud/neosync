@@ -10,7 +10,7 @@ import OpenAiForm from './OpenAiForm';
 
 export default function OpenAiConnectionForm(
   props: ConnectionFormProps
-): ReactElement {
+): ReactElement<any> {
   const { mode } = props;
 
   const connectionProps = {

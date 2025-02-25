@@ -56,7 +56,7 @@ interface Props {
   mutate: (newjob: Job) => void;
 }
 
-export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
+export default function JobScheduleCard({ job, mutate }: Props): ReactElement<any> {
   const form = useForm({
     mode: 'onChange',
     resolver: yupResolver<ScheduleFormValues>(SCHEDULE_FORM_SCHEMA),

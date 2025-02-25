@@ -37,7 +37,7 @@ interface Props {
   onUpdated(transformer: UserDefinedTransformer): void;
 }
 
-export default function UpdateTransformerForm(props: Props): ReactElement {
+export default function UpdateTransformerForm(props: Props): ReactElement<any> {
   const { currentTransformer, onUpdated } = props;
   const { account } = useAccount();
   const { mutateAsync: isTransformerNameAvailableAsync } = useMutation(

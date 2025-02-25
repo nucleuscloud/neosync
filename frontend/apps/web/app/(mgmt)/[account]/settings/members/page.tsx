@@ -13,7 +13,7 @@ import MembersTable from './components/MemberTable';
 
 interface Props {}
 
-export default function MemberManagementSettings(_: Props): ReactElement {
+export default function MemberManagementSettings(_: Props): ReactElement<any> {
   const { account, isLoading } = useAccount();
   const accountId = account?.id || '';
 

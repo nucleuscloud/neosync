@@ -9,7 +9,7 @@ interface Props {
   apiBaseUrl: string;
 }
 
-export default function ConnectProvider(props: Props): ReactElement {
+export default function ConnectProvider(props: Props): ReactElement<any> {
   const { children, apiBaseUrl } = props;
   const connectTransport = useMemo(() => {
     return createConnectTransport({

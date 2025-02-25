@@ -8,7 +8,7 @@ interface Props {
   text: string;
 }
 
-export default function Submit(props: Props): ReactElement {
+export default function Submit(props: Props): ReactElement<any> {
   const { isSubmitting, text } = props;
 
   return (

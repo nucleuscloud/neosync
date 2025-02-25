@@ -53,7 +53,7 @@ interface Props {
   getValueWithSecrets?(): Promise<GcpCloudStorageFormValues | undefined>;
 }
 
-export default function GcpCloudStorageForm(props: Props): ReactElement {
+export default function GcpCloudStorageForm(props: Props): ReactElement<any> {
   const { mode, initialValues, onSubmit = async () => undefined } = props;
   const { account } = useAccount();
   const store = useFormStore();

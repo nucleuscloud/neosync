@@ -34,7 +34,7 @@ interface Props {
   onSelectedTableToggle(items: Set<string>, action: Action): void;
 }
 
-export function AiSchemaTable(props: Props): ReactElement {
+export function AiSchemaTable(props: Props): ReactElement<any> {
   const {
     data,
     constraintHandler,

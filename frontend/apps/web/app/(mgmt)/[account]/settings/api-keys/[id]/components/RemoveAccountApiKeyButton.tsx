@@ -15,7 +15,7 @@ interface Props {
   onDeleted?(): void;
 }
 
-export default function RemoveAccountApiKeyButton(props: Props): ReactElement {
+export default function RemoveAccountApiKeyButton(props: Props): ReactElement<any> {
   const { id, trigger, onDeleted } = props;
   const { mutateAsync } = useMutation(ApiKeyService.method.deleteAccountApiKey);
 

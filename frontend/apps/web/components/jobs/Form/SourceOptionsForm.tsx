@@ -16,7 +16,7 @@ interface SourceOptionsProps {
 }
 export default function SourceOptionsForm(
   props: SourceOptionsProps
-): ReactElement {
+): ReactElement<any> {
   const { connection, value, setValue } = props;
 
   const {

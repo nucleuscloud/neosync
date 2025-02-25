@@ -10,7 +10,7 @@ interface Props {
   isBulkEditButtonDisabled: boolean;
   onBulkEditClick(): void;
 }
-export function SubsetTableToolbar(props: Props): ReactElement {
+export function SubsetTableToolbar(props: Props): ReactElement<any> {
   const {
     onClearFilters,
     isFilterButtonDisabled,

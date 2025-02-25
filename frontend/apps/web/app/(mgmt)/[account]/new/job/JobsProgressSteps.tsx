@@ -23,7 +23,7 @@ interface Props {
   stepName: JobProgressStep;
 }
 
-export default function JobsProgressSteps(props: Props): ReactElement {
+export default function JobsProgressSteps(props: Props): ReactElement<any> {
   const { steps, stepName } = props;
 
   const currentStepIndex = steps.indexOf(stepName);

@@ -8,7 +8,7 @@ interface Props {
   setValue(newVal: MysqlSourceOptionsFormValues): void;
 }
 
-export default function MysqlDBSourceOptionsForm(props: Props): ReactElement {
+export default function MysqlDBSourceOptionsForm(props: Props): ReactElement<any> {
   const { value, setValue } = props;
 
   return (

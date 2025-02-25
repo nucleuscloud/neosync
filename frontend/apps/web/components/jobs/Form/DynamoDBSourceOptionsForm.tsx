@@ -23,7 +23,7 @@ interface Props {
   setValue(newVal: DynamoDBSourceOptionsFormValues): void;
   transformerHandler: TransformerHandler;
 }
-export default function DynamoDBSourceOptionsForm(props: Props): ReactElement {
+export default function DynamoDBSourceOptionsForm(props: Props): ReactElement<any> {
   const { value, setValue, transformerHandler } = props;
   return (
     <div className="flex flex-col gap-6 rounded-lg border p-4">
@@ -87,7 +87,7 @@ interface UnmappedTransformConfigFormProps {
 }
 function UnmappedTransformConfigForm(
   props: UnmappedTransformConfigFormProps
-): ReactElement {
+): ReactElement<any> {
   const { value, setValue, transformerHandler } = props;
   const byteTransformer = getTransformerFromField(
     transformerHandler,
@@ -222,7 +222,7 @@ interface ConsistentReadFormProps {
   setValue(newValue: boolean): void;
 }
 
-function ConsistentReadForm(props: ConsistentReadFormProps): ReactElement {
+function ConsistentReadForm(props: ConsistentReadFormProps): ReactElement<any> {
   const { value, setValue } = props;
 
   return (

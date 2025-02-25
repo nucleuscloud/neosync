@@ -1,6 +1,6 @@
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
-import { ReactElement, ReactNode } from 'react';
+import { ReactElement, ReactNode, type JSX } from 'react';
 import ButtonText from './ButtonText';
 import { Button } from './ui/button';
 
@@ -12,7 +12,7 @@ interface Props {
   extra?: ReactNode;
 }
 
-export default function EmptyState(props: Props): ReactElement {
+export default function EmptyState(props: Props): ReactElement<any> {
   const { title, description, icon, extra } = props;
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center bg-gray-50 dark:bg-gray-900/20 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
@@ -34,7 +34,7 @@ interface EmptyStateLinkButtonProps {
 }
 export function EmptyStateLinkButton(
   props: EmptyStateLinkButtonProps
-): ReactElement {
+): ReactElement<any> {
   const { buttonIconSide, href, buttonIcon = <PlusIcon />, buttonText } = props;
   return (
     <NextLink href={href}>

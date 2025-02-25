@@ -18,7 +18,7 @@ interface NameProps {
   onChange(value: string): void;
 }
 
-export function Name(props: NameProps): ReactElement {
+export function Name(props: NameProps): ReactElement<any> {
   const { error, value, onChange } = props;
 
   return (
@@ -49,7 +49,7 @@ interface DescriptionProps {
   onChange(value: string): void;
 }
 
-export function Description(props: DescriptionProps): ReactElement {
+export function Description(props: DescriptionProps): ReactElement<any> {
   const { error, value, onChange } = props;
 
   return (
@@ -78,7 +78,7 @@ interface EnabledProps {
   onChange(value: boolean): void;
 }
 
-export function Enabled(props: EnabledProps): ReactElement {
+export function Enabled(props: EnabledProps): ReactElement<any> {
   const { error, value, onChange } = props;
 
   return (
@@ -115,7 +115,7 @@ interface HookTypeProps {
   onChange(value: HookTypeFormValue): void;
 }
 
-export function HookType(props: HookTypeProps): ReactElement {
+export function HookType(props: HookTypeProps): ReactElement<any> {
   const { error, value, onChange } = props;
 
   return (
@@ -149,7 +149,7 @@ interface AccountHookConfigProps {
   onChange(value: AccountHookConfigFormValues): void;
 }
 
-export function AccountHookConfig(props: AccountHookConfigProps): ReactElement {
+export function AccountHookConfig(props: AccountHookConfigProps): ReactElement<any> {
   const { errors, hookType, value, onChange } = props;
 
   return (
@@ -173,7 +173,7 @@ interface AccountHookEventsProps {
   onChange(value: AccountHookEventsFormValue): void;
 }
 
-export function AccountHookEvents(props: AccountHookEventsProps): ReactElement {
+export function AccountHookEvents(props: AccountHookEventsProps): ReactElement<any> {
   const { error, value, onChange } = props;
 
   return (

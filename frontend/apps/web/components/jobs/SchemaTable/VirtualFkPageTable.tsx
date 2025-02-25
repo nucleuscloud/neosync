@@ -35,7 +35,7 @@ interface DataTableProps<TData, TValue> {
 export default function VirtualFkPageTable<TData, TValue>({
   columns,
   data,
-}: DataTableProps<TData, TValue>): ReactElement {
+}: DataTableProps<TData, TValue>): ReactElement<any> {
   const table = useReactTable({
     data,
     columns,
@@ -60,7 +60,7 @@ export default function VirtualFkPageTable<TData, TValue>({
   });
 
   return (
-    <div>
+    (<div>
       <div
         className={cn(
           'rounded-md border min-h-[145px] max-h-[500px] relative border-gray-300 dark:border-gray-700 overflow-hidden',
@@ -109,9 +109,11 @@ export default function VirtualFkPageTable<TData, TValue>({
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const row = rows[virtualRow.index];
               return (
-                <TableRow
+                (<TableRow
                   data-index={virtualRow.index} //needed for dynamic row height measurement
-                  ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+                  ref={node => {
+                    rowVirtualizer.measureElement(node);
+                  }} //measure dynamic row height
                   key={row.id}
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
@@ -134,7 +136,7 @@ export default function VirtualFkPageTable<TData, TValue>({
                       </td>
                     );
                   })}
-                </TableRow>
+                </TableRow>)
               );
             })}
           </TableBody>
@@ -146,6 +148,6 @@ export default function VirtualFkPageTable<TData, TValue>({
         {new Intl.NumberFormat('en-US').format(table.getRowModel().rows.length)}
         )
       </div>
-    </div>
+    </div>)
   );
 }

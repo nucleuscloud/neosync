@@ -1,7 +1,7 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReactElement } from 'react';
 
-export default function SchemaPageSkeleton(): ReactElement {
+export default function SchemaPageSkeleton(): ReactElement<any> {
   return (
     <div className="space-y-10">
       <Skeleton className="w-full h-10" />

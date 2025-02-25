@@ -3,7 +3,7 @@ import PageHeader from '@/components/headers/PageHeader';
 import { ReactElement } from 'react';
 import NewApiKeyForm from './NewApiKeyForm';
 
-export default function NewAccountApiKey(): ReactElement {
+export default function NewAccountApiKey(): ReactElement<any> {
   return (
     <OverviewContainer
       Header={
