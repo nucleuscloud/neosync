@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -18,6 +19,8 @@ type Interface interface {
 	ExchangeCodeForAccessToken(ctx context.Context, code string) (*slack.OAuthV2Response, error)
 	Test(ctx context.Context, accessToken string) (*slack.AuthTestResponse, error)
 	SendMessage(ctx context.Context, accessToken, channelId string, options ...slack.MsgOption) error
+	JoinChannel(ctx context.Context, accessToken, channelId string) error
+	GetPublicChannels(ctx context.Context, accessToken string) ([]slack.Channel, error)
 }
 
 type Client struct {
@@ -30,6 +33,8 @@ type config struct {
 	appClientSecret string
 	scope           string
 	redirectUrl     string
+
+	httpClient *http.Client
 }
 
 type Option func(*config)
@@ -52,8 +57,18 @@ func WithRedirectUrl(redirectUrl string) Option {
 	}
 }
 
+func WithHttpClient(httpClient *http.Client) Option {
+	return func(c *config) {
+		c.httpClient = httpClient
+	}
+}
+
 func NewClient(encryptor sym_encrypt.Interface, opts ...Option) *Client {
-	cfg := &config{}
+	cfg := &config{
+		httpClient: &http.Client{
+			Timeout: 10 * time.Second,
+		},
+	}
 	for _, opt := range opts {
 		opt(cfg)
 	}
@@ -118,7 +133,7 @@ func (c *Client) ValidateState(state, accountId, userId string) error {
 }
 
 func (c *Client) ExchangeCodeForAccessToken(ctx context.Context, code string) (*slack.OAuthV2Response, error) {
-	resp, err := slack.GetOAuthV2ResponseContext(ctx, &http.Client{}, c.cfg.appClientId, c.cfg.appClientSecret, code, c.cfg.redirectUrl)
+	resp, err := slack.GetOAuthV2ResponseContext(ctx, c.cfg.httpClient, c.cfg.appClientId, c.cfg.appClientSecret, code, c.cfg.redirectUrl)
 	if err != nil {
 		return nil, fmt.Errorf("unable to exchange code for access token: %w", err)
 	}
@@ -145,6 +160,32 @@ func (c *Client) SendMessage(ctx context.Context, accessToken, channelId string,
 		return fmt.Errorf("unable to send message: %w", err)
 	}
 	return nil
+}
+
+func (c *Client) JoinChannel(ctx context.Context, accessToken, channelId string, logger *slog.Logger) error {
+	api := slack.New(accessToken)
+
+	_, _, warnings, err := api.JoinConversationContext(ctx, channelId)
+	if err != nil {
+		return fmt.Errorf("unable to join channel: %w", err)
+	}
+	if len(warnings) > 0 {
+		logger.Warn("warnings when joining slack channel", "warnings", warnings)
+	}
+	return nil
+}
+
+func (c *Client) GetPublicChannels(ctx context.Context, accessToken string) ([]slack.Channel, error) {
+	api := slack.New(accessToken)
+
+	channels, _, err := api.GetConversationsContext(ctx, &slack.GetConversationsParameters{
+		Limit: 200,
+		Types: []string{"public_channel"},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to get channels: %w", err)
+	}
+	return channels, nil
 }
 
 type slackOauthState struct {

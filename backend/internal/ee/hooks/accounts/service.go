@@ -348,6 +348,8 @@ func (s *Service) CreateAccountHook(ctx context.Context, req *mgmtv1alpha1.Creat
 		return nil, err
 	}
 
+	// todo: if slack, join channel
+
 	return &mgmtv1alpha1.CreateAccountHookResponse{
 		Hook: dto,
 	}, nil
@@ -407,6 +409,8 @@ func (s *Service) UpdateAccountHook(ctx context.Context, req *mgmtv1alpha1.Updat
 	if err != nil {
 		return nil, err
 	}
+
+	// todo: if slack and channel has changed, join channel
 
 	return &mgmtv1alpha1.UpdateAccountHookResponse{
 		Hook: dto,
