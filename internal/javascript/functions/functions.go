@@ -63,7 +63,11 @@ func getTypeString(arg goja.Value) string {
 	if goja.IsUndefined(arg) {
 		return "undefined"
 	}
-	return arg.ExportType().String()
+	exportType := arg.ExportType()
+	if exportType == nil {
+		return "unknown"
+	}
+	return exportType.String()
 }
 
 // Takes in a goja function call and returns the parsed arguments into the provided pointers.
