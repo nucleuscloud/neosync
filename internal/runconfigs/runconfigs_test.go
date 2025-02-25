@@ -1168,8 +1168,13 @@ func buildRunConfig(
 	selectCols, insertCols []string,
 	dependsOn []*DependsOn,
 ) *RunConfig {
+	schema, table := sqlmanager_shared.SplitTableKey(table)
+	schemaTable := sqlmanager_shared.SchemaTable{
+		Schema: schema,
+		Table:  table,
+	}
 	rc := &RunConfig{
-		table:         table,
+		table:         schemaTable,
 		runType:       runtype,
 		selectColumns: selectCols,
 		insertColumns: insertCols,

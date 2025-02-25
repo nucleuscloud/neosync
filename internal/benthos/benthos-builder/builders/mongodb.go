@@ -65,11 +65,15 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_
 			columns = append(columns, jm.Column)
 		}
 
+		schemaTable := sqlmanager_shared.SchemaTable{
+			Schema: tableMapping.Schema,
+			Table:  tableMapping.Table,
+		}
 		splitColumnPaths := true
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
-			runconfigs.NewRunConfig(tableMapping.Table, runconfigs.RunTypeInsert, []string{}, nil, columns, columns, nil, splitColumnPaths),
+			runconfigs.NewRunConfig(schemaTable, runconfigs.RunTypeInsert, []string{}, nil, columns, columns, nil, splitColumnPaths),
 			map[string][]*bb_internal.ReferenceKey{},
 			map[string][]*bb_internal.ReferenceKey{},
 			params.Job.Id,

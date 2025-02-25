@@ -44,19 +44,19 @@ func newTableConfigsBuilder(
 	return b
 }
 
-func (b *tableConfigsBuilder) Build(table string) []*RunConfig {
-	whereClause := b.whereClauses[table]
-	// run config builder
+func (b *tableConfigsBuilder) Build(table sqlmanager_shared.SchemaTable) []*RunConfig {
+	tableKey := table.String()
+	whereClause := b.whereClauses[tableKey]
 	return newRunConfigBuilder(
 		table,
-		b.columns[table],
-		b.primaryKeys[table],
+		b.columns[tableKey],
+		b.primaryKeys[tableKey],
 		&whereClause,
-		b.uniqueIndexes[table],
-		b.uniqueConstraints[table],
-		b.foreignKeys[table],
-		b.circularDependencies[table],
-		b.subsetPaths[table],
+		b.uniqueIndexes[tableKey],
+		b.uniqueConstraints[tableKey],
+		b.foreignKeys[tableKey],
+		b.circularDependencies[tableKey],
+		b.subsetPaths[tableKey],
 	).Build()
 }
 
@@ -189,16 +189,6 @@ func reverseJoinSteps(steps []JoinStep) []JoinStep {
 	return result
 }
 
-// reverseSlice reverses a slice of strings.
-func reverseSlice(s []string) []string {
-	n := len(s)
-	result := make([]string, n)
-	for i, v := range s {
-		result[n-1-i] = v
-	}
-	return result
-}
-
 // RunConfigBuilder is responsible for generating RunConfigs that define how to process table data.
 // It handles two main scenarios:
 // 1. Tables without circular dependencies - generates a single INSERT config
@@ -209,7 +199,7 @@ func reverseSlice(s []string) []string {
 // This allows for properly ordered data synchronization while maintaining referential integrity.
 
 type runConfigBuilder struct {
-	table                      string
+	table                      sqlmanager_shared.SchemaTable
 	primaryKeys                []string
 	whereClause                *string
 	columns                    []string
@@ -221,7 +211,7 @@ type runConfigBuilder struct {
 }
 
 func newRunConfigBuilder(
-	table string,
+	table sqlmanager_shared.SchemaTable,
 	columns []string,
 	primaryKeys []string,
 	whereClause *string,
@@ -368,9 +358,9 @@ func (b *runConfigBuilder) buildUpdateConfig(
 	}
 
 	// if the foreign key table is not the same as the table, we need to add a depends on for the primary keys
-	if fc.ForeignKey.Table != b.table {
+	if fc.ForeignKey.Table != b.table.String() {
 		dependsOn = append(dependsOn, &DependsOn{
-			Table:   b.table,
+			Table:   b.table.String(),
 			Columns: b.primaryKeys,
 		})
 	}

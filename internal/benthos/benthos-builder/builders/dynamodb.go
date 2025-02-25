@@ -97,10 +97,14 @@ func (b *dyanmodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 
 		mappedKeys := slices.Concat(columns, tableKeyList)
 		splitColumnPaths := true
+		schemaTable := sqlmanager_shared.SchemaTable{
+			Schema: tableMapping.Schema,
+			Table:  tableMapping.Table,
+		}
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
-			runconfigs.NewRunConfig(tableMapping.Table, runconfigs.RunTypeInsert, []string{}, nil, columns, columns, nil, splitColumnPaths),
+			runconfigs.NewRunConfig(schemaTable, runconfigs.RunTypeInsert, []string{}, nil, columns, columns, nil, splitColumnPaths),
 			map[string][]*bb_internal.ReferenceKey{},
 			map[string][]*bb_internal.ReferenceKey{},
 			params.Job.Id,

@@ -57,8 +57,9 @@ type JoinStep struct {
 }
 
 type RunConfig struct {
-	id               string
-	table            string // schema.table  TODO: should use sqlmanager_shared.SchemaTable
+	id string
+	// table            string // schema.table  TODO: should use sqlmanager_shared.SchemaTable
+	table            sqlmanager_shared.SchemaTable
 	selectColumns    []string
 	insertColumns    []string
 	dependsOn        []*DependsOn // this should be a list of config names like "table.insert", rename to dependsOnConfigs
@@ -72,7 +73,7 @@ type RunConfig struct {
 }
 
 func NewRunConfig(
-	table string,
+	table sqlmanager_shared.SchemaTable,
 	runtype RunType,
 	primaryKeys []string,
 	whereClause *string,
@@ -97,6 +98,10 @@ func (rc *RunConfig) Id() string {
 }
 
 func (rc *RunConfig) Table() string {
+	return rc.table.String()
+}
+
+func (rc *RunConfig) SchemaTable() sqlmanager_shared.SchemaTable {
 	return rc.table
 }
 
@@ -209,8 +214,13 @@ func BuildRunConfigs(
 	tableConfigsBuilder := newTableConfigsBuilder(tableColumnsMap, primaryKeyMap, subsets, uniqueIndexesMap, uniqueConstraintsMap, filteredFks)
 
 	// build configs for each table
-	for table := range tableColumnsMap {
-		cfgs := tableConfigsBuilder.Build(table)
+	for schematable := range tableColumnsMap {
+		schema, table := sqlmanager_shared.SplitTableKey(schematable)
+		schematable := sqlmanager_shared.SchemaTable{
+			Schema: schema,
+			Table:  table,
+		}
+		cfgs := tableConfigsBuilder.Build(schematable)
 		configs = append(configs, cfgs...)
 	}
 

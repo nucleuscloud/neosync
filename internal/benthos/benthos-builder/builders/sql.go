@@ -144,16 +144,11 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	b.primaryKeyToForeignKeysMap = primaryKeyToForeignKeysMap
 
 	configQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, b.pageLimit)
-	// configQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo, b.pageLimit)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 	b.configQueryMap = configQueryMap
 
-	// for _, query := range configQueryMap {
-	// 	jsonF, _ := json.MarshalIndent(query, "", " ")
-	// 	fmt.Printf("\n\n %s \n\n", string(jsonF))
-	// }
 	fmt.Println("--------------------------------")
 	for _, rc := range runConfigs {
 		fmt.Println()

@@ -107,11 +107,6 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		responses = append(responses, response)
 	}
 
-	// for _, resp := range responses {
-	// 	jsonF, _ := json.MarshalIndent(resp, "", " ")
-	// 	fmt.Printf("\n\n %s \n\n", string(jsonF))
-	// }
-
 	b.logger.Info(fmt.Sprintf("successfully built %d benthos configs", len(responses)))
 	return responses, nil
 }

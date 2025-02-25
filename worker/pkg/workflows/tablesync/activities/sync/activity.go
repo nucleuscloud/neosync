@@ -150,6 +150,11 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncTableRequest, metadat
 		return nil, err
 	}
 
+	fmt.Println()
+	fmt.Println(req.Id)
+	fmt.Println("benthosConfig", benthosConfig)
+	fmt.Println()
+
 	defer func() {
 		logger.Debug("releasing session", "session", session.String())
 		a.sqlconnmanager.ReleaseSession(session, logger)
@@ -327,10 +332,6 @@ func (a *Activity) getBenthosStream(
 
 	// This must come before SetYaml as otherwise it will not be invoked
 	streambldr.SetEnvVarLookupFunc(getEnvVarLookupFn(envKeyMap))
-
-	fmt.Println()
-	fmt.Println("benthosConfig", benthosConfig)
-	fmt.Println()
 
 	err = streambldr.SetYAML(benthosConfig)
 	if err != nil {

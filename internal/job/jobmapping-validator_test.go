@@ -393,6 +393,11 @@ func TestValidateCircularDependencies(t *testing.T) {
 			{Schema: "schema1", Table: "table2", Column: "col1"},
 		}
 
+		primaryKeys := map[string][]string{
+			"schema1.table1": {"col1"},
+			"schema1.table2": {"col1"},
+		}
+
 		foreignKeys := map[string][]*sqlmanager_shared.ForeignConstraint{
 			"schema1.table1": {
 				{
@@ -417,7 +422,7 @@ func TestValidateCircularDependencies(t *testing.T) {
 		}
 
 		jmv := NewJobMappingsValidator(mappings)
-		err := jmv.ValidateCircularDependencies(foreignKeys, []*mgmtv1alpha1.VirtualForeignConstraint{}, map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{})
+		err := jmv.ValidateCircularDependencies(foreignKeys, primaryKeys, []*mgmtv1alpha1.VirtualForeignConstraint{}, map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{})
 		require.NoError(t, err)
 
 		errs := jmv.GetDatabaseErrors()
@@ -431,6 +436,11 @@ func TestValidateCircularDependencies(t *testing.T) {
 		mappings := []*mgmtv1alpha1.JobMapping{
 			{Schema: "schema1", Table: "table1", Column: "col1"},
 			{Schema: "schema1", Table: "table2", Column: "col1"},
+		}
+
+		primaryKeys := map[string][]string{
+			"schema1.table1": {"col1"},
+			"schema1.table2": {"col1"},
 		}
 
 		foreignKeys := map[string][]*sqlmanager_shared.ForeignConstraint{
@@ -457,7 +467,7 @@ func TestValidateCircularDependencies(t *testing.T) {
 		}
 
 		jmv := NewJobMappingsValidator(mappings)
-		err := jmv.ValidateCircularDependencies(foreignKeys, []*mgmtv1alpha1.VirtualForeignConstraint{}, map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{})
+		err := jmv.ValidateCircularDependencies(foreignKeys, primaryKeys, []*mgmtv1alpha1.VirtualForeignConstraint{}, map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{})
 		require.NoError(t, err)
 
 		errs := jmv.GetDatabaseErrors()
@@ -468,6 +478,11 @@ func TestValidateCircularDependencies(t *testing.T) {
 		mappings := []*mgmtv1alpha1.JobMapping{
 			{Schema: "schema1", Table: "table1", Column: "col1"},
 			{Schema: "schema1", Table: "table2", Column: "col1"},
+		}
+
+		primaryKeys := map[string][]string{
+			"schema1.table1": {"col1"},
+			"schema1.table2": {"col1"},
 		}
 
 		virtualForeignKeys := []*mgmtv1alpha1.VirtualForeignConstraint{
@@ -497,7 +512,7 @@ func TestValidateCircularDependencies(t *testing.T) {
 		}
 
 		jmv := NewJobMappingsValidator(mappings)
-		err := jmv.ValidateCircularDependencies(map[string][]*sqlmanager_shared.ForeignConstraint{}, virtualForeignKeys, tableColumnMap)
+		err := jmv.ValidateCircularDependencies(map[string][]*sqlmanager_shared.ForeignConstraint{}, primaryKeys, virtualForeignKeys, tableColumnMap)
 		require.NoError(t, err)
 	})
 
@@ -506,6 +521,12 @@ func TestValidateCircularDependencies(t *testing.T) {
 			{Schema: "schema1", Table: "table1", Column: "col1"},
 			{Schema: "schema1", Table: "table2", Column: "col1"},
 			{Schema: "schema1", Table: "table3", Column: "col1"},
+		}
+
+		primaryKeys := map[string][]string{
+			"schema1.table1": {"col1"},
+			"schema1.table2": {"col1"},
+			"schema1.table3": {"col1"},
 		}
 
 		foreignKeys := map[string][]*sqlmanager_shared.ForeignConstraint{
@@ -563,7 +584,7 @@ func TestValidateCircularDependencies(t *testing.T) {
 		}
 
 		jmv := NewJobMappingsValidator(mappings)
-		err := jmv.ValidateCircularDependencies(foreignKeys, virtualForeignKeys, tableColumnMap)
+		err := jmv.ValidateCircularDependencies(foreignKeys, primaryKeys, virtualForeignKeys, tableColumnMap)
 		require.NoError(t, err)
 
 		errs := jmv.GetDatabaseErrors()
@@ -576,6 +597,10 @@ func TestValidateCircularDependencies(t *testing.T) {
 	t.Run("should skip tables not in mappings", func(t *testing.T) {
 		mappings := []*mgmtv1alpha1.JobMapping{
 			{Schema: "schema1", Table: "table1", Column: "col1"},
+		}
+
+		primaryKeys := map[string][]string{
+			"schema1.table1": {"col1"},
 		}
 
 		foreignKeys := map[string][]*sqlmanager_shared.ForeignConstraint{
@@ -592,7 +617,7 @@ func TestValidateCircularDependencies(t *testing.T) {
 		}
 
 		jmv := NewJobMappingsValidator(mappings)
-		err := jmv.ValidateCircularDependencies(foreignKeys, []*mgmtv1alpha1.VirtualForeignConstraint{}, map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{})
+		err := jmv.ValidateCircularDependencies(foreignKeys, primaryKeys, []*mgmtv1alpha1.VirtualForeignConstraint{}, map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{})
 		require.NoError(t, err)
 
 		errs := jmv.GetDatabaseErrors()
@@ -603,6 +628,11 @@ func TestValidateCircularDependencies(t *testing.T) {
 		mappings := []*mgmtv1alpha1.JobMapping{
 			{Schema: "schema1", Table: "table1", Column: "col1"},
 			{Schema: "schema1", Table: "table2", Column: "col1"},
+		}
+
+		primaryKeys := map[string][]string{
+			"schema1.table1": {"col1"},
+			"schema1.table2": {"col1"},
 		}
 
 		virtualForeignKeys := []*mgmtv1alpha1.VirtualForeignConstraint{
@@ -632,7 +662,7 @@ func TestValidateCircularDependencies(t *testing.T) {
 		}
 
 		jmv := NewJobMappingsValidator(mappings)
-		err := jmv.ValidateCircularDependencies(map[string][]*sqlmanager_shared.ForeignConstraint{}, virtualForeignKeys, tableColumnMap)
+		err := jmv.ValidateCircularDependencies(map[string][]*sqlmanager_shared.ForeignConstraint{}, primaryKeys, virtualForeignKeys, tableColumnMap)
 		require.NoError(t, err)
 
 		errs := jmv.GetColumnErrors()
