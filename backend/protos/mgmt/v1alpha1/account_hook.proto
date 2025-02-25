@@ -224,10 +224,14 @@ message TestSlackConnectionRequest {
 }
 
 message TestSlackConnectionResponse {
+  // Whether there is an existing Slack configuration.
+  bool has_configuration = 1;
   // The response from the Slack API.
-  SlackResponse slack = 1;
+  optional Response test_response = 2;
+  // The error message if the connection failed.
+  optional string error = 3;
 
-  message SlackResponse {
+  message Response {
     // The URL of the Slack that is connected.
     string url = 1;
     // The team name of the Slack that is connected.

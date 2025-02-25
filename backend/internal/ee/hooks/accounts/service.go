@@ -519,21 +519,35 @@ func (s *Service) TestSlackConnection(
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, fmt.Errorf("unable to get slack access token: %w", err)
 	} else if err != nil && neosyncdb.IsNoRows(err) {
-		return nil, nucleuserrors.NewNotFound("slack oauth connection not found")
+		msg := "slack oauth connection not found"
+		return &mgmtv1alpha1.TestSlackConnectionResponse{
+			HasConfiguration: false,
+			Error:            &msg,
+		}, nil
 	}
 
 	if accessToken == "" {
-		return nil, nucleuserrors.NewNotFound("slack access token not found")
+		msg := "slack access token not found"
+		return &mgmtv1alpha1.TestSlackConnectionResponse{
+			HasConfiguration: false,
+			Error:            &msg,
+		}, nil
 	}
 
 	logger.Debug("testing slack connection")
 	testResp, err := s.slackClient.Test(ctx, accessToken)
 	if err != nil {
-		return nil, fmt.Errorf("unable to test slack connection: %w", err)
+		msg := err.Error()
+		return &mgmtv1alpha1.TestSlackConnectionResponse{
+			HasConfiguration: true,
+			Error:            &msg,
+		}, nil
 	}
 	logger.Debug("slack connection test successful")
 	return &mgmtv1alpha1.TestSlackConnectionResponse{
-		Slack: &mgmtv1alpha1.TestSlackConnectionResponse_SlackResponse{
+		HasConfiguration: true,
+		Error:            nil,
+		TestResponse: &mgmtv1alpha1.TestSlackConnectionResponse_Response{
 			Url:  testResp.URL,
 			Team: testResp.Team,
 		},

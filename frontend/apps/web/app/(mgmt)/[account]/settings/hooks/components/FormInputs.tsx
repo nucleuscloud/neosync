@@ -5,13 +5,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { AccountHookEvent } from '@neosync/sdk';
 import { ReactElement } from 'react';
+import AccountHookSlackForm from './AccountHookSlackForm';
 import AccountHookWebhookForm from './AccountHookWebhookForm';
 import {
   AccountHookConfigFormValues,
   AccountHookEventsFormValue,
   HookTypeFormValue,
 } from './validation';
-
 interface NameProps {
   error?: string;
   value: string;
@@ -122,7 +122,7 @@ export function HookType(props: HookTypeProps): ReactElement {
     <div className="flex flex-col gap-4">
       <FormHeader
         title="Hook Type"
-        description="The type of hook. Currently only webhooks are supported"
+        description="The type of hook. Currently only webhooks and slack are supported"
         isErrored={!!error}
       />
       <ToggleGroup
@@ -136,6 +136,7 @@ export function HookType(props: HookTypeProps): ReactElement {
         value={value}
       >
         <ToggleGroupItem value="webhook">Webhook</ToggleGroupItem>
+        <ToggleGroupItem value="slack">Slack</ToggleGroupItem>
       </ToggleGroup>
       <FormErrorMessage message={error} />
     </div>
@@ -158,7 +159,16 @@ export function AccountHookConfig(props: AccountHookConfigProps): ReactElement {
         <AccountHookWebhookForm
           values={value.webhook}
           setValues={(newWebhookData) => {
-            onChange({ webhook: newWebhookData });
+            onChange({ webhook: newWebhookData, slack: value.slack });
+          }}
+          errors={errors}
+        />
+      )}
+      {hookType === 'slack' && (
+        <AccountHookSlackForm
+          values={value.slack}
+          setValues={(newSlackData) => {
+            onChange({ webhook: value.webhook, slack: newSlackData });
           }}
           errors={errors}
         />
@@ -180,7 +190,7 @@ export function AccountHookEvents(props: AccountHookEventsProps): ReactElement {
     <div className="flex flex-col gap-4">
       <FormHeader
         title="Events"
-        description="The events that will trigger this hook. Wildcard will trigger for all events."
+        description="The events that will trigger this hook. Wildcard will trigger for all events"
         isErrored={!!error}
       />
       <ToggleGroup

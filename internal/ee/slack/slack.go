@@ -29,15 +29,23 @@ type Client struct {
 }
 
 type config struct {
-	appClientId     string
-	appClientSecret string
-	scope           string
-	redirectUrl     string
+	authClientId     string
+	authClientSecret string
+	appClientId      string
+	scope            string
+	redirectUrl      string
 
 	httpClient *http.Client
 }
 
 type Option func(*config)
+
+func WithAuthClientCreds(authClientId, authClientSecret string) Option {
+	return func(c *config) {
+		c.authClientId = authClientId
+		c.authClientSecret = authClientSecret
+	}
+}
 
 func WithAppClientId(appClientId string) Option {
 	return func(c *config) {
@@ -133,7 +141,7 @@ func (c *Client) ValidateState(state, accountId, userId string) error {
 }
 
 func (c *Client) ExchangeCodeForAccessToken(ctx context.Context, code string) (*slack.OAuthV2Response, error) {
-	resp, err := slack.GetOAuthV2ResponseContext(ctx, c.cfg.httpClient, c.cfg.appClientId, c.cfg.appClientSecret, code, c.cfg.redirectUrl)
+	resp, err := slack.GetOAuthV2ResponseContext(ctx, c.cfg.httpClient, c.cfg.authClientId, c.cfg.authClientSecret, code, c.cfg.redirectUrl)
 	if err != nil {
 		return nil, fmt.Errorf("unable to exchange code for access token: %w", err)
 	}

@@ -228,17 +228,21 @@ class TestSlackConnectionRequest(_message.Message):
     def __init__(self, account_id: _Optional[str] = ...) -> None: ...
 
 class TestSlackConnectionResponse(_message.Message):
-    __slots__ = ("slack",)
-    class SlackResponse(_message.Message):
+    __slots__ = ("has_configuration", "test_response", "error")
+    class Response(_message.Message):
         __slots__ = ("url", "team")
         URL_FIELD_NUMBER: _ClassVar[int]
         TEAM_FIELD_NUMBER: _ClassVar[int]
         url: str
         team: str
         def __init__(self, url: _Optional[str] = ..., team: _Optional[str] = ...) -> None: ...
-    SLACK_FIELD_NUMBER: _ClassVar[int]
-    slack: TestSlackConnectionResponse.SlackResponse
-    def __init__(self, slack: _Optional[_Union[TestSlackConnectionResponse.SlackResponse, _Mapping]] = ...) -> None: ...
+    HAS_CONFIGURATION_FIELD_NUMBER: _ClassVar[int]
+    TEST_RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    has_configuration: bool
+    test_response: TestSlackConnectionResponse.Response
+    error: str
+    def __init__(self, has_configuration: bool = ..., test_response: _Optional[_Union[TestSlackConnectionResponse.Response, _Mapping]] = ..., error: _Optional[str] = ...) -> None: ...
 
 class SendSlackMessageRequest(_message.Message):
     __slots__ = ("account_hook_id", "event")

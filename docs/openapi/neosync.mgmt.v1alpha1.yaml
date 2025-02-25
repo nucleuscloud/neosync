@@ -5203,16 +5203,39 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.TestSlackConnectionResponse:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - error
+            - not:
+                anyOf:
+                  - required:
+                      - error
+        - anyOf:
+            - required:
+                - testResponse
+            - not:
+                anyOf:
+                  - required:
+                      - testResponse
       properties:
-        slack:
+        hasConfiguration:
+          type: boolean
+          title: has_configuration
+          description: Whether there is an existing Slack configuration.
+        testResponse:
           allOf:
             - $ref: >-
-                #/components/schemas/mgmt.v1alpha1.TestSlackConnectionResponse.SlackResponse
-          title: slack
+                #/components/schemas/mgmt.v1alpha1.TestSlackConnectionResponse.Response
+          title: test_response
           description: The response from the Slack API.
+        error:
+          type: string
+          title: error
+          description: The error message if the connection failed.
       title: TestSlackConnectionResponse
       additionalProperties: false
-    mgmt.v1alpha1.TestSlackConnectionResponse.SlackResponse:
+    mgmt.v1alpha1.TestSlackConnectionResponse.Response:
       type: object
       properties:
         url:
@@ -5223,7 +5246,7 @@ components:
           type: string
           title: team
           description: The team name of the Slack that is connected.
-      title: SlackResponse
+      title: Response
       additionalProperties: false
     mgmt.v1alpha1.UpdateAccountHookRequest:
       type: object

@@ -21,9 +21,19 @@ export type AccountHookWebhookFormValues = yup.InferType<
   typeof AccountHookWebhookFormValues
 >;
 
+const AccountHookSlackFormValues = yup.object({
+  channelId: yup.string().required('Channel ID is required'),
+});
+export type AccountHookSlackFormValues = yup.InferType<
+  typeof AccountHookSlackFormValues
+>;
+
 const HookTypeFormValue = yup
   .string()
-  .oneOf(['webhook'], 'Only webhook hooks are currently supported')
+  .oneOf(
+    ['webhook', 'slack'],
+    'Only webhook and slack hooks are currently supported'
+  )
   .required('Hook type is required');
 export type HookTypeFormValue = yup.InferType<typeof HookTypeFormValue>;
 
@@ -48,11 +58,17 @@ const AccountHookDescriptionFormValue = yup
   .string()
   .required('Description is required');
 
-const AccountHookConfigFormValues = yup.object({
+const AccountHookConfigFormValues = yup.object().shape({
   webhook: AccountHookWebhookFormValues.when('hookType', (values, schema) => {
     const [hooktype] = values;
     return hooktype === 'webhook'
       ? schema.required('Webhook config is required when hook type is webhook')
+      : schema;
+  }),
+  slack: AccountHookSlackFormValues.when('hookType', (values, schema) => {
+    const [hooktype] = values;
+    return hooktype === 'slack'
+      ? schema.required('Slack config is required when hook type is slack')
       : schema;
   }),
 });
@@ -96,6 +112,7 @@ export function toEditFormData(input: AccountHook): EditAccountHookFormValues {
     enabled: input.enabled,
     config: {
       webhook: toWebhookConfig(input.config ?? create(AccountHookConfigSchema)),
+      slack: toSlackConfig(input.config ?? create(AccountHookConfigSchema)),
     },
     events: input.events.map((event) => event.toString()),
   };
@@ -134,10 +151,28 @@ function toWebhookConfig(
   }
 }
 
+function toSlackConfig(input: AccountHookConfig): AccountHookSlackFormValues {
+  switch (input.config.case) {
+    case 'slack': {
+      return {
+        channelId: input.config.value.channel,
+      };
+    }
+    default: {
+      return {
+        channelId: '',
+      };
+    }
+  }
+}
+
 function toHookType(input: AccountHookConfig): HookTypeFormValue {
   switch (input.config.case) {
     case 'webhook': {
       return 'webhook';
+    }
+    case 'slack': {
+      return 'slack';
     }
     default: {
       return 'webhook';

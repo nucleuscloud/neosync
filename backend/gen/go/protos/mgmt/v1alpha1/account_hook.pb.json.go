@@ -278,12 +278,12 @@ func (msg *TestSlackConnectionResponse) UnmarshalJSON(b []byte) error {
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *TestSlackConnectionResponse_SlackResponse) MarshalJSON() ([]byte, error) {
+func (msg *TestSlackConnectionResponse_Response) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *TestSlackConnectionResponse_SlackResponse) UnmarshalJSON(b []byte) error {
+func (msg *TestSlackConnectionResponse_Response) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 
