@@ -72,7 +72,7 @@ type vmPoolItem struct {
 	valueApi *benthosValueApi
 }
 
-func (j *javascriptProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
+func (j *javascriptProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) (result []service.MessageBatch, err error) {
 	var runner *javascript_vm.Runner
 	var valueApi *benthosValueApi
 
@@ -87,6 +87,21 @@ func (j *javascriptProcessor) ProcessBatch(ctx context.Context, batch service.Me
 	case error:
 		return nil, poolItem
 	}
+
+	// Add panic recovery for the entire batch processing
+	// Goja has panic recovery built in, but if it encounters an uncatchable panic
+	// An uncatchable panic is one that happens in a Go function called by JS.
+	// Goja looks for a special `uncatchableException` error type and traps that in the panic.
+	// For anything else though, it will re-panic with the original paniced error. /facepalm
+	// This here acts as a final catch-all defense for anything we missed so prevent the process from crashing.
+	defer func() {
+		if r := recover(); r != nil {
+			j.slogger.Error("recovered from panic in neosync_javascript batch processor", "error", fmt.Sprintf("%v", r))
+			// Set the named return value 'err'
+			err = fmt.Errorf("neosync_javascript batch processor panic recovered: %v", r)
+			return
+		}
+	}()
 
 	var newBatch service.MessageBatch
 
