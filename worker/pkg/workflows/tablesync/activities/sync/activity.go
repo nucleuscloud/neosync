@@ -328,6 +328,10 @@ func (a *Activity) getBenthosStream(
 	// This must come before SetYaml as otherwise it will not be invoked
 	streambldr.SetEnvVarLookupFunc(getEnvVarLookupFn(envKeyMap))
 
+	fmt.Println()
+	fmt.Println("benthosConfig", benthosConfig)
+	fmt.Println()
+
 	err = streambldr.SetYAML(benthosConfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)

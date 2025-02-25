@@ -174,6 +174,11 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 		}
 		if _, err := db.ExecContext(ctx, query); err != nil {
 			if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
+				fmt.Println("--------------------------------")
+				fmt.Println("error", err)
+				fmt.Println("skipForeignKeyViolations", s.skipForeignKeyViolations)
+				fmt.Println("IsForeignKeyViolationError", neosync_benthos.IsForeignKeyViolationError(err.Error()))
+				fmt.Println("--------------------------------")
 				return err
 			}
 		}

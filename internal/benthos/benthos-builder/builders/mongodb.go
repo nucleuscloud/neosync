@@ -69,7 +69,7 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
-			runconfigs.NewRunConfig(tableMapping.Table, runconfigs.RunTypeInsert, []string{}, nil, columns, columns, nil, nil, splitColumnPaths),
+			runconfigs.NewRunConfig(tableMapping.Table, runconfigs.RunTypeInsert, []string{}, nil, columns, columns, nil, splitColumnPaths),
 			map[string][]*bb_internal.ReferenceKey{},
 			map[string][]*bb_internal.ReferenceKey{},
 			params.Job.Id,

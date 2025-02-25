@@ -46,7 +46,6 @@ type ForeignKey struct {
 type SubsetPath struct {
 	Subset    string
 	Root      string
-	Path      []string
 	JoinSteps []JoinStep
 }
 
@@ -63,7 +62,6 @@ type RunConfig struct {
 	selectColumns    []string
 	insertColumns    []string
 	dependsOn        []*DependsOn // this should be a list of config names like "table.insert", rename to dependsOnConfigs
-	foreignKeys      []*ForeignKey
 	runType          RunType
 	primaryKeys      []string
 	whereClause      *string
@@ -80,7 +78,6 @@ func NewRunConfig(
 	whereClause *string,
 	selectCols, insertCols []string,
 	dependsOn []*DependsOn,
-	foreignKeys []*ForeignKey,
 	splitColumnPaths bool,
 ) *RunConfig {
 	return &RunConfig{
@@ -92,7 +89,6 @@ func NewRunConfig(
 		selectColumns:    selectCols,
 		dependsOn:        dependsOn,
 		splitColumnPaths: splitColumnPaths,
-		foreignKeys:      foreignKeys,
 	}
 }
 
@@ -140,10 +136,6 @@ func (rc *RunConfig) SplitColumnPaths() bool {
 	return rc.splitColumnPaths
 }
 
-func (rc *RunConfig) ForeignKeys() []*ForeignKey {
-	return rc.foreignKeys
-}
-
 func (rc *RunConfig) String() string {
 	var sb strings.Builder
 
@@ -176,20 +168,10 @@ func (rc *RunConfig) String() string {
 		sb.WriteString("    nil\n")
 	}
 
-	sb.WriteString("  ForeignKeys:\n")
-	if rc.foreignKeys != nil {
-		for i, fk := range rc.foreignKeys {
-			sb.WriteString(fmt.Sprintf("    [%d] Columns: %v, NotNullable: %v, ReferenceTable: %s, ReferenceColumns: %v\n",
-				i, fk.Columns, fk.NotNullable, fk.ReferenceTable, fk.ReferenceColumns))
-		}
-	} else {
-		sb.WriteString("    nil\n")
-	}
-
 	sb.WriteString("  SubsetPaths:\n")
 	if rc.subsetPaths != nil {
 		for i, sp := range rc.subsetPaths {
-			sb.WriteString(fmt.Sprintf("    [%d] Root: %s, Subset: %s, Path: %v\n", i, sp.Root, sp.Subset, sp.Path))
+			sb.WriteString(fmt.Sprintf("    [%d] Root: %s, Subset: %s\n", i, sp.Root, sp.Subset))
 			sb.WriteString("    JoinSteps:\n")
 			for j, js := range sp.JoinSteps {
 				sb.WriteString(fmt.Sprintf("      [%d] FromKey: %s, ToKey: %s\n", j, js.FromKey, js.ToKey))

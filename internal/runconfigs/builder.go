@@ -26,7 +26,7 @@ func newTableConfigsBuilder(
 	uniqueConstraints map[string][][]string,
 	foreignKeys map[string][]*sqlmanager_shared.ForeignConstraint,
 ) *tableConfigsBuilder {
-	return &tableConfigsBuilder{
+	b := &tableConfigsBuilder{
 		columns:           columns,
 		primaryKeys:       primaryKeys,
 		whereClauses:      whereClauses,
@@ -34,9 +34,6 @@ func newTableConfigsBuilder(
 		uniqueConstraints: uniqueConstraints,
 		foreignKeys:       foreignKeys,
 	}
-}
-
-func (b *tableConfigsBuilder) Build(table string) []*RunConfig {
 	// find circular dependencies
 	graph := b.buildDependencyGraph()
 	circularDeps := FindCircularDependencies(graph)
@@ -44,8 +41,11 @@ func (b *tableConfigsBuilder) Build(table string) []*RunConfig {
 
 	// compute subset paths
 	b.subsetPaths = b.computeAllSubsetPaths()
-	whereClause := b.whereClauses[table]
+	return b
+}
 
+func (b *tableConfigsBuilder) Build(table string) []*RunConfig {
+	whereClause := b.whereClauses[table]
 	// run config builder
 	return newRunConfigBuilder(
 		table,
@@ -95,7 +95,6 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]SubsetPath {
 	type bfsEntry struct {
 		src       string     // the where-clause root
 		current   string     // current table
-		path      []string   // path from src to current (in forward order)
 		joinSteps []JoinStep // join steps taken from src to current
 	}
 	queue := []bfsEntry{}
@@ -110,13 +109,13 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]SubsetPath {
 		visited[root][root] = true
 		// For the root itself, record its own path (with no join steps).
 		result[root] = append(result[root], SubsetPath{
-			Root:      root,
-			Subset:    clause,
-			Path:      []string{root},
+			Root:   root,
+			Subset: clause,
+			// Path:      []string{root},
 			JoinSteps: []JoinStep{},
 		})
 		// Enqueue the root so we can traverse to its children.
-		queue = append(queue, bfsEntry{src: root, current: root, path: []string{root}, joinSteps: []JoinStep{}})
+		queue = append(queue, bfsEntry{src: root, current: root, joinSteps: []JoinStep{}})
 	}
 
 	// Process the BFS queue.
@@ -167,17 +166,13 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]SubsetPath {
 				newJoinSteps = append(newJoinSteps, js)
 			}
 
-			newPath := append(entry.path, child)
-			// Reverse the path so it goes from the child up to the where clause root.
-			revPath := reverseSlice(newPath)
 			revJoinSteps := reverseJoinSteps(newJoinSteps)
 			result[child] = append(result[child], SubsetPath{
 				Root:      entry.src,
 				Subset:    b.whereClauses[entry.src],
-				Path:      revPath,
 				JoinSteps: revJoinSteps,
 			})
-			queue = append(queue, bfsEntry{src: entry.src, current: child, path: newPath, joinSteps: newJoinSteps})
+			queue = append(queue, bfsEntry{src: entry.src, current: child, joinSteps: newJoinSteps})
 		}
 	}
 
@@ -268,7 +263,6 @@ func (b *runConfigBuilder) buildInsertConfig() *RunConfig {
 		whereClause:    b.whereClause,
 		orderByColumns: b.getOrderByColumns(b.columns),
 		dependsOn:      b.getDependsOn(),
-		foreignKeys:    b.getForeignKeys(b.columns),
 		subsetPaths:    b.subsetPaths,
 	}
 	return config
@@ -353,8 +347,6 @@ func (b *runConfigBuilder) buildConstraintHandlingConfigs() []*RunConfig {
 		}
 	}
 
-	insertConfig.foreignKeys = b.getForeignKeys(insertConfig.selectColumns)
-
 	// Insert config should be at the front, then any update configs follow.
 	configs = append([]*RunConfig{insertConfig}, configs...)
 	return configs
@@ -394,7 +386,6 @@ func (b *runConfigBuilder) buildUpdateConfig(
 		whereClause:    where,
 		orderByColumns: orderByColumns,
 		dependsOn:      dependsOn,
-		foreignKeys:    b.getForeignKeys(updateCols),
 		subsetPaths:    b.subsetPaths,
 	}
 }
@@ -408,30 +399,6 @@ func (b *runConfigBuilder) getDependsOn() []*DependsOn {
 		})
 	}
 	return dependsOn
-}
-
-// getForeignKeys returns foreign keys that are needed for the insert columns
-func (b *runConfigBuilder) getForeignKeys(insertColumns []string) []*ForeignKey {
-	fmt.Println(insertColumns)
-	foreignKeys := []*ForeignKey{}
-	for _, fk := range b.foreignKeys {
-		foreignKey := &ForeignKey{
-			ReferenceTable: fk.ForeignKey.Table,
-		}
-		for idx, col := range fk.Columns {
-			// by checking insert columns, we can skip foreign keys that are not needed for the insert
-			if slices.Contains(insertColumns, col) {
-				foreignKey.Columns = append(foreignKey.Columns, col)
-				foreignKey.NotNullable = append(foreignKey.NotNullable, fk.NotNullable[idx])
-				foreignKey.ReferenceColumns = append(foreignKey.ReferenceColumns, fk.ForeignKey.Columns[idx])
-			}
-		}
-
-		if len(foreignKey.Columns) > 0 {
-			foreignKeys = append(foreignKeys, foreignKey)
-		}
-	}
-	return foreignKeys
 }
 
 // getOrderByColumns returns order by columns for a table, prioritizing primary keys,
@@ -449,6 +416,7 @@ func (b *runConfigBuilder) getOrderByColumns(selectColumns []string) []string {
 		return b.uniqueIndexes[0]
 	}
 
-	slices.Sort(selectColumns)
-	return selectColumns
+	sc := slices.Clone(selectColumns)
+	slices.Sort(sc)
+	return sc
 }

@@ -2,7 +2,6 @@ package benthosbuilder_builders
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -140,24 +139,30 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	if err != nil {
 		return nil, err
 	}
-	for _, rc := range runConfigs {
-		fmt.Println()
-		fmt.Println(rc.String())
-		fmt.Println()
-	}
 
 	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(filteredForeignKeysMap)
 	b.primaryKeyToForeignKeysMap = primaryKeyToForeignKeysMap
 
-	configQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo, b.pageLimit)
+	configQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, b.pageLimit)
+	// configQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo, b.pageLimit)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 	b.configQueryMap = configQueryMap
 
-	for _, query := range configQueryMap {
-		jsonF, _ := json.MarshalIndent(query, "", " ")
-		fmt.Printf("\n\n %s \n\n", string(jsonF))
+	// for _, query := range configQueryMap {
+	// 	jsonF, _ := json.MarshalIndent(query, "", " ")
+	// 	fmt.Printf("\n\n %s \n\n", string(jsonF))
+	// }
+	fmt.Println("--------------------------------")
+	for _, rc := range runConfigs {
+		fmt.Println()
+		fmt.Println(rc.String())
+		if configQueryMap[rc.Id()] != nil {
+			fmt.Println(configQueryMap[rc.Id()].Query)
+			fmt.Println("isNotForeignKeySafeSubset", configQueryMap[rc.Id()].IsNotForeignKeySafeSubset)
+		}
+		fmt.Println()
 	}
 
 	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, configQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.JobRunId, b.redisConfig, primaryKeyToForeignKeysMap)
