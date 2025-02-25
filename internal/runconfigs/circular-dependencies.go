@@ -3,20 +3,7 @@ package runconfigs
 import (
 	"sort"
 	"strings"
-
-	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
-
-// buildDependencyGraph builds a dependency graph from a map of table names to their foreign constraints tables
-func buildDependencyGraph(dependencies map[string][]*sqlmanager_shared.ForeignConstraint) map[string][]string {
-	graph := make(map[string][]string)
-	for table, constraints := range dependencies {
-		for _, constraint := range constraints {
-			graph[table] = append(graph[table], constraint.ForeignKey.Table)
-		}
-	}
-	return graph
-}
 
 func FindCircularDependencies(dependencies map[string][]string) [][]string {
 	var result [][]string

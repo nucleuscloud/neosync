@@ -7,6 +7,192 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
 
+type tableConfigsBuilder struct {
+	primaryKeys          map[string][]string
+	whereClauses         map[string]string
+	columns              map[string][]string
+	uniqueIndexes        map[string][][]string
+	uniqueConstraints    map[string][][]string
+	foreignKeys          map[string][]*sqlmanager_shared.ForeignConstraint
+	circularDependencies map[string]bool
+	subsetPaths          map[string][]SubsetPath
+}
+
+func newTableConfigsBuilder(
+	columns map[string][]string,
+	primaryKeys map[string][]string,
+	whereClauses map[string]string,
+	uniqueIndexes map[string][][]string,
+	uniqueConstraints map[string][][]string,
+	foreignKeys map[string][]*sqlmanager_shared.ForeignConstraint,
+) *tableConfigsBuilder {
+	return &tableConfigsBuilder{
+		columns:           columns,
+		primaryKeys:       primaryKeys,
+		whereClauses:      whereClauses,
+		uniqueIndexes:     uniqueIndexes,
+		uniqueConstraints: uniqueConstraints,
+		foreignKeys:       foreignKeys,
+	}
+}
+
+func (b *tableConfigsBuilder) Build(table string) []*RunConfig {
+	// find circular dependencies
+	graph := b.buildDependencyGraph()
+	circularDeps := FindCircularDependencies(graph)
+	b.circularDependencies = circularDependencyTables(circularDeps)
+
+	// compute subset paths
+	b.subsetPaths = b.computeAllSubsetPaths()
+	whereClause := b.whereClauses[table]
+
+	// run config builder
+	return newRunConfigBuilder(
+		table,
+		b.columns[table],
+		b.primaryKeys[table],
+		&whereClause,
+		b.uniqueIndexes[table],
+		b.uniqueConstraints[table],
+		b.foreignKeys[table],
+		b.circularDependencies[table],
+		b.subsetPaths[table],
+	).Build()
+}
+
+// buildDependencyGraph builds a dependency graph from a map of table names to their foreign constraints tables
+func (b *tableConfigsBuilder) buildDependencyGraph() map[string][]string {
+	graph := make(map[string][]string)
+	for table, constraints := range b.foreignKeys {
+		for _, constraint := range constraints {
+			graph[table] = append(graph[table], constraint.ForeignKey.Table)
+		}
+	}
+	return graph
+}
+
+// computeAllWhereClausePaths computes, for each table, the shortest paths (if any)
+// to any table that has a where clause. It returns a map from table name to a slice
+// of WhereClausePath—one per where-clause root reachable.
+// Each WhereClausePath now includes the where clause string (Clause) and the join steps (JoinSteps)
+// along the path.
+func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]SubsetPath {
+	// Build the reverse graph: for each parent table, list its child tables.
+	reverseGraph := make(map[string][]string)
+	// fkMap is keyed by child table.
+	for child, constraints := range b.foreignKeys {
+		for _, fc := range constraints {
+			parent := fc.ForeignKey.Table
+			reverseGraph[parent] = append(reverseGraph[parent], child)
+		}
+	}
+
+	// Global result: table -> list of WhereClausePath.
+	result := make(map[string][]SubsetPath)
+
+	// We'll perform multi-source BFS starting from every table that has a where clause.
+	// The bfsEntry now also carries the joinSteps along the path.
+	type bfsEntry struct {
+		src       string     // the where-clause root
+		current   string     // current table
+		path      []string   // path from src to current (in forward order)
+		joinSteps []JoinStep // join steps taken from src to current
+	}
+	queue := []bfsEntry{}
+	// visited[src][node] ensures we record only the shortest path per source.
+	visited := make(map[string]map[string]bool)
+
+	// Initialize the queue with each where-clause root.
+	for root, clause := range b.whereClauses {
+		if visited[root] == nil {
+			visited[root] = make(map[string]bool)
+		}
+		visited[root][root] = true
+		// For the root itself, record its own path (with no join steps).
+		result[root] = append(result[root], SubsetPath{
+			Root:      root,
+			Subset:    clause,
+			Path:      []string{root},
+			JoinSteps: []JoinStep{},
+		})
+		// Enqueue the root so we can traverse to its children.
+		queue = append(queue, bfsEntry{src: root, current: root, path: []string{root}, joinSteps: []JoinStep{}})
+	}
+
+	// Process the BFS queue.
+	for len(queue) > 0 {
+		entry := queue[0]
+		queue = queue[1:]
+		// For each child of the current table.
+		for _, child := range reverseGraph[entry.current] {
+			if visited[entry.src] == nil {
+				visited[entry.src] = make(map[string]bool)
+			}
+			if visited[entry.src][child] {
+				continue
+			}
+			visited[entry.src][child] = true
+
+			// Find a matching foreign constraint between entry.current and child.
+			var js JoinStep
+			found := false
+			// Iterate over all foreign constraints for the child.
+			for _, fc := range b.foreignKeys[child] {
+				// We are looking for a constraint where the parent table matches entry.current.
+				if fc.ForeignKey.Table == entry.current {
+					// For simplicity, take the first column pair as the join keys.
+					if len(fc.ForeignKey.Columns) > 0 && len(fc.Columns) > 0 {
+						referenceSchema, referenceTable := sqlmanager_shared.SplitTableKey(fc.ForeignKey.Table)
+						js = JoinStep{
+							FromKey: fc.ForeignKey.Columns[0],
+							ToKey:   fc.Columns[0],
+							// Create a new ForeignKey value from fc.ForeignKey.
+							Fk: &ForeignKey{
+								Columns:          fc.ForeignKey.Columns,
+								NotNullable:      fc.NotNullable,
+								ReferenceSchema:  referenceSchema,
+								ReferenceTable:   referenceTable,
+								ReferenceColumns: fc.ForeignKey.Columns,
+							},
+						}
+						found = true
+						break
+					}
+				}
+			}
+			// If no matching join is found, we still propagate without a joinStep.
+			newJoinSteps := make([]JoinStep, len(entry.joinSteps))
+			copy(newJoinSteps, entry.joinSteps)
+			if found {
+				newJoinSteps = append(newJoinSteps, js)
+			}
+
+			newPath := append(entry.path, child)
+			// Reverse the path so it goes from the child up to the where clause root.
+			revPath := reverseSlice(newPath)
+			result[child] = append(result[child], SubsetPath{
+				Root:      entry.src,
+				Subset:    b.whereClauses[entry.src],
+				Path:      revPath,
+				JoinSteps: newJoinSteps,
+			})
+			queue = append(queue, bfsEntry{src: entry.src, current: child, path: newPath, joinSteps: newJoinSteps})
+		}
+	}
+
+	return result
+}
+
+// reverseSlice reverses a slice of strings.
+func reverseSlice(s []string) []string {
+	n := len(s)
+	result := make([]string, n)
+	for i, v := range s {
+		result[n-1-i] = v
+	}
+	return result
+}
+
 // RunConfigBuilder is responsible for generating RunConfigs that define how to process table data.
 // It handles two main scenarios:
 // 1. Tables without circular dependencies - generates a single INSERT config
@@ -25,6 +211,7 @@ type runConfigBuilder struct {
 	uniqueConstraints          [][]string
 	foreignKeys                []*sqlmanager_shared.ForeignConstraint
 	isPartOfCircularDependency bool
+	subsetPaths                []SubsetPath
 }
 
 func newRunConfigBuilder(
@@ -36,6 +223,7 @@ func newRunConfigBuilder(
 	uniqueConstraints [][]string,
 	foreignKeys []*sqlmanager_shared.ForeignConstraint,
 	isPartOfCircularDependency bool,
+	subsetPaths []SubsetPath,
 ) *runConfigBuilder {
 	return &runConfigBuilder{
 		table:                      table,
@@ -46,16 +234,16 @@ func newRunConfigBuilder(
 		uniqueConstraints:          uniqueConstraints,
 		foreignKeys:                foreignKeys,
 		isPartOfCircularDependency: isPartOfCircularDependency,
+		subsetPaths:                subsetPaths,
 	}
 }
 
 func (b *runConfigBuilder) Build() []*RunConfig {
-	return b.buildCircularDependencyConfigs()
-	// if b.isPartOfCircularDependency {
-	// 	return b.buildCircularDependencyConfigs()
-	// } else {
-	// 	return []*RunConfig{b.buildInsertConfig()}
-	// }
+	if b.isPartOfCircularDependency || len(b.subsetPaths) > 0 {
+		return b.buildConstraintHandlingConfigs()
+	} else {
+		return []*RunConfig{b.buildInsertConfig()}
+	}
 }
 
 func (b *runConfigBuilder) buildInsertConfig() *RunConfig {
@@ -70,11 +258,12 @@ func (b *runConfigBuilder) buildInsertConfig() *RunConfig {
 		orderByColumns: b.getOrderByColumns(b.columns),
 		dependsOn:      b.getDependsOn(),
 		foreignKeys:    b.getForeignKeys(b.columns),
+		subsetPaths:    b.subsetPaths,
 	}
 	return config
 }
 
-func (b *runConfigBuilder) buildCircularDependencyConfigs() []*RunConfig {
+func (b *runConfigBuilder) buildConstraintHandlingConfigs() []*RunConfig {
 	var configs []*RunConfig
 
 	var where *string
@@ -93,6 +282,7 @@ func (b *runConfigBuilder) buildCircularDependencyConfigs() []*RunConfig {
 		whereClause:    where,
 		orderByColumns: orderByColumns,
 		dependsOn:      []*DependsOn{},
+		subsetPaths:    b.subsetPaths,
 	}
 
 	// Track which columns still need to be inserted (that aren’t handled by constraints).
@@ -194,6 +384,7 @@ func (b *runConfigBuilder) buildUpdateConfig(
 		orderByColumns: orderByColumns,
 		dependsOn:      dependsOn,
 		foreignKeys:    b.getForeignKeys(updateCols),
+		subsetPaths:    b.subsetPaths,
 	}
 }
 

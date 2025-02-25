@@ -34,11 +34,27 @@ type DependsOn struct {
 }
 
 type ForeignKey struct {
-	Columns     []string
-	NotNullable []bool
-	// ReferenceSchema  string  TODO: need to split out schema and table
+	Columns          []string
+	NotNullable      []bool
+	ReferenceSchema  string
 	ReferenceTable   string
 	ReferenceColumns []string
+}
+
+// WhereClausePath represents the shortest path from a table to a where-clause root.
+// The Path slice is ordered from the table up to the root (i.e. [child, ..., root]).
+type SubsetPath struct {
+	Subset    string
+	Root      string
+	Path      []string
+	JoinSteps []JoinStep
+}
+
+// joinStep represents one “edge” (join) in a join chain from one table to a related table.
+type JoinStep struct {
+	FromKey string
+	ToKey   string
+	Fk      *ForeignKey
 }
 
 type RunConfig struct {
@@ -53,6 +69,8 @@ type RunConfig struct {
 	whereClause      *string
 	orderByColumns   []string // columns to order by
 	splitColumnPaths bool
+	// New: whereClausePaths holds one (or more) shortest paths from this table to any table that has a where clause.
+	subsetPaths []SubsetPath
 }
 
 func NewRunConfig(
@@ -110,6 +128,10 @@ func (rc *RunConfig) WhereClause() *string {
 	return rc.whereClause
 }
 
+func (rc *RunConfig) SubsetPaths() []SubsetPath {
+	return rc.subsetPaths
+}
+
 func (rc *RunConfig) OrderByColumns() []string {
 	return rc.orderByColumns
 }
@@ -164,6 +186,23 @@ func (rc *RunConfig) String() string {
 		sb.WriteString("    nil\n")
 	}
 
+	sb.WriteString("  SubsetPaths:\n")
+	if rc.subsetPaths != nil {
+		for i, sp := range rc.subsetPaths {
+			sb.WriteString(fmt.Sprintf("    [%d] Root: %s, Subset: %s, Path: %v\n", i, sp.Root, sp.Subset, sp.Path))
+			sb.WriteString("    JoinSteps:\n")
+			for j, js := range sp.JoinSteps {
+				sb.WriteString(fmt.Sprintf("      [%d] FromKey: %s, ToKey: %s\n", j, js.FromKey, js.ToKey))
+				if js.Fk != nil {
+					sb.WriteString(fmt.Sprintf("        FK: Columns: %v, NotNullable: %v, ReferenceSchema: %s, ReferenceTable: %s, ReferenceColumns: %v\n",
+						js.Fk.Columns, js.Fk.NotNullable, js.Fk.ReferenceSchema, js.Fk.ReferenceTable, js.Fk.ReferenceColumns))
+				}
+			}
+		}
+	} else {
+		sb.WriteString("    nil\n")
+	}
+
 	return sb.String()
 }
 
@@ -185,19 +224,11 @@ func BuildRunConfigs(
 	// filter dependencies to only include tables are in tableColumnsMap (jobmappings)
 	filteredFks := filterDependencies(dependencyMap, tableColumnsMap)
 
-	// find circular dependencies
-	graph := buildDependencyGraph(filteredFks)
-	circularDeps := FindCircularDependencies(graph)
-	circularTables := circularDependencyTables(circularDeps)
+	tableConfigsBuilder := newTableConfigsBuilder(tableColumnsMap, primaryKeyMap, subsets, uniqueIndexesMap, uniqueConstraintsMap, filteredFks)
 
 	// build configs for each table
-	for table, columns := range tableColumnsMap {
-		var where *string
-		if subset, ok := subsets[table]; ok {
-			where = &subset
-		}
-		builder := newRunConfigBuilder(table, columns, primaryKeyMap[table], where, uniqueIndexesMap[table], uniqueConstraintsMap[table], filteredFks[table], circularTables[table])
-		cfgs := builder.Build()
+	for table := range tableColumnsMap {
+		cfgs := tableConfigsBuilder.Build(table)
 		configs = append(configs, cfgs...)
 	}
 
