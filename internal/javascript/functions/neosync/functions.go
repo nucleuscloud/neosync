@@ -41,7 +41,7 @@ func getPatchStructuredMessage(namespace string) *javascript_functions.FunctionD
 			defer func() {
 				if r := recover(); r != nil {
 					// we set the named "err" argument to the error so that it can be returned
-					err = fmt.Errorf("panic: %s.%s: %v", namespace, fnName, r)
+					err = fmt.Errorf("panic recovered: %s.%s: %v", namespace, fnName, r)
 					l.Error(
 						"recovered from panic in custom neosync function",
 						"error", err,
@@ -106,7 +106,7 @@ func getNeosyncGenerators() ([]*javascript_functions.FunctionDefinition, error) 
 				defer func() {
 					if r := recover(); r != nil {
 						// we set the named "err" argument to the error so that it can be returned
-						err = fmt.Errorf("panic: %s.%s: %v", namespace, templateData.Name, r)
+						err = fmt.Errorf("panic recovered: %s.%s: %v", namespace, templateData.Name, r)
 						l.Error(
 							"recovered from panic in custom neosync function",
 							"error", err,
@@ -148,7 +148,7 @@ func getNeosyncTransformers() ([]*javascript_functions.FunctionDefinition, error
 				defer func() {
 					if r := recover(); r != nil {
 						// we set the named "err" argument to the error so that it can be returned
-						err = fmt.Errorf("panic: %s.%s: %v", namespace, templateData.Name, r)
+						err = fmt.Errorf("panic recovered: %s.%s: %v", namespace, templateData.Name, r)
 						l.Error(
 							"recovered from panic in custom neosync function",
 							"error", err,
