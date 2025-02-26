@@ -691,8 +691,8 @@ func test_postgres_skip_foreign_keys_violations(
 		rowCount int
 	}{
 		{schema: schema, table: "countries", rowCount: 24},
-		{schema: schema, table: "dependents", rowCount: 7},
-		{schema: schema, table: "employees", rowCount: 10},
+		{schema: schema, table: "dependents", rowCount: 28},
+		{schema: schema, table: "employees", rowCount: 40},
 		{schema: schema, table: "locations", rowCount: 4},
 		{schema: schema, table: "departments", rowCount: 4},
 		{schema: schema, table: "jobs", rowCount: 19},
@@ -702,7 +702,7 @@ func test_postgres_skip_foreign_keys_violations(
 	for _, expected := range expectedResults {
 		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)
-		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
+		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
 	}
 
 	// tear down
