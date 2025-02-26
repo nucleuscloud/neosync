@@ -80,7 +80,8 @@ export default function TransformEmailForm(props: Props): ReactElement {
           <FormLabel>Excluded Domains</FormLabel>
           <FormDescription>
             Provide a list of comma-separated domains that you want to be
-            excluded from the transformer. Do not provide an @ with the domains.{' '}
+            excluded from the transformer. Do not provide an @ with the
+            domains.{' '}
           </FormDescription>
         </div>
         <div className="min-w-[300px]">

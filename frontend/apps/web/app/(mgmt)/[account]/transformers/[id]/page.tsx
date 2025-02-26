@@ -1,5 +1,5 @@
-'use client';;
-import { use } from "react";
+'use client';
+import { use } from 'react';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';

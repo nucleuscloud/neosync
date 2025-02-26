@@ -1,5 +1,5 @@
-'use client';;
-import { use } from "react";
+'use client';
+import { use } from 'react';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import { useAccount } from '@/components/providers/account-provider';
 import ResourceId from '@/components/ResourceId';

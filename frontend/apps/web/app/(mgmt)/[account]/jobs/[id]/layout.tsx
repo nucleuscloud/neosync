@@ -1,5 +1,5 @@
-'use client';;
-import { use } from "react";
+'use client';
+import { use } from 'react';
 import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import ResourceId from '@/components/ResourceId';
@@ -25,9 +25,7 @@ import JobPauseButton from './components/JobPauseButton';
 export default function JobIdLayout(props: LayoutProps) {
   const params = use(props.params);
 
-  const {
-    children
-  } = props;
+  const { children } = props;
 
   const id = params?.id ?? '';
   const router = useRouter();
