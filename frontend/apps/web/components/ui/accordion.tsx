@@ -11,7 +11,7 @@ export const Accordion = AccordionPrimitive.Root;
 export function AccordionItem({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>) {
+}: React.ComponentPropsWithRef<typeof AccordionPrimitive.Item>) {
   return (
     <AccordionPrimitive.Item className={cn('border-b', className)} {...props} />
   );
@@ -21,7 +21,7 @@ export function AccordionTrigger({
   className,
   children,
   ...props
-}: React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>) {
+}: React.ComponentPropsWithRef<typeof AccordionPrimitive.Trigger>) {
   return (
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
@@ -42,7 +42,7 @@ export function AccordionContent({
   className,
   children,
   ...props
-}: React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>) {
+}: React.ComponentPropsWithRef<typeof AccordionPrimitive.Content>) {
   return (
     <AccordionPrimitive.Content
       className="overflow-hidden text-sm data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"

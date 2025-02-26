@@ -5,7 +5,7 @@ import { cn } from '@/libs/utils';
 export function Table({
   className,
   ...props
-}: React.HTMLAttributes<HTMLTableElement>) {
+}: React.ComponentPropsWithRef<'table'>) {
   return (
     <div className="w-full overflow-auto">
       <table
@@ -19,7 +19,7 @@ export function Table({
 export function StickyHeaderTable({
   className,
   ...props
-}: React.HTMLAttributes<HTMLTableElement>) {
+}: React.ComponentPropsWithRef<'table'>) {
   return (
     <table
       className={cn('w-full caption-bottom text-sm grid', className)}
@@ -31,14 +31,14 @@ export function StickyHeaderTable({
 export function TableHeader({
   className,
   ...props
-}: React.HTMLAttributes<HTMLTableSectionElement>) {
+}: React.ComponentPropsWithRef<'thead'>) {
   return <thead className={cn('[&_tr]:border-b', className)} {...props} />;
 }
 
 export function TableBody({
   className,
   ...props
-}: React.HTMLAttributes<HTMLTableSectionElement>) {
+}: React.ComponentPropsWithRef<'tbody'>) {
   return (
     <tbody className={cn('[&_tr:last-child]:border-0', className)} {...props} />
   );
@@ -47,7 +47,7 @@ export function TableBody({
 export function TableFooter({
   className,
   ...props
-}: React.HTMLAttributes<HTMLTableSectionElement>) {
+}: React.ComponentPropsWithRef<'tfoot'>) {
   return (
     <tfoot
       className={cn(
@@ -62,7 +62,7 @@ export function TableFooter({
 export function TableRow({
   className,
   ...props
-}: React.HTMLAttributes<HTMLTableRowElement>) {
+}: React.ComponentPropsWithRef<'tr'>) {
   return (
     <tr
       className={cn(
@@ -77,7 +77,7 @@ export function TableRow({
 export function TableHead({
   className,
   ...props
-}: React.ThHTMLAttributes<HTMLTableCellElement>) {
+}: React.ComponentPropsWithRef<'th'>) {
   return (
     <th
       className={cn(
@@ -92,7 +92,7 @@ export function TableHead({
 export function TableCell({
   className,
   ...props
-}: React.TdHTMLAttributes<HTMLTableCellElement>) {
+}: React.ComponentPropsWithRef<'td'>) {
   return (
     <td
       className={cn(
@@ -107,7 +107,7 @@ export function TableCell({
 export function TableCaption({
   className,
   ...props
-}: React.HTMLAttributes<HTMLTableCaptionElement>) {
+}: React.ComponentPropsWithRef<'caption'>) {
   return (
     <caption
       className={cn('mt-4 text-sm text-muted-foreground', className)}

@@ -10,7 +10,7 @@ export const Tabs = TabsPrimitive.Root;
 export function TabsList({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>) {
+}: React.ComponentPropsWithRef<typeof TabsPrimitive.List>) {
   return (
     <TabsPrimitive.List
       className={cn(
@@ -25,7 +25,7 @@ export function TabsList({
 export function TabsTrigger({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>) {
+}: React.ComponentPropsWithRef<typeof TabsPrimitive.Trigger>) {
   return (
     <TabsPrimitive.Trigger
       className={cn(
@@ -40,7 +40,7 @@ export function TabsTrigger({
 export function TabsContent({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>) {
+}: React.ComponentPropsWithRef<typeof TabsPrimitive.Content>) {
   return (
     <TabsPrimitive.Content
       className={cn(

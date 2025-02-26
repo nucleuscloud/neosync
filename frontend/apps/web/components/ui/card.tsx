@@ -3,15 +3,11 @@ import * as React from 'react';
 import { cn } from '@/libs/utils';
 
 export function Card({
-  ref,
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & {
-  ref: React.RefObject<HTMLDivElement>;
-}) {
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      ref={ref}
       className={cn(
         'rounded-xl border border-gray-200 dark:border-gray-700 bg-background text-card-foreground',
         className
@@ -22,15 +18,11 @@ export function Card({
 }
 
 export function CardHeader({
-  ref,
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & {
-  ref: React.RefObject<HTMLDivElement>;
-}) {
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      ref={ref}
       className={cn(
         'flex flex-col space-y-1.5 p-6',
         'dark:border-gray-900 ',
@@ -63,13 +55,10 @@ export function CardDescription({
 }
 
 export function CardContent({
-  ref,
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & {
-  ref: React.RefObject<HTMLDivElement>;
-}) {
-  return <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />;
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn('p-6 pt-0', className)} {...props} />;
 }
 
 export function CardFooter({

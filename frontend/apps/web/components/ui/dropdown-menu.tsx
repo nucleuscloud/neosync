@@ -26,7 +26,7 @@ export function DropdownMenuSubTrigger({
   className,
   children,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubTrigger>) {
+}: React.ComponentPropsWithRef<typeof DropdownMenuPrimitive.SubTrigger>) {
   return (
     <DropdownMenuPrimitive.SubTrigger
       className={cn(
@@ -44,7 +44,7 @@ export function DropdownMenuSubTrigger({
 export function DropdownMenuSubContent({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>) {
+}: React.ComponentPropsWithRef<typeof DropdownMenuPrimitive.SubContent>) {
   return (
     <DropdownMenuPrimitive.SubContent
       className={cn(
@@ -60,7 +60,7 @@ export function DropdownMenuContent({
   className,
   sideOffset = 4,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>) {
+}: React.ComponentPropsWithRef<typeof DropdownMenuPrimitive.Content>) {
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
@@ -79,7 +79,7 @@ export function DropdownMenuContent({
 export function DropdownMenuItem({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>) {
+}: React.ComponentPropsWithRef<typeof DropdownMenuPrimitive.Item>) {
   return (
     <DropdownMenuPrimitive.Item
       className={cn(
@@ -95,7 +95,7 @@ export function DropdownMenuCheckboxItem({
   className,
   checked,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>) {
+}: React.ComponentPropsWithRef<typeof DropdownMenuPrimitive.CheckboxItem>) {
   return (
     <DropdownMenuPrimitive.CheckboxItem
       className={cn(
@@ -117,7 +117,7 @@ export function DropdownMenuCheckboxItem({
 export function DropdownMenuRadioItem({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>) {
+}: React.ComponentPropsWithRef<typeof DropdownMenuPrimitive.RadioItem>) {
   return (
     <DropdownMenuPrimitive.RadioItem
       className={cn(
@@ -138,7 +138,7 @@ export function DropdownMenuRadioItem({
 export function DropdownMenuLabel({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label>) {
+}: React.ComponentPropsWithRef<typeof DropdownMenuPrimitive.Label>) {
   return (
     <DropdownMenuPrimitive.Label
       className={cn('px-2 py-1.5 text-sm font-normal', className)}
@@ -150,7 +150,7 @@ export function DropdownMenuLabel({
 export function DropdownMenuSeparator({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>) {
+}: React.ComponentPropsWithRef<typeof DropdownMenuPrimitive.Separator>) {
   return (
     <DropdownMenuPrimitive.Separator
       className={cn('-mx-1 my-1 h-px bg-muted', className)}

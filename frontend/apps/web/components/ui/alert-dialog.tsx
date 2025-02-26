@@ -15,7 +15,7 @@ export const AlertDialogPortal = AlertDialogPrimitive.Portal;
 export function AlertDialogOverlay({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>) {
+}: React.ComponentPropsWithRef<typeof AlertDialogPrimitive.Overlay>) {
   return (
     <AlertDialogPrimitive.Overlay
       className={cn(
@@ -30,7 +30,7 @@ export function AlertDialogOverlay({
 export function AlertDialogContent({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>) {
+}: React.ComponentPropsWithRef<typeof AlertDialogPrimitive.Content>) {
   return (
     <AlertDialogPortal>
       <AlertDialogOverlay />
@@ -78,7 +78,7 @@ export function AlertDialogFooter({
 export function AlertDialogTitle({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Title>) {
+}: React.ComponentPropsWithRef<typeof AlertDialogPrimitive.Title>) {
   return (
     <AlertDialogPrimitive.Title
       className={cn('text-lg font-semibold', className)}
@@ -90,7 +90,7 @@ export function AlertDialogTitle({
 export function AlertDialogDescription({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Description>) {
+}: React.ComponentPropsWithRef<typeof AlertDialogPrimitive.Description>) {
   return (
     <AlertDialogPrimitive.Description
       className={cn('text-sm text-muted-foreground', className)}
@@ -102,7 +102,7 @@ export function AlertDialogDescription({
 export function AlertDialogAction({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Action>) {
+}: React.ComponentPropsWithRef<typeof AlertDialogPrimitive.Action>) {
   return (
     <AlertDialogPrimitive.Action
       className={cn(buttonVariants(), className)}
@@ -112,15 +112,11 @@ export function AlertDialogAction({
 }
 
 export function AlertDialogCancel({
-  ref,
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Cancel> & {
-  ref: React.RefObject<React.ElementRef<typeof AlertDialogPrimitive.Cancel>>;
-}) {
+}: React.ComponentPropsWithRef<typeof AlertDialogPrimitive.Cancel>) {
   return (
     <AlertDialogPrimitive.Cancel
-      ref={ref}
       className={cn(
         buttonVariants({ variant: 'outline' }),
         'mt-2 sm:mt-0',

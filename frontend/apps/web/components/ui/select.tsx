@@ -21,7 +21,7 @@ export function SelectTrigger({
   className,
   children,
   ...props
-}: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>) {
+}: React.ComponentPropsWithRef<typeof SelectPrimitive.Trigger>) {
   return (
     <SelectPrimitive.Trigger
       className={cn(
@@ -41,7 +41,7 @@ export function SelectTrigger({
 export function SelectScrollUpButton({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>) {
+}: React.ComponentPropsWithRef<typeof SelectPrimitive.ScrollUpButton>) {
   return (
     <SelectPrimitive.ScrollUpButton
       className={cn(
@@ -58,7 +58,7 @@ export function SelectScrollUpButton({
 export function SelectScrollDownButton({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>) {
+}: React.ComponentPropsWithRef<typeof SelectPrimitive.ScrollDownButton>) {
   return (
     <SelectPrimitive.ScrollDownButton
       className={cn(
@@ -77,7 +77,7 @@ export function SelectContent({
   children,
   position = 'popper',
   ...props
-}: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>) {
+}: React.ComponentPropsWithRef<typeof SelectPrimitive.Content>) {
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
@@ -109,7 +109,7 @@ export function SelectContent({
 export function SelectLabel({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>) {
+}: React.ComponentPropsWithRef<typeof SelectPrimitive.Label>) {
   return (
     <SelectPrimitive.Label
       className={cn('px-2 py-1.5 text-sm font-semibold', className)}
@@ -122,7 +122,7 @@ export function SelectItem({
   className,
   children,
   ...props
-}: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>) {
+}: React.ComponentPropsWithRef<typeof SelectPrimitive.Item>) {
   return (
     <SelectPrimitive.Item
       className={cn(
@@ -144,7 +144,7 @@ export function SelectItem({
 export function SelectSeparator({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>) {
+}: React.ComponentPropsWithRef<typeof SelectPrimitive.Separator>) {
   return (
     <SelectPrimitive.Separator
       className={cn('-mx-1 my-1 h-px bg-muted', className)}

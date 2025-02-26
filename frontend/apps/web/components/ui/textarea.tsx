@@ -3,7 +3,7 @@ import * as React from 'react';
 import { cn } from '@/libs/utils';
 
 export interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
+  extends React.ComponentPropsWithRef<'textarea'> {}
 
 export function Textarea({ className, ...props }: TextareaProps) {
   return (

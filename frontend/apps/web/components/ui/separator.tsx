@@ -10,7 +10,7 @@ export function Separator({
   orientation = 'horizontal',
   decorative = true,
   ...props
-}: React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root>) {
+}: React.ComponentPropsWithRef<typeof SeparatorPrimitive.Root>) {
   return (
     <SeparatorPrimitive.Root
       decorative={decorative}

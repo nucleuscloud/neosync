@@ -85,7 +85,7 @@ export function FormItem({
 export function FormLabel({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>) {
+}: React.ComponentPropsWithRef<typeof LabelPrimitive.Root>) {
   const { error, formItemId } = useFormField();
 
   return (
@@ -99,7 +99,7 @@ export function FormLabel({
 
 export function FormControl({
   ...props
-}: React.ComponentPropsWithoutRef<typeof Slot>) {
+}: React.ComponentPropsWithRef<typeof Slot>) {
   const { error, formItemId, formDescriptionId, formMessageId } =
     useFormField();
 

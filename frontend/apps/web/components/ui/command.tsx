@@ -11,7 +11,7 @@ import { cn } from '@/libs/utils';
 export function Command({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CommandPrimitive>) {
+}: React.ComponentPropsWithRef<typeof CommandPrimitive>) {
   return (
     <CommandPrimitive
       className={cn(
@@ -42,7 +42,7 @@ export function CommandDialog({ children, ...props }: CommandDialogProps) {
 export function CommandInput({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>) {
+}: React.ComponentPropsWithRef<typeof CommandPrimitive.Input>) {
   return (
     <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
       <MagnifyingGlassIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
@@ -60,7 +60,7 @@ export function CommandInput({
 export function CommandList({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>) {
+}: React.ComponentPropsWithRef<typeof CommandPrimitive.List>) {
   return (
     <CommandPrimitive.List
       className={cn(
@@ -75,7 +75,7 @@ export function CommandList({
 export function CommandEmpty({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty>) {
+}: React.ComponentPropsWithRef<typeof CommandPrimitive.Empty>) {
   return (
     <CommandPrimitive.Empty
       className={cn('py-6 text-center text-sm', className)}
@@ -87,7 +87,7 @@ export function CommandEmpty({
 export function CommandGroup({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>) {
+}: React.ComponentPropsWithRef<typeof CommandPrimitive.Group>) {
   return (
     <CommandPrimitive.Group
       className={cn(
@@ -102,7 +102,7 @@ export function CommandGroup({
 export function CommandSeparator({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator>) {
+}: React.ComponentPropsWithRef<typeof CommandPrimitive.Separator>) {
   return (
     <CommandPrimitive.Separator
       className={cn('-mx-1 h-px bg-border', className)}
@@ -114,7 +114,7 @@ export function CommandSeparator({
 export function CommandItem({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>) {
+}: React.ComponentPropsWithRef<typeof CommandPrimitive.Item>) {
   return (
     <CommandPrimitive.Item
       className={cn(

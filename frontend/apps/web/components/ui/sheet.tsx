@@ -17,7 +17,7 @@ export const SheetPortal = SheetPrimitive.Portal;
 export function SheetOverlay({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>) {
+}: React.ComponentPropsWithRef<typeof SheetPrimitive.Overlay>) {
   return (
     <SheetPrimitive.Overlay
       className={cn(
@@ -49,7 +49,7 @@ const sheetVariants = cva(
 );
 
 interface SheetContentProps
-  extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
+  extends React.ComponentPropsWithRef<typeof SheetPrimitive.Content>,
     VariantProps<typeof sheetVariants> {}
 
 export function SheetContent({
@@ -78,7 +78,7 @@ export function SheetContent({
 export function SheetHeader({
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: React.ComponentPropsWithRef<'div'>) {
   return (
     <div
       className={cn(
@@ -93,7 +93,7 @@ export function SheetHeader({
 export function SheetFooter({
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: React.ComponentPropsWithRef<'div'>) {
   return (
     <div
       className={cn(
@@ -108,7 +108,7 @@ export function SheetFooter({
 export function SheetTitle({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof SheetPrimitive.Title>) {
+}: React.ComponentPropsWithRef<typeof SheetPrimitive.Title>) {
   return (
     <SheetPrimitive.Title
       className={cn('text-lg font-semibold text-foreground', className)}
@@ -120,7 +120,7 @@ export function SheetTitle({
 export function SheetDescription({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof SheetPrimitive.Description>) {
+}: React.ComponentPropsWithRef<typeof SheetPrimitive.Description>) {
   return (
     <SheetPrimitive.Description
       className={cn('text-sm text-muted-foreground', className)}

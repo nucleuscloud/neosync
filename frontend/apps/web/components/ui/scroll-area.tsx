@@ -9,7 +9,7 @@ export function ScrollArea({
   className,
   children,
   ...props
-}: React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>) {
+}: React.ComponentPropsWithRef<typeof ScrollAreaPrimitive.Root>) {
   return (
     <ScrollAreaPrimitive.Root
       className={cn('relative overflow-hidden', className)}
@@ -28,7 +28,7 @@ export function ScrollBar({
   className,
   orientation = 'vertical',
   ...props
-}: React.ComponentPropsWithoutRef<
+}: React.ComponentPropsWithRef<
   typeof ScrollAreaPrimitive.ScrollAreaScrollbar
 >) {
   return (

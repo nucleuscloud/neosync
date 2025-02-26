@@ -9,7 +9,7 @@ import { cn } from '@/libs/utils';
 export function RadioGroup({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>) {
+}: React.ComponentPropsWithRef<typeof RadioGroupPrimitive.Root>) {
   return (
     <RadioGroupPrimitive.Root
       className={cn('grid gap-2', className)}
@@ -21,7 +21,7 @@ export function RadioGroup({
 export function RadioGroupItem({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>) {
+}: React.ComponentPropsWithRef<typeof RadioGroupPrimitive.Item>) {
   return (
     <RadioGroupPrimitive.Item
       className={cn(
