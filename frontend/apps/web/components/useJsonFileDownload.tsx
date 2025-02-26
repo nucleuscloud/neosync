@@ -52,7 +52,7 @@ export function useJsonFileDownload<T = unknown>(): UseFileDownloadResponse<T> {
       }
 
       const workerUrl = URL.createObjectURL(WORKER_BLOB);
-      const worker = new Worker(workerUrl);
+      const worker = new window.Worker(workerUrl);
 
       // Handle worker response with timeout
       const textToDownload = await Promise.race([

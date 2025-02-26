@@ -163,7 +163,7 @@ function Body(props: BodyProps): ReactElement {
 
   useEffect(() => {
     const workerUrl = URL.createObjectURL(workerBlob);
-    const newWorker = new Worker(workerUrl);
+    const newWorker = new window.Worker(workerUrl);
     setWorker(newWorker);
 
     return () => {
