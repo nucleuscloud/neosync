@@ -94,6 +94,7 @@ export function DropdownMenuItem({
 export function DropdownMenuCheckboxItem({
   className,
   checked,
+  children,
   ...props
 }: React.ComponentPropsWithRef<typeof DropdownMenuPrimitive.CheckboxItem>) {
   return (
@@ -110,12 +111,14 @@ export function DropdownMenuCheckboxItem({
           <CheckIcon className="h-4 w-4" />
         </DropdownMenuPrimitive.ItemIndicator>
       </span>
+      {children}
     </DropdownMenuPrimitive.CheckboxItem>
   );
 }
 
 export function DropdownMenuRadioItem({
   className,
+  children,
   ...props
 }: React.ComponentPropsWithRef<typeof DropdownMenuPrimitive.RadioItem>) {
   return (
@@ -131,6 +134,7 @@ export function DropdownMenuRadioItem({
           <DotFilledIcon className="h-4 w-4 fill-current" />
         </DropdownMenuPrimitive.ItemIndicator>
       </span>
+      {children}
     </DropdownMenuPrimitive.RadioItem>
   );
 }
