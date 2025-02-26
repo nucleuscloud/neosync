@@ -11,11 +11,6 @@
         "dist/**"
       ]
     },
-    "deploy": {
-      "dependsOn": [
-        "build"
-      ]
-    },
     "lint": {},
     "dev": {
       "cache": false,
