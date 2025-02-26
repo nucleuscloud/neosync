@@ -15,7 +15,7 @@ type tableConfigsBuilder struct {
 	uniqueConstraints    map[string][][]string
 	foreignKeys          map[string][]*sqlmanager_shared.ForeignConstraint
 	circularDependencies map[string]bool
-	subsetPaths          map[string][]SubsetPath
+	subsetPaths          map[string][]*SubsetPath
 }
 
 func newTableConfigsBuilder(
@@ -76,7 +76,7 @@ func (b *tableConfigsBuilder) buildDependencyGraph() map[string][]string {
 // of WhereClausePath—one per where-clause root reachable.
 // Each WhereClausePath now includes the where clause string (Clause) and the join steps (JoinSteps)
 // along the path.
-func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]SubsetPath {
+func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]*SubsetPath {
 	// Build the reverse graph: for each parent table, list its child tables.
 	reverseGraph := make(map[string][]string)
 	// fkMap is keyed by child table.
@@ -88,14 +88,14 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]SubsetPath {
 	}
 
 	// Global result: table -> list of WhereClausePath.
-	result := make(map[string][]SubsetPath)
+	result := make(map[string][]*SubsetPath)
 
 	// We'll perform multi-source BFS starting from every table that has a where clause.
 	// The bfsEntry now also carries the joinSteps along the path.
 	type bfsEntry struct {
-		src       string     // the where-clause root
-		current   string     // current table
-		joinSteps []JoinStep // join steps taken from src to current
+		src       string      // the where-clause root
+		current   string      // current table
+		joinSteps []*JoinStep // join steps taken from src to current
 	}
 	queue := []bfsEntry{}
 	// visited[src][node] ensures we record only the shortest path per source.
@@ -108,14 +108,13 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]SubsetPath {
 		}
 		visited[root][root] = true
 		// For the root itself, record its own path (with no join steps).
-		result[root] = append(result[root], SubsetPath{
-			Root:   root,
-			Subset: clause,
-			// Path:      []string{root},
-			JoinSteps: []JoinStep{},
+		result[root] = append(result[root], &SubsetPath{
+			Root:      root,
+			Subset:    clause,
+			JoinSteps: []*JoinStep{},
 		})
 		// Enqueue the root so we can traverse to its children.
-		queue = append(queue, bfsEntry{src: root, current: root, joinSteps: []JoinStep{}})
+		queue = append(queue, bfsEntry{src: root, current: root, joinSteps: []*JoinStep{}})
 	}
 
 	// Process the BFS queue.
@@ -133,7 +132,7 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]SubsetPath {
 			visited[entry.src][child] = true
 
 			// Find a matching foreign constraint between entry.current and child.
-			var js JoinStep
+			var js *JoinStep
 			found := false
 			// Iterate over all foreign constraints for the child.
 			for _, fc := range b.foreignKeys[child] {
@@ -142,11 +141,11 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]SubsetPath {
 					// For simplicity, take the first column pair as the join keys.
 					if len(fc.ForeignKey.Columns) > 0 && len(fc.Columns) > 0 {
 						referenceSchema, referenceTable := sqlmanager_shared.SplitTableKey(fc.ForeignKey.Table)
-						js = JoinStep{
+						js = &JoinStep{
 							ToKey:   entry.current,
 							FromKey: child,
 							// Create a new ForeignKey value from fc.ForeignKey.
-							Fk: &ForeignKey{
+							ForeignKey: &ForeignKey{
 								Columns:          fc.Columns,
 								NotNullable:      fc.NotNullable,
 								ReferenceSchema:  referenceSchema,
@@ -160,14 +159,14 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]SubsetPath {
 				}
 			}
 			// If no matching join is found, we still propagate without a joinStep.
-			newJoinSteps := make([]JoinStep, len(entry.joinSteps))
+			newJoinSteps := make([]*JoinStep, len(entry.joinSteps))
 			copy(newJoinSteps, entry.joinSteps)
 			if found {
 				newJoinSteps = append(newJoinSteps, js)
 			}
 
 			revJoinSteps := reverseJoinSteps(newJoinSteps)
-			result[child] = append(result[child], SubsetPath{
+			result[child] = append(result[child], &SubsetPath{
 				Root:      entry.src,
 				Subset:    b.whereClauses[entry.src],
 				JoinSteps: revJoinSteps,
@@ -180,9 +179,9 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]SubsetPath {
 }
 
 // reverseJoinSteps reverses a slice of JoinSteps.
-func reverseJoinSteps(steps []JoinStep) []JoinStep {
+func reverseJoinSteps(steps []*JoinStep) []*JoinStep {
 	n := len(steps)
-	result := make([]JoinStep, n)
+	result := make([]*JoinStep, n)
 	for i, v := range steps {
 		result[n-1-i] = v
 	}
@@ -207,7 +206,7 @@ type runConfigBuilder struct {
 	uniqueConstraints          [][]string
 	foreignKeys                []*sqlmanager_shared.ForeignConstraint
 	isPartOfCircularDependency bool
-	subsetPaths                []SubsetPath
+	subsetPaths                []*SubsetPath
 }
 
 func newRunConfigBuilder(
@@ -219,7 +218,7 @@ func newRunConfigBuilder(
 	uniqueConstraints [][]string,
 	foreignKeys []*sqlmanager_shared.ForeignConstraint,
 	isPartOfCircularDependency bool,
-	subsetPaths []SubsetPath,
+	subsetPaths []*SubsetPath,
 ) *runConfigBuilder {
 	return &runConfigBuilder{
 		table:                      table,

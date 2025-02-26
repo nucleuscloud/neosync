@@ -189,9 +189,9 @@ func (qb *QueryBuilder) addShortestPathJoins(query *goqu.SelectDataset, rootTabl
 				tableAliasMap[step.ToKey] = childAlias
 			}
 			// Build join conditions based on the foreign key.
-			joinConditions := make([]exp.Expression, len(step.Fk.Columns))
-			for i, col := range step.Fk.Columns {
-				joinConditions[i] = goqu.T(childAlias).Col(step.Fk.ReferenceColumns[i]).Eq(goqu.T(parentAlias).Col(col))
+			joinConditions := make([]exp.Expression, len(step.ForeignKey.Columns))
+			for i, col := range step.ForeignKey.Columns {
+				joinConditions[i] = goqu.T(childAlias).Col(step.ForeignKey.ReferenceColumns[i]).Eq(goqu.T(parentAlias).Col(col))
 			}
 			query = query.InnerJoin(
 				goqu.I(childTable).As(childAlias),

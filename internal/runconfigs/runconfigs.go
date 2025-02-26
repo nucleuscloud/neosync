@@ -17,17 +17,6 @@ const (
 	RunTypeInsert RunType = "insert"
 )
 
-type ConstraintColumns struct {
-	NullableColumns    []string
-	NonNullableColumns []string
-}
-
-type TableColumn struct {
-	Schema  string
-	Table   string
-	Columns []string
-}
-
 type DependsOn struct {
 	Table   string
 	Columns []string
@@ -46,19 +35,18 @@ type ForeignKey struct {
 type SubsetPath struct {
 	Subset    string
 	Root      string
-	JoinSteps []JoinStep
+	JoinSteps []*JoinStep
 }
 
 // joinStep represents one “edge” (join) in a join chain from one table to a related table.
 type JoinStep struct {
-	FromKey string
-	ToKey   string
-	Fk      *ForeignKey
+	FromKey    string
+	ToKey      string
+	ForeignKey *ForeignKey
 }
 
 type RunConfig struct {
-	id string
-	// table            string // schema.table  TODO: should use sqlmanager_shared.SchemaTable
+	id               string
 	table            sqlmanager_shared.SchemaTable
 	selectColumns    []string
 	insertColumns    []string
@@ -69,7 +57,7 @@ type RunConfig struct {
 	orderByColumns   []string // columns to order by
 	splitColumnPaths bool
 	// New: whereClausePaths holds one (or more) shortest paths from this table to any table that has a where clause.
-	subsetPaths []SubsetPath
+	subsetPaths []*SubsetPath
 }
 
 func NewRunConfig(
@@ -108,11 +96,15 @@ func (rc *RunConfig) SchemaTable() sqlmanager_shared.SchemaTable {
 }
 
 func (rc *RunConfig) SelectColumns() []string {
-	return rc.selectColumns
+	result := make([]string, len(rc.selectColumns))
+	copy(result, rc.selectColumns)
+	return result
 }
 
 func (rc *RunConfig) InsertColumns() []string {
-	return rc.insertColumns
+	result := make([]string, len(rc.insertColumns))
+	copy(result, rc.insertColumns)
+	return result
 }
 
 func (rc *RunConfig) DependsOn() []*DependsOn {
@@ -124,19 +116,30 @@ func (rc *RunConfig) RunType() RunType {
 }
 
 func (rc *RunConfig) PrimaryKeys() []string {
-	return rc.primaryKeys
+	result := make([]string, len(rc.primaryKeys))
+	copy(result, rc.primaryKeys)
+	return result
 }
 
 func (rc *RunConfig) WhereClause() *string {
-	return rc.whereClause
+	if rc.whereClause == nil {
+		return nil
+	}
+	copied := *rc.whereClause
+	return &copied
 }
 
-func (rc *RunConfig) SubsetPaths() []SubsetPath {
+func (rc *RunConfig) SubsetPaths() []*SubsetPath {
+	if rc.subsetPaths == nil {
+		return []*SubsetPath{}
+	}
 	return rc.subsetPaths
 }
 
 func (rc *RunConfig) OrderByColumns() []string {
-	return rc.orderByColumns
+	result := make([]string, len(rc.orderByColumns))
+	copy(result, rc.orderByColumns)
+	return result
 }
 
 func (rc *RunConfig) SplitColumnPaths() bool {
@@ -182,9 +185,9 @@ func (rc *RunConfig) String() string {
 			sb.WriteString("    JoinSteps:\n")
 			for j, js := range sp.JoinSteps {
 				sb.WriteString(fmt.Sprintf("      [%d] FromKey: %s, ToKey: %s\n", j, js.FromKey, js.ToKey))
-				if js.Fk != nil {
+				if js.ForeignKey != nil {
 					sb.WriteString(fmt.Sprintf("        FK: Columns: %v, NotNullable: %v, ReferenceSchema: %s, ReferenceTable: %s, ReferenceColumns: %v\n",
-						js.Fk.Columns, js.Fk.NotNullable, js.Fk.ReferenceSchema, js.Fk.ReferenceTable, js.Fk.ReferenceColumns))
+						js.ForeignKey.Columns, js.ForeignKey.NotNullable, js.ForeignKey.ReferenceSchema, js.ForeignKey.ReferenceTable, js.ForeignKey.ReferenceColumns))
 				}
 			}
 		}

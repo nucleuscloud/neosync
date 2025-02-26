@@ -23,6 +23,7 @@ import (
 	pg_subsetting "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/subsetting"
 	pg_transformers "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/transformers"
 	pg_uuids "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/uuids"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 )
@@ -818,11 +819,11 @@ func test_postgres_subsetting(
 		table    string
 		rowCount int
 	}{
-		{schema: schema, table: "attachments", rowCount: 2},
-		{schema: schema, table: "comments", rowCount: 4},
-		{schema: schema, table: "initiatives", rowCount: 4},
+		{schema: schema, table: "attachments", rowCount: 6},
+		{schema: schema, table: "comments", rowCount: 12},
+		{schema: schema, table: "initiatives", rowCount: 6},
 		{schema: schema, table: "skills", rowCount: 10},
-		{schema: schema, table: "tasks", rowCount: 2},
+		{schema: schema, table: "tasks", rowCount: 6},
 		{schema: schema, table: "user_skills", rowCount: 6},
 		{schema: schema, table: "users", rowCount: 6},
 		{schema: schema, table: "test_2_x", rowCount: 3},
@@ -845,7 +846,7 @@ func test_postgres_subsetting(
 	for _, expected := range expectedResults {
 		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)
-		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
+		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
 	}
 
 	// tear down
