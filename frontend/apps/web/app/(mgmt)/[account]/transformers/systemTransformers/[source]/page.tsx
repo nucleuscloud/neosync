@@ -30,7 +30,7 @@ import { useQuery } from '@connectrpc/connect-query';
 import { TransformerSource, TransformersService } from '@neosync/sdk';
 import Error from 'next/error';
 import NextLink from 'next/link';
-import { ReactElement } from 'react';
+import { ReactElement, use } from 'react';
 import { useForm } from 'react-hook-form';
 import { constructDocsLink } from '../../EditTransformerOptions';
 
@@ -42,9 +42,8 @@ function getTransformerSource(sourceStr: string): TransformerSource {
   return sourceNum as TransformerSource;
 }
 
-export default function ViewSystemTransformers({
-  params,
-}: PageProps): ReactElement {
+export default function ViewSystemTransformers(props: PageProps): ReactElement {
+  const params = use(props.params);
   const sourceParam = getTransformerSource(params?.source ?? '');
   const { data: systemTransformerData, isLoading } = useQuery(
     TransformersService.method.getSystemTransformerBySource,

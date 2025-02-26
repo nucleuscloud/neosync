@@ -46,7 +46,7 @@ import {
 } from '@neosync/sdk';
 import { Cross1Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
-import { ReactElement } from 'react';
+import { ReactElement, use } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as Yup from 'yup';
@@ -59,7 +59,8 @@ const FormValues = Yup.object({
 });
 type FormValues = Yup.InferType<typeof FormValues>;
 
-export default function Page({ params }: PageProps): ReactElement {
+export default function Page(props: PageProps): ReactElement {
+  const params = use(props.params);
   const id = params?.id ?? '';
   const { account } = useAccount();
   const router = useRouter();

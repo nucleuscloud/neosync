@@ -19,7 +19,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { AiOutlineExperiment } from 'react-icons/ai';
-import { PageProps } from '../types';
 import { Button } from '../ui/button';
 
 interface Props {
@@ -29,18 +28,17 @@ interface Props {
 }
 
 export default function WelcomeRouter({
-  params,
   setIsDialogOpen,
   onPreviousStep,
   completeForm,
-}: Props & PageProps): ReactElement {
+}: Props): ReactElement {
   const [sessionToken, setSessionToken] = useState<string>('');
   const searchParams = useSearchParams();
   const { account } = useAccount();
 
   useEffect(() => {
     // Generate the session token only on the client side
-    setSessionToken(params?.sessionId ?? nanoid());
+    setSessionToken(searchParams.get('sessionId') ?? nanoid());
   }, []);
 
   const dataSyncParams = new URLSearchParams(searchParams);
@@ -115,7 +113,7 @@ export default function WelcomeRouter({
               className={cn(
                 'cursor-pointer p-2',
                 selectedJobType === jd.type
-                  ? 'border border-black shadow-sm dark:border-gray-500'
+                  ? 'border border-black shadow-xs dark:border-gray-500'
                   : 'hover:border hover:border-gray-500 dark:border-gray-700 dark:hover:border-gray-600'
               )}
               onClick={() => handleJobSelection(jd.type, jd.href)}

@@ -1,10 +1,11 @@
 'use client';
 import SubPageHeader from '@/components/headers/SubPageHeader';
 import { PageProps } from '@/components/types';
-import { ReactElement } from 'react';
+import { ReactElement, use } from 'react';
 import SourceConnectionCard from './components/SourceConnectionCard';
 
-export default function Page({ params }: PageProps): ReactElement {
+export default function Page(props: PageProps): ReactElement {
+  const params = use(props.params);
   const id = params?.id ?? '';
   return (
     <div className="job-details-container flex flex-col gap-5">

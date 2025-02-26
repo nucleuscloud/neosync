@@ -19,7 +19,7 @@ export default function HookCard(props: Props): ReactElement {
       <Card>
         <CardContent className="p-4">
           <div className="flex justify-between">
-            <div className="flex flex-grow flex-col gap-2">
+            <div className="flex grow flex-col gap-2">
               {/* Header Section */}
               <div className="flex items-center justify-between">
                 <h3 className="font-medium text-lg">{hook.name}</h3>

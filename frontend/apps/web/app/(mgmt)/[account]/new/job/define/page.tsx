@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, use, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
@@ -43,7 +43,8 @@ import { usePostHog } from 'posthog-js/react';
 import { DEFAULT_CRON_STRING } from '../../../jobs/[id]/components/ScheduleCard';
 import { getNewJobSessionKeys } from '../../../jobs/util';
 
-export default function Page({ searchParams }: PageProps): ReactElement {
+export default function Page(props: PageProps): ReactElement {
+  const searchParams = use(props.searchParams);
   const router = useRouter();
   const { account } = useAccount();
   useEffect(() => {

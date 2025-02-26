@@ -3,18 +3,10 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [
-        "apps/web/.next/**",
-        "!apps/web/.next/cache/**",
-        "packages/sdk/dist"
-      ]
-    },
-    "deploy": {
-      "dependsOn": ["build"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "lint": {},
     "dev": {
-      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     },

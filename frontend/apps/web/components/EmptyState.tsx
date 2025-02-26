@@ -1,6 +1,6 @@
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
-import { ReactElement, ReactNode } from 'react';
+import { ReactElement, ReactNode, type JSX } from 'react';
 import ButtonText from './ButtonText';
 import { Button } from './ui/button';
 

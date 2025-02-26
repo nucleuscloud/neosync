@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import posthog from 'posthog-js';
 import { PostHogProvider, usePostHog } from 'posthog-js/react';
-import { ReactElement, ReactNode, useEffect } from 'react';
+import { ReactElement, ReactNode, useEffect, type JSX } from 'react';
 import { useAccount } from './account-provider';
 
 // Enables posthog, as well as turns on pageview tracking.

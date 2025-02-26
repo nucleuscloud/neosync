@@ -2,7 +2,7 @@
 
 import Error from 'next/error';
 import { useRouter } from 'next/navigation';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, type JSX } from 'react';
 import { useAccount } from './providers/account-provider';
 import { Skeleton } from './ui/skeleton';
 

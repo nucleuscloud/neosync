@@ -14,7 +14,7 @@ const alertVariants = cva(
         destructive:
           'border-destructive/50 dark:border-destructive bg-destructive text-destructive-foreground',
         warning: 'border border-yellow-300 dark:border-orange-500 ',
-        info: 'border border-blue-300 shadow-sm bg-blue-50 dark:bg-gray-800 dark:border-gray-700',
+        info: 'border border-blue-300 shadow-xs bg-blue-50 dark:bg-gray-800 dark:border-gray-700',
       },
     },
     defaultVariants: {
@@ -23,41 +23,40 @@ const alertVariants = cva(
   }
 );
 
-const Alert = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
->(({ className, variant, ...props }, ref) => (
-  <div
-    ref={ref}
-    role="alert"
-    className={cn(alertVariants({ variant }), className)}
-    {...props}
-  />
-));
-Alert.displayName = 'Alert';
+export function Alert({
+  className,
+  variant,
+  ...props
+}: React.ComponentPropsWithRef<'div'> & VariantProps<typeof alertVariants>) {
+  return (
+    <div
+      role="alert"
+      className={cn(alertVariants({ variant }), className)}
+      {...props}
+    />
+  );
+}
 
-const AlertTitle = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  <h5
-    ref={ref}
-    className={cn('mb-1 font-medium leading-none tracking-tight', className)}
-    {...props}
-  />
-));
-AlertTitle.displayName = 'AlertTitle';
+export function AlertTitle({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h5
+      className={cn('mb-1 font-medium leading-none tracking-tight', className)}
+      {...props}
+    />
+  );
+}
 
-const AlertDescription = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn('text-sm [&_p]:leading-relaxed', className)}
-    {...props}
-  />
-));
-AlertDescription.displayName = 'AlertDescription';
-
-export { Alert, AlertDescription, AlertTitle };
+export function AlertDescription({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <div
+      className={cn('text-sm [&_p]:leading-relaxed', className)}
+      {...props}
+    />
+  );
+}

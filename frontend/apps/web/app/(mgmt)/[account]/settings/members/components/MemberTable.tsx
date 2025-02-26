@@ -336,8 +336,14 @@ function DataTableRowActions({
     <DropdownMenu
       modal={false} // needed because otherwise this breaks after a single use in conjunction with the delete dialog
     >
-      <DropdownMenuTrigger className="hover:bg-gray-100 dark:hover:bg-gray-800 py-1 px-2 rounded-lg">
-        <DotsHorizontalIcon className="h-4 w-4" />
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
+        >
+          <DotsHorizontalIcon className="h-4 w-4" />
+          <span className="sr-only">Open menu</span>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <UpdateMemberRoleDialog

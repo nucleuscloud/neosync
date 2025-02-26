@@ -5,11 +5,18 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit",
     "source.fixAll": "explicit"
   },
   "typescript.tsdk": "frontend/node_modules/typescript/lib",
-  "makefile.configureOnOpen": false
+  "makefile.configureOnOpen": false,
+  "prettier.configPath": "frontend/.prettierrc.json"
 }
