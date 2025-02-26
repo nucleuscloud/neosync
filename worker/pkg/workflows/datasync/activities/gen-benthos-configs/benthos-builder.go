@@ -17,7 +17,7 @@ import (
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	"github.com/nucleuscloud/neosync/internal/runconfigs"
-	querybuilder2 "github.com/nucleuscloud/neosync/worker/pkg/query-builder2"
+	selectquerybuilder "github.com/nucleuscloud/neosync/worker/pkg/select-query-builder"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 
 	"gopkg.in/yaml.v3"
@@ -109,7 +109,7 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		Transformerclient:      b.transformerclient,
 		Connectionclient:       b.connclient,
 		RedisConfig:            b.redisConfig,
-		SelectQueryBuilder:     &querybuilder2.QueryMapBuilderWrapper{},
+		SelectQueryBuilder:     &selectquerybuilder.QueryMapBuilderWrapper{},
 		MetricsEnabled:         b.metricsEnabled,
 		MetricLabelKeyVals: map[string]string{
 			metrics.TemporalWorkflowId: bb_shared.WithEnvInterpolation(metrics.TemporalWorkflowIdEnvKey),

@@ -30,34 +30,33 @@ type ForeignKey struct {
 	ReferenceColumns []string
 }
 
-// WhereClausePath represents the shortest path from a table to a where-clause root.
+// SubsetPath represents the shortest path from a table to a where-clause root.
 // The Path slice is ordered from the table up to the root (i.e. [child, ..., root]).
 type SubsetPath struct {
-	Subset    string
-	Root      string
-	JoinSteps []*JoinStep
+	Subset    string      // subset query
+	Root      string      // table key of the root table with a where clause
+	JoinSteps []*JoinStep // join steps from the current table to the subset root table
 }
 
 // joinStep represents one “edge” (join) in a join chain from one table to a related table.
 type JoinStep struct {
-	FromKey    string
-	ToKey      string
-	ForeignKey *ForeignKey
+	FromKey    string      // table key of the child table
+	ToKey      string      // table key of the parent table
+	ForeignKey *ForeignKey // foreign key relationship between the parent and child tables
 }
 
 type RunConfig struct {
-	id               string
-	table            sqlmanager_shared.SchemaTable
-	selectColumns    []string
-	insertColumns    []string
-	dependsOn        []*DependsOn // this should be a list of config names like "table.insert", rename to dependsOnConfigs
-	runType          RunType
-	primaryKeys      []string
-	whereClause      *string
-	orderByColumns   []string // columns to order by
-	splitColumnPaths bool
-	// New: whereClausePaths holds one (or more) shortest paths from this table to any table that has a where clause.
-	subsetPaths []*SubsetPath
+	id               string                        // unique identifier for the run config
+	table            sqlmanager_shared.SchemaTable // table to run the query on
+	selectColumns    []string                      // columns to select
+	insertColumns    []string                      // columns to insert
+	dependsOn        []*DependsOn                  // tables that must be run before this one
+	runType          RunType                       // type of run (update or insert)
+	primaryKeys      []string                      // primary keys for the table
+	whereClause      *string                       // subset query
+	orderByColumns   []string                      // columns to order by
+	splitColumnPaths bool                          // whether to split column paths
+	subsetPaths      []*SubsetPath                 // holds one (or more) shortest paths from this table to any table that has a where clause.
 }
 
 func NewRunConfig(
@@ -213,7 +212,7 @@ func BuildRunConfigs(
 		tableColumnsMap[table] = utils.DedupeSliceOrdered(cols)
 	}
 
-	// filter dependencies to only include tables are in tableColumnsMap (jobmappings)
+	// filter dependencies to only include tables in tableColumnsMap (jobmappings)
 	filteredFks := filterDependencies(dependencyMap, tableColumnsMap)
 
 	tableConfigsBuilder := newTableConfigsBuilder(tableColumnsMap, primaryKeyMap, subsets, uniqueIndexesMap, uniqueConstraintsMap, filteredFks)

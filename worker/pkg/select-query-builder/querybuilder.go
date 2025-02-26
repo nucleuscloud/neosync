@@ -1,4 +1,4 @@
-package querybuilder2
+package selectquerybuilder
 
 import (
 	"crypto/md5" //nolint:gosec // This is not being used for a purpose that requires security
@@ -13,12 +13,12 @@ import (
 	"github.com/doug-martin/goqu/v9/exp"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/internal/runconfigs"
-	tsql_parser "github.com/nucleuscloud/neosync/worker/pkg/query-builder2/tsql"
+	tsql_parser "github.com/nucleuscloud/neosync/worker/pkg/select-query-builder/tsql"
 	pg_query "github.com/pganalyze/pg_query_go/v5"
 	"github.com/xwb1989/sqlparser"
 )
 
-// QueryBuilder holds state for building the query.
+// QueryBuilder holds global state for building the queries.
 type QueryBuilder struct {
 	defaultSchema                 string
 	driver                        string
@@ -27,8 +27,7 @@ type QueryBuilder struct {
 	pageLimit                     uint
 }
 
-// NewQueryBuilder constructs a new QueryBuilder.
-func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool, pageLimit int) *QueryBuilder {
+func NewSelectQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool, pageLimit int) *QueryBuilder {
 	limit := uint(0)
 	if pageLimit > 0 {
 		limit = uint(pageLimit)
@@ -42,6 +41,7 @@ func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints
 	}
 }
 
+// getDialect returns the dialect for the given driver.
 func (qb *QueryBuilder) getDialect() goqu.DialectWrapper {
 	switch qb.driver {
 	case sqlmanager_shared.PostgresDriver:
@@ -51,7 +51,8 @@ func (qb *QueryBuilder) getDialect() goqu.DialectWrapper {
 	}
 }
 
-// BuildQuery creates the final SQL query.
+// BuildQuery constructs a SQL Select query from a RunConfig, returning the query string,
+// returns initial select and paged select queries, a flag indicating foreign key safety
 func (qb *QueryBuilder) BuildQuery(runconfig *runconfigs.RunConfig) (sqlstatement string, args []any, pagesql string, isNotForeignKeySafeSubset bool, err error) {
 	query, pageQuery, notFkSafe, err := qb.buildFlattenedQuery(runconfig)
 	if query == nil {
@@ -100,14 +101,15 @@ func (qb *QueryBuilder) buildFlattenedQuery(rootTable *runconfigs.RunConfig) (sq
 		query = query.Order(orderByExpressions...)
 	}
 
-	// If using subset-by-foreign-key constraints, add joins using the shortest path logic.
+	// If using subset-by-foreign-key constraints, add joins using the subset path
 	var notFkSafeSubset bool
 	if qb.subsetByForeignKeyConstraints && len(rootTable.SubsetPaths()) > 0 {
-		query, notFkSafeSubset, err = qb.addShortestPathJoins(query, rootTable, rootAlias)
+		query, notFkSafeSubset, err = qb.addSubsetJoins(query, rootTable, rootAlias)
 		if err != nil {
 			return nil, nil, false, err
 		}
 	} else if !qb.subsetByForeignKeyConstraints && rootTable.WhereClause() != nil && *rootTable.WhereClause() != "" {
+		// No subset-by-foreign-key constraints, but a where clause was provided
 		qualifiedCondition, err := qb.qualifyWhereCondition(nil, rootAlias, *rootTable.WhereClause())
 		if err != nil {
 			return nil, nil, false, err
@@ -118,7 +120,6 @@ func (qb *QueryBuilder) buildFlattenedQuery(rootTable *runconfigs.RunConfig) (sq
 	// Build page query (for pagination)
 	pageQuery := qb.buildPageQuery(query, rootAlias, rootTable.OrderByColumns())
 
-	// In this new approach we assume all joins are safe so we return false.
 	return query, pageQuery, notFkSafeSubset, nil
 }
 
@@ -142,8 +143,9 @@ func (qb *QueryBuilder) buildPageQuery(query *goqu.SelectDataset, rootAlias stri
 	return query.Prepared(true)
 }
 
-// addShortestPathJoins uses BFS to find the shortest join chains (per where condition) and adds them to the query.
-func (qb *QueryBuilder) addShortestPathJoins(query *goqu.SelectDataset, rootTable *runconfigs.RunConfig, rootAlias string) (*goqu.SelectDataset, bool, error) {
+// addSubsetJoins adds joins to the query based on foreign key relationships defined in the subset paths.
+// returns the modified query, a boolean indicating if the subset is not foreign key safe.
+func (qb *QueryBuilder) addSubsetJoins(query *goqu.SelectDataset, rootTable *runconfigs.RunConfig, rootAlias string) (*goqu.SelectDataset, bool, error) {
 	subsets := rootTable.SubsetPaths()
 	isSubset := false
 
@@ -156,6 +158,8 @@ func (qb *QueryBuilder) addShortestPathJoins(query *goqu.SelectDataset, rootTabl
 	// To avoid adding duplicate joins, track them using a key "fromKey->toKey"
 	addedJoins := make(map[string]bool)
 	for _, subset := range subsets {
+		// If there are no join steps, and there is a subset condition, apply it
+		// This handles case where the root table has a where clause
 		if len(subset.JoinSteps) == 0 && subset.Subset != "" {
 			qualifiedCondition, err := qb.qualifyWhereCondition(nil, rootAlias, subset.Subset)
 			if err != nil {
@@ -199,7 +203,7 @@ func (qb *QueryBuilder) addShortestPathJoins(query *goqu.SelectDataset, rootTabl
 			)
 			addedJoins[edgeKey] = true
 
-			// If this is the last step and there's a subset condition, apply it
+			// If this is the last step in chain and there's a subset condition, apply it
 			if idx == len(subset.JoinSteps)-1 && subset.Subset != "" {
 				qualifiedCondition, err := qb.qualifyWhereCondition(nil, childAlias, subset.Subset)
 				if err != nil {

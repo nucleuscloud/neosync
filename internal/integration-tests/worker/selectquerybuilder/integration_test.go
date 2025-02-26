@@ -1,4 +1,4 @@
-package querybuilder2
+package selectquerybuilder
 
 import (
 	"context"

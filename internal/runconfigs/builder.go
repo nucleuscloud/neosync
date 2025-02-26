@@ -7,6 +7,9 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
 
+// tableConfigsBuilder holds global data about all tables in the job
+// and computes shared information like circular dependencies and subset paths
+// that will be used by the runConfigBuilder to create individual RunConfig instances.
 type tableConfigsBuilder struct {
 	primaryKeys          map[string][]string
 	whereClauses         map[string]string
@@ -71,15 +74,12 @@ func (b *tableConfigsBuilder) buildDependencyGraph() map[string][]string {
 	return graph
 }
 
-// computeAllWhereClausePaths computes, for each table, the shortest paths (if any)
+// computeAllSubsetPaths computes, for each table, the shortest paths (if any)
 // to any table that has a where clause. It returns a map from table name to a slice
-// of WhereClausePath—one per where-clause root reachable.
-// Each WhereClausePath now includes the where clause string (Clause) and the join steps (JoinSteps)
-// along the path.
+// of SubsetPath—one per where-clause root reachable.
 func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]*SubsetPath {
 	// Build the reverse graph: for each parent table, list its child tables.
 	reverseGraph := make(map[string][]string)
-	// fkMap is keyed by child table.
 	for child, constraints := range b.foreignKeys {
 		for _, fc := range constraints {
 			parent := fc.ForeignKey.Table
@@ -87,10 +87,10 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]*SubsetPath {
 		}
 	}
 
-	// Global result: table -> list of WhereClausePath.
+	// Global result: table -> list of SubsetPath.
 	result := make(map[string][]*SubsetPath)
 
-	// We'll perform multi-source BFS starting from every table that has a where clause.
+	// Multi-source BFS starting from every table that has a where clause.
 	// The bfsEntry now also carries the joinSteps along the path.
 	type bfsEntry struct {
 		src       string      // the where-clause root
@@ -136,7 +136,7 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]*SubsetPath {
 			found := false
 			// Iterate over all foreign constraints for the child.
 			for _, fc := range b.foreignKeys[child] {
-				// We are looking for a constraint where the parent table matches entry.current.
+				// We are looking for a foreign key where the parent table matches entry.current.
 				if fc.ForeignKey.Table == entry.current {
 					// For simplicity, take the first column pair as the join keys.
 					if len(fc.ForeignKey.Columns) > 0 && len(fc.Columns) > 0 {
@@ -158,7 +158,7 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]*SubsetPath {
 					}
 				}
 			}
-			// If no matching join is found, we still propagate without a joinStep.
+			// If no matching foreign key is found, we still propagate without a joinStep.
 			newJoinSteps := make([]*JoinStep, len(entry.joinSteps))
 			copy(newJoinSteps, entry.joinSteps)
 			if found {
@@ -190,8 +190,8 @@ func reverseJoinSteps(steps []*JoinStep) []*JoinStep {
 
 // RunConfigBuilder is responsible for generating RunConfigs that define how to process table data.
 // It handles two main scenarios:
-// 1. Tables without circular dependencies - generates a single INSERT config
-// 2. Tables with circular dependencies - generates multiple configs to handle the cycle:
+// 1. Tables without circular dependencies, subsets - generates a single INSERT config
+// 2. Tables with circular dependencies or subsets - generates multiple configs to handle the cycle/subset:
 //   - Initial INSERT with non-nullable foreign key columns
 //   - UPDATE configs for each nullable foreign key reference
 //
@@ -233,6 +233,9 @@ func newRunConfigBuilder(
 	}
 }
 
+// Build generates a list of RunConfig objects based on the table's properties and relationships.
+// Decides whether to build a single INSERT config or multiple configs based on whether the table
+// is part of a circular dependency or has subsets.
 func (b *runConfigBuilder) Build() []*RunConfig {
 	if b.isPartOfCircularDependency || len(b.subsetPaths) > 0 {
 		return b.buildConstraintHandlingConfigs()
@@ -257,6 +260,10 @@ func (b *runConfigBuilder) buildInsertConfig() *RunConfig {
 	return config
 }
 
+// buildConstraintHandlingConfigs builds multiple configs to handle circular dependencies or subsets.
+// It handles circular dependencies and subsets the same way:
+// Inserts all non-nullable columns, then builds update configs for any nullable columns that reference other tables.
+// This is important to bring over as much subset data as possible.
 func (b *runConfigBuilder) buildConstraintHandlingConfigs() []*RunConfig {
 	var configs []*RunConfig
 
@@ -270,7 +277,7 @@ func (b *runConfigBuilder) buildConstraintHandlingConfigs() []*RunConfig {
 		id:             fmt.Sprintf("%s.%s", b.table, RunTypeInsert),
 		table:          b.table,
 		runType:        RunTypeInsert,
-		selectColumns:  b.columns, // select cols in insert config must be all columns due to S3 as possible output
+		selectColumns:  b.columns, // Select columns in insert config must be all columns due to S3 as possible output
 		insertColumns:  b.primaryKeys,
 		primaryKeys:    b.primaryKeys,
 		whereClause:    where,
@@ -289,7 +296,7 @@ func (b *runConfigBuilder) buildConstraintHandlingConfigs() []*RunConfig {
 	}
 
 	updateConfigCount := 0
-	// build update configs for any nullable foreign keys
+	// Build update configs for any nullable foreign keys
 	for _, fc := range b.foreignKeys {
 		if fc == nil || fc.ForeignKey == nil {
 			continue
@@ -349,6 +356,7 @@ func (b *runConfigBuilder) buildUpdateConfig(
 	orderByColumns []string,
 	count int,
 ) *RunConfig {
+	// Add foreign key table as a dependency
 	dependsOn := []*DependsOn{
 		{
 			Table:   fc.ForeignKey.Table,
@@ -356,7 +364,7 @@ func (b *runConfigBuilder) buildUpdateConfig(
 		},
 	}
 
-	// if the foreign key table is not the same as the table, we need to add a depends on for the primary keys
+	// If the foreign key table is not the same as the table, we need to add INSERT config as a dependency
 	if fc.ForeignKey.Table != b.table.String() {
 		dependsOn = append(dependsOn, &DependsOn{
 			Table:   b.table.String(),
@@ -391,7 +399,7 @@ func (b *runConfigBuilder) getDependsOn() []*DependsOn {
 }
 
 // getOrderByColumns returns order by columns for a table, prioritizing primary keys,
-// then unique indexes, and finally falling back to sorted select columns.
+// then unique constraints, then unique indexes, and finally falling back to sorted select columns.
 func (b *runConfigBuilder) getOrderByColumns(selectColumns []string) []string {
 	if len(b.primaryKeys) > 0 {
 		return b.primaryKeys
