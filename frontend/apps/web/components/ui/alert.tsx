@@ -27,7 +27,7 @@ export function Alert({
   className,
   variant,
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>) {
+}: React.ComponentPropsWithRef<'div'> & VariantProps<typeof alertVariants>) {
   return (
     <div
       role="alert"

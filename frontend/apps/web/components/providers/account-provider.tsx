@@ -1,4 +1,5 @@
 'use client';
+import { getSingleOrUndefined } from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
 import { UserAccount, UserAccountService } from '@neosync/sdk';
 import { useParams, useRouter } from 'next/navigation';
@@ -126,13 +127,6 @@ function useGetAccountName(): string {
     return singleStoredAccount;
   }
   return DEFAULT_ACCOUNT_NAME;
-}
-
-function getSingleOrUndefined(val: string | string[]): string | undefined {
-  if (Array.isArray(val)) {
-    return val.length > 0 ? val[0] : undefined;
-  }
-  return val;
 }
 
 export function useAccount(): AccountContextType {
