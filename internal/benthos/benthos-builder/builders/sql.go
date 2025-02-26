@@ -55,8 +55,7 @@ func NewSqlSyncBuilder(
 		redisConfig:        redisConfig,
 		driver:             databaseDriver,
 		selectQueryBuilder: selectQueryBuilder,
-		// isNotForeignKeySafeSubsetMap: map[string]map[tabledependency.RunType]bool{},
-		pageLimit: pageLimit,
+		pageLimit:          pageLimit,
 	}
 }
 
@@ -148,17 +147,6 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 	b.configQueryMap = configQueryMap
-
-	fmt.Println("--------------------------------")
-	for _, rc := range runConfigs {
-		fmt.Println()
-		fmt.Println(rc.String())
-		if configQueryMap[rc.Id()] != nil {
-			fmt.Println(configQueryMap[rc.Id()].Query)
-			fmt.Println("isNotForeignKeySafeSubset", configQueryMap[rc.Id()].IsNotForeignKeySafeSubset)
-		}
-		fmt.Println()
-	}
 
 	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, configQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.JobRunId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {

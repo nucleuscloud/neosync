@@ -73,6 +73,7 @@ type RunConfig struct {
 }
 
 func NewRunConfig(
+	id string,
 	table sqlmanager_shared.SchemaTable,
 	runtype RunType,
 	primaryKeys []string,
@@ -82,6 +83,7 @@ func NewRunConfig(
 	splitColumnPaths bool,
 ) *RunConfig {
 	return &RunConfig{
+		id:               id,
 		table:            table,
 		runType:          runtype,
 		primaryKeys:      primaryKeys,
@@ -226,7 +228,7 @@ func BuildRunConfigs(
 
 	// check run path
 	if !isValidRunOrder(configs) {
-		return nil, errors.New("unable to build table run order. unsupported circular dependency detected.")
+		return nil, errors.New("Unsupported circular dependency detected. At least one foreign key in circular dependency must be nullable")
 	}
 
 	return configs, nil
@@ -275,12 +277,11 @@ func isValidRunOrder(configs []*RunConfig) bool {
 
 	configMap := map[string]*RunConfig{}
 	for _, config := range configs {
-		configName := fmt.Sprintf("%s.%s.%s", config.Table(), config.RunType(), strings.Join(config.InsertColumns(), ","))
-		if _, exists := configMap[configName]; exists {
+		if _, exists := configMap[config.Id()]; exists {
 			// configs should be unique
 			return false
 		}
-		configMap[configName] = config
+		configMap[config.Id()] = config
 	}
 
 	prevTableLen := 0
@@ -290,11 +291,11 @@ func isValidRunOrder(configs []*RunConfig) bool {
 			return false
 		}
 		prevTableLen = len(configMap)
-		for name, config := range configMap {
+		for id, config := range configMap {
 			// root table
 			if len(config.DependsOn()) == 0 {
 				seenTables[config.Table()] = config.InsertColumns()
-				delete(configMap, name)
+				delete(configMap, id)
 				continue
 			}
 			// child table
@@ -313,7 +314,7 @@ func isValidRunOrder(configs []*RunConfig) bool {
 				}
 				if isReady() {
 					seenTables[config.Table()] = append(seenTables[config.Table()], config.InsertColumns()...)
-					delete(configMap, name)
+					delete(configMap, id)
 				}
 			}
 		}

@@ -236,7 +236,7 @@ func (j *JobMappingsValidator) ValidateCircularDependencies(
 	}
 
 	tableColumnNameMap := map[string][]string{}
-	for table, colsMap := range tableColumnMap {
+	for table, colsMap := range j.jobMappings {
 		for col := range colsMap {
 			tableColumnNameMap[table] = append(tableColumnNameMap[table], col)
 		}
@@ -244,7 +244,7 @@ func (j *JobMappingsValidator) ValidateCircularDependencies(
 
 	_, err := runconfigs.BuildRunConfigs(validForeignKeyDependencies, map[string]string{}, primaryKeys, tableColumnNameMap, map[string][][]string{}, map[string][][]string{})
 	if err != nil {
-		j.addDatabaseError(fmt.Sprintf("Error building run configs: %s", err), mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE)
+		j.addDatabaseError(err.Error(), mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE)
 	}
 
 	return nil

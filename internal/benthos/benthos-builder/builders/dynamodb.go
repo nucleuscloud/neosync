@@ -101,10 +101,12 @@ func (b *dyanmodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 			Schema: tableMapping.Schema,
 			Table:  tableMapping.Table,
 		}
+		runconfigType := runconfigs.RunTypeInsert
+		runconfigId := fmt.Sprintf("%s.%s", schemaTable.String(), runconfigType)
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
-			runconfigs.NewRunConfig(schemaTable, runconfigs.RunTypeInsert, []string{}, nil, columns, columns, nil, splitColumnPaths),
+			runconfigs.NewRunConfig(runconfigId, schemaTable, runconfigType, []string{}, nil, columns, columns, nil, splitColumnPaths),
 			map[string][]*bb_internal.ReferenceKey{},
 			map[string][]*bb_internal.ReferenceKey{},
 			params.Job.Id,
