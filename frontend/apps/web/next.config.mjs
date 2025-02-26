@@ -6,7 +6,7 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const config = {
   reactStrictMode: true,
   output: 'standalone',
-  outputFileTracingRoot: path.join(__dirname, '../../')
+  outputFileTracingRoot: path.join(__dirname, '../../'),
 };
 
 export default config;
