@@ -2,19 +2,22 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "outputs": [
-        "apps/web/.next/**",
-        "!apps/web/.next/cache/**",
-        "packages/sdk/dist"
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**"
       ]
     },
     "deploy": {
-      "dependsOn": ["build"]
+      "dependsOn": [
+        "build"
+      ]
     },
     "lint": {},
     "dev": {
-      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     },
@@ -23,7 +26,9 @@
     },
     "typecheck": {},
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

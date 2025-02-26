@@ -49,6 +49,7 @@ export default function TransformCharacterScrambleForm(
         setIsRegexValid('invalid');
       }
     } catch (err) {
+      console.error(err);
       setIsValidatingRegex(false);
       setIsRegexValid('invalid');
     }
