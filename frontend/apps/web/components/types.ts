@@ -7,11 +7,11 @@ import { ReactNode } from 'react';
  * ```
  */
 export interface PageProps {
-  params?: Record<string, string>;
+  params: Promise<Record<string, string>>;
   /**
    * You can use this...but it's suggested to instead use the `useSearchParams` hook instead
    */
-  searchParams?: Record<string, string | string[]>;
+  searchParams: Promise<Record<string, string | string[]>>;
 }
 
 /**
@@ -21,6 +21,6 @@ export interface PageProps {
  * ```
  */
 export interface LayoutProps {
-  params?: Record<string, string>;
+  params: Promise<Record<string, string>>;
   children: ReactNode;
 }
