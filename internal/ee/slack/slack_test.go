@@ -16,7 +16,7 @@ func Test_NewClient(t *testing.T) {
 		encryptor := sym_encrypt.NewMockInterface(t)
 		client := NewClient(
 			encryptor,
-			WithAppClientId("test-client-id"),
+			WithAuthClientCreds("test-client-id", "test-client-secret"),
 			WithScope("test-scope"),
 			WithRedirectUrl("http://test.com"),
 		)
@@ -29,7 +29,7 @@ func Test_Client_GetAuthorizeUrl(t *testing.T) {
 		encryptor := sym_encrypt.NewMockInterface(t)
 		client := NewClient(
 			encryptor,
-			WithAppClientId("test-client-id"),
+			WithAuthClientCreds("test-client-id", "test-client-secret"),
 			WithScope("test-scope"),
 			WithRedirectUrl("http://test.com"),
 		)
@@ -48,7 +48,7 @@ func Test_Client_ValidateState(t *testing.T) {
 		encryptor := sym_encrypt.NewMockInterface(t)
 		client := NewClient(
 			encryptor,
-			WithAppClientId("test-client-id"),
+			WithAuthClientCreds("test-client-id", "test-client-secret"),
 			WithScope("test-scope"),
 			WithRedirectUrl("http://test.com"),
 		)
@@ -64,10 +64,11 @@ func Test_Client_ValidateState(t *testing.T) {
 
 		encryptor.EXPECT().Decrypt("encrypted-token").Return(string(stateJson), nil).Once()
 
-		err = client.ValidateState(context.Background(), "encrypted-token", "test-user-id", func(ctx context.Context, userId, accountId string) (bool, error) {
+		oauthState, err := client.ValidateState(context.Background(), "encrypted-token", "test-user-id", func(ctx context.Context, userId, accountId string) (bool, error) {
 			return true, nil
 		})
 		assert.NoError(t, err)
+		assert.Equal(t, state, *oauthState)
 		encryptor.AssertExpectations(t)
 	})
 
@@ -75,7 +76,7 @@ func Test_Client_ValidateState(t *testing.T) {
 		encryptor := sym_encrypt.NewMockInterface(t)
 		client := NewClient(
 			encryptor,
-			WithAppClientId("test-client-id"),
+			WithAuthClientCreds("test-client-id", "test-client-secret"),
 			WithScope("test-scope"),
 			WithRedirectUrl("http://test.com"),
 		)
@@ -91,10 +92,11 @@ func Test_Client_ValidateState(t *testing.T) {
 
 		encryptor.EXPECT().Decrypt("encrypted-token").Return(string(stateJson), nil).Once()
 
-		err = client.ValidateState(context.Background(), "encrypted-token", "test-user-id", func(ctx context.Context, userId, accountId string) (bool, error) {
+		oauthState, err := client.ValidateState(context.Background(), "encrypted-token", "test-user-id", func(ctx context.Context, userId, accountId string) (bool, error) {
 			return false, nil
 		})
 		assert.Error(t, err)
+		assert.Nil(t, oauthState)
 		encryptor.AssertExpectations(t)
 	})
 
@@ -102,7 +104,7 @@ func Test_Client_ValidateState(t *testing.T) {
 		encryptor := sym_encrypt.NewMockInterface(t)
 		client := NewClient(
 			encryptor,
-			WithAppClientId("test-client-id"),
+			WithAuthClientCreds("test-client-id", "test-client-secret"),
 			WithScope("test-scope"),
 			WithRedirectUrl("http://test.com"),
 		)
@@ -118,10 +120,11 @@ func Test_Client_ValidateState(t *testing.T) {
 
 		encryptor.EXPECT().Decrypt("encrypted-token").Return(string(stateJson), nil).Once()
 
-		err = client.ValidateState(context.Background(), "encrypted-token", "invalid-user-id", func(ctx context.Context, userId, accountId string) (bool, error) {
+		oauthState, err := client.ValidateState(context.Background(), "encrypted-token", "invalid-user-id", func(ctx context.Context, userId, accountId string) (bool, error) {
 			return true, nil
 		})
 		assert.Error(t, err)
+		assert.Nil(t, oauthState)
 		encryptor.AssertExpectations(t)
 	})
 
@@ -129,7 +132,7 @@ func Test_Client_ValidateState(t *testing.T) {
 		encryptor := sym_encrypt.NewMockInterface(t)
 		client := NewClient(
 			encryptor,
-			WithAppClientId("test-client-id"),
+			WithAuthClientCreds("test-client-id", "test-client-secret"),
 			WithScope("test-scope"),
 			WithRedirectUrl("http://test.com"),
 		)
@@ -145,10 +148,11 @@ func Test_Client_ValidateState(t *testing.T) {
 
 		encryptor.EXPECT().Decrypt("encrypted-token").Return(string(stateJson), nil).Once()
 
-		err = client.ValidateState(context.Background(), "encrypted-token", "test-user-id", func(ctx context.Context, userId, accountId string) (bool, error) {
+		oauthState, err := client.ValidateState(context.Background(), "encrypted-token", "test-user-id", func(ctx context.Context, userId, accountId string) (bool, error) {
 			return true, nil
 		})
 		assert.Error(t, err)
+		assert.Nil(t, oauthState)
 		encryptor.AssertExpectations(t)
 	})
 }

@@ -530,7 +530,6 @@ func serve(ctx context.Context) error {
 		slackClient := ee_slack.NewClient(
 			encryptor,
 			ee_slack.WithAuthClientCreds(viper.GetString("SLACK_AUTH_CLIENT_ID"), viper.GetString("SLACK_AUTH_CLIENT_SECRET")),
-			ee_slack.WithAppClientId(viper.GetString("SLACK_APP_CLIENT_ID")),
 			ee_slack.WithScope(viper.GetString("SLACK_SCOPE")),
 			ee_slack.WithRedirectUrl(viper.GetString("SLACK_REDIRECT_URL")),
 		)

@@ -33,7 +33,6 @@ type Client struct {
 type config struct {
 	authClientId     string
 	authClientSecret string
-	appClientId      string
 	scope            string
 	redirectUrl      string
 
@@ -46,12 +45,6 @@ func WithAuthClientCreds(authClientId, authClientSecret string) Option {
 	return func(c *config) {
 		c.authClientId = authClientId
 		c.authClientSecret = authClientSecret
-	}
-}
-
-func WithAppClientId(appClientId string) Option {
-	return func(c *config) {
-		c.appClientId = appClientId
 	}
 }
 
