@@ -135,3 +135,6 @@ packages:
   github.com/nucleuscloud/neosync/internal/encrypt/sym:
     interfaces:
       Interface:
+  github.com/nucleuscloud/neosync/internal/ee/slack:
+    interfaces:
+      Interface:

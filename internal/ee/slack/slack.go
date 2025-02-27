@@ -17,7 +17,7 @@ type IsUserInAccountFunc func(ctx context.Context, userId, accountId string) (bo
 
 type Interface interface {
 	GetAuthorizeUrl(accountId, userId string) (string, error)
-	ValidateState(ctx context.Context, state, userId string, isUserInAccount IsUserInAccountFunc) error
+	ValidateState(ctx context.Context, state, userId string, isUserInAccount IsUserInAccountFunc) (*OauthState, error)
 	ExchangeCodeForAccessToken(ctx context.Context, code string) (*slack.OAuthV2Response, error)
 	Test(ctx context.Context, accessToken string) (*slack.AuthTestResponse, error)
 	SendMessage(ctx context.Context, accessToken, channelId string, options ...slack.MsgOption) error
@@ -86,7 +86,7 @@ func NewClient(encryptor sym_encrypt.Interface, opts ...Option) *Client {
 }
 
 func (c *Client) GetAuthorizeUrl(accountId, userId string) (string, error) {
-	state := &slackOauthState{
+	state := &OauthState{
 		AccountId: accountId,
 		UserId:    userId,
 		Timestamp: time.Now().Unix(),
@@ -117,34 +117,34 @@ func (c *Client) GetAuthorizeUrl(accountId, userId string) (string, error) {
 	return slackUrl.String(), nil
 }
 
-func (c *Client) ValidateState(ctx context.Context, state, userId string, isUserInAccount IsUserInAccountFunc) error {
+func (c *Client) ValidateState(ctx context.Context, state, userId string, isUserInAccount IsUserInAccountFunc) (*OauthState, error) {
 	stateDecrypted, err := c.encryptor.Decrypt(state)
 	if err != nil {
-		return fmt.Errorf("unable to decrypt slack oauth state: %w", err)
+		return nil, fmt.Errorf("unable to decrypt slack oauth state: %w", err)
 	}
 
-	var decodedState slackOauthState
+	var decodedState OauthState
 	if err := json.Unmarshal([]byte(stateDecrypted), &decodedState); err != nil {
-		return fmt.Errorf("unable to unmarshal slack oauth state: %w", err)
+		return nil, fmt.Errorf("unable to unmarshal slack oauth state: %w", err)
 	}
 
 	if decodedState.UserId != userId {
-		return fmt.Errorf("invalid user id")
+		return nil, fmt.Errorf("invalid user id")
 	}
 
 	userInAccount, err := isUserInAccount(ctx, userId, decodedState.AccountId)
 	if err != nil {
-		return fmt.Errorf("unable to check if user is in account: %w", err)
+		return nil, fmt.Errorf("unable to check if user is in account: %w", err)
 	}
 
 	if !userInAccount {
-		return fmt.Errorf("invalid account id")
+		return nil, fmt.Errorf("invalid account id")
 	}
 
 	if time.Now().Unix()-decodedState.Timestamp > 900 {
-		return fmt.Errorf("oauth state expired")
+		return nil, fmt.Errorf("oauth state expired")
 	}
-	return nil
+	return &decodedState, nil
 }
 
 func (c *Client) ExchangeCodeForAccessToken(ctx context.Context, code string) (*slack.OAuthV2Response, error) {
@@ -203,7 +203,7 @@ func (c *Client) GetPublicChannels(ctx context.Context, accessToken string) ([]s
 	return channels, nil
 }
 
-type slackOauthState struct {
+type OauthState struct {
 	AccountId string `json:"accountId"`
 	UserId    string `json:"userId"`
 	Timestamp int64  `json:"timestamp"`

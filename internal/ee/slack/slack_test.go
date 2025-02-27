@@ -53,7 +53,7 @@ func Test_Client_ValidateState(t *testing.T) {
 			WithRedirectUrl("http://test.com"),
 		)
 
-		state := slackOauthState{
+		state := OauthState{
 			AccountId: "test-account-id",
 			UserId:    "test-user-id",
 			Timestamp: time.Now().Unix(),
@@ -80,7 +80,7 @@ func Test_Client_ValidateState(t *testing.T) {
 			WithRedirectUrl("http://test.com"),
 		)
 
-		state := slackOauthState{
+		state := OauthState{
 			AccountId: "test-account-id",
 			UserId:    "test-user-id",
 			Timestamp: time.Now().Unix(),
@@ -107,7 +107,7 @@ func Test_Client_ValidateState(t *testing.T) {
 			WithRedirectUrl("http://test.com"),
 		)
 
-		state := slackOauthState{
+		state := OauthState{
 			AccountId: "test-account-id",
 			UserId:    "test-user-id",
 			Timestamp: time.Now().Unix(),
@@ -134,7 +134,7 @@ func Test_Client_ValidateState(t *testing.T) {
 			WithRedirectUrl("http://test.com"),
 		)
 
-		state := slackOauthState{
+		state := OauthState{
 			AccountId: "test-account-id",
 			UserId:    "test-user-id",
 			Timestamp: time.Now().Unix() - 901,

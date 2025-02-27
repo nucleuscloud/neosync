@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
@@ -455,8 +454,7 @@ func (s *Service) HandleSlackOAuthCallback(
 		return nil, fmt.Errorf("unable to get user: %w", err)
 	}
 
-	var accountUuid *pgtype.UUID
-	err = s.slackClient.ValidateState(ctx, req.GetState(), user.Id(), func(ctx context.Context, userId, accountId string) (bool, error) {
+	oauthState, err := s.slackClient.ValidateState(ctx, req.GetState(), user.Id(), func(ctx context.Context, userId, accountId string) (bool, error) {
 		parsedAccountUuid, err := neosyncdb.ToUuid(accountId)
 		if err != nil {
 			return false, err
@@ -468,16 +466,13 @@ func (s *Service) HandleSlackOAuthCallback(
 		if err != nil {
 			return false, fmt.Errorf("unable to check if user is in account: %w", err)
 		}
-		accountUuid = &parsedAccountUuid
 		return ok != 0, nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to validate slack oauth state: %w", err)
 	}
-	if accountUuid == nil {
-		return nil, nucleuserrors.NewNotFound("account not found")
-	}
-	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(neosyncdb.UUIDString(*accountUuid)), rbac.AccountAction_Edit); err != nil {
+
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(oauthState.AccountId), rbac.AccountAction_Edit); err != nil {
 		return nil, err
 	}
 	logger.Debug("slack oauth state validated")
@@ -493,8 +488,13 @@ func (s *Service) HandleSlackOAuthCallback(
 		return nil, fmt.Errorf("unable to marshal slack oauth response: %w", err)
 	}
 
+	accountUuid, err := neosyncdb.ToUuid(oauthState.AccountId)
+	if err != nil {
+		return nil, fmt.Errorf("unable to convert account id to uuid: %w", err)
+	}
+
 	_, err = s.db.Q.CreateSlackOAuthConnection(ctx, s.db.Db, db_queries.CreateSlackOAuthConnectionParams{
-		AccountID:       *accountUuid,
+		AccountID:       accountUuid,
 		OauthV2Response: oauthRespBytes,
 		CreatedByUserID: user.PgId(),
 		UpdatedByUserID: user.PgId(),

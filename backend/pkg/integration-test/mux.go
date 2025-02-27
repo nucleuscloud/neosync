@@ -37,8 +37,6 @@ import (
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	"github.com/nucleuscloud/neosync/internal/ee/rbac/enforcer"
-	ee_slack "github.com/nucleuscloud/neosync/internal/ee/slack"
-	sym_encrypt "github.com/nucleuscloud/neosync/internal/encrypt/sym"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/internal/testutil"
@@ -248,18 +246,11 @@ func (s *NeosyncApiTestClient) setupMux(
 		connectiondatabuilder,
 	)
 
-	encryptor, err := sym_encrypt.NewEncryptor("test-password")
-	if err != nil {
-		return nil, fmt.Errorf("unable to create encryptor: %w", err)
-	}
-
 	accountHookService := v1alpha1_accounthookservice.New(
 		accounthooks.New(
 			neosyncDb,
 			userclient,
-			ee_slack.NewClient(
-				encryptor,
-			),
+			s.Mocks.Slackclient,
 		),
 	)
 
