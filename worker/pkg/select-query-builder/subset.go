@@ -1,8 +1,6 @@
 package selectquerybuilder
 
 import (
-	"fmt"
-
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	runcfg "github.com/nucleuscloud/neosync/internal/runconfigs"
 )
@@ -25,7 +23,6 @@ func BuildSelectQueryMap(
 	subsetByForeignKeyConstraints bool,
 	pageLimit int,
 ) (map[string]*sqlmanager_shared.SelectQuery, error) {
-	fmt.Println()
 	qb := NewSelectQueryBuilder("public", driver, subsetByForeignKeyConstraints, pageLimit)
 	querymap := map[string]*sqlmanager_shared.SelectQuery{}
 	for _, cfg := range runConfigs {
@@ -33,10 +30,6 @@ func BuildSelectQueryMap(
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println()
-		fmt.Println(cfg.Id(), cfg.SchemaTable().String())
-		fmt.Println(query, isNotForeignKeySafe)
-		fmt.Println()
 
 		querymap[cfg.Id()] = &sqlmanager_shared.SelectQuery{
 			Query:                     query,

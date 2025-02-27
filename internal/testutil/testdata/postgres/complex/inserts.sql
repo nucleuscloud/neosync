@@ -235,46 +235,58 @@ INSERT INTO message_logs (mission_id, channel_id, timestamp, sender_astronaut_id
 (1, NULL, '2023-01-15 14:20:00', NULL, 'AUTOMATED: Scheduled data transmission complete', FALSE),
 (2, 1, '2023-02-22 11:45:00', 3, 'Experiment results ready for download', TRUE);
 
-INSERT INTO system_events (
-    event_time, severity, title, description, 
-    system_name, component_id, error_code, resolved
-) VALUES
-('2023-05-15 08:22:15', 'Warning', 'Life Support Pressure Fluctuation', 'Minor pressure fluctuation detected in module A3', 
- 'Life Support', 235, 'LS-P-054', true),
-('2023-05-16 14:37:22', 'Critical', 'Navigation System Failure', 'Primary navigation system offline', 
- 'Navigation', 112, 'NAV-023', false),
-('2023-05-17 22:14:05', 'Info', 'Routine System Check', 'All systems nominal after scheduled maintenance', 
- 'Central Computer', 001, NULL, true);
+INSERT INTO space_mission.events (event_id, event_time, severity, title, description)
+VALUES 
+(1, '2023-05-15 08:22:15', 'Warning', 'Life Support Pressure Fluctuation', 'Minor pressure fluctuation detected in module A3'),
+(2, '2023-05-16 14:37:22', 'Critical', 'Navigation System Failure', 'Primary navigation system offline'),
+(3, '2023-05-17 22:14:05', 'Info', 'Routine System Check', 'All systems nominal after scheduled maintenance'),
+(4, '2023-05-15 09:45:30', 'Info', 'EVA Started', 'Astronaut began scheduled EVA'),
+(5, '2023-05-16 11:22:18', 'Warning', 'Elevated Heart Rate', 'Astronaut showing signs of exertion during repair procedure'),
+(6, '2023-05-17 14:10:45', 'Emergency', 'Medical Incident', 'Astronaut reporting severe headache and disorientation'),
+(7, '2023-05-15 00:00:00', 'Info', 'Mission Launch', 'Successful launch of mission'),
+(8, '2023-05-16 10:30:00', 'Info', 'Docking Complete', 'Successfully docked with space station'),
+(9, '2023-05-17 16:45:22', 'Warning', 'Experiment Complication', 'Unexpected results in primary experiment');
 
-INSERT INTO astronaut_events (
-    event_time, severity, title, description, 
-    astronaut_id, location, vital_signs, mission_id
-) VALUES
-('2023-05-15 09:45:30', 'Info', 'EVA Started', 'Astronaut began scheduled EVA', 
- 3, 'Exterior Module B', '{"heart_rate": 85, "blood_pressure": "120/80", "oxygen_saturation": 98.5}', 1),
-('2023-05-16 11:22:18', 'Warning', 'Elevated Heart Rate', 'Astronaut showing signs of exertion during repair procedure', 
- 4, 'Engine Room', '{"heart_rate": 115, "blood_pressure": "135/90", "oxygen_saturation": 97.2}', 2),
-('2023-05-17 14:10:45', 'Emergency', 'Medical Incident', 'Astronaut reporting severe headache and disorientation', 
- 5, 'Living Quarters', '{"heart_rate": 95, "blood_pressure": "145/95", "temperature": 38.5, "oxygen_saturation": 96.0}', 3);
+-- INSERT INTO system_events (
+--     event_time, severity, title, description, 
+--     system_name, component_id, error_code, resolved
+-- ) VALUES
+-- ('2023-05-15 08:22:15', 'Warning', 'Life Support Pressure Fluctuation', 'Minor pressure fluctuation detected in module A3', 
+--  'Life Support', 235, 'LS-P-054', true),
+-- ('2023-05-16 14:37:22', 'Critical', 'Navigation System Failure', 'Primary navigation system offline', 
+--  'Navigation', 112, 'NAV-023', false),
+-- ('2023-05-17 22:14:05', 'Info', 'Routine System Check', 'All systems nominal after scheduled maintenance', 
+--  'Central Computer', 001, NULL, true);
 
-INSERT INTO mission_events (
-    event_time, severity, title, description, 
-    mission_id, milestone, success_rating, affected_objectives
-) VALUES
-('2023-05-15 00:00:00', 'Info', 'Mission Launch', 'Successful launch of mission', 
- 1, 'Launch', 9, '{1,2,3}'),
-('2023-05-16 10:30:00', 'Info', 'Docking Complete', 'Successfully docked with space station', 
- 2, 'Docking', 8, '{4,5}'),
-('2023-05-17 16:45:22', 'Warning', 'Experiment Complication', 'Unexpected results in primary experiment', 
- 3, 'Research', 6, '{7,8}');
+-- INSERT INTO astronaut_events (
+--     event_time, severity, title, description, 
+--     astronaut_id, location, vital_signs, mission_id
+-- ) VALUES
+-- ('2023-05-15 09:45:30', 'Info', 'EVA Started', 'Astronaut began scheduled EVA', 
+--  3, 'Exterior Module B', '{"heart_rate": 85, "blood_pressure": "120/80", "oxygen_saturation": 98.5}', 1),
+-- ('2023-05-16 11:22:18', 'Warning', 'Elevated Heart Rate', 'Astronaut showing signs of exertion during repair procedure', 
+--  4, 'Engine Room', '{"heart_rate": 115, "blood_pressure": "135/90", "oxygen_saturation": 97.2}', 2),
+-- ('2023-05-17 14:10:45', 'Emergency', 'Medical Incident', 'Astronaut reporting severe headache and disorientation', 
+--  5, 'Living Quarters', '{"heart_rate": 95, "blood_pressure": "145/95", "temperature": 38.5, "oxygen_saturation": 96.0}', 3);
 
-INSERT INTO telemetry (timestamp, spacecraft_id, sensor_type, reading, unit, coordinates, is_anomaly) VALUES
-('2023-05-15 00:00:01', 1, 'Temperature', 22.5, 'Celsius', '(45.2, 22.1)', false),
-('2023-05-15 00:01:01', 1, 'Pressure', 101.3, 'kPa', '(45.2, 22.1)', false),
-('2023-05-15 00:02:01', 1, 'Radiation', 0.05, 'mSv', '(45.2, 22.1)', false),
-('2023-05-16 12:30:01', 2, 'Temperature', 23.1, 'Celsius', '(46.3, 23.5)', false),
-('2023-05-16 12:31:01', 2, 'Pressure', 98.7, 'kPa', '(46.3, 23.5)', true),
-('2023-05-16 12:32:01', 2, 'Radiation', 0.12, 'mSv', '(46.3, 23.5)', false);
+-- INSERT INTO mission_events (
+--     event_time, severity, title, description, 
+--     mission_id, milestone, success_rating, affected_objectives
+-- ) VALUES
+-- ('2023-05-15 00:00:00', 'Info', 'Mission Launch', 'Successful launch of mission', 
+--  1, 'Launch', 9, '{1,2,3}'),
+-- ('2023-05-16 10:30:00', 'Info', 'Docking Complete', 'Successfully docked with space station', 
+--  2, 'Docking', 8, '{4,5}'),
+-- ('2023-05-17 16:45:22', 'Warning', 'Experiment Complication', 'Unexpected results in primary experiment', 
+--  3, 'Research', 6, '{7,8}');
+
+-- INSERT INTO telemetry (timestamp, spacecraft_id, sensor_type, reading, unit, coordinates, is_anomaly) VALUES
+-- ('2023-05-15 00:00:01', 1, 'Temperature', 22.5, 'Celsius', '(45.2, 22.1)', false),
+-- ('2023-05-15 00:01:01', 1, 'Pressure', 101.3, 'kPa', '(45.2, 22.1)', false),
+-- ('2023-05-15 00:02:01', 1, 'Radiation', 0.05, 'mSv', '(45.2, 22.1)', false),
+-- ('2023-05-16 12:30:01', 2, 'Temperature', 23.1, 'Celsius', '(46.3, 23.5)', false),
+-- ('2023-05-16 12:31:01', 2, 'Pressure', 98.7, 'kPa', '(46.3, 23.5)', true),
+-- ('2023-05-16 12:32:01', 2, 'Radiation', 0.12, 'mSv', '(46.3, 23.5)', false);
 
 INSERT INTO comments (reference_type, reference_id, author_astronaut_id, content, metadata) VALUES
 ('missions', 1, 1, 'Launch conditions look optimal', '{"visibility": "public", "priority": "normal"}'),

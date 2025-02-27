@@ -171,7 +171,6 @@ func (qb *QueryBuilder) addSubsetJoins(query *goqu.SelectDataset, rootTable *run
 		}
 
 		for idx, step := range subset.JoinSteps {
-
 			edgeKey := step.FromKey + "->" + step.ToKey
 			if addedJoins[edgeKey] {
 				continue

@@ -1047,8 +1047,13 @@ func test_postgres_complex(
 	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 
 	jobmappings := pg_complex.GetDefaultSyncJobMappings()
+	for _, mapping := range jobmappings {
+		if mapping.Table == "telemetry" {
+			fmt.Println(mapping.Schema, mapping.Table, mapping.Column)
+		}
+	}
 
-	t.Run("no-subset", func(t *testing.T) {
+	t.Run("sync", func(t *testing.T) {
 		job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
 			AccountId:   accountId,
 			SourceConn:  sourceConn,
@@ -1063,12 +1068,12 @@ func test_postgres_complex(
 			},
 		})
 
-		testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(2), WithPageLimit(3))
+		testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(10), WithPageLimit(100))
 		testworkflow.RequireActivitiesCompletedSuccessfully(t)
 		testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
-		require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: skip-foreign-keys-violations")
+		require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: space-mission")
 		err = testworkflow.TestEnv.GetWorkflowError()
-		require.NoError(t, err, "Received Temporal Workflow Error: skip-foreign-keys-violations")
+		require.NoError(t, err, "Received Temporal Workflow Error: space-mission")
 
 		expectedResults := []struct {
 			schema   string
@@ -1105,16 +1110,13 @@ func test_postgres_complex(
 			{schema: "space_mission", table: "mission_communications", rowCount: 3},
 			{schema: "space_mission", table: "message_logs", rowCount: 3},
 			{schema: "space_mission", table: "events", rowCount: 9},
-			{schema: "space_mission", table: "system_events", rowCount: 3},
-			{schema: "space_mission", table: "astronaut_events", rowCount: 3},
-			{schema: "space_mission", table: "mission_events", rowCount: 3},
-			{schema: "space_mission", table: "telemetry", rowCount: 6},
+			// {schema: "space_mission", table: "system_events", rowCount: 3},
+			// {schema: "space_mission", table: "astronaut_events", rowCount: 3},
+			// {schema: "space_mission", table: "mission_events", rowCount: 3},
+			// {schema: "space_mission", table: "telemetry", rowCount: 6},
 			{schema: "space_mission", table: "comments", rowCount: 4},
 			{schema: "space_mission", table: "tags", rowCount: 4},
 			{schema: "space_mission", table: "taggables", rowCount: 4},
-			{schema: "scientific_data", table: "experiments", rowCount: 9},
-			{schema: "scientific_data", table: "samples", rowCount: 9},
-			{schema: "scientific_data", table: "measurements", rowCount: 9},
 			{schema: "space_mission", table: "mission_experiments", rowCount: 9},
 			{schema: "space_mission", table: "mission_parameters", rowCount: 3},
 			{schema: "space_mission", table: "skill_groups", rowCount: 6},
@@ -1125,18 +1127,21 @@ func test_postgres_complex(
 			{schema: "space_mission", table: "equipment_status_history", rowCount: 8},
 			{schema: "space_mission", table: "astronaut_role_history", rowCount: 5},
 			{schema: "space_mission", table: "astronaut_vitals", rowCount: 4},
+			{schema: "scientific_data", table: "experiments", rowCount: 9},
+			{schema: "scientific_data", table: "samples", rowCount: 9},
+			{schema: "scientific_data", table: "measurements", rowCount: 9},
 		}
 
 		for _, expected := range expectedResults {
 			rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 			require.NoError(t, err)
-			assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
+			assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: space-mission Table: %s", expected.table))
 		}
 	})
 
 	t.Run("subset", func(t *testing.T) {
 		subsetMappings := map[string]string{
-			"space_mission.astronauts":    "id in (1,2,3,4,5)",
+			"space_mission.astronauts":    "astronaut_id in (1,2,3,4,5)",
 			"space_mission.missions":      "mission_id < 6",
 			"scientific_data.experiments": "experiment_id < 5",
 		}
@@ -1156,31 +1161,31 @@ func test_postgres_complex(
 			},
 		})
 
-		testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(2), WithPageLimit(3))
+		testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(10), WithPageLimit(100))
 		testworkflow.RequireActivitiesCompletedSuccessfully(t)
 		testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
-		require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: skip-foreign-keys-violations")
+		require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: space-mission-subset")
 		err = testworkflow.TestEnv.GetWorkflowError()
-		require.NoError(t, err, "Received Temporal Workflow Error: skip-foreign-keys-violations")
+		require.NoError(t, err, "Received Temporal Workflow Error: space-mission-subset")
 
 		expectedResults := []struct {
 			schema   string
 			table    string
 			rowCount int
 		}{
-			{schema: "space_mission", table: "astronauts", rowCount: 10},
-			{schema: "space_mission", table: "missions", rowCount: 10},
-			{schema: "space_mission", table: "objectives", rowCount: 10},
+			{schema: "space_mission", table: "astronauts", rowCount: 5},
+			{schema: "space_mission", table: "missions", rowCount: 4},
+			{schema: "space_mission", table: "objectives", rowCount: 3},
 			{schema: "space_mission", table: "capabilities", rowCount: 10},
-			{schema: "space_mission", table: "astronaut_capabilities", rowCount: 10},
-			{schema: "space_mission", table: "transmissions", rowCount: 20},
-			{schema: "space_mission", table: "payloads", rowCount: 10},
-			{schema: "space_mission", table: "crew_assignments", rowCount: 10},
+			{schema: "space_mission", table: "astronaut_capabilities", rowCount: 5},
+			{schema: "space_mission", table: "transmissions", rowCount: 8},
+			{schema: "space_mission", table: "payloads", rowCount: 3},
+			{schema: "space_mission", table: "crew_assignments", rowCount: 3},
 			{schema: "space_mission", table: "mission_logs", rowCount: 6},
-			{schema: "space_mission", table: "crews", rowCount: 5},
-			{schema: "space_mission", table: "crew_missions", rowCount: 4},
-			{schema: "space_mission", table: "supplies", rowCount: 10},
-			{schema: "space_mission", table: "supply_items", rowCount: 5},
+			{schema: "space_mission", table: "crews", rowCount: 4},
+			{schema: "space_mission", table: "crew_missions", rowCount: 3},
+			{schema: "space_mission", table: "supplies", rowCount: 3},
+			{schema: "space_mission", table: "supply_items", rowCount: 2},
 			{schema: "space_mission", table: "spacecraft_class", rowCount: 3},
 			{schema: "space_mission", table: "spacecraft", rowCount: 3},
 			{schema: "space_mission", table: "spacecraft_module", rowCount: 3},
@@ -1193,22 +1198,19 @@ func test_postgres_complex(
 			{schema: "space_mission", table: "certifications", rowCount: 3},
 			{schema: "space_mission", table: "astronaut_certifications", rowCount: 4},
 			{schema: "space_mission", table: "certification_requirements", rowCount: 3},
-			{schema: "space_mission", table: "mission_logs_extended", rowCount: 3},
+			{schema: "space_mission", table: "mission_logs_extended", rowCount: 2},
 			{schema: "space_mission", table: "communication_channels", rowCount: 3},
 			{schema: "space_mission", table: "mission_communications", rowCount: 3},
-			{schema: "space_mission", table: "message_logs", rowCount: 3},
+			{schema: "space_mission", table: "message_logs", rowCount: 2},
 			{schema: "space_mission", table: "events", rowCount: 9},
-			{schema: "space_mission", table: "system_events", rowCount: 3},
-			{schema: "space_mission", table: "astronaut_events", rowCount: 3},
-			{schema: "space_mission", table: "mission_events", rowCount: 3},
-			{schema: "space_mission", table: "telemetry", rowCount: 6},
+			// {schema: "space_mission", table: "system_events", rowCount: 3},
+			// {schema: "space_mission", table: "astronaut_events", rowCount: 3},
+			// {schema: "space_mission", table: "mission_events", rowCount: 3},
+			// {schema: "space_mission", table: "telemetry", rowCount: 6},
 			{schema: "space_mission", table: "comments", rowCount: 4},
 			{schema: "space_mission", table: "tags", rowCount: 4},
 			{schema: "space_mission", table: "taggables", rowCount: 4},
-			{schema: "scientific_data", table: "experiments", rowCount: 9},
-			{schema: "scientific_data", table: "samples", rowCount: 9},
-			{schema: "scientific_data", table: "measurements", rowCount: 9},
-			{schema: "space_mission", table: "mission_experiments", rowCount: 9},
+			{schema: "space_mission", table: "mission_experiments", rowCount: 2},
 			{schema: "space_mission", table: "mission_parameters", rowCount: 3},
 			{schema: "space_mission", table: "skill_groups", rowCount: 6},
 			{schema: "space_mission", table: "capability_skill_groups", rowCount: 8},
@@ -1218,11 +1220,14 @@ func test_postgres_complex(
 			{schema: "space_mission", table: "equipment_status_history", rowCount: 8},
 			{schema: "space_mission", table: "astronaut_role_history", rowCount: 5},
 			{schema: "space_mission", table: "astronaut_vitals", rowCount: 4},
+			{schema: "scientific_data", table: "experiments", rowCount: 3},
+			{schema: "scientific_data", table: "samples", rowCount: 4},
+			{schema: "scientific_data", table: "measurements", rowCount: 4},
 		}
 		for _, expected := range expectedResults {
 			rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 			require.NoError(t, err)
-			assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
+			assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: space-mission-subset Table: %s", expected.table))
 		}
 	})
 

@@ -1,7 +1,6 @@
 package runconfigs
 
 import (
-	"encoding/json"
 	"fmt"
 	"slices"
 	"strings"
@@ -49,8 +48,6 @@ func newTableConfigsBuilder(
 	// compute subset paths
 	b.subsetPaths = b.computeAllSubsetPaths()
 
-	jsonF, _ := json.MarshalIndent(b.subsetPaths, "", " ")
-	fmt.Printf("\n\n %s \n\n", string(jsonF))
 	return b
 }
 

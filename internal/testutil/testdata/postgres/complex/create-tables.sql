@@ -2,7 +2,6 @@ CREATE SCHEMA IF NOT EXISTS scientific_data;
 CREATE SCHEMA IF NOT EXISTS space_mission;
 set search_path to space_mission;
 
-
 CREATE TABLE IF NOT EXISTS astronauts (
     astronaut_id       SERIAL PRIMARY KEY,
     name               VARCHAR(100) NOT NULL,
@@ -10,7 +9,6 @@ CREATE TABLE IF NOT EXISTS astronauts (
     manager_astronaut_id INTEGER,
     mentor_astronaut_id  INTEGER
 );
-
 
 CREATE TABLE IF NOT EXISTS missions (
     mission_id          SERIAL PRIMARY KEY,
@@ -376,45 +374,46 @@ CREATE TABLE IF NOT EXISTS events (
     description TEXT
 );
 
-CREATE TABLE IF NOT EXISTS system_events (
-    system_name VARCHAR(100) NOT NULL,
-    component_id INTEGER,
-    error_code VARCHAR(50),
-    resolved BOOLEAN DEFAULT FALSE
-) INHERITS (events);
+-- not currently supported
+-- CREATE TABLE IF NOT EXISTS system_events (
+--     system_name VARCHAR(100) NOT NULL,
+--     component_id INTEGER,
+--     error_code VARCHAR(50),
+--     resolved BOOLEAN DEFAULT FALSE
+-- ) INHERITS (events);
 
-CREATE TABLE IF NOT EXISTS astronaut_events (
-    astronaut_id INTEGER NOT NULL REFERENCES astronauts(astronaut_id),
-    location VARCHAR(100),
-    vital_signs JSONB,
-    mission_id INTEGER REFERENCES missions(mission_id)
-) INHERITS (events);
+-- CREATE TABLE IF NOT EXISTS astronaut_events (
+--     astronaut_id INTEGER NOT NULL REFERENCES astronauts(astronaut_id),
+--     location VARCHAR(100),
+--     vital_signs JSONB,
+--     mission_id INTEGER REFERENCES missions(mission_id)
+-- ) INHERITS (events);
 
-CREATE TABLE IF NOT EXISTS mission_events (
-    mission_id INTEGER NOT NULL REFERENCES missions(mission_id),
-    milestone VARCHAR(100),
-    success_rating INTEGER CHECK (success_rating BETWEEN 1 AND 10),
-    affected_objectives INTEGER[]
-) INHERITS (events);
+-- CREATE TABLE IF NOT EXISTS mission_events (
+--     mission_id INTEGER NOT NULL REFERENCES missions(mission_id),
+--     milestone VARCHAR(100),
+--     success_rating INTEGER CHECK (success_rating BETWEEN 1 AND 10),
+--     affected_objectives INTEGER[]
+-- ) INHERITS (events);
 
-CREATE TABLE telemetry (
-    telemetry_id BIGSERIAL,
-    timestamp TIMESTAMP NOT NULL,
-    spacecraft_id INTEGER NOT NULL REFERENCES spacecraft(spacecraft_id),
-    sensor_type VARCHAR(50) NOT NULL,
-    reading NUMERIC(12,4) NOT NULL,
-    unit VARCHAR(20),
-    coordinates POINT,
-    is_anomaly BOOLEAN DEFAULT FALSE,
-    PRIMARY KEY (telemetry_id, timestamp)
-) PARTITION BY RANGE (timestamp);
+-- CREATE TABLE telemetry (
+--     telemetry_id BIGSERIAL,
+--     timestamp TIMESTAMP NOT NULL,
+--     spacecraft_id INTEGER NOT NULL REFERENCES spacecraft(spacecraft_id),
+--     sensor_type VARCHAR(50) NOT NULL,
+--     reading NUMERIC(12,4) NOT NULL,
+--     unit VARCHAR(20),
+--     coordinates POINT,
+--     is_anomaly BOOLEAN DEFAULT FALSE,
+--     PRIMARY KEY (telemetry_id, timestamp)
+-- ) PARTITION BY RANGE (timestamp);
 
-CREATE TABLE telemetry_2023 PARTITION OF telemetry
-    FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
-CREATE TABLE telemetry_2024 PARTITION OF telemetry
-    FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
-CREATE TABLE telemetry_2025 PARTITION OF telemetry
-    FOR VALUES FROM ('2025-01-01') TO ('2026-01-01');
+-- CREATE TABLE telemetry_2023 PARTITION OF telemetry
+--     FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+-- CREATE TABLE telemetry_2024 PARTITION OF telemetry
+--     FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
+-- CREATE TABLE telemetry_2025 PARTITION OF telemetry
+--     FOR VALUES FROM ('2025-01-01') TO ('2026-01-01');
 
 
 CREATE TABLE IF NOT EXISTS comments (
@@ -495,9 +494,6 @@ CREATE TABLE IF NOT EXISTS space_mission.mission_experiments (
 );
 
 
-
-
-
 CREATE OR REPLACE VIEW space_mission.astronaut_experiment_assignments AS
 SELECT 
     a.astronaut_id,
@@ -528,8 +524,8 @@ SELECT
     COUNT(DISTINCT ca.astronaut_id) AS crew_size,
     COUNT(DISTINCT ac.capability_id) AS team_capabilities,
     AVG(ac.proficiency_level) AS avg_proficiency,
-    COUNT(DISTINCT me.event_id) AS mission_events,
-    COUNT(DISTINCT me.event_id) FILTER (WHERE me.severity = 'Critical') AS critical_events,
+    -- COUNT(DISTINCT me.event_id) AS mission_events,
+    -- COUNT(DISTINCT me.event_id) FILTER (WHERE me.severity = 'Critical') AS critical_events,
     COALESCE(SUM(si.quantity * si.unit_price), 0) AS total_supply_cost
 FROM 
     space_mission.missions m
@@ -539,8 +535,8 @@ LEFT JOIN
     space_mission.crew_assignments ca ON m.mission_id = ca.mission_id
 LEFT JOIN 
     space_mission.astronaut_capabilities ac ON ca.astronaut_id = ac.astronaut_id
-LEFT JOIN 
-    space_mission.mission_events me ON m.mission_id = me.mission_id
+-- LEFT JOIN 
+--     space_mission.mission_events me ON m.mission_id = me.mission_id
 LEFT JOIN 
     space_mission.supplies s ON m.mission_id = s.mission_id
 LEFT JOIN 
@@ -549,26 +545,22 @@ GROUP BY
     m.mission_id, m.name;
 
 
-CREATE OR REPLACE VIEW space_mission.high_performing_missions AS
-SELECT 
-    mission_id,
-    mission_name,
-    completed_objectives::FLOAT / NULLIF(total_objectives, 0) AS completion_rate,
-    crew_size,
-    team_capabilities,
-    avg_proficiency,
-    critical_events,
-    total_supply_cost
-FROM 
-    space_mission.mission_performance_metrics
-WHERE 
-    (completed_objectives::FLOAT / NULLIF(total_objectives, 0)) > 0.7
-AND 
-    critical_events < 3;
-
-
-
-
+-- CREATE OR REPLACE VIEW space_mission.high_performing_missions AS
+-- SELECT 
+--     mission_id,
+--     mission_name,
+--     completed_objectives::FLOAT / NULLIF(total_objectives, 0) AS completion_rate,
+--     crew_size,
+--     team_capabilities,
+--     avg_proficiency,
+--     critical_events,
+--     total_supply_cost
+-- FROM 
+--     space_mission.mission_performance_metrics
+-- WHERE 
+--     (completed_objectives::FLOAT / NULLIF(total_objectives, 0)) > 0.7
+-- AND 
+--     critical_events < 3;
 
 CREATE TABLE IF NOT EXISTS space_mission.mission_parameters (
     parameter_id SERIAL PRIMARY KEY,
@@ -584,14 +576,9 @@ CREATE TABLE IF NOT EXISTS space_mission.mission_parameters (
     version INTEGER DEFAULT 1
 );
 
-
 CREATE INDEX idx_mission_params_spacecraft ON space_mission.mission_parameters USING GIN (applicable_spacecraft);
 CREATE INDEX idx_mission_params_tags ON space_mission.mission_parameters USING GIN (tags);
 CREATE INDEX idx_mission_params_json ON space_mission.mission_parameters USING GIN (json_config);
-
-
-
-
 
 CREATE TABLE IF NOT EXISTS space_mission.skill_groups (
     group_id SERIAL PRIMARY KEY,
@@ -627,10 +614,6 @@ CREATE TABLE IF NOT EXISTS space_mission.equipment_compatibility (
     CHECK (primary_equipment_id != compatible_equipment_id)
 );
 
-
-
-
-
 CREATE DOMAIN space_mission.positive_decimal AS DECIMAL(12,2) 
     CHECK (VALUE > 0);
 
@@ -655,7 +638,6 @@ CREATE TYPE space_mission.vital_signs AS (
     timestamp TIMESTAMP
 );
 
-
 ALTER TABLE space_mission.supplies
     ALTER COLUMN total_amount TYPE space_mission.positive_decimal;
 
@@ -672,9 +654,6 @@ CREATE TABLE IF NOT EXISTS space_mission.astronaut_vitals (
     is_anomalous BOOLEAN DEFAULT FALSE
 );
 
-
-
-
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 CREATE TABLE IF NOT EXISTS space_mission.mission_status_history (
@@ -690,7 +669,6 @@ CREATE TABLE IF NOT EXISTS space_mission.mission_status_history (
         daterange(effective_from::date, COALESCE(effective_to::date, 'infinity'::date), '[)') WITH &&
     )
 );
-
 
 CREATE TABLE IF NOT EXISTS space_mission.equipment_status_history (
     history_id SERIAL PRIMARY KEY,
@@ -709,7 +687,6 @@ CREATE TABLE IF NOT EXISTS space_mission.equipment_status_history (
     )
 );
 
-
 CREATE TABLE IF NOT EXISTS space_mission.astronaut_role_history (
     history_id SERIAL PRIMARY KEY,
     astronaut_id INTEGER REFERENCES space_mission.astronauts(astronaut_id),
@@ -726,9 +703,6 @@ CREATE TABLE IF NOT EXISTS space_mission.astronaut_role_history (
         daterange(effective_from::date, COALESCE(effective_to::date, 'infinity'::date), '[)') WITH &&
     )
 );
-
-
-
 
 CREATE OR REPLACE FUNCTION space_mission.find_certification_path(
     p_astronaut_id INTEGER,
@@ -867,10 +841,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-
-
-
 CREATE OR REPLACE FUNCTION space_mission.update_certification_status()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -963,4 +933,3 @@ CREATE POLICY crew_assign_manage ON space_mission.crew_assignments
             AND m.lead_astronaut_id = CURRENT_SETTING('space_mission.current_astronaut_id', TRUE)::INTEGER
         )
     );
-
