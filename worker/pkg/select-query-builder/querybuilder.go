@@ -171,7 +171,6 @@ func (qb *QueryBuilder) addSubsetJoins(query *goqu.SelectDataset, rootTable *run
 		}
 
 		for idx, step := range subset.JoinSteps {
-			isSubset = rootTable.RunType() == runconfigs.RunTypeUpdate
 
 			edgeKey := step.FromKey + "->" + step.ToKey
 			if addedJoins[edgeKey] {
@@ -205,6 +204,7 @@ func (qb *QueryBuilder) addSubsetJoins(query *goqu.SelectDataset, rootTable *run
 
 			// If this is the last step in chain and there's a subset condition, apply it
 			if idx == len(subset.JoinSteps)-1 && subset.Subset != "" {
+				isSubset = true
 				qualifiedCondition, err := qb.qualifyWhereCondition(nil, childAlias, subset.Subset)
 				if err != nil {
 					return nil, false, err

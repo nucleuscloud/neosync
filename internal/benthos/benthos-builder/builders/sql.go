@@ -148,6 +148,15 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	}
 	b.configQueryMap = configQueryMap
 
+	fmt.Println()
+	for _, config := range runConfigs {
+		fmt.Println()
+		fmt.Println(config.String())
+		fmt.Println(configQueryMap[config.Id()].Query)
+		fmt.Println()
+	}
+	fmt.Println()
+
 	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, configQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.JobRunId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)

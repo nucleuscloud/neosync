@@ -236,3 +236,85 @@ func TestBuildConstraintHandlingConfigs(t *testing.T) {
 func stringPtr(s string) *string {
 	return &s
 }
+
+func Test_ComputeAllSubsetPathsDeterministic(t *testing.T) {
+	// Create a scenario where there are multiple equal-length paths
+	// from a table to a where-clause root
+	builder := &tableConfigsBuilder{
+		whereClauses: map[string]string{
+			"public.root": "id > 10",
+		},
+		foreignKeys: map[string][]*sqlmanager_shared.ForeignConstraint{
+			// Two tables (A and B) both point to root
+			"public.tableA": {
+				{
+					Columns:     []string{"root_id"},
+					NotNullable: []bool{true},
+					ForeignKey: &sqlmanager_shared.ForeignKey{
+						Table:   "public.root",
+						Columns: []string{"id"},
+					},
+				},
+			},
+			"public.tableB": {
+				{
+					Columns:     []string{"root_id"},
+					NotNullable: []bool{true},
+					ForeignKey: &sqlmanager_shared.ForeignKey{
+						Table:   "public.root",
+						Columns: []string{"id"},
+					},
+				},
+			},
+			// Target table points to both A and B
+			"public.target": {
+				{
+					Columns:     []string{"a_id"},
+					NotNullable: []bool{true},
+					ForeignKey: &sqlmanager_shared.ForeignKey{
+						Table:   "public.tableA",
+						Columns: []string{"id"},
+					},
+				},
+				{
+					Columns:     []string{"b_id"},
+					NotNullable: []bool{true},
+					ForeignKey: &sqlmanager_shared.ForeignKey{
+						Table:   "public.tableB",
+						Columns: []string{"id"},
+					},
+				},
+			},
+		},
+	}
+
+	// Run the function multiple times and ensure results are identical
+	result1 := builder.computeAllSubsetPaths()
+	result2 := builder.computeAllSubsetPaths()
+	result3 := builder.computeAllSubsetPaths()
+
+	// Check that target table has a path to root
+	assert.Contains(t, result1, "public.target")
+
+	// Verify that all runs produce the same path for target table
+	assert.Equal(t, result1["public.target"], result2["public.target"])
+	assert.Equal(t, result1["public.target"], result3["public.target"])
+
+	// Verify that the path is consistent in its structure
+	targetPaths := result1["public.target"]
+	assert.Len(t, targetPaths, 1) // Should have one path to the root
+
+	path := targetPaths[0]
+	assert.Equal(t, "public.root", path.Root)
+	assert.Equal(t, "id > 10", path.Subset)
+	assert.Len(t, path.JoinSteps, 2) // Should have two join steps (target->intermediateTable->root)
+
+	// The first step should always be the same, proving deterministic behavior
+	// when multiple equal-length paths exist
+	firstStep := path.JoinSteps[0]
+	secondStep := path.JoinSteps[1]
+
+	// Verify the structure of the path is consistent
+	assert.Equal(t, "public.target", firstStep.FromKey)
+	assert.Equal(t, "public.root", secondStep.ToKey)
+}

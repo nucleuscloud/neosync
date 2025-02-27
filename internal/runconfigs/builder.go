@@ -1,8 +1,10 @@
 package runconfigs
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
+	"strings"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
@@ -37,6 +39,8 @@ func newTableConfigsBuilder(
 		uniqueConstraints: uniqueConstraints,
 		foreignKeys:       foreignKeys,
 	}
+
+	b.sortForeignConstraints()
 	// find circular dependencies
 	graph := b.buildDependencyGraph()
 	circularDeps := FindCircularDependencies(graph)
@@ -44,6 +48,9 @@ func newTableConfigsBuilder(
 
 	// compute subset paths
 	b.subsetPaths = b.computeAllSubsetPaths()
+
+	jsonF, _ := json.MarshalIndent(b.subsetPaths, "", " ")
+	fmt.Printf("\n\n %s \n\n", string(jsonF))
 	return b
 }
 
@@ -82,69 +89,80 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]*SubsetPath {
 	reverseGraph := make(map[string][]string)
 	for child, constraints := range b.foreignKeys {
 		for _, fc := range constraints {
-			parent := fc.ForeignKey.Table
-			reverseGraph[parent] = append(reverseGraph[parent], child)
+			if fc.ForeignKey != nil {
+				parent := fc.ForeignKey.Table
+				reverseGraph[parent] = append(reverseGraph[parent], child)
+			}
 		}
+	}
+
+	// Sort the adjacency lists so BFS explores children in a stable sequence.
+	for parent := range reverseGraph {
+		slices.Sort(reverseGraph[parent])
 	}
 
 	// Global result: table -> list of SubsetPath.
 	result := make(map[string][]*SubsetPath)
 
-	// Multi-source BFS starting from every table that has a where clause.
-	// The bfsEntry now also carries the joinSteps along the path.
+	// visited[src][node] ensures we record only the first (shortest) path from src to node
+	visited := make(map[string]map[string]bool)
+
+	// We'll carry along the path steps in BFS.
 	type bfsEntry struct {
 		src       string      // the where-clause root
 		current   string      // current table
 		joinSteps []*JoinStep // join steps taken from src to current
 	}
-	queue := []bfsEntry{}
-	// visited[src][node] ensures we record only the shortest path per source.
-	visited := make(map[string]map[string]bool)
 
-	// Initialize the queue with each where-clause root.
+	queue := []bfsEntry{}
+
+	// Initialize the queue with each table that has a where clause.
 	for root, clause := range b.whereClauses {
 		if visited[root] == nil {
 			visited[root] = make(map[string]bool)
 		}
 		visited[root][root] = true
+
 		// For the root itself, record its own path (with no join steps).
 		result[root] = append(result[root], &SubsetPath{
 			Root:      root,
 			Subset:    clause,
-			JoinSteps: []*JoinStep{},
+			JoinSteps: nil,
 		})
-		// Enqueue the root so we can traverse to its children.
-		queue = append(queue, bfsEntry{src: root, current: root, joinSteps: []*JoinStep{}})
+
+		// Enqueue the root for BFS.
+		queue = append(queue, bfsEntry{
+			src:       root,
+			current:   root,
+			joinSteps: nil,
+		})
 	}
 
-	// Process the BFS queue.
+	// BFS loop
 	for len(queue) > 0 {
 		entry := queue[0]
 		queue = queue[1:]
-		// For each child of the current table.
+
+		// For each child of the current table
 		for _, child := range reverseGraph[entry.current] {
 			if visited[entry.src] == nil {
 				visited[entry.src] = make(map[string]bool)
 			}
+			// skip if already visited in BFS from src
 			if visited[entry.src][child] {
 				continue
 			}
 			visited[entry.src][child] = true
 
-			// Find a matching foreign constraint between entry.current and child.
+			// Find a matching foreign constraint from child -> entry.current (the parent).
 			var js *JoinStep
-			found := false
-			// Iterate over all foreign constraints for the child.
 			for _, fc := range b.foreignKeys[child] {
-				// We are looking for a foreign key where the parent table matches entry.current.
-				if fc.ForeignKey.Table == entry.current {
-					// For simplicity, take the first column pair as the join keys.
+				if fc.ForeignKey != nil && fc.ForeignKey.Table == entry.current {
 					if len(fc.ForeignKey.Columns) > 0 && len(fc.Columns) > 0 {
 						referenceSchema, referenceTable := sqlmanager_shared.SplitTableKey(fc.ForeignKey.Table)
 						js = &JoinStep{
 							ToKey:   entry.current,
 							FromKey: child,
-							// Create a new ForeignKey value from fc.ForeignKey.
 							ForeignKey: &ForeignKey{
 								Columns:          fc.Columns,
 								NotNullable:      fc.NotNullable,
@@ -153,29 +171,59 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]*SubsetPath {
 								ReferenceColumns: fc.ForeignKey.Columns,
 							},
 						}
-						found = true
 						break
 					}
 				}
 			}
-			// If no matching foreign key is found, we still propagate without a joinStep.
+
+			// Copy the existing join steps
 			newJoinSteps := make([]*JoinStep, len(entry.joinSteps))
 			copy(newJoinSteps, entry.joinSteps)
-			if found {
+			if js != nil {
 				newJoinSteps = append(newJoinSteps, js)
 			}
 
+			// We store the reversed steps in the final SubsetPath
 			revJoinSteps := reverseJoinSteps(newJoinSteps)
 			result[child] = append(result[child], &SubsetPath{
 				Root:      entry.src,
 				Subset:    b.whereClauses[entry.src],
 				JoinSteps: revJoinSteps,
 			})
-			queue = append(queue, bfsEntry{src: entry.src, current: child, joinSteps: newJoinSteps})
+
+			// Enqueue the child for BFS
+			queue = append(queue, bfsEntry{
+				src:       entry.src,
+				current:   child,
+				joinSteps: newJoinSteps,
+			})
 		}
 	}
 
 	return result
+}
+
+// sortForeignConstraints sorts the foreign constraints for each table in a deterministic order.
+func (b *tableConfigsBuilder) sortForeignConstraints() {
+	for tableName, fcs := range b.foreignKeys {
+		// Sort by parent table name, then by first column name, etc.
+		slices.SortFunc(fcs, func(a, c *sqlmanager_shared.ForeignConstraint) int {
+			if a.ForeignKey == nil || c.ForeignKey == nil {
+				// null-safety fallback
+				return 0
+			}
+			if a.ForeignKey.Table != c.ForeignKey.Table {
+				return strings.Compare(a.ForeignKey.Table, c.ForeignKey.Table)
+			}
+			// If same parent table, compare the first column as a fallback.
+			if len(a.Columns) > 0 && len(c.Columns) > 0 {
+				return strings.Compare(a.Columns[0], c.Columns[0])
+			}
+			// If no columns or something else, just treat them as equal
+			return 0
+		})
+		b.foreignKeys[tableName] = fcs
+	}
 }
 
 // reverseJoinSteps reverses a slice of JoinSteps.
