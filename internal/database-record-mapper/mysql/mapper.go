@@ -61,6 +61,8 @@ func parseMysqlRowValues(values []any, columnNames, columnDbTypes []string) (map
 		col := columnNames[i]
 		colDataType := columnDbTypes[i]
 		switch t := v.(type) {
+		case nil:
+			jObj[col] = t
 		case time.Time:
 			dt, err := neosynctypes.NewDateTimeFromMysql(t)
 			if err != nil {
@@ -69,6 +71,10 @@ func parseMysqlRowValues(values []any, columnNames, columnDbTypes []string) (map
 			jObj[col] = dt
 		case []byte:
 			if strings.EqualFold(colDataType, "json") {
+				if string(t) == "null" {
+					jObj[col] = string(t)
+					continue
+				}
 				var js any
 				if err := json.Unmarshal(t, &js); err != nil {
 					return nil, err

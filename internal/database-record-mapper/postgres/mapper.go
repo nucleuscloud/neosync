@@ -109,6 +109,10 @@ func parsePgRowValues(values []any, columnNames, columnTypes []string) (map[stri
 			}
 			jObj[col] = val
 		case *NullableJSON:
+			if t.Valid && string(t.RawMessage) == "null" {
+				jObj[col] = string(t.RawMessage)
+				continue
+			}
 			js, err := t.Unmarshal()
 			if err != nil {
 				return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
