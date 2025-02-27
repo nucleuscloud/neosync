@@ -145,6 +145,9 @@ func getPgxValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties
 
 	switch {
 	case strings.EqualFold(datatype, "json") || strings.EqualFold(datatype, "jsonb"):
+		if value == "null" {
+			return value, nil
+		}
 		bits, err := json.Marshal(value)
 		if err != nil {
 			return nil, fmt.Errorf("unable to marshal postgres json to bits: %w", err)

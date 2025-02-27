@@ -220,9 +220,11 @@ func Test_parsePgRowValues(t *testing.T) {
 			&NullableJSON{RawMessage: json.RawMessage(`42`), Valid: true},
 			&NullableJSON{RawMessage: json.RawMessage(`{"items": ["book", "pen"], "count": 2, "in_stock": true}`), Valid: true},
 			&NullableJSON{RawMessage: json.RawMessage(`[1,2,3]`), Valid: true},
+			nil,
+			&NullableJSON{RawMessage: json.RawMessage(`null`), Valid: true},
 		}
-		columnNames := []string{"text_col", "bool_col", "null_col", "int_col", "json_col", "array_col"}
-		columnTypes := []string{"json", "json", "json", "json", "json", "_json"}
+		columnNames := []string{"text_col", "bool_col", "null_col", "int_col", "json_col", "array_col", "nil_col", "null_json"}
+		columnTypes := []string{"json", "json", "json", "json", "json", "_json", "json", "json"}
 
 		result, err := parsePgRowValues(values, columnNames, columnTypes)
 		require.NoError(t, err)
@@ -234,6 +236,8 @@ func Test_parsePgRowValues(t *testing.T) {
 			"int_col":   float64(42),
 			"json_col":  map[string]any{"items": []any{"book", "pen"}, "count": float64(2), "in_stock": true},
 			"array_col": []any{float64(1), float64(2), float64(3)},
+			"nil_col":   nil,
+			"null_json": "null",
 		}
 		require.Equal(t, expected, result)
 	})
