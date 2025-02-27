@@ -59,6 +59,7 @@ export function Description(props: DescriptionProps): ReactElement {
         title="Description"
         description="What this hook does"
         isErrored={!!error}
+        isRequired={true}
       />
       <Textarea
         id="description"

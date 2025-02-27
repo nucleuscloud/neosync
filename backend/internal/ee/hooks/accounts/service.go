@@ -697,7 +697,7 @@ func getSlackBlocksByEvent(event *accounthook_events.Event, logger *slog.Logger)
 		headerSection := slack.NewHeaderBlock(headerText)
 
 		jobFields := []*slack.TextBlockObject{
-			slack.NewTextBlockObject(slack.MarkdownType, "*Job ID:*\n"+event.JobRunFailed.JobId, false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, "*Job ID:*\n"+event.JobRunSucceeded.JobId, false, false),
 			slack.NewTextBlockObject(slack.MarkdownType, "*Job Run ID:*\n"+event.JobRunSucceeded.JobRunId, false, false),
 			slack.NewTextBlockObject(slack.MarkdownType, "*Succeeded At:*\n<!date^"+fmt.Sprint(event.Timestamp.Unix())+"^{date_short_pretty} at {time}|"+event.Timestamp.Format(time.RFC3339)+">", false, false),
 		}

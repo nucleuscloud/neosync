@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"runtime/debug"
 	"strconv"
 	"time"
 
@@ -189,6 +190,7 @@ func serve(ctx context.Context) error {
 
 	// prevents the server from crashing on panics and returns a valid error response to the user
 	recoverHandler := func(_ context.Context, _ connect.Spec, _ http.Header, r any) error {
+		slogger.Error(fmt.Sprintf("panic recovered: %v", r), "stack", string(debug.Stack()))
 		return connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("panic: %v", r))
 	}
 
