@@ -615,18 +615,6 @@
           "extensions": [],
           "fields": [
             {
-              "name": "account_id",
-              "description": "The account ID to handle the Slack OAuth callback for.",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
               "name": "state",
               "description": "The Slack state.",
               "label": "",

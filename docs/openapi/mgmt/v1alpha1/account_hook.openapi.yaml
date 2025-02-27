@@ -389,11 +389,6 @@ components:
     mgmt.v1alpha1.HandleSlackOAuthCallbackRequest:
       type: object
       properties:
-        accountId:
-          type: string
-          title: account_id
-          format: uuid
-          description: The account ID to handle the Slack OAuth callback for.
         state:
           type: string
           title: state

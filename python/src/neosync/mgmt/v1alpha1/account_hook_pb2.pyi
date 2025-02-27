@@ -208,14 +208,12 @@ class GetSlackConnectionUrlResponse(_message.Message):
     def __init__(self, url: _Optional[str] = ...) -> None: ...
 
 class HandleSlackOAuthCallbackRequest(_message.Message):
-    __slots__ = ("account_id", "state", "code")
-    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("state", "code")
     STATE_FIELD_NUMBER: _ClassVar[int]
     CODE_FIELD_NUMBER: _ClassVar[int]
-    account_id: str
     state: str
     code: str
-    def __init__(self, account_id: _Optional[str] = ..., state: _Optional[str] = ..., code: _Optional[str] = ...) -> None: ...
+    def __init__(self, state: _Optional[str] = ..., code: _Optional[str] = ...) -> None: ...
 
 class HandleSlackOAuthCallbackResponse(_message.Message):
     __slots__ = ()

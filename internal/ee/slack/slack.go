@@ -13,9 +13,11 @@ import (
 	"github.com/slack-go/slack"
 )
 
+type IsUserInAccountFunc func(ctx context.Context, userId, accountId string) (bool, error)
+
 type Interface interface {
 	GetAuthorizeUrl(accountId, userId string) (string, error)
-	ValidateState(state, accountId, userId string) error
+	ValidateState(ctx context.Context, state, userId string, isUserInAccount IsUserInAccountFunc) error
 	ExchangeCodeForAccessToken(ctx context.Context, code string) (*slack.OAuthV2Response, error)
 	Test(ctx context.Context, accessToken string) (*slack.AuthTestResponse, error)
 	SendMessage(ctx context.Context, accessToken, channelId string, options ...slack.MsgOption) error
@@ -106,7 +108,7 @@ func (c *Client) GetAuthorizeUrl(accountId, userId string) (string, error) {
 		Path:   "/oauth/v2/authorize",
 		RawQuery: url.Values{
 			"scope":        {c.cfg.scope},
-			"client_id":    {c.cfg.appClientId},
+			"client_id":    {c.cfg.authClientId},
 			"redirect_uri": {c.cfg.redirectUrl},
 			"state":        {stateEncrypted},
 		}.Encode(),
@@ -115,7 +117,7 @@ func (c *Client) GetAuthorizeUrl(accountId, userId string) (string, error) {
 	return slackUrl.String(), nil
 }
 
-func (c *Client) ValidateState(state, accountId, userId string) error {
+func (c *Client) ValidateState(ctx context.Context, state, userId string, isUserInAccount IsUserInAccountFunc) error {
 	stateDecrypted, err := c.encryptor.Decrypt(state)
 	if err != nil {
 		return fmt.Errorf("unable to decrypt slack oauth state: %w", err)
@@ -126,12 +128,17 @@ func (c *Client) ValidateState(state, accountId, userId string) error {
 		return fmt.Errorf("unable to unmarshal slack oauth state: %w", err)
 	}
 
-	if decodedState.AccountId != accountId {
-		return fmt.Errorf("invalid account id")
-	}
-
 	if decodedState.UserId != userId {
 		return fmt.Errorf("invalid user id")
+	}
+
+	userInAccount, err := isUserInAccount(ctx, userId, decodedState.AccountId)
+	if err != nil {
+		return fmt.Errorf("unable to check if user is in account: %w", err)
+	}
+
+	if !userInAccount {
+		return fmt.Errorf("invalid account id")
 	}
 
 	if time.Now().Unix()-decodedState.Timestamp > 900 {

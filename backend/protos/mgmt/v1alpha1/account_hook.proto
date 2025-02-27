@@ -208,12 +208,10 @@ message GetSlackConnectionUrlResponse {
 }
 
 message HandleSlackOAuthCallbackRequest {
-  // The account ID to handle the Slack OAuth callback for.
-  string account_id = 1 [(buf.validate.field).string.uuid = true];
   // The Slack state.
-  string state = 2 [(buf.validate.field).string.min_len = 1];
+  string state = 1 [(buf.validate.field).string.min_len = 1];
   // The Slack code.
-  string code = 3 [(buf.validate.field).string.min_len = 1];
+  string code = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 message HandleSlackOAuthCallbackResponse {}

@@ -1,6 +1,7 @@
 package ee_slack
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -63,7 +64,9 @@ func Test_Client_ValidateState(t *testing.T) {
 
 		encryptor.EXPECT().Decrypt("encrypted-token").Return(string(stateJson), nil).Once()
 
-		err = client.ValidateState("encrypted-token", "test-account-id", "test-user-id")
+		err = client.ValidateState(context.Background(), "encrypted-token", "test-user-id", func(ctx context.Context, userId, accountId string) (bool, error) {
+			return true, nil
+		})
 		assert.NoError(t, err)
 		encryptor.AssertExpectations(t)
 	})
@@ -88,7 +91,9 @@ func Test_Client_ValidateState(t *testing.T) {
 
 		encryptor.EXPECT().Decrypt("encrypted-token").Return(string(stateJson), nil).Once()
 
-		err = client.ValidateState("encrypted-token", "invalid-account-id", "test-user-id")
+		err = client.ValidateState(context.Background(), "encrypted-token", "test-user-id", func(ctx context.Context, userId, accountId string) (bool, error) {
+			return false, nil
+		})
 		assert.Error(t, err)
 		encryptor.AssertExpectations(t)
 	})
@@ -113,7 +118,9 @@ func Test_Client_ValidateState(t *testing.T) {
 
 		encryptor.EXPECT().Decrypt("encrypted-token").Return(string(stateJson), nil).Once()
 
-		err = client.ValidateState("encrypted-token", "test-account-id", "invalid-user-id")
+		err = client.ValidateState(context.Background(), "encrypted-token", "invalid-user-id", func(ctx context.Context, userId, accountId string) (bool, error) {
+			return true, nil
+		})
 		assert.Error(t, err)
 		encryptor.AssertExpectations(t)
 	})
@@ -138,7 +145,9 @@ func Test_Client_ValidateState(t *testing.T) {
 
 		encryptor.EXPECT().Decrypt("encrypted-token").Return(string(stateJson), nil).Once()
 
-		err = client.ValidateState("encrypted-token", "test-account-id", "test-user-id")
+		err = client.ValidateState(context.Background(), "encrypted-token", "test-user-id", func(ctx context.Context, userId, accountId string) (bool, error) {
+			return true, nil
+		})
 		assert.Error(t, err)
 		encryptor.AssertExpectations(t)
 	})

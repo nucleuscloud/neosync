@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
@@ -448,19 +449,36 @@ func (s *Service) HandleSlackOAuthCallback(
 	req *mgmtv1alpha1.HandleSlackOAuthCallbackRequest,
 ) (*mgmtv1alpha1.HandleSlackOAuthCallbackResponse, error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("accountId", req.GetAccountId())
 
 	user, err := s.userdataclient.GetUser(ctx)
 	if err != nil {
-		return nil, err
-	}
-	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(req.GetAccountId()), rbac.AccountAction_Edit); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get user: %w", err)
 	}
 
-	err = s.slackClient.ValidateState(req.GetState(), req.GetAccountId(), user.Id())
+	var accountUuid *pgtype.UUID
+	err = s.slackClient.ValidateState(ctx, req.GetState(), user.Id(), func(ctx context.Context, userId, accountId string) (bool, error) {
+		parsedAccountUuid, err := neosyncdb.ToUuid(accountId)
+		if err != nil {
+			return false, err
+		}
+		ok, err := s.db.Q.IsUserInAccount(ctx, s.db.Db, db_queries.IsUserInAccountParams{
+			AccountId: parsedAccountUuid,
+			UserId:    user.PgId(),
+		})
+		if err != nil {
+			return false, fmt.Errorf("unable to check if user is in account: %w", err)
+		}
+		accountUuid = &parsedAccountUuid
+		return ok != 0, nil
+	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to validate slack oauth state: %w", err)
+	}
+	if accountUuid == nil {
+		return nil, nucleuserrors.NewNotFound("account not found")
+	}
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(neosyncdb.UUIDString(*accountUuid)), rbac.AccountAction_Edit); err != nil {
+		return nil, err
 	}
 	logger.Debug("slack oauth state validated")
 
@@ -475,13 +493,8 @@ func (s *Service) HandleSlackOAuthCallback(
 		return nil, fmt.Errorf("unable to marshal slack oauth response: %w", err)
 	}
 
-	accountId, err := neosyncdb.ToUuid(req.GetAccountId())
-	if err != nil {
-		return nil, err
-	}
-
 	_, err = s.db.Q.CreateSlackOAuthConnection(ctx, s.db.Db, db_queries.CreateSlackOAuthConnectionParams{
-		AccountID:       accountId,
+		AccountID:       *accountUuid,
 		OauthV2Response: oauthRespBytes,
 		CreatedByUserID: user.PgId(),
 		UpdatedByUserID: user.PgId(),

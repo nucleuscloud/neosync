@@ -42,16 +42,15 @@ interface ConnectToSlackButtonProps {}
 function ConnectToSlackButton(props: ConnectToSlackButtonProps): ReactElement {
   const {} = props;
   const { account } = useAccount();
-  const { data: testSlackConnection, isLoading: isTestSlackConnectionLoading } =
-    useQuery(
-      AccountHookService.method.testSlackConnection,
-      {
-        accountId: account?.id,
-      },
-      {
-        enabled: !!account?.id,
-      }
-    );
+  const { data: testSlackConnection } = useQuery(
+    AccountHookService.method.testSlackConnection,
+    {
+      accountId: account?.id,
+    },
+    {
+      enabled: !!account?.id,
+    }
+  );
   const { mutateAsync: getSlackConnectionUrl } = useMutation(
     AccountHookService.method.getSlackConnectionUrl
   );
@@ -60,13 +59,32 @@ function ConnectToSlackButton(props: ConnectToSlackButtonProps): ReactElement {
     const urlResp = await getSlackConnectionUrl({
       accountId: account?.id,
     });
-    console.log(urlResp.url);
+    openSlackConnectionWindow(urlResp.url);
   }
 
   return (
     <>
-      <Button onClick={onConnectClick}>Connect to Slack</Button>
+      <Button type="button" onClick={onConnectClick}>
+        Connect to Slack
+      </Button>
       {testSlackConnection?.hasConfiguration ? 'YES!!!' : 'NO!!!'}
     </>
+  );
+}
+
+function openSlackConnectionWindow(slackConnectionUrl: string): void {
+  if (!window || !screen) {
+    return;
+  }
+  const w = 1080;
+  const h = 800;
+
+  const left = screen.width / 2 - w / 2;
+  const top = screen.height / 2 - h / 2;
+
+  window.open(
+    slackConnectionUrl,
+    '_blank',
+    `popup,width=${w},height=${h},left=${left},top=${top}`
   );
 }

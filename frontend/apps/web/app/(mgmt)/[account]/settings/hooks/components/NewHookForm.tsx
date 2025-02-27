@@ -45,6 +45,9 @@ export default function NewHookForm(props: Props): ReactElement {
 
       const validatedData = await NewAccountHookFormValues.validate(formData, {
         abortEarly: false,
+        context: {
+          hookType: formData.hookType,
+        },
       });
       await onSubmit(newFormDataToNewAccountHook(validatedData));
     } catch (err) {

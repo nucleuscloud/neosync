@@ -3,6 +3,7 @@ import { create } from '@bufbuild/protobuf';
 import {
   AccountHook,
   AccountHookConfig,
+  AccountHookConfig_SlackHookSchema,
   AccountHookConfig_WebHookSchema,
   AccountHookConfigSchema,
   AccountHookEvent,
@@ -12,17 +13,32 @@ import {
 } from '@neosync/sdk';
 import * as yup from 'yup';
 
-const AccountHookWebhookFormValues = yup.object({
-  url: yup.string().required('URL is required'),
-  secret: yup.string().required('Secret is required'),
+const AccountHookWebhookFormValues = yup.object().shape({
+  // The hook type context must be provided to disable the required validation all the way down.
+  // Simply telling yup that the parent config is nullable is not sufficient.
+  url: yup.string().when('$hookType', {
+    is: 'webhook',
+    then: (schema) => schema.required('URL is required'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  secret: yup.string().when('$hookType', {
+    is: 'webhook',
+    then: (schema) => schema.required('Secret is required'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
   disableSslVerification: yup.boolean().optional(),
 });
+
 export type AccountHookWebhookFormValues = yup.InferType<
   typeof AccountHookWebhookFormValues
 >;
 
-const AccountHookSlackFormValues = yup.object({
-  channelId: yup.string().required('Channel ID is required'),
+const AccountHookSlackFormValues = yup.object().shape({
+  channelId: yup.string().when('$hookType', {
+    is: 'slack',
+    then: (schema) => schema.required('Channel ID is required'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
 });
 export type AccountHookSlackFormValues = yup.InferType<
   typeof AccountHookSlackFormValues
@@ -59,17 +75,17 @@ const AccountHookDescriptionFormValue = yup
   .required('Description is required');
 
 const AccountHookConfigFormValues = yup.object().shape({
-  webhook: AccountHookWebhookFormValues.when('hookType', (values, schema) => {
-    const [hooktype] = values;
-    return hooktype === 'webhook'
-      ? schema.required('Webhook config is required when hook type is webhook')
-      : schema;
+  webhook: AccountHookWebhookFormValues.when('$hookType', {
+    is: 'webhook',
+    then: (schema) =>
+      schema.required('Webhook config is required when hook type is webhook'),
+    otherwise: (schema) => schema.notRequired(),
   }),
-  slack: AccountHookSlackFormValues.when('hookType', (values, schema) => {
-    const [hooktype] = values;
-    return hooktype === 'slack'
-      ? schema.required('Slack config is required when hook type is slack')
-      : schema;
+  slack: AccountHookSlackFormValues.when('$hookType', {
+    is: 'slack',
+    then: (schema) =>
+      schema.required('Slack config is required when hook type is slack'),
+    otherwise: (schema) => schema.notRequired(),
   }),
 });
 export type AccountHookConfigFormValues = yup.InferType<
@@ -92,14 +108,16 @@ export type AccountHookEventsFormValue = yup.InferType<
   typeof AccountHookEventsFormValue
 >;
 
-export const EditAccountHookFormValues = yup.object().shape({
-  name: AccountHookNameFormValue,
-  description: AccountHookDescriptionFormValue,
-  enabled: EnabledFormValue,
-  hookType: HookTypeFormValue,
-  config: AccountHookConfigFormValues,
-  events: AccountHookEventsFormValue.required('Events are required'),
-});
+export const EditAccountHookFormValues = yup
+  .object<AccountHookFormContext>()
+  .shape({
+    name: AccountHookNameFormValue,
+    description: AccountHookDescriptionFormValue,
+    enabled: EnabledFormValue,
+    hookType: HookTypeFormValue,
+    config: AccountHookConfigFormValues,
+    events: AccountHookEventsFormValue.required('Events are required'),
+  });
 export type EditAccountHookFormValues = yup.InferType<
   typeof EditAccountHookFormValues
 >;
@@ -118,14 +136,20 @@ export function toEditFormData(input: AccountHook): EditAccountHookFormValues {
   };
 }
 
-export const NewAccountHookFormValues = yup.object({
-  name: AccountHookNameFormValue,
-  description: AccountHookDescriptionFormValue,
-  enabled: EnabledFormValue,
-  hookType: HookTypeFormValue,
-  config: AccountHookConfigFormValues,
-  events: AccountHookEventsFormValue.required('Events are required'),
-});
+interface AccountHookFormContext {
+  hookType: HookTypeFormValue;
+}
+
+export const NewAccountHookFormValues = yup
+  .object<AccountHookFormContext>()
+  .shape({
+    name: AccountHookNameFormValue,
+    description: AccountHookDescriptionFormValue,
+    enabled: EnabledFormValue,
+    hookType: HookTypeFormValue,
+    config: AccountHookConfigFormValues,
+    events: AccountHookEventsFormValue.required('Events are required'),
+  });
 export type NewAccountHookFormValues = yup.InferType<
   typeof NewAccountHookFormValues
 >;
@@ -223,6 +247,19 @@ function toAccountHookConfig(
           }),
         },
       });
+    }
+    case 'slack': {
+      return create(AccountHookConfigSchema, {
+        config: {
+          case: 'slack',
+          value: create(AccountHookConfig_SlackHookSchema, {
+            channel: values.config.slack.channelId,
+          }),
+        },
+      });
+    }
+    default: {
+      return undefined;
     }
   }
 }
