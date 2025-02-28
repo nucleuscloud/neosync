@@ -8,8 +8,13 @@ import (
 	"testing"
 
 	_ "github.com/microsoft/go-mssqldb"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	"github.com/stretchr/testify/suite"
@@ -21,21 +26,24 @@ type mssqlTest struct {
 	testcontainer *testmssql.MSSQLServerContainer
 }
 
+type postgresTest struct {
+	pgcontainer       *tcpostgres.PostgresTestContainer
+	tableConstraints  *sqlmanager_shared.TableConstraints
+	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow
+	querier           pg_queries.Querier
+
+	teardownSql string
+}
+
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	querier pg_queries.Querier
-
-	setupSql    string
-	teardownSql string
-
 	ctx context.Context
-
-	pgcontainer *tcpostgres.PostgresTestContainer
 
 	schema string
 
-	mssql *mssqlTest
+	postgres *postgresTest
+	mssql    *mssqlTest
 }
 
 func (s *IntegrationTestSuite) SetupMssql() (*mssqlTest, error) {
@@ -81,38 +89,75 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	if err != nil {
 		panic(err)
 	}
-	s.pgcontainer = pgcontainer
+	err = pgcontainer.RunSqlFiles(s.ctx, nil, []string{"testdata/postgres/setup.sql"})
+	if err != nil {
+		panic(err)
+	}
 
-	s.setupSql = "testdata/postgres/setup.sql"
-	s.teardownSql = "testdata/postgres/teardown.sql"
+	sourceConn := &mgmtv1alpha1.Connection{
+		Id: "test",
+		ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+				PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+					ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+						Url: pgcontainer.URL,
+					},
+				},
+			},
+		},
+	}
 
-	s.querier = pg_queries.New()
+	logger := testutil.GetTestLogger(s.T())
+
+	pgquerier := pg_queries.New()
+	mysqlquerier := mysql_queries.New()
+	mssqlquerier := mssql_queries.New()
+
+	sqlmanager := sql_manager.NewSqlManager(
+		sql_manager.WithPostgresQuerier(pgquerier),
+		sql_manager.WithMysqlQuerier(mysqlquerier),
+		sql_manager.WithMssqlQuerier(mssqlquerier),
+		sql_manager.WithConnectionManagerOpts(connectionmanager.WithCloseOnRelease()),
+	)
+	db, err := sqlmanager.NewSqlConnection(s.ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup("test")), sourceConn, logger)
+	if err != nil {
+		s.T().Fatalf("unable to create sql connection: %s", err)
+	}
+	defer db.Db().Close()
+
+	constraints, err := db.Db().GetTableConstraintsBySchema(s.ctx, []string{s.schema})
+	if err != nil {
+		s.T().Fatalf("unable to get table constraints: %s", err)
+	}
+	groupedColumnInfo, err := db.Db().GetSchemaColumnMap(s.ctx)
+	if err != nil {
+		s.T().Fatalf("unable to get schema column map: %s", err)
+	}
+
+	pgTest := &postgresTest{
+		pgcontainer:       pgcontainer,
+		tableConstraints:  constraints,
+		groupedColumnInfo: groupedColumnInfo,
+		teardownSql:       "testdata/postgres/teardown.sql",
+		querier:           pgquerier,
+	}
+	s.postgres = pgTest
 
 	mssqlTest, err := s.SetupMssql()
 	if err != nil {
 		panic(err)
 	}
 	s.mssql = mssqlTest
-}
 
-// Runs before each test
-func (s *IntegrationTestSuite) SetupTest() {
-	err := s.pgcontainer.RunSqlFiles(s.ctx, nil, []string{s.setupSql})
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (s *IntegrationTestSuite) TearDownTest() {
-	err := s.pgcontainer.RunSqlFiles(s.ctx, nil, []string{s.teardownSql})
-	if err != nil {
-		panic(err)
-	}
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
-	if s.pgcontainer != nil {
-		err := s.pgcontainer.TearDown(s.ctx)
+	err := s.postgres.pgcontainer.RunSqlFiles(s.ctx, nil, []string{s.postgres.teardownSql})
+	if err != nil {
+		panic(err)
+	}
+	if s.postgres != nil && s.postgres.pgcontainer != nil {
+		err := s.postgres.pgcontainer.TearDown(s.ctx)
 		if err != nil {
 			panic(err)
 		}

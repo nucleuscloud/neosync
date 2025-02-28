@@ -1,1423 +1,770 @@
 package selectquerybuilder
 
-// import (
-// 	"fmt"
-// 	"slices"
-
-// 	"github.com/jackc/pgx/v5"
-// 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-// 	runconfigs "github.com/nucleuscloud/neosync/internal/runconfigs"
-// 	querybuilder2 "github.com/nucleuscloud/neosync/worker/pkg/query-builder2"
-// 	"github.com/stretchr/testify/assert"
-// 	"github.com/stretchr/testify/require"
-// )
-
-// var (
-// 	pageLimit = 100
-// )
-
-// func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
-// 	whereId := "id = 1"
-// 	tableDependencies := map[string][]*runconfigs.ForeignKey{
-// 		"genbenthosconfigs_querybuilder.department": {
-// 			{Columns: []string{"company_id"}, NotNullable: []bool{true}, ReferenceTable: "genbenthosconfigs_querybuilder.company", ReferenceColumns: []string{"id"}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.transaction": {
-// 			{Columns: []string{"department_id"}, NotNullable: []bool{true}, ReferenceTable: "genbenthosconfigs_querybuilder.department", ReferenceColumns: []string{"id"}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.expense_report": {
-// 			{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ReferenceTable: "genbenthosconfigs_querybuilder.department", ReferenceColumns: []string{"id"}},
-// 			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ReferenceTable: "genbenthosconfigs_querybuilder.department", ReferenceColumns: []string{"id"}},
-// 			{Columns: []string{"transaction_id"}, NotNullable: []bool{true}, ReferenceTable: "genbenthosconfigs_querybuilder.transaction", ReferenceColumns: []string{"id"}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.expense": {
-// 			{Columns: []string{"report_id"}, NotNullable: []bool{true}, ReferenceTable: "genbenthosconfigs_querybuilder.expense_report", ReferenceColumns: []string{"id"}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.item": {
-// 			{Columns: []string{"expense_id"}, NotNullable: []bool{true}, ReferenceTable: "genbenthosconfigs_querybuilder.expense", ReferenceColumns: []string{"id"}},
-// 		},
-// 	}
-// 	dependencyConfigs := []*runconfigs.RunConfig{
-// 		buildRunConfig("genbenthosconfigs_querybuilder.company", runconfigs.RunTypeInsert, []string{"id"}, &whereId, []string{"id"}, []string{"id"}, []*runconfigs.DependsOn{}),
-// 		buildRunConfig("genbenthosconfigs_querybuilder.department", runconfigs.RunTypeInsert, []string{"id"}, nil, []string{"id", "company_id"}, []string{"id", "company_id"}, []*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.company", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.department"]),
-// 		buildRunConfig("genbenthosconfigs_querybuilder.transaction", runconfigs.RunTypeInsert, []string{"id"}, nil, []string{"id", "department_id"}, []string{"id", "department_id"}, []*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.transaction"]),
-// 		buildRunConfig("genbenthosconfigs_querybuilder.expense_report", runconfigs.RunTypeInsert, []string{"id"}, nil, []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, []*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}, {Table: "genbenthosconfigs_querybuilder.transaction", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.expense_report"]),
-// 		buildRunConfig("genbenthosconfigs_querybuilder.expense", runconfigs.RunTypeInsert, []string{"id"}, nil, []string{"id", "report_id"}, []string{"id", "report_id"}, []*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.expense_report", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.expense"]),
-// 		buildRunConfig("genbenthosconfigs_querybuilder.item", runconfigs.RunTypeInsert, []string{"id"}, nil, []string{"id", "expense_id"}, []string{"id", "expense_id"}, []*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.expense", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.item"]),
-// 	}
-
-// 	expectedValues := map[string]map[string][]int64{
-// 		"genbenthosconfigs_querybuilder.company": {
-// 			"id": {1},
-// 		},
-// 		"genbenthosconfigs_querybuilder.department": {
-// 			"company_id": {1},
-// 		},
-// 		"genbenthosconfigs_querybuilder.expense_report": {
-// 			"department_source_id":      {1, 2},
-// 			"department_destination_id": {1, 2},
-// 		},
-// 		"genbenthosconfigs_querybuilder.transaction": {
-// 			"department_id": {1, 2},
-// 		},
-// 		"genbenthosconfigs_querybuilder.expense": {
-// 			"report_id": {3, 1},
-// 		},
-// 		"genbenthosconfigs_querybuilder.item": {
-// 			"expense_id": {3, 2},
-// 		},
-// 	}
-
-// 	expectedCount := map[string]int{
-// 		"genbenthosconfigs_querybuilder.company":        1,
-// 		"genbenthosconfigs_querybuilder.department":     2,
-// 		"genbenthosconfigs_querybuilder.expense_report": 2,
-// 		"genbenthosconfigs_querybuilder.transaction":    2,
-// 		"genbenthosconfigs_querybuilder.expense":        2,
-// 		"genbenthosconfigs_querybuilder.item":           2,
-// 	}
-
-// 	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
-// 	require.NoError(s.T(), err)
-// 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
-// 	for table, query := range sqlMap {
-// 		rows, err := s.pgcontainer.DB.Query(s.ctx, query.Query)
-// 		assert.NoError(s.T(), err)
-
-// 		columnDescriptions := rows.FieldDescriptions()
-
-// 		tableExpectedValues, ok := expectedValues[table]
-// 		assert.True(s.T(), ok)
-
-// 		rowCount := 0
-// 		for rows.Next() {
-// 			rowCount++
-// 			values, err := rows.Values()
-// 			assert.NoError(s.T(), err)
-
-// 			for i, col := range values {
-// 				colName := columnDescriptions[i].Name
-// 				allowedValues, ok := tableExpectedValues[colName]
-// 				if ok {
-// 					value := col.(int64)
-// 					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
-// 				}
-// 			}
-// 		}
-// 		rows.Close()
-// 		assert.Equalf(s.T(), expectedCount[table], rowCount, fmt.Sprintf("table: %s ", table))
-// 	}
-// }
-
-// func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleRootSubset() {
-// 	whereCreated := "created > '2023-06-03'"
-// 	tableDependencies := map[string][]*runconfigs.ForeignKey{
-// 		"genbenthosconfigs_querybuilder.test_2_c": {
-// 			{Columns: []string{"a_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_2_a", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 			{Columns: []string{"b_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_2_b", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_2_d": {
-// 			{Columns: []string{"c_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_2_c", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_2_e": {
-// 			{Columns: []string{"c_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_2_c", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_2_a": {
-// 			{Columns: []string{"x_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_2_x", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 	}
-// 	dependencyConfigs := []*runconfigs.RunConfig{
-// 		buildRunConfig("genbenthosconfigs_querybuilder.test_2_x", runconfigs.RunTypeInsert, []string{"id"}, &whereCreated, []string{"id"}, []string{"id"}, []*runconfigs.DependsOn{}, nil),
-// 		buildRunConfig("genbenthosconfigs_querybuilder.test_2_b", runconfigs.RunTypeInsert, []string{"id"}, &whereCreated, []string{"id"}, []string{"id"}, []*runconfigs.DependsOn{}, nil),
-// 		buildRunConfig("genbenthosconfigs_querybuilder.test_2_a", runconfigs.RunTypeInsert, []string{"id"}, nil, []string{"id", "x_id"}, []string{"id", "x_id"}, []*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_x", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.test_2_a"]),
-// 		buildRunConfig("genbenthosconfigs_querybuilder.test_2_c", runconfigs.RunTypeInsert, []string{"id"}, nil, []string{"id", "a_id", "b_id"}, []string{"id", "a_id", "b_id"}, []*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_a", Columns: []string{"id"}}, {Table: "genbenthosconfigs_querybuilder.test_2_b", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.test_2_c"]),
-// 		buildRunConfig("genbenthosconfigs_querybuilder.test_2_d", runconfigs.RunTypeInsert, []string{"id"}, nil, []string{"id", "c_id"}, []string{"id", "c_id"}, []*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.test_2_d"]),
-// 		buildRunConfig("genbenthosconfigs_querybuilder.test_2_e", runconfigs.RunTypeInsert, []string{"id"}, nil, []string{"id", "c_id"}, []string{"id", "c_id"}, []*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}}, tableDependencies["genbenthosconfigs_querybuilder.test_2_e"]),
-// 	}
-
-// 	expectedValues := map[string]map[string][]int64{
-// 		"genbenthosconfigs_querybuilder.test_2_x": {
-// 			"id": {3, 4, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_2_b": {
-// 			"id": {3, 4, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_2_a": {
-// 			"x_id": {3, 4, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_2_c": {
-// 			"a_id": {3, 4},
-// 			"x_id": {3, 4},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_2_d": {
-// 			"c_id": {3, 4},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_2_e": {
-// 			"c_id": {3, 4},
-// 		},
-// 	}
-
-// 	expectedCount := map[string]int{
-// 		"genbenthosconfigs_querybuilder.test_2_x": 3,
-// 		"genbenthosconfigs_querybuilder.test_2_b": 3,
-// 		"genbenthosconfigs_querybuilder.test_2_a": 4,
-// 		"genbenthosconfigs_querybuilder.test_2_c": 2,
-// 		"genbenthosconfigs_querybuilder.test_2_d": 2,
-// 		"genbenthosconfigs_querybuilder.test_2_e": 2,
-// 	}
-
-// 	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
-// 	require.NoError(s.T(), err)
-// 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
-// 	for table, query := range sqlMap {
-// 		rows, err := s.pgcontainer.DB.Query(s.ctx, query.Query)
-// 		assert.NoError(s.T(), err)
-
-// 		columnDescriptions := rows.FieldDescriptions()
-
-// 		tableExpectedValues, ok := expectedValues[table]
-// 		assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
-
-// 		rowCount := 0
-// 		for rows.Next() {
-// 			rowCount++
-// 			values, err := rows.Values()
-// 			assert.NoError(s.T(), err)
-
-// 			for i, col := range values {
-// 				colName := columnDescriptions[i].Name
-// 				allowedValues, ok := tableExpectedValues[colName]
-// 				if ok {
-// 					value := col.(int64)
-// 					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
-// 				}
-// 			}
-// 		}
-// 		rows.Close()
-// 		assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
-// 	}
-// }
-
-// func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
-// 	whereId := "id = 1"
-// 	whereId4 := "id in (4,5)"
-// 	tableDependencies := map[string][]*runconfigs.ForeignKey{
-// 		"genbenthosconfigs_querybuilder.test_3_b": {
-// 			{Columns: []string{"a_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_a", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_c": {
-// 			{Columns: []string{"b_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_b", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_d": {
-// 			{Columns: []string{"c_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_c", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_e": {
-// 			{Columns: []string{"d_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_d", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_g": {
-// 			{Columns: []string{"f_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_f", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_h": {
-// 			{Columns: []string{"g_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_g", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_i": {
-// 			{Columns: []string{"h_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_h", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 	}
-// 	dependencyConfigs := []*runconfigs.RunConfig{
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_a",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{},
-// 			nil,
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_b",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			&whereId,
-// 			[]string{"id", "a_id"},
-// 			[]string{"id", "a_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_b"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_c",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "b_id"},
-// 			[]string{"id", "b_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_c"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_d",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "c_id"},
-// 			[]string{"id", "c_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_d"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_e",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "d_id"},
-// 			[]string{"id", "d_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_e"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_f",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			&whereId4,
-// 			[]string{"id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{},
-// 			nil,
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_g",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "f_id"},
-// 			[]string{"id", "f_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_f", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_g"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_h",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "g_id"},
-// 			[]string{"id", "g_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_g", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_h"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_i",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "h_id"},
-// 			[]string{"id", "h_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_h", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_i"],
-// 		),
-// 	}
-
-// 	expectedValues := map[string]map[string][]int64{
-// 		"genbenthosconfigs_querybuilder.test_3_a": {
-// 			"id": {1, 2, 3, 4, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_b": {
-// 			"a_id": {3},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_c": {
-// 			"b_id": {1},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_d": {
-// 			"c_id": {3},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_e": {
-// 			"d_id": {5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_f": {
-// 			"id": {4, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_g": {
-// 			"f_id": {4, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_h": {
-// 			"g_id": {1, 3},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_i": {
-// 			"h_id": {4},
-// 		},
-// 	}
-
-// 	expectedCount := map[string]int{
-// 		"genbenthosconfigs_querybuilder.test_3_a": 5,
-// 		"genbenthosconfigs_querybuilder.test_3_b": 1,
-// 		"genbenthosconfigs_querybuilder.test_3_c": 1,
-// 		"genbenthosconfigs_querybuilder.test_3_d": 1,
-// 		"genbenthosconfigs_querybuilder.test_3_e": 1,
-// 		"genbenthosconfigs_querybuilder.test_3_f": 2,
-// 		"genbenthosconfigs_querybuilder.test_3_g": 2,
-// 		"genbenthosconfigs_querybuilder.test_3_h": 2,
-// 		"genbenthosconfigs_querybuilder.test_3_i": 1,
-// 	}
-
-// 	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
-// 	require.NoError(s.T(), err)
-// 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
-// 	for table, query := range sqlMap {
-// 		rows, err := s.pgcontainer.DB.Query(s.ctx, query.Query)
-// 		assert.NoError(s.T(), err)
-
-// 		columnDescriptions := rows.FieldDescriptions()
-// 		tableExpectedValues, ok := expectedValues[table]
-// 		assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
-
-// 		rowCount := 0
-// 		for rows.Next() {
-// 			rowCount++
-// 			values, err := rows.Values()
-// 			assert.NoError(s.T(), err)
-
-// 			for i, col := range values {
-// 				colName := columnDescriptions[i].Name
-
-// 				allowedValues, ok := tableExpectedValues[colName]
-// 				if ok {
-// 					value := col.(int64)
-// 					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
-// 				}
-// 			}
-// 		}
-// 		rows.Close()
-// 		assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
-// 	}
-// }
-
-// func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
-// 	whereId := "id in (3,4,5)"
-// 	whereId4 := "id = 4"
-// 	tableDependencies := map[string][]*runconfigs.ForeignKey{
-// 		"genbenthosconfigs_querybuilder.test_3_b": {
-// 			{Columns: []string{"a_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_a", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_c": {
-// 			{Columns: []string{"b_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_b", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_d": {
-// 			{Columns: []string{"c_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_c", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_e": {
-// 			{Columns: []string{"d_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_d", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 	}
-// 	dependencyConfigs := []*runconfigs.RunConfig{
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_a",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			&whereId,
-// 			[]string{"id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{},
-// 			nil,
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_b",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			&whereId4,
-// 			[]string{"id", "a_id"},
-// 			[]string{"id", "a_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_b"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_c",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "b_id"},
-// 			[]string{"id", "b_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_c"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_d",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "c_id"},
-// 			[]string{"id", "c_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_d"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_e",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "d_id"},
-// 			[]string{"id", "d_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_e"],
-// 		),
-// 	}
-
-// 	expectedValues := map[string]map[string][]int64{
-// 		"genbenthosconfigs_querybuilder.test_3_a": {
-// 			"id": {3, 4, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_b": {
-// 			"a_id": {4},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_c": {
-// 			"b_id": {4},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_d": {
-// 			"c_id": {2},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_e": {
-// 			"d_id": {4},
-// 		},
-// 	}
-
-// 	expectedCount := map[string]int{
-// 		"genbenthosconfigs_querybuilder.test_3_a": 3,
-// 		"genbenthosconfigs_querybuilder.test_3_b": 1,
-// 		"genbenthosconfigs_querybuilder.test_3_c": 1,
-// 		"genbenthosconfigs_querybuilder.test_3_d": 1,
-// 		"genbenthosconfigs_querybuilder.test_3_e": 1,
-// 	}
-
-// 	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
-// 	require.NoError(s.T(), err)
-// 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
-// 	for table, query := range sqlMap {
-// 		rows, err := s.pgcontainer.DB.Query(s.ctx, query.Query)
-// 		assert.NoError(s.T(), err)
-
-// 		columnDescriptions := rows.FieldDescriptions()
-// 		tableExpectedValues, ok := expectedValues[table]
-// 		assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
-
-// 		rowCount := 0
-// 		for rows.Next() {
-// 			rowCount++
-// 			values, err := rows.Values()
-// 			assert.NoError(s.T(), err)
-
-// 			for i, col := range values {
-// 				colName := columnDescriptions[i].Name
-// 				allowedValues, ok := tableExpectedValues[colName]
-// 				if ok {
-// 					value := col.(int64)
-// 					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
-// 				}
-// 			}
-// 		}
-// 		rows.Close()
-// 		assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
-// 	}
-// }
-
-// func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForeignKeysOff() {
-// 	whereId := "id in (4,5)"
-// 	whereId4 := "id = 4"
-// 	tableDependencies := map[string][]*runconfigs.ForeignKey{
-// 		"genbenthosconfigs_querybuilder.test_3_b": {
-// 			{Columns: []string{"a_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_a", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_c": {
-// 			{Columns: []string{"b_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_b", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_d": {
-// 			{Columns: []string{"c_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_c", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_e": {
-// 			{Columns: []string{"d_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.test_3_d", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 	}
-// 	dependencyConfigs := []*runconfigs.RunConfig{
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_a",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			&whereId,
-// 			[]string{"id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{},
-// 			nil,
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_b",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			&whereId4,
-// 			[]string{"id", "a_id"},
-// 			[]string{"id", "a_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_b"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_c",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "b_id"},
-// 			[]string{"id", "b_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_c"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_d",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "c_id"},
-// 			[]string{"id", "c_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_d"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_e",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "d_id"},
-// 			[]string{"id", "d_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.test_3_e"],
-// 		),
-// 	}
-
-// 	columnInfo := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
-// 		"genbenthosconfigs_querybuilder.test_3_a": {"id": &sqlmanager_shared.DatabaseSchemaRow{}},
-// 	}
-
-// 	expectedValues := map[string]map[string][]int64{
-// 		"genbenthosconfigs_querybuilder.test_3_a": {
-// 			"id": {4, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_b": {
-// 			"a_id": {4},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_c": {
-// 			"b_id": {1, 2, 3, 4, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_d": {
-// 			"c_id": {1, 2, 3, 4, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_e": {
-// 			"d_id": {1, 2, 3, 4, 5},
-// 		},
-// 	}
-
-// 	expectedCount := map[string]int{
-// 		"genbenthosconfigs_querybuilder.test_3_a": 2,
-// 		"genbenthosconfigs_querybuilder.test_3_b": 1,
-// 		"genbenthosconfigs_querybuilder.test_3_c": 5,
-// 		"genbenthosconfigs_querybuilder.test_3_d": 5,
-// 		"genbenthosconfigs_querybuilder.test_3_e": 5,
-// 	}
-
-// 	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, false, pageLimit)
-// 	require.NoError(s.T(), err)
-// 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
-// 	for table, query := range sqlMap {
-// 		rows, err := s.pgcontainer.DB.Query(s.ctx, query.Query)
-// 		assert.NoError(s.T(), err)
-
-// 		columnDescriptions := rows.FieldDescriptions()
-// 		tableExpectedValues, ok := expectedValues[table]
-// 		assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
-
-// 		rowCount := 0
-// 		for rows.Next() {
-// 			rowCount++
-// 			values, err := rows.Values()
-// 			assert.NoError(s.T(), err)
-
-// 			for i, col := range values {
-// 				colName := columnDescriptions[i].Name
-// 				allowedValues, ok := tableExpectedValues[colName]
-// 				if ok {
-// 					value := col.(int64)
-// 					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
-// 				}
-// 			}
-// 		}
-// 		rows.Close()
-// 		assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
-// 	}
-// }
-
-// func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
-// 	whereId := "id in (1,5)"
-// 	tableDependencies := map[string][]*runconfigs.ForeignKey{
-// 		"genbenthosconfigs_querybuilder.addresses": {
-// 			{Columns: []string{"order_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.orders", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.customers": {
-// 			{Columns: []string{"address_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.addresses", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.orders": {
-// 			{Columns: []string{"customer_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.customers", ReferenceColumns: []string{"id"}, NotNullable: []bool{false}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.payments": {
-// 			{Columns: []string{"customer_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.customers", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 	}
-// 	dependencyConfigs := []*runconfigs.RunConfig{
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.orders",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "customer_id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{},
-// 			tableDependencies["genbenthosconfigs_querybuilder.orders"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.addresses",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			&whereId,
-// 			[]string{"id", "order_id"},
-// 			[]string{"id", "order_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.orders", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.addresses"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.customers",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "address_id"},
-// 			[]string{"id", "address_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.addresses", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.customers"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.payments",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "customer_id"},
-// 			[]string{"id", "customer_id"},
-// 			[]*runconfigs.DependsOn{{Table: "genbenthosconfigs_querybuilder.customers", Columns: []string{"id"}}},
-// 			tableDependencies["genbenthosconfigs_querybuilder.payments"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.orders",
-// 			runconfigs.RunTypeUpdate,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "customer_id"},
-// 			[]string{"customer_id"},
-// 			[]*runconfigs.DependsOn{
-// 				{Table: "genbenthosconfigs_querybuilder.orders", Columns: []string{"id"}},
-// 				{Table: "genbenthosconfigs_querybuilder.customers", Columns: []string{"id"}},
-// 			},
-// 			tableDependencies["genbenthosconfigs_querybuilder.orders"],
-// 		),
-// 	}
-
-// 	expectedValues := map[string]map[string][]int64{
-// 		"genbenthosconfigs_querybuilder.orders": {
-// 			"customer_id": {1, 2, 3, 4, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.addresses": {
-// 			"order_id": {1, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.customers": {
-// 			"address_id": {1, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.payments": {
-// 			"customer_id": {2},
-// 		},
-// 	}
-
-// 	expectedCount := map[string]int{
-// 		"genbenthosconfigs_querybuilder.orders":    5,
-// 		"genbenthosconfigs_querybuilder.addresses": 2,
-// 		"genbenthosconfigs_querybuilder.customers": 2,
-// 		"genbenthosconfigs_querybuilder.payments":  1,
-// 	}
-
-// 	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
-// 	require.NoError(s.T(), err)
-// 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
-// 	for table, query := range sqlMap {
-// 		assert.NotEmpty(s.T(), query.Query)
-
-// 		if table != "genbenthosconfigs_querybuilder.customers" {
-// 			assert.Truef(s.T(), query.IsNotForeignKeySafeSubset, fmt.Sprintf("table: %s IsNotForeignKeySafeSubset should be true", table))
-// 		}
-
-// 		rows, err := s.pgcontainer.DB.Query(s.ctx, query.Query)
-// 		assert.NoError(s.T(), err)
-
-// 		columnDescriptions := rows.FieldDescriptions()
-// 		tableExpectedValues, ok := expectedValues[table]
-// 		assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
-
-// 		rowCount := 0
-// 		for rows.Next() {
-// 			rowCount++
-// 			values, err := rows.Values()
-// 			assert.NoError(s.T(), err)
-
-// 			for i, col := range values {
-// 				colName := columnDescriptions[i].Name
-// 				allowedValues, ok := tableExpectedValues[colName]
-// 				if ok {
-// 					value := col.(int64)
-// 					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
-// 				}
-// 			}
-// 		}
-// 		rows.Close()
-// 		assert.Equalf(s.T(), expectedCount[table], rowCount, fmt.Sprintf("table: %s ", table))
-// 	}
-// }
-
-// func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
-// 	whereId := "id in (1,5)"
-// 	dependencyConfigs := []*runconfigs.RunConfig{
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.company",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{},
-// 			nil,
-// 			[]string{"id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{},
-// 			nil,
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_2_x",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			&whereId,
-// 			[]string{"id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{},
-// 			nil,
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_2_b",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			&whereId,
-// 			[]string{"id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{},
-// 			nil,
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_a",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{},
-// 			nil,
-// 		),
-// 	}
-// 	expectedValues := map[string]map[string][]int64{
-// 		"genbenthosconfigs_querybuilder.company": {
-// 			"id": {1, 2, 3},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_2_x": {
-// 			"id": {1, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_2_b": {
-// 			"id": {1, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.test_3_a": {
-// 			"customer_id": {1, 2, 3, 4, 5},
-// 		},
-// 	}
-
-// 	expectedCount := map[string]int{
-// 		"genbenthosconfigs_querybuilder.company":  3,
-// 		"genbenthosconfigs_querybuilder.test_2_x": 2,
-// 		"genbenthosconfigs_querybuilder.test_2_b": 2,
-// 		"genbenthosconfigs_querybuilder.test_3_a": 5,
-// 	}
-
-// 	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
-// 	require.NoError(s.T(), err)
-// 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
-
-// 	for table, query := range sqlMap {
-// 		rows, err := s.pgcontainer.DB.Query(s.ctx, query.Query)
-// 		assert.NoError(s.T(), err)
-
-// 		columnDescriptions := rows.FieldDescriptions()
-// 		tableExpectedValues, ok := expectedValues[table]
-// 		assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
-
-// 		rowCount := 0
-// 		for rows.Next() {
-// 			rowCount++
-// 			values, err := rows.Values()
-// 			assert.NoError(s.T(), err)
-
-// 			for i, col := range values {
-// 				colName := columnDescriptions[i].Name
-// 				allowedValues, ok := tableExpectedValues[colName]
-// 				if ok {
-// 					value := col.(int64)
-// 					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
-// 				}
-// 			}
-// 		}
-// 		rows.Close()
-// 		assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
-// 	}
-// }
-
-// func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
-// 	dependencyConfigs := []*runconfigs.RunConfig{
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.company",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{},
-// 			nil,
-// 			[]string{"id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{},
-// 			nil,
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_2_x",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{},
-// 			nil,
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_2_b",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{},
-// 			nil,
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.test_3_a",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{},
-// 			nil,
-// 		),
-// 	}
-
-// 	expectedCount := map[string]int{
-// 		"genbenthosconfigs_querybuilder.company":  3,
-// 		"genbenthosconfigs_querybuilder.test_2_x": 5,
-// 		"genbenthosconfigs_querybuilder.test_2_b": 5,
-// 		"genbenthosconfigs_querybuilder.test_3_a": 5,
-// 	}
-
-// 	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
-// 	require.NoError(s.T(), err)
-// 	require.Equal(s.T(), len(expectedCount), len(sqlMap))
-// 	for table, query := range sqlMap {
-// 		rows, err := s.pgcontainer.DB.Query(s.ctx, query.Query)
-// 		assert.NoError(s.T(), err)
-
-// 		rowCount := 0
-// 		for rows.Next() {
-// 			rowCount++
-// 		}
-// 		rows.Close()
-
-// 		tableExpectedCount, ok := expectedCount[table]
-// 		assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected row counts", table))
-// 		assert.Equalf(s.T(), rowCount, tableExpectedCount, fmt.Sprintf("table: %s ", table))
-// 	}
-// }
-
-// func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
-// 	whereId := "id in (3,5)"
-// 	tableDependencies := map[string][]*runconfigs.ForeignKey{
-// 		"genbenthosconfigs_querybuilder.employees": {
-// 			{Columns: []string{"division_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.division", ReferenceColumns: []string{"id"}, NotNullable: []bool{true}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.projects": {
-// 			{Columns: []string{"responsible_employee_id", "responsible_division_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.employees", ReferenceColumns: []string{"id", "division_id"}, NotNullable: []bool{true, true}},
-// 		},
-// 	}
-// 	dependencyConfigs := []*runconfigs.RunConfig{
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.division",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			&whereId,
-// 			[]string{"id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{},
-// 			nil,
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.employees",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id", "division_id"},
-// 			nil,
-// 			[]string{"id", "division_id"},
-// 			[]string{"id", "division_id"},
-// 			[]*runconfigs.DependsOn{
-// 				{Table: "genbenthosconfigs_querybuilder.division", Columns: []string{"id"}},
-// 			},
-// 			tableDependencies["genbenthosconfigs_querybuilder.employees"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.projects",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "responsible_employee_id", "responsible_division_id"},
-// 			[]string{"id"},
-// 			[]*runconfigs.DependsOn{
-// 				{Table: "genbenthosconfigs_querybuilder.employees", Columns: []string{"id", "division_id"}},
-// 			},
-// 			tableDependencies["genbenthosconfigs_querybuilder.projects"],
-// 		),
-// 	}
-
-// 	expectedValues := map[string]map[string][]int64{
-// 		"genbenthosconfigs_querybuilder.division": {
-// 			"id": {3, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.employees": {
-// 			"division_id": {3, 5},
-// 			"id":          {8, 10},
-// 		},
-// 		"genbenthosconfigs_querybuilder.projects": {
-// 			"responsible_division_id": {3, 5},
-// 			"responsible_employee_id": {8, 10},
-// 		},
-// 	}
-
-// 	expectedCount := map[string]int{
-// 		"genbenthosconfigs_querybuilder.division":  2,
-// 		"genbenthosconfigs_querybuilder.employees": 2,
-// 		"genbenthosconfigs_querybuilder.projects":  2,
-// 	}
-
-// 	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
-// 	require.NoError(s.T(), err)
-// 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
-// 	for table, query := range sqlMap {
-// 		rows, err := s.pgcontainer.DB.Query(s.ctx, query.Query)
-// 		assert.NoError(s.T(), err)
-
-// 		columnDescriptions := rows.FieldDescriptions()
-// 		tableExpectedValues, ok := expectedValues[table]
-// 		assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
-
-// 		rowCount := 0
-// 		for rows.Next() {
-// 			rowCount++
-// 			values, err := rows.Values()
-// 			assert.NoError(s.T(), err)
-
-// 			for i, col := range values {
-// 				colName := columnDescriptions[i].Name
-// 				allowedValues, ok := tableExpectedValues[colName]
-// 				if ok {
-// 					value := col.(int64)
-// 					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
-// 				}
-// 			}
-// 		}
-// 		rows.Close()
-// 		assert.Equalf(s.T(), expectedCount[table], rowCount, fmt.Sprintf("table: %s ", table))
-// 	}
-// }
-
-// func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
-// 	tableDependencies := map[string][]*runconfigs.ForeignKey{
-// 		"genbenthosconfigs_querybuilder.attachments": {
-// 			{Columns: []string{"uploaded_by"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{true}},
-// 			{Columns: []string{"task_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.tasks", ReferenceColumns: []string{"task_id"}, NotNullable: []bool{true}},
-// 			{Columns: []string{"initiative_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.initiatives", ReferenceColumns: []string{"initiative_id"}, NotNullable: []bool{false}},
-// 			{Columns: []string{"comment_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.comments", ReferenceColumns: []string{"comment_id"}, NotNullable: []bool{false}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.comments": {
-// 			{Columns: []string{"user_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{true}},
-// 			{Columns: []string{"task_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.tasks", ReferenceColumns: []string{"task_id"}, NotNullable: []bool{false}},
-// 			{Columns: []string{"initiative_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.initiatives", ReferenceColumns: []string{"initiative_id"}, NotNullable: []bool{false}},
-// 			{Columns: []string{"parent_comment_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.comments", ReferenceColumns: []string{"comment_id"}, NotNullable: []bool{false}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.initiatives": {
-// 			{Columns: []string{"lead_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{false}},
-// 			{Columns: []string{"client_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{false}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.tasks": {
-// 			{Columns: []string{"initiative_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.initiatives", ReferenceColumns: []string{"initiative_id"}, NotNullable: []bool{false}},
-// 			{Columns: []string{"assignee_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{false}},
-// 			{Columns: []string{"reviewer_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{false}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.user_skills": {
-// 			{Columns: []string{"user_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{true}},
-// 			{Columns: []string{"skill_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.skills", ReferenceColumns: []string{"skill_id"}, NotNullable: []bool{false}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.users": {
-// 			{Columns: []string{"manager_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{false}},
-// 			{Columns: []string{"mentor_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{false}},
-// 		},
-// 	}
-
-// 	dependencyConfigs := []*runconfigs.RunConfig{
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.comments",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"comment_id"},
-// 			nil,
-// 			[]string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id", "parent_comment_id"},
-// 			[]string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id"},
-// 			[]*runconfigs.DependsOn{
-// 				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}},
-// 				{Table: "genbenthosconfigs_querybuilder.tasks", Columns: []string{"task_id"}},
-// 				{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}},
-// 			},
-// 			tableDependencies["genbenthosconfigs_querybuilder.comments"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.comments",
-// 			runconfigs.RunTypeUpdate,
-// 			[]string{"comment_id"},
-// 			nil,
-// 			[]string{"comment_id", "parent_comment_id"},
-// 			[]string{"parent_comment_id"},
-// 			[]*runconfigs.DependsOn{
-// 				{Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}},
-// 			},
-// 			tableDependencies["genbenthosconfigs_querybuilder.comments"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.users",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"user_id"},
-// 			ptr("user_id in (1,2,5,6,7,8)"),
-// 			[]string{"user_id", "name", "email", "manager_id", "mentor_id"},
-// 			[]string{"user_id", "name", "email"},
-// 			[]*runconfigs.DependsOn{},
-// 			tableDependencies["genbenthosconfigs_querybuilder.users"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.users",
-// 			runconfigs.RunTypeUpdate,
-// 			[]string{"user_id"},
-// 			ptr("user_id = 1"),
-// 			[]string{"user_id", "manager_id", "mentor_id"},
-// 			[]string{"manager_id", "mentor_id"},
-// 			[]*runconfigs.DependsOn{
-// 				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}},
-// 			},
-// 			tableDependencies["genbenthosconfigs_querybuilder.users"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.initiatives",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"initiative_id"},
-// 			nil,
-// 			[]string{"initiative_id", "name", "description", "lead_id", "client_id"},
-// 			[]string{"initiative_id", "name", "description", "lead_id", "client_id"},
-// 			[]*runconfigs.DependsOn{
-// 				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id", "user_id"}},
-// 			},
-// 			tableDependencies["genbenthosconfigs_querybuilder.initiatives"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.skills",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"skill_id"},
-// 			nil,
-// 			[]string{"skill_id", "name", "category"},
-// 			[]string{"skill_id", "name", "category"},
-// 			[]*runconfigs.DependsOn{},
-// 			tableDependencies["genbenthosconfigs_querybuilder.skills"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.tasks",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"task_id"},
-// 			nil,
-// 			[]string{"task_id", "title", "description", "status", "initiative_id", "assignee_id", "reviewer_id"},
-// 			[]string{"task_id", "title", "description", "status", "initiative_id", "assignee_id", "reviewer_id"},
-// 			[]*runconfigs.DependsOn{
-// 				{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}},
-// 				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id", "user_id"}},
-// 			},
-// 			tableDependencies["genbenthosconfigs_querybuilder.tasks"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.user_skills",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"user_skill_id"},
-// 			nil,
-// 			[]string{"user_skill_id", "user_id", "skill_id", "proficiency_level"},
-// 			[]string{"user_skill_id", "user_id", "skill_id", "proficiency_level"},
-// 			[]*runconfigs.DependsOn{
-// 				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}},
-// 				{Table: "genbenthosconfigs_querybuilder.skills", Columns: []string{"skill_id"}},
-// 			},
-// 			tableDependencies["genbenthosconfigs_querybuilder.user_skills"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.attachments",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"attachment_id"},
-// 			nil,
-// 			[]string{"attachment_id", "file_name", "file_path", "uploaded_by", "task_id", "initiative_id", "comment_id"},
-// 			[]string{"attachment_id", "file_name", "file_path", "uploaded_by", "task_id", "initiative_id", "comment_id"},
-// 			[]*runconfigs.DependsOn{
-// 				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}},
-// 				{Table: "genbenthosconfigs_querybuilder.tasks", Columns: []string{"task_id"}},
-// 				{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}},
-// 				{Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}},
-// 			},
-// 			tableDependencies["genbenthosconfigs_querybuilder.attachments"],
-// 		),
-// 	}
-
-// 	expectedValues := map[string]map[string][]int32{
-// 		"genbenthosconfigs_querybuilder.users": {
-// 			"user_id": {1, 2, 5, 6, 7, 8},
-// 		},
-// 		"genbenthosconfigs_querybuilder.user_skills": {
-// 			"user_skill_id": {1, 2, 5, 6, 7, 8},
-// 			"skill_id":      {1, 2, 5, 6, 7, 8},
-// 			"user_id":       {1, 2, 5, 6, 7, 8},
-// 		},
-// 		"genbenthosconfigs_querybuilder.tasks": {
-// 			"task_id": {5, 6},
-// 		},
-// 		"genbenthosconfigs_querybuilder.skills": {
-// 			"skill_id": {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-// 		},
-// 		"genbenthosconfigs_querybuilder.initiatives": {
-// 			"initiative_id": {1, 5, 6, 7},
-// 		},
-// 		"genbenthosconfigs_querybuilder.comments": {
-// 			"comment_id": {1, 3, 6, 8, 9, 10, 11, 12, 13, 15, 18, 20, 21},
-// 		},
-// 		"genbenthosconfigs_querybuilder.attachments": {
-// 			"attachment_id": {5, 6},
-// 		},
-// 	}
-
-// 	expectedCount := map[string]int{
-// 		"genbenthosconfigs_querybuilder.users":       6,
-// 		"genbenthosconfigs_querybuilder.user_skills": 6,
-// 		"genbenthosconfigs_querybuilder.tasks":       2,
-// 		"genbenthosconfigs_querybuilder.skills":      10,
-// 		"genbenthosconfigs_querybuilder.initiatives": 4,
-// 		"genbenthosconfigs_querybuilder.comments":    13,
-// 		"genbenthosconfigs_querybuilder.attachments": 2,
-// 	}
-
-// 	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
-// 	require.NoError(s.T(), err)
-// 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
-
-// 	allrows := []pgx.Rows{}
-// 	defer func() {
-// 		for _, r := range allrows {
-// 			r.Close()
-// 		}
-// 	}()
-// 	for table, query := range sqlMap {
-// 		assert.NotEmpty(s.T(), query.Query)
-
-// 		if slices.Contains([]string{"genbenthosconfigs_querybuilder.skills", "genbenthosconfigs_querybuilder.user_skills", "genbenthosconfigs_querybuilder.users"}, table) {
-// 			assert.Falsef(s.T(), query.IsNotForeignKeySafeSubset, "table: %s IsNotForeginKeySafeSubset should be false", table)
-// 		} else {
-// 			assert.Truef(s.T(), query.IsNotForeignKeySafeSubset, "table: %s IsNotForeginKeySafeSubset should be true", table)
-// 		}
-
-// 		rows, err := s.pgcontainer.DB.Query(s.ctx, query.Query)
-// 		if rows != nil {
-// 			allrows = append(allrows, rows)
-// 		}
-// 		assert.NoError(s.T(), err)
-
-// 		columnDescriptions := rows.FieldDescriptions()
-
-// 		tableExpectedValues, ok := expectedValues[table]
-// 		assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
-
-// 		rowCount := 0
-// 		for rows.Next() {
-// 			rowCount++
-// 			values, err := rows.Values()
-// 			assert.NoError(s.T(), err)
-
-// 			for i, col := range values {
-// 				colName := columnDescriptions[i].Name
-// 				allowedValues, ok := tableExpectedValues[colName]
-// 				if ok {
-// 					value := col.(int32)
-// 					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
-// 				}
-// 			}
-// 		}
-// 		rows.Close()
-// 		assert.Equalf(s.T(), expectedCount[table], rowCount, fmt.Sprintf("table: %s ", table))
-// 	}
-// }
-
-// func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
-// 	tableDependencies := map[string][]*runconfigs.ForeignKey{
-// 		"genbenthosconfigs_querybuilder.network_users": {
-// 			{Columns: []string{"network_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.networks", ReferenceColumns: []string{"id"}, NotNullable: []bool{false}},
-// 		},
-// 		"genbenthosconfigs_querybuilder.networks": {
-// 			{Columns: []string{"network_type_id"}, ReferenceTable: "genbenthosconfigs_querybuilder.network_types", ReferenceColumns: []string{"id"}, NotNullable: []bool{false}},
-// 		},
-// 	}
-
-// 	dependencyConfigs := []*runconfigs.RunConfig{
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.network_types",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "name"},
-// 			[]string{},
-// 			[]*runconfigs.DependsOn{},
-// 			nil,
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.networks",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			nil,
-// 			[]string{"id", "name", "address", "network_type_id"},
-// 			[]string{},
-// 			[]*runconfigs.DependsOn{
-// 				{Table: "genbenthosconfigs_querybuilder.network_types", Columns: []string{"id"}},
-// 			},
-// 			tableDependencies["genbenthosconfigs_querybuilder.networks"],
-// 		),
-// 		buildRunConfig(
-// 			"genbenthosconfigs_querybuilder.network_users",
-// 			runconfigs.RunTypeInsert,
-// 			[]string{"id"},
-// 			ptr("username = 'sophia_wilson'"),
-// 			[]string{"id", "username", "email", "password_hash", "first_name", "last_name", "network_id", "created_at"},
-// 			[]string{},
-// 			[]*runconfigs.DependsOn{
-// 				{Table: "genbenthosconfigs_querybuilder.networks", Columns: []string{"network_id"}},
-// 			},
-// 			tableDependencies["genbenthosconfigs_querybuilder.network_users"],
-// 		),
-// 	}
-
-// 	expectedValues := map[string]map[string][]int32{
-// 		"genbenthosconfigs_querybuilder.network_types": {
-// 			"id": {1, 2},
-// 		},
-// 		"genbenthosconfigs_querybuilder.networks": {
-// 			"id": {1, 2, 3, 4, 5},
-// 		},
-// 		"genbenthosconfigs_querybuilder.network_users": {
-// 			"id": {8},
-// 		},
-// 	}
-
-// 	expectedCount := map[string]int{
-// 		"genbenthosconfigs_querybuilder.network_types": 2,
-// 		"genbenthosconfigs_querybuilder.networks":      5,
-// 		"genbenthosconfigs_querybuilder.network_users": 1,
-// 	}
-
-// 	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
-// 	require.NoError(s.T(), err)
-// 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
-// 	allrows := []pgx.Rows{}
-// 	defer func() {
-// 		for _, r := range allrows {
-// 			r.Close()
-// 		}
-// 	}()
-// 	for table, query := range sqlMap {
-// 		rows, err := s.pgcontainer.DB.Query(s.ctx, query.Query)
-// 		if rows != nil {
-// 			allrows = append(allrows, rows)
-// 		}
-// 		assert.NoError(s.T(), err)
-
-// 		columnDescriptions := rows.FieldDescriptions()
-
-// 		tableExpectedValues, ok := expectedValues[table]
-// 		assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
-
-// 		rowCount := 0
-// 		for rows.Next() {
-// 			rowCount++
-// 			values, err := rows.Values()
-// 			assert.NoError(s.T(), err)
-
-// 			for i, col := range values {
-// 				colName := columnDescriptions[i].Name
-// 				allowedValues, ok := tableExpectedValues[colName]
-// 				if ok {
-// 					value, ok := col.(int32)
-// 					assert.True(s.T(), ok, "col was not convertable to int32: %s", col)
-// 					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
-// 				}
-// 			}
-// 		}
-// 		rows.Close()
-// 		assert.Equalf(s.T(), expectedCount[table], rowCount, fmt.Sprintf("table: %s ", table))
-// 	}
-// }
+import (
+	"fmt"
+	"slices"
+
+	"github.com/jackc/pgx/v5"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+
+	runconfigs "github.com/nucleuscloud/neosync/internal/runconfigs"
+
+	selectbuilder "github.com/nucleuscloud/neosync/worker/pkg/select-query-builder"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+var (
+	pageLimit = 100
+)
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
+	subsets := map[string]string{
+		"genbenthosconfigs_querybuilder.company": "id = 1",
+	}
+
+	tables := map[string]struct{}{
+		"genbenthosconfigs_querybuilder.company":        {},
+		"genbenthosconfigs_querybuilder.department":     {},
+		"genbenthosconfigs_querybuilder.transaction":    {},
+		"genbenthosconfigs_querybuilder.expense_report": {},
+		"genbenthosconfigs_querybuilder.expense":        {},
+		"genbenthosconfigs_querybuilder.item":           {},
+	}
+	tableColumnsMap := map[string][]string{}
+	for table, columns := range s.postgres.groupedColumnInfo {
+		if _, ok := tables[table]; !ok {
+			continue
+		}
+		for col := range columns {
+			tableColumnsMap[table] = append(tableColumnsMap[table], col)
+		}
+	}
+
+	dependencyConfigs, err := runconfigs.BuildRunConfigs(s.postgres.tableConstraints.ForeignKeyConstraints, subsets, s.postgres.tableConstraints.PrimaryKeyConstraints, tableColumnsMap, nil, nil)
+	require.NoError(s.T(), err)
+
+	expectedValues := map[string]map[string][]int64{
+		"genbenthosconfigs_querybuilder.company.insert": {
+			"id": {1},
+		},
+		"genbenthosconfigs_querybuilder.department.insert": {
+			"company_id": {1},
+		},
+		"genbenthosconfigs_querybuilder.expense_report.insert": {
+			"department_source_id":      {1, 2, 3},
+			"department_destination_id": {1, 2},
+		},
+		"genbenthosconfigs_querybuilder.expense_report.update.1": {
+			"department_source_id":      {1, 2, 3},
+			"department_destination_id": {1, 2},
+		},
+		"genbenthosconfigs_querybuilder.expense_report.update.2": {
+			"department_source_id":      {1, 2, 3},
+			"department_destination_id": {1, 2},
+		},
+		"genbenthosconfigs_querybuilder.transaction.insert": {
+			"department_id": {1, 2},
+		},
+		"genbenthosconfigs_querybuilder.expense.insert": {
+			"report_id": {3, 1, 2},
+		},
+		"genbenthosconfigs_querybuilder.item.insert": {
+			"expense_id": {3, 2, 1},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.company.insert":          1,
+		"genbenthosconfigs_querybuilder.department.insert":       2,
+		"genbenthosconfigs_querybuilder.expense_report.insert":   3,
+		"genbenthosconfigs_querybuilder.expense_report.update.1": 3,
+		"genbenthosconfigs_querybuilder.expense_report.update.2": 3,
+		"genbenthosconfigs_querybuilder.transaction.insert":      2,
+		"genbenthosconfigs_querybuilder.expense.insert":          3,
+		"genbenthosconfigs_querybuilder.item.insert":             3,
+	}
+
+	sqlMap, err := selectbuilder.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
+	require.NoError(s.T(), err, "failed to build select query map")
+	s.assertQueryMap(sqlMap, expectedValues, expectedCount)
+}
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleRootSubset() {
+	tables := map[string]struct{}{
+		"genbenthosconfigs_querybuilder.test_2_x": {},
+		"genbenthosconfigs_querybuilder.test_2_b": {},
+		"genbenthosconfigs_querybuilder.test_2_a": {},
+		"genbenthosconfigs_querybuilder.test_2_c": {},
+		"genbenthosconfigs_querybuilder.test_2_d": {},
+		"genbenthosconfigs_querybuilder.test_2_e": {},
+	}
+	tableColumnsMap := map[string][]string{}
+	for table, columns := range s.postgres.groupedColumnInfo {
+		if _, ok := tables[table]; !ok {
+			continue
+		}
+		for col := range columns {
+			tableColumnsMap[table] = append(tableColumnsMap[table], col)
+		}
+	}
+
+	subsets := map[string]string{
+		"genbenthosconfigs_querybuilder.test_2_x": "created > '2023-06-03'",
+		"genbenthosconfigs_querybuilder.test_2_b": "created > '2023-06-03'",
+	}
+	dependencyConfigs, err := runconfigs.BuildRunConfigs(s.postgres.tableConstraints.ForeignKeyConstraints, subsets, s.postgres.tableConstraints.PrimaryKeyConstraints, tableColumnsMap, nil, nil)
+
+	expectedValues := map[string]map[string][]int64{
+		"genbenthosconfigs_querybuilder.test_2_x.insert": {
+			"id": {3, 4, 5},
+		},
+		"genbenthosconfigs_querybuilder.test_2_b.insert": {
+			"id": {3, 4, 5},
+		},
+		"genbenthosconfigs_querybuilder.test_2_a.insert": {
+			"x_id": {3, 4, 5},
+		},
+		"genbenthosconfigs_querybuilder.test_2_c.insert": {
+			"a_id": {3, 4},
+			"x_id": {3, 4},
+		},
+		"genbenthosconfigs_querybuilder.test_2_d.insert": {
+			"c_id": {3, 4},
+		},
+		"genbenthosconfigs_querybuilder.test_2_e.insert": {
+			"c_id": {3, 4},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.test_2_x.insert": 3,
+		"genbenthosconfigs_querybuilder.test_2_b.insert": 3,
+		"genbenthosconfigs_querybuilder.test_2_a.insert": 4,
+		"genbenthosconfigs_querybuilder.test_2_c.insert": 2,
+		"genbenthosconfigs_querybuilder.test_2_d.insert": 2,
+		"genbenthosconfigs_querybuilder.test_2_e.insert": 2,
+	}
+
+	sqlMap, err := selectbuilder.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
+	require.NoError(s.T(), err)
+	s.assertQueryMap(sqlMap, expectedValues, expectedCount)
+}
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
+	subsets := map[string]string{
+		"genbenthosconfigs_querybuilder.test_3_b": "id = 1",
+		"genbenthosconfigs_querybuilder.test_3_f": "id in (4,5)",
+	}
+
+	tables := map[string]struct{}{
+		"genbenthosconfigs_querybuilder.test_3_a": {},
+		"genbenthosconfigs_querybuilder.test_3_b": {},
+		"genbenthosconfigs_querybuilder.test_3_c": {},
+		"genbenthosconfigs_querybuilder.test_3_d": {},
+		"genbenthosconfigs_querybuilder.test_3_e": {},
+		"genbenthosconfigs_querybuilder.test_3_f": {},
+		"genbenthosconfigs_querybuilder.test_3_g": {},
+		"genbenthosconfigs_querybuilder.test_3_h": {},
+		"genbenthosconfigs_querybuilder.test_3_i": {},
+	}
+	tableColumnsMap := map[string][]string{}
+	for table, columns := range s.postgres.groupedColumnInfo {
+		if _, ok := tables[table]; !ok {
+			continue
+		}
+		for col := range columns {
+			tableColumnsMap[table] = append(tableColumnsMap[table], col)
+		}
+	}
+
+	dependencyConfigs, err := runconfigs.BuildRunConfigs(s.postgres.tableConstraints.ForeignKeyConstraints, subsets, s.postgres.tableConstraints.PrimaryKeyConstraints, tableColumnsMap, nil, nil)
+	require.NoError(s.T(), err)
+
+	expectedValues := map[string]map[string][]int64{
+		"genbenthosconfigs_querybuilder.test_3_a.insert": {
+			"id": {1, 2, 3, 4, 5},
+		},
+		"genbenthosconfigs_querybuilder.test_3_b.insert": {
+			"a_id": {3},
+		},
+		"genbenthosconfigs_querybuilder.test_3_c.insert": {
+			"b_id": {1},
+		},
+		"genbenthosconfigs_querybuilder.test_3_d.insert": {
+			"c_id": {3},
+		},
+		"genbenthosconfigs_querybuilder.test_3_e.insert": {
+			"d_id": {5},
+		},
+		"genbenthosconfigs_querybuilder.test_3_f.insert": {
+			"id": {4, 5},
+		},
+		"genbenthosconfigs_querybuilder.test_3_g.insert": {
+			"f_id": {4, 5},
+		},
+		"genbenthosconfigs_querybuilder.test_3_h.insert": {
+			"g_id": {1, 3},
+		},
+		"genbenthosconfigs_querybuilder.test_3_i.insert": {
+			"h_id": {4},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.test_3_a.insert": 5,
+		"genbenthosconfigs_querybuilder.test_3_b.insert": 1,
+		"genbenthosconfigs_querybuilder.test_3_c.insert": 1,
+		"genbenthosconfigs_querybuilder.test_3_d.insert": 1,
+		"genbenthosconfigs_querybuilder.test_3_e.insert": 1,
+		"genbenthosconfigs_querybuilder.test_3_f.insert": 2,
+		"genbenthosconfigs_querybuilder.test_3_g.insert": 2,
+		"genbenthosconfigs_querybuilder.test_3_h.insert": 2,
+		"genbenthosconfigs_querybuilder.test_3_i.insert": 1,
+	}
+
+	sqlMap, err := selectbuilder.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
+	require.NoError(s.T(), err)
+	s.assertQueryMap(sqlMap, expectedValues, expectedCount)
+}
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
+	subsets := map[string]string{
+		"genbenthosconfigs_querybuilder.test_3_a": "id in (3,4,5)",
+		"genbenthosconfigs_querybuilder.test_3_b": "id = 4",
+	}
+
+	tables := map[string]struct{}{
+		"genbenthosconfigs_querybuilder.test_3_a": {},
+		"genbenthosconfigs_querybuilder.test_3_b": {},
+		"genbenthosconfigs_querybuilder.test_3_c": {},
+		"genbenthosconfigs_querybuilder.test_3_d": {},
+		"genbenthosconfigs_querybuilder.test_3_e": {},
+	}
+	tableColumnsMap := map[string][]string{}
+	for table, columns := range s.postgres.groupedColumnInfo {
+		if _, ok := tables[table]; !ok {
+			continue
+		}
+		for col := range columns {
+			tableColumnsMap[table] = append(tableColumnsMap[table], col)
+		}
+	}
+
+	dependencyConfigs, err := runconfigs.BuildRunConfigs(s.postgres.tableConstraints.ForeignKeyConstraints, subsets, s.postgres.tableConstraints.PrimaryKeyConstraints, tableColumnsMap, nil, nil)
+	require.NoError(s.T(), err)
+
+	expectedValues := map[string]map[string][]int64{
+		"genbenthosconfigs_querybuilder.test_3_a.insert": {
+			"id": {3, 4, 5},
+		},
+		"genbenthosconfigs_querybuilder.test_3_b.insert": {
+			"a_id": {4},
+		},
+		"genbenthosconfigs_querybuilder.test_3_c.insert": {
+			"b_id": {4},
+		},
+		"genbenthosconfigs_querybuilder.test_3_d.insert": {
+			"c_id": {2},
+		},
+		"genbenthosconfigs_querybuilder.test_3_e.insert": {
+			"d_id": {4},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.test_3_a.insert": 3,
+		"genbenthosconfigs_querybuilder.test_3_b.insert": 1,
+		"genbenthosconfigs_querybuilder.test_3_c.insert": 1,
+		"genbenthosconfigs_querybuilder.test_3_d.insert": 1,
+		"genbenthosconfigs_querybuilder.test_3_e.insert": 1,
+	}
+
+	sqlMap, err := selectbuilder.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
+	require.NoError(s.T(), err)
+	s.assertQueryMap(sqlMap, expectedValues, expectedCount)
+
+}
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForeignKeysOff() {
+	subsets := map[string]string{
+		"genbenthosconfigs_querybuilder.test_3_a": "id in (4,5)",
+		"genbenthosconfigs_querybuilder.test_3_b": "id = 4",
+	}
+
+	tables := map[string]struct{}{
+		"genbenthosconfigs_querybuilder.test_3_a": {},
+		"genbenthosconfigs_querybuilder.test_3_b": {},
+		"genbenthosconfigs_querybuilder.test_3_c": {},
+		"genbenthosconfigs_querybuilder.test_3_d": {},
+		"genbenthosconfigs_querybuilder.test_3_e": {},
+	}
+	tableColumnsMap := map[string][]string{}
+	for table, columns := range s.postgres.groupedColumnInfo {
+		if _, ok := tables[table]; !ok {
+			continue
+		}
+		for col := range columns {
+			tableColumnsMap[table] = append(tableColumnsMap[table], col)
+		}
+	}
+
+	dependencyConfigs, err := runconfigs.BuildRunConfigs(s.postgres.tableConstraints.ForeignKeyConstraints, subsets, s.postgres.tableConstraints.PrimaryKeyConstraints, tableColumnsMap, nil, nil)
+	require.NoError(s.T(), err)
+
+	expectedValues := map[string]map[string][]int64{
+		"genbenthosconfigs_querybuilder.test_3_a.insert": {
+			"id": {4, 5},
+		},
+		"genbenthosconfigs_querybuilder.test_3_b.insert": {
+			"a_id": {4},
+		},
+		"genbenthosconfigs_querybuilder.test_3_c.insert": {
+			"b_id": {1, 2, 3, 4, 5},
+		},
+		"genbenthosconfigs_querybuilder.test_3_d.insert": {
+			"c_id": {1, 2, 3, 4, 5},
+		},
+		"genbenthosconfigs_querybuilder.test_3_e.insert": {
+			"d_id": {1, 2, 3, 4, 5},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.test_3_a.insert": 2,
+		"genbenthosconfigs_querybuilder.test_3_b.insert": 1,
+		"genbenthosconfigs_querybuilder.test_3_c.insert": 5,
+		"genbenthosconfigs_querybuilder.test_3_d.insert": 5,
+		"genbenthosconfigs_querybuilder.test_3_e.insert": 5,
+	}
+
+	sqlMap, err := selectbuilder.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, false, pageLimit)
+	require.NoError(s.T(), err)
+	s.assertQueryMap(sqlMap, expectedValues, expectedCount)
+}
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
+	subsets := map[string]string{
+		"genbenthosconfigs_querybuilder.addresses": "id in (1,5)",
+	}
+
+	tables := map[string]struct{}{
+		"genbenthosconfigs_querybuilder.addresses": {},
+		"genbenthosconfigs_querybuilder.customers": {},
+		"genbenthosconfigs_querybuilder.orders":    {},
+		"genbenthosconfigs_querybuilder.payments":  {},
+	}
+	tableColumnsMap := map[string][]string{}
+	for table, columns := range s.postgres.groupedColumnInfo {
+		if _, ok := tables[table]; !ok {
+			continue
+		}
+		for col := range columns {
+			tableColumnsMap[table] = append(tableColumnsMap[table], col)
+		}
+	}
+
+	dependencyConfigs, err := runconfigs.BuildRunConfigs(s.postgres.tableConstraints.ForeignKeyConstraints, subsets, s.postgres.tableConstraints.PrimaryKeyConstraints, tableColumnsMap, nil, nil)
+	require.NoError(s.T(), err)
+
+	expectedValues := map[string]map[string][]int64{
+		"genbenthosconfigs_querybuilder.orders.insert": {
+			"customer_id": {1, 2, 3, 4, 5},
+		},
+		"genbenthosconfigs_querybuilder.addresses.insert": {
+			"order_id": {1, 5},
+		},
+		"genbenthosconfigs_querybuilder.customers.insert": {
+			"address_id": {1, 5},
+		},
+		"genbenthosconfigs_querybuilder.payments.insert": {
+			"customer_id": {2},
+		},
+		"genbenthosconfigs_querybuilder.orders.update.1": {
+			"customer_id": {1, 2, 3, 4, 5},
+		},
+		"genbenthosconfigs_querybuilder.addresses.update.1": {
+			"order_id": {1, 5},
+		},
+		"genbenthosconfigs_querybuilder.customers.update.1": {
+			"address_id": {1, 5},
+		},
+		"genbenthosconfigs_querybuilder.payments.update.1": {
+			"customer_id": {2},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.orders.insert":      2,
+		"genbenthosconfigs_querybuilder.addresses.insert":   2,
+		"genbenthosconfigs_querybuilder.customers.insert":   2,
+		"genbenthosconfigs_querybuilder.payments.insert":    1,
+		"genbenthosconfigs_querybuilder.orders.update.1":    2,
+		"genbenthosconfigs_querybuilder.addresses.update.1": 2,
+		"genbenthosconfigs_querybuilder.customers.update.1": 2,
+		"genbenthosconfigs_querybuilder.payments.update.1":  1,
+	}
+
+	sqlMap, err := selectbuilder.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
+	require.NoError(s.T(), err)
+	s.assertQueryMap(sqlMap, expectedValues, expectedCount)
+}
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
+	subsets := map[string]string{
+		"genbenthosconfigs_querybuilder.test_2_x": "id in (1,5)",
+		"genbenthosconfigs_querybuilder.test_2_b": "id in (1,5)",
+	}
+
+	tables := map[string]struct{}{
+		"genbenthosconfigs_querybuilder.company":  {},
+		"genbenthosconfigs_querybuilder.test_2_x": {},
+		"genbenthosconfigs_querybuilder.test_2_b": {},
+		"genbenthosconfigs_querybuilder.test_3_a": {},
+	}
+	tableColumnsMap := map[string][]string{}
+	for table, columns := range s.postgres.groupedColumnInfo {
+		if _, ok := tables[table]; !ok {
+			continue
+		}
+		for col := range columns {
+			tableColumnsMap[table] = append(tableColumnsMap[table], col)
+		}
+	}
+
+	dependencyConfigs, err := runconfigs.BuildRunConfigs(s.postgres.tableConstraints.ForeignKeyConstraints, subsets, s.postgres.tableConstraints.PrimaryKeyConstraints, tableColumnsMap, nil, nil)
+	require.NoError(s.T(), err)
+
+	expectedValues := map[string]map[string][]int64{
+		"genbenthosconfigs_querybuilder.company.insert": {
+			"id": {1, 2, 3},
+		},
+		"genbenthosconfigs_querybuilder.test_2_x.insert": {
+			"id": {1, 5},
+		},
+		"genbenthosconfigs_querybuilder.test_2_b.insert": {
+			"id": {1, 5},
+		},
+		"genbenthosconfigs_querybuilder.test_3_a.insert": {
+			"customer_id": {1, 2, 3, 4, 5},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.company.insert":  3,
+		"genbenthosconfigs_querybuilder.test_2_x.insert": 2,
+		"genbenthosconfigs_querybuilder.test_2_b.insert": 2,
+		"genbenthosconfigs_querybuilder.test_3_a.insert": 5,
+	}
+
+	sqlMap, err := selectbuilder.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
+	require.NoError(s.T(), err)
+	s.assertQueryMap(sqlMap, expectedValues, expectedCount)
+}
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
+	subsets := map[string]string{}
+	tables := map[string]struct{}{
+		"genbenthosconfigs_querybuilder.company":  {},
+		"genbenthosconfigs_querybuilder.test_2_x": {},
+		"genbenthosconfigs_querybuilder.test_2_b": {},
+		"genbenthosconfigs_querybuilder.test_3_a": {},
+	}
+	tableColumnsMap := map[string][]string{}
+	for table, columns := range s.postgres.groupedColumnInfo {
+		if _, ok := tables[table]; !ok {
+			continue
+		}
+		for col := range columns {
+			tableColumnsMap[table] = append(tableColumnsMap[table], col)
+		}
+	}
+
+	dependencyConfigs, err := runconfigs.BuildRunConfigs(s.postgres.tableConstraints.ForeignKeyConstraints, subsets, s.postgres.tableConstraints.PrimaryKeyConstraints, tableColumnsMap, nil, nil)
+	require.NoError(s.T(), err)
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.company.insert":  3,
+		"genbenthosconfigs_querybuilder.test_2_x.insert": 5,
+		"genbenthosconfigs_querybuilder.test_2_b.insert": 5,
+		"genbenthosconfigs_querybuilder.test_3_a.insert": 5,
+	}
+
+	sqlMap, err := selectbuilder.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedCount), len(sqlMap))
+	for table, query := range sqlMap {
+		rows, err := s.postgres.pgcontainer.DB.Query(s.ctx, query.Query)
+		assert.NoError(s.T(), err)
+
+		rowCount := 0
+		for rows.Next() {
+			rowCount++
+		}
+		rows.Close()
+
+		tableExpectedCount, ok := expectedCount[table]
+		assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected row counts", table))
+		assert.Equalf(s.T(), rowCount, tableExpectedCount, fmt.Sprintf("table: %s ", table))
+	}
+}
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
+	subsets := map[string]string{
+		"genbenthosconfigs_querybuilder.division": "id in (3,5)",
+	}
+
+	tables := map[string]struct{}{
+		"genbenthosconfigs_querybuilder.division":  {},
+		"genbenthosconfigs_querybuilder.employees": {},
+		"genbenthosconfigs_querybuilder.projects":  {},
+	}
+	tableColumnsMap := map[string][]string{}
+	for table, columns := range s.postgres.groupedColumnInfo {
+		if _, ok := tables[table]; !ok {
+			continue
+		}
+		for col := range columns {
+			tableColumnsMap[table] = append(tableColumnsMap[table], col)
+		}
+	}
+
+	dependencyConfigs, err := runconfigs.BuildRunConfigs(s.postgres.tableConstraints.ForeignKeyConstraints, subsets, s.postgres.tableConstraints.PrimaryKeyConstraints, tableColumnsMap, nil, nil)
+	require.NoError(s.T(), err)
+
+	expectedValues := map[string]map[string][]int64{
+		"genbenthosconfigs_querybuilder.division.insert": {
+			"id": {3, 5},
+		},
+		"genbenthosconfigs_querybuilder.employees.insert": {
+			"division_id": {3, 5},
+			"id":          {8, 10},
+		},
+		"genbenthosconfigs_querybuilder.projects.insert": {
+			"responsible_division_id": {3, 5},
+			"responsible_employee_id": {8, 10},
+		},
+		"genbenthosconfigs_querybuilder.projects.update.1": {
+			"responsible_division_id": {3, 5},
+			"responsible_employee_id": {8, 10},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.division.insert":   2,
+		"genbenthosconfigs_querybuilder.employees.insert":  2,
+		"genbenthosconfigs_querybuilder.projects.insert":   2,
+		"genbenthosconfigs_querybuilder.projects.update.1": 2,
+	}
+
+	sqlMap, err := selectbuilder.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
+	require.NoError(s.T(), err)
+	s.assertQueryMap(sqlMap, expectedValues, expectedCount)
+}
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
+	subsets := map[string]string{
+		"genbenthosconfigs_querybuilder.users": "user_id in (1,2,5,6,7,8)",
+	}
+
+	tables := map[string]struct{}{
+		"genbenthosconfigs_querybuilder.users":       {},
+		"genbenthosconfigs_querybuilder.user_skills": {},
+		"genbenthosconfigs_querybuilder.tasks":       {},
+		"genbenthosconfigs_querybuilder.skills":      {},
+		"genbenthosconfigs_querybuilder.initiatives": {},
+		"genbenthosconfigs_querybuilder.comments":    {},
+		"genbenthosconfigs_querybuilder.attachments": {},
+	}
+	tableColumnsMap := map[string][]string{}
+	for table, columns := range s.postgres.groupedColumnInfo {
+		if _, ok := tables[table]; !ok {
+			continue
+		}
+		for col := range columns {
+			tableColumnsMap[table] = append(tableColumnsMap[table], col)
+		}
+	}
+
+	dependencyConfigs, err := runconfigs.BuildRunConfigs(s.postgres.tableConstraints.ForeignKeyConstraints, subsets, s.postgres.tableConstraints.PrimaryKeyConstraints, tableColumnsMap, nil, nil)
+	require.NoError(s.T(), err)
+
+	expectedValues := map[string]map[string][]int32{
+		"genbenthosconfigs_querybuilder.users.insert": {
+			"user_id": {1, 2, 5, 6, 7, 8},
+		},
+		"genbenthosconfigs_querybuilder.users.update.1": {
+			"user_id": {1, 2, 5, 6, 7, 8},
+		},
+		"genbenthosconfigs_querybuilder.users.update.2": {
+			"user_id": {1, 2, 5, 6, 7, 8},
+		},
+		"genbenthosconfigs_querybuilder.user_skills.insert": {
+			"user_skill_id": {1, 2, 5, 6, 7, 8},
+			"skill_id":      {1, 2, 5, 6, 7, 8},
+			"user_id":       {1, 2, 5, 6, 7, 8},
+		},
+		"genbenthosconfigs_querybuilder.tasks.insert": {
+			"task_id": {3, 4, 5, 6, 9, 10},
+		},
+		"genbenthosconfigs_querybuilder.skills.insert": {
+			"skill_id": {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+		},
+		"genbenthosconfigs_querybuilder.initiatives.insert": {
+			"initiative_id": {1, 4, 5, 6, 7, 10},
+		},
+		"genbenthosconfigs_querybuilder.comments.insert": {
+			"comment_id": {1, 3, 6, 8, 9, 10, 11, 12, 13, 15, 18, 20, 21},
+		},
+		"genbenthosconfigs_querybuilder.comments.update.1": {
+			"comment_id": {1, 3, 6, 8, 9, 10, 11, 12, 13, 15, 18, 20, 21},
+		},
+		"genbenthosconfigs_querybuilder.comments.update.2": {
+			"comment_id": {1, 3, 6, 8, 9, 10, 11, 12, 13, 15, 18, 20, 21},
+		},
+		"genbenthosconfigs_querybuilder.comments.update.3": {
+			"comment_id": {1, 3, 6, 8, 9, 10, 11, 12, 13, 15, 18, 20, 21},
+		},
+		"genbenthosconfigs_querybuilder.attachments.insert": {
+			"attachment_id": {3, 4, 5, 6, 9, 10},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.users.insert":       6,
+		"genbenthosconfigs_querybuilder.users.update.1":     6,
+		"genbenthosconfigs_querybuilder.users.update.2":     6,
+		"genbenthosconfigs_querybuilder.user_skills.insert": 6,
+		"genbenthosconfigs_querybuilder.tasks.insert":       6,
+		"genbenthosconfigs_querybuilder.skills.insert":      10,
+		"genbenthosconfigs_querybuilder.initiatives.insert": 6,
+		"genbenthosconfigs_querybuilder.comments.insert":    13,
+		"genbenthosconfigs_querybuilder.comments.update.1":  13,
+		"genbenthosconfigs_querybuilder.comments.update.2":  13,
+		"genbenthosconfigs_querybuilder.comments.update.3":  13,
+		"genbenthosconfigs_querybuilder.attachments.insert": 6,
+	}
+
+	sqlMap, err := selectbuilder.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedValues), len(sqlMap))
+
+	allrows := []pgx.Rows{}
+	defer func() {
+		for _, r := range allrows {
+			r.Close()
+		}
+	}()
+	for id, query := range sqlMap {
+		assert.NotEmpty(s.T(), query.Query)
+
+		if slices.Contains([]string{"genbenthosconfigs_querybuilder.users.insert", "genbenthosconfigs_querybuilder.skills.insert"}, id) {
+			assert.Falsef(s.T(), query.IsNotForeignKeySafeSubset, "id: %s IsNotForeginKeySafeSubset should be false", id)
+		} else {
+			assert.Truef(s.T(), query.IsNotForeignKeySafeSubset, "id: %s IsNotForeginKeySafeSubset should be true", id)
+		}
+
+		rows, err := s.postgres.pgcontainer.DB.Query(s.ctx, query.Query)
+		if rows != nil {
+			allrows = append(allrows, rows)
+		}
+		assert.NoError(s.T(), err)
+
+		columnDescriptions := rows.FieldDescriptions()
+
+		tableExpectedValues, ok := expectedValues[id]
+		assert.Truef(s.T(), ok, fmt.Sprintf("id: %s missing expected values", id))
+
+		rowCount := 0
+		for rows.Next() {
+			rowCount++
+			values, err := rows.Values()
+			assert.NoError(s.T(), err)
+
+			for i, col := range values {
+				colName := columnDescriptions[i].Name
+				allowedValues, ok := tableExpectedValues[colName]
+				if ok {
+					value := col.(int32)
+					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("id: %s column: %s ", id, colName))
+				}
+			}
+		}
+		rows.Close()
+		assert.Equalf(s.T(), expectedCount[id], rowCount, fmt.Sprintf("id: %s ", id))
+	}
+}
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
+	tables := map[string]struct{}{
+		"genbenthosconfigs_querybuilder.network_types": {},
+		"genbenthosconfigs_querybuilder.networks":      {},
+		"genbenthosconfigs_querybuilder.network_users": {},
+	}
+	tableColumnsMap := map[string][]string{}
+	for table, columns := range s.postgres.groupedColumnInfo {
+		if _, ok := tables[table]; !ok {
+			continue
+		}
+		for col := range columns {
+			tableColumnsMap[table] = append(tableColumnsMap[table], col)
+		}
+	}
+
+	subsets := map[string]string{
+		"genbenthosconfigs_querybuilder.network_users": "username = 'sophia_wilson'",
+	}
+	dependencyConfigs, err := runconfigs.BuildRunConfigs(s.postgres.tableConstraints.ForeignKeyConstraints, subsets, s.postgres.tableConstraints.PrimaryKeyConstraints, tableColumnsMap, nil, nil)
+	require.NoError(s.T(), err)
+
+	expectedValues := map[string]map[string][]int64{
+		"genbenthosconfigs_querybuilder.network_types.insert": {
+			"id": {1, 2},
+		},
+		"genbenthosconfigs_querybuilder.networks.insert": {
+			"id": {1, 2, 3, 4, 5},
+		},
+		"genbenthosconfigs_querybuilder.network_users.insert": {
+			"id": {8},
+		},
+		"genbenthosconfigs_querybuilder.network_users.update.1": {
+			"id": {8},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.network_types.insert":   2,
+		"genbenthosconfigs_querybuilder.networks.insert":        5,
+		"genbenthosconfigs_querybuilder.network_users.insert":   1,
+		"genbenthosconfigs_querybuilder.network_users.update.1": 1,
+	}
+
+	sqlMap, err := selectbuilder.BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, dependencyConfigs, true, pageLimit)
+	require.NoError(s.T(), err)
+	s.assertQueryMap(sqlMap, expectedValues, expectedCount)
+}
 
 // func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
-// 	tableDependencies := map[string][]*runconfigs.ForeignKey{
-// 		"mssqltest.attachments": {
-// 			{Columns: []string{"uploaded_by"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{true}},
-// 			{Columns: []string{"task_id"}, ReferenceTable: "mssqltest.tasks", ReferenceColumns: []string{"task_id"}, NotNullable: []bool{true}},
-// 			{Columns: []string{"initiative_id"}, ReferenceTable: "mssqltest.initiatives", ReferenceColumns: []string{"initiative_id"}, NotNullable: []bool{false}},
-// 			{Columns: []string{"comment_id"}, ReferenceTable: "mssqltest.comments", ReferenceColumns: []string{"comment_id"}, NotNullable: []bool{false}},
-// 		},
-// 		"mssqltest.comments": {
-// 			{Columns: []string{"user_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{true}},
-// 			{Columns: []string{"task_id"}, ReferenceTable: "mssqltest.tasks", ReferenceColumns: []string{"task_id"}, NotNullable: []bool{false}},
-// 			{Columns: []string{"initiative_id"}, ReferenceTable: "mssqltest.initiatives", ReferenceColumns: []string{"initiative_id"}, NotNullable: []bool{false}},
-// 			{Columns: []string{"parent_comment_id"}, ReferenceTable: "mssqltest.comments", ReferenceColumns: []string{"comment_id"}, NotNullable: []bool{false}},
-// 		},
-// 		"mssqltest.initiatives": {
-// 			{Columns: []string{"lead_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{false}},
-// 			{Columns: []string{"client_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{false}},
-// 		},
-// 		"mssqltest.tasks": {
-// 			{Columns: []string{"initiative_id"}, ReferenceTable: "mssqltest.initiatives", ReferenceColumns: []string{"initiative_id"}, NotNullable: []bool{false}},
-// 			{Columns: []string{"assignee_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{false}},
-// 			{Columns: []string{"reviewer_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{false}},
-// 		},
-// 		"mssqltest.user_skills": {
-// 			{Columns: []string{"user_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{true}},
-// 			{Columns: []string{"skill_id"}, ReferenceTable: "mssqltest.skills", ReferenceColumns: []string{"skill_id"}, NotNullable: []bool{false}},
-// 		},
-// 		"mssqltest.users": {
-// 			{Columns: []string{"manager_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{false}},
-// 			{Columns: []string{"mentor_id"}, ReferenceTable: "mssqltest.users", ReferenceColumns: []string{"user_id"}, NotNullable: []bool{false}},
-// 		},
+//   tables := map[string]struct{}{
+// 		"genbenthosconfigs_querybuilder.network_types": {},
+// 		"genbenthosconfigs_querybuilder.networks":      {},
+// 		"genbenthosconfigs_querybuilder.network_users": {},
 // 	}
+// 	tableColumnsMap := map[string][]string{}
+// 	for table, columns := range s.postgres.groupedColumnInfo {
+// 		if _, ok := tables[table]; !ok {
+// 			continue
+// 		}
+// 		for col := range columns {
+// 			tableColumnsMap[table] = append(tableColumnsMap[table], col)
+// 		}
+// 	}
+
+// 	subsets := map[string]string{
+// 		"genbenthosconfigs_querybuilder.network_users": "username = 'sophia_wilson'",
+// 	}
+// 	dependencyConfigs, err := runconfigs.BuildRunConfigs(s.postgres.tableConstraints.ForeignKeyConstraints, subsets, s.postgres.tableConstraints.PrimaryKeyConstraints, tableColumnsMap, nil, nil)
+// 	require.NoError(s.T(), err)
 
 // 	dependencyConfigs := []*runconfigs.RunConfig{
 // 		buildRunConfig(
@@ -1624,67 +971,46 @@ package selectquerybuilder
 // 		"mssqltest.attachments": 2,
 // 	}
 
-// 	sqlMap, err := querybuilder2.BuildSelectQueryMap(sqlmanager_shared.MssqlDriver, dependencyConfigs, true, columnInfoMap, pageLimit)
+// 	sqlMap, err := selectbuilder.BuildSelectQueryMap(sqlmanager_shared.MssqlDriver, dependencyConfigs, true, columnInfoMap, pageLimit)
 // 	require.NoError(s.T(), err)
-// 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
-// 	for table, query := range sqlMap {
-// 		assert.NotEmpty(s.T(), query.Query)
-
-// 		if slices.Contains([]string{"mssqltest.skills", "mssqltest.user_skills", "mssqltest.users"}, table) {
-// 			assert.Falsef(s.T(), query.IsNotForeignKeySafeSubset, "table: %s IsNotForeginKeySafeSubset should be false", table)
-// 		} else {
-// 			assert.Truef(s.T(), query.IsNotForeignKeySafeSubset, "table: %s IsNotForeginKeySafeSubset should be true", table)
-// 		}
-
-// 		rows, err := s.mssql.pool.QueryContext(s.ctx, query.Query)
-// 		assert.NoError(s.T(), err)
-
-// 		columns, err := rows.Columns()
-// 		assert.NoError(s.T(), err)
-
-// 		tableExpectedValues, ok := expectedValues[table]
-// 		assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
-
-// 		values := make([]any, len(columns))
-// 		valuePtrs := make([]any, len(columns))
-
-// 		for i := range columns {
-// 			valuePtrs[i] = &values[i]
-// 		}
-
-// 		rowCount := 0
-// 		for rows.Next() {
-// 			rowCount++
-// 			err = rows.Scan(valuePtrs...)
-// 			assert.NoError(s.T(), err)
-
-// 			for i, colName := range columns {
-// 				val := values[i]
-// 				allowedValues, ok := tableExpectedValues[colName]
-// 				if ok {
-// 					value := val.(int64)
-// 					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
-// 				}
-// 			}
-// 		}
-// 		rows.Close()
-// 		assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
-// 	}
+// 	s.assertQueryMap(sqlMap, expectedValues, expectedCount)
 // }
 
-// func ptr[T any](input T) *T {
-// 	return &input
-// }
+func (s *IntegrationTestSuite) assertQueryMap(sqlMap map[string]*sqlmanager_shared.SelectQuery, expectedValues map[string]map[string][]int64, expectedCount map[string]int) {
+	require.Equal(s.T(), len(expectedValues), len(sqlMap), "number of queries in sqlMap doesn't match expected values")
+	for configId, query := range sqlMap {
+		rows, err := s.postgres.pgcontainer.DB.Query(s.ctx, query.Query)
+		assert.NoError(s.T(), err, "failed to execute query for config %s: %s", configId, query.Query)
 
-// func buildRunConfig(
-// 	table string,
-// 	runtype runconfigs.RunType,
-// 	pks []string,
-// 	where *string,
-// 	selectCols, insertCols []string,
-// 	dependsOn []*runconfigs.DependsOn,
-// ) *runconfigs.RunConfig {
-// 	schema, table := sqlmanager_shared.SplitTableKey(table)
-// 	schematable := sqlmanager_shared.SchemaTable{Schema: schema, Table: table}
-// 	return runconfigs.NewRunConfig(schematable, runtype, pks, where, selectCols, insertCols, dependsOn, false)
-// }
+		columnDescriptions := rows.FieldDescriptions()
+
+		tableExpectedValues, ok := expectedValues[configId]
+		assert.True(s.T(), ok, "missing expected values for config %s", configId)
+
+		rowCount := 0
+		for rows.Next() {
+			rowCount++
+			values, err := rows.Values()
+			assert.NoError(s.T(), err, "failed to get row values for config %s", configId)
+
+			for i, col := range values {
+				colName := columnDescriptions[i].Name
+				allowedValues, ok := tableExpectedValues[colName]
+				if ok {
+					var value int64
+					switch v := col.(type) {
+					case int32:
+						value = int64(v)
+					case int64:
+						value = v
+					default:
+						assert.Failf(s.T(), "unexpected type for column %s", "expected int32 or int64, got %T for column %s", col, colName)
+					}
+					assert.Containsf(s.T(), allowedValues, value, "config %s: column %s value %d not in expected values %v", configId, colName, value, allowedValues)
+				}
+			}
+		}
+		rows.Close()
+		assert.Equalf(s.T(), expectedCount[configId], rowCount, "config %s: row count %d doesn't match expected count %d", configId, rowCount, expectedCount[configId])
+	}
+}
