@@ -1047,11 +1047,6 @@ func test_postgres_complex(
 	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 
 	jobmappings := pg_complex.GetDefaultSyncJobMappings()
-	for _, mapping := range jobmappings {
-		if mapping.Table == "telemetry" {
-			fmt.Println(mapping.Schema, mapping.Table, mapping.Column)
-		}
-	}
 
 	t.Run("sync", func(t *testing.T) {
 		job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{

@@ -1,7 +1,6 @@
 package runconfigs
 
 import (
-	"fmt"
 	"slices"
 	"testing"
 
@@ -1303,9 +1302,6 @@ func assertRunConfigs(t *testing.T, dependencies map[string][]*sqlmanager_shared
 	assert.Len(t, actual, len(expect), "expected %d configs but got %d", len(expect), len(actual))
 	for _, e := range expect {
 		acutalConfig := getConfigByTableAndType(e.Table(), e.RunType(), e.InsertColumns(), actual)
-
-		fmt.Printf("\n\n acutalConfig: %s \n", acutalConfig.String())
-		fmt.Printf("expected: %s \n\n", e.String())
 
 		require.NotNil(t, acutalConfig, "expected config for table %s (type: %s, insert columns: %v) to exist", e.Table(), e.RunType(), e.InsertColumns())
 		assert.ElementsMatch(t, e.SelectColumns(), acutalConfig.SelectColumns(),
