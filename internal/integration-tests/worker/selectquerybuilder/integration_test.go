@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"os"
 	"testing"
 
@@ -22,8 +23,10 @@ import (
 )
 
 type mssqlTest struct {
-	pool          *sql.DB
-	testcontainer *testmssql.MSSQLServerContainer
+	pool              *sql.DB
+	testcontainer     *testmssql.MSSQLServerContainer
+	tableConstraints  *sqlmanager_shared.TableConstraints
+	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow
 }
 
 type postgresTest struct {
@@ -46,7 +49,10 @@ type IntegrationTestSuite struct {
 	mssql    *mssqlTest
 }
 
-func (s *IntegrationTestSuite) SetupMssql() (*mssqlTest, error) {
+func (s *IntegrationTestSuite) SetupMssql(
+	logger *slog.Logger,
+	sqlmanager *sql_manager.SqlManager,
+) (*mssqlTest, error) {
 	mssqlcontainer, err := testmssql.Run(s.ctx,
 		"mcr.microsoft.com/mssql/server:2022-latest",
 		testmssql.WithAcceptEULA(),
@@ -75,16 +81,46 @@ func (s *IntegrationTestSuite) SetupMssql() (*mssqlTest, error) {
 		return nil, fmt.Errorf("unable to exec mssql setup sql: %w", err)
 	}
 
+	sourceConn := &mgmtv1alpha1.Connection{
+		Id: "test",
+		ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_MssqlConfig{
+				MssqlConfig: &mgmtv1alpha1.MssqlConnectionConfig{
+					ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
+						Url: connstr,
+					},
+				},
+			},
+		},
+	}
+
+	db, err := sqlmanager.NewSqlConnection(s.ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup("mssqltest")), sourceConn, logger)
+	if err != nil {
+		s.T().Fatalf("unable to create sql connection: %s", err)
+	}
+
+	constraints, err := db.Db().GetTableConstraintsBySchema(s.ctx, []string{"mssqltest"})
+	if err != nil {
+		s.T().Fatalf("unable to get table constraints: %s", err)
+	}
+	groupedColumnInfo, err := db.Db().GetSchemaColumnMap(s.ctx)
+	if err != nil {
+		s.T().Fatalf("unable to get schema column map: %s", err)
+	}
+
 	return &mssqlTest{
-		testcontainer: mssqlcontainer,
-		pool:          conn,
+		testcontainer:     mssqlcontainer,
+		pool:              conn,
+		tableConstraints:  constraints,
+		groupedColumnInfo: groupedColumnInfo,
 	}, nil
 }
 
-func (s *IntegrationTestSuite) SetupSuite() {
-	s.ctx = context.Background()
-	s.schema = "genbenthosconfigs_querybuilder"
-
+func (s *IntegrationTestSuite) SetupPostgres(
+	logger *slog.Logger,
+	sqlmanager *sql_manager.SqlManager,
+	pgquerier *pg_queries.Queries,
+) (*postgresTest, error) {
 	pgcontainer, err := tcpostgres.NewPostgresTestContainer(s.ctx)
 	if err != nil {
 		panic(err)
@@ -107,6 +143,33 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		},
 	}
 
+	db, err := sqlmanager.NewSqlConnection(s.ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup("test")), sourceConn, logger)
+	if err != nil {
+		s.T().Fatalf("unable to create sql connection: %s", err)
+	}
+
+	constraints, err := db.Db().GetTableConstraintsBySchema(s.ctx, []string{s.schema})
+	if err != nil {
+		s.T().Fatalf("unable to get table constraints: %s", err)
+	}
+	groupedColumnInfo, err := db.Db().GetSchemaColumnMap(s.ctx)
+	if err != nil {
+		s.T().Fatalf("unable to get schema column map: %s", err)
+	}
+
+	return &postgresTest{
+		pgcontainer:       pgcontainer,
+		tableConstraints:  constraints,
+		groupedColumnInfo: groupedColumnInfo,
+		teardownSql:       "testdata/postgres/teardown.sql",
+		querier:           pgquerier,
+	}, nil
+}
+
+func (s *IntegrationTestSuite) SetupSuite() {
+	s.ctx = context.Background()
+	s.schema = "genbenthosconfigs_querybuilder"
+
 	logger := testutil.GetTestLogger(s.T())
 
 	pgquerier := pg_queries.New()
@@ -119,36 +182,18 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		sql_manager.WithMssqlQuerier(mssqlquerier),
 		sql_manager.WithConnectionManagerOpts(connectionmanager.WithCloseOnRelease()),
 	)
-	db, err := sqlmanager.NewSqlConnection(s.ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup("test")), sourceConn, logger)
-	if err != nil {
-		s.T().Fatalf("unable to create sql connection: %s", err)
-	}
-	defer db.Db().Close()
 
-	constraints, err := db.Db().GetTableConstraintsBySchema(s.ctx, []string{s.schema})
+	postgresTest, err := s.SetupPostgres(logger, sqlmanager, pgquerier)
 	if err != nil {
-		s.T().Fatalf("unable to get table constraints: %s", err)
+		s.T().Fatalf("unable to setup postgres: %s", err)
 	}
-	groupedColumnInfo, err := db.Db().GetSchemaColumnMap(s.ctx)
-	if err != nil {
-		s.T().Fatalf("unable to get schema column map: %s", err)
-	}
+	s.postgres = postgresTest
 
-	pgTest := &postgresTest{
-		pgcontainer:       pgcontainer,
-		tableConstraints:  constraints,
-		groupedColumnInfo: groupedColumnInfo,
-		teardownSql:       "testdata/postgres/teardown.sql",
-		querier:           pgquerier,
-	}
-	s.postgres = pgTest
-
-	mssqlTest, err := s.SetupMssql()
+	mssqlTest, err := s.SetupMssql(logger, sqlmanager)
 	if err != nil {
-		panic(err)
+		s.T().Fatalf("unable to setup mssql: %s", err)
 	}
 	s.mssql = mssqlTest
-
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
