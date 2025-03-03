@@ -326,13 +326,11 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		return nil, fmt.Errorf("unable to parse destination options: %w", err)
 	}
 
-	query, ok := b.configQueryMap[benthosConfig.Name]
-	if !ok {
-		return nil, fmt.Errorf("query info not found for id: %s", benthosConfig.Name)
-	}
+	// this will be nil if coming from CLI sync
+	query := b.configQueryMap[benthosConfig.Name]
 
 	// skip foreign key violations if the query could return rows that violate foreign key constraints
-	skipForeignKeyViolations := destOpts.SkipForeignKeyViolations || query.IsNotForeignKeySafeSubset
+	skipForeignKeyViolations := destOpts.SkipForeignKeyViolations || (query != nil && query.IsNotForeignKeySafeSubset)
 
 	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
 	if benthosConfig.RunType == rc.RunTypeUpdate {
