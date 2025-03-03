@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"runtime/debug"
 	"sync"
 	"time"
 
+	"github.com/cenkalti/backoff/v5"
+	"github.com/nucleuscloud/neosync/internal/backoffutil"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -23,10 +26,7 @@ type ContextDialer interface {
 var _ Dialer = (*SSHDialer)(nil)
 
 type SSHDialerConfig struct {
-	MaxRetries     int
-	InitialBackoff time.Duration
-	MaxBackoff     time.Duration // Max allowed backoff time
-	BackoffFactor  float64       // backoff multiplier
+	getRetryOpts func(logger *slog.Logger) []backoff.RetryOption
 
 	KeepAliveInterval time.Duration
 	KeepAliveTimeout  time.Duration
@@ -45,10 +45,21 @@ type SSHDialer struct {
 
 func DefaultSSHDialerConfig() *SSHDialerConfig {
 	return &SSHDialerConfig{
-		MaxRetries:     3,
-		InitialBackoff: 100 * time.Millisecond,
-		MaxBackoff:     1 * time.Second,
-		BackoffFactor:  2,
+		getRetryOpts: func(logger *slog.Logger) []backoff.RetryOption {
+			backoffStrategy := backoff.NewExponentialBackOff()
+			backoffStrategy.InitialInterval = 200 * time.Millisecond
+			backoffStrategy.MaxInterval = 30 * time.Second
+			backoffStrategy.Multiplier = 2
+			backoffStrategy.RandomizationFactor = 0.3
+			return []backoff.RetryOption{
+				backoff.WithBackOff(backoffStrategy),
+				backoff.WithMaxTries(10),
+				backoff.WithMaxElapsedTime(5 * time.Minute),
+				backoff.WithNotify(func(err error, d time.Duration) {
+					logger.Warn(fmt.Sprintf("ssh error with retry: %s, retrying in %s", err.Error(), d.String()))
+				}),
+			}
+		},
 
 		KeepAliveInterval: 30 * time.Second,
 		KeepAliveTimeout:  15 * time.Second,
@@ -108,45 +119,58 @@ func (s *SSHDialer) getClient(ctx context.Context) (*ssh.Client, error) {
 		if err == nil {
 			return s.client, nil
 		}
-		s.logger.Info(fmt.Sprintf("SSH client was dead, closing and attempting to re-created: %s", err.Error()))
+		s.logger.Warn(fmt.Sprintf("SSH client was dead, closing and attempting to re-created: %s", err.Error()))
 		s.client.Close()
 		s.client = nil
 	}
 
-	var client *ssh.Client
-	var err error
-	backoff := s.dialCfg.InitialBackoff
-
-	for i := 0; i < s.dialCfg.MaxRetries; i++ {
-		client, err = ssh.Dial("tcp", s.addr, s.ccfg)
-		if err == nil {
-			s.startKeepAlive(client)
-			break
-		}
-		s.logger.Error(fmt.Sprintf("failed to dial SSH Server on attempt %d/%d: %s", i, s.dialCfg.MaxRetries, err.Error()))
-		if i < s.dialCfg.MaxRetries-1 {
-			s.logger.Debug(fmt.Sprintf("waiting %.1f seconds until attempting to re-connect to SSH Server", backoff.Seconds()))
-			err = sleepContext(ctx, backoff)
-			if err != nil {
-				break
-			}
-			nextBackoff := time.Duration(float64(backoff) * s.dialCfg.BackoffFactor)
-			if nextBackoff > s.dialCfg.MaxBackoff {
-				nextBackoff = s.dialCfg.MaxBackoff
-			}
-			backoff = nextBackoff
-		}
+	operation := func() (*ssh.Client, error) {
+		return ssh.Dial("tcp", s.addr, s.ccfg)
 	}
 
+	client, err := backoffutil.Retry(
+		ctx,
+		operation,
+		func() []backoff.RetryOption { return s.dialCfg.getRetryOpts(s.logger) },
+		isRetryableError,
+	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to dial ssh server after %d attempts: %w", s.dialCfg.MaxRetries, err)
+		return nil, err
 	}
+
 	s.client = client
+	s.startKeepAlive(client)
 	return client, nil
+}
+
+// Could expand on this more if there are center errors we do not want to retry
+func isRetryableError(err error) bool {
+	return err != nil
 }
 
 func (s *SSHDialer) startKeepAlive(client *ssh.Client) {
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				s.logger.Error("panic in ssh keepalive goroutine",
+					"panic", r,
+					"stack", string(debug.Stack()),
+				)
+				// Clean up the client connection on panic
+				s.clientmu.Lock()
+				defer s.clientmu.Unlock()
+				if s.client == client {
+					s.logger.Info("abandoning keepalive for active ssh client due to panic")
+					s.client = nil
+				} else {
+					s.logger.Info("closing old ssh client due to keepalive panic")
+					err := client.Close()
+					if err != nil {
+						s.logger.Info("error closing old ssh client during keepalive panic", "error", err)
+					}
+				}
+			}
+		}()
 		s.logger.Info("keepalive started for ssh client")
 		t := time.NewTicker(s.dialCfg.KeepAliveInterval)
 		defer t.Stop()
@@ -207,17 +231,4 @@ func (w *wrappedSshConn) SetReadDeadline(deadline time.Time) error {
 // SSH net.Conn does not implement this, so we're overriding it to not return an error
 func (w *wrappedSshConn) SetWriteDeadline(deadline time.Time) error {
 	return nil
-}
-
-func sleepContext(ctx context.Context, d time.Duration) error {
-	if d <= 0 {
-		return nil
-	}
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-time.After(d):
-		return nil
-	}
 }
