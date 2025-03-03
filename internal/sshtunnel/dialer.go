@@ -153,8 +153,8 @@ func (s *SSHDialer) startKeepAlive(client *ssh.Client) {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				s.logger.Error("panic in ssh keepalive goroutine",
-					"panic", r,
+				s.logger.Error("recovered from panic in ssh keepalive goroutine",
+					"error", r,
 					"stack", string(debug.Stack()),
 				)
 				// Clean up the client connection on panic
