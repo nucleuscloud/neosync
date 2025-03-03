@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/cenkalti/backoff/v5"
@@ -189,6 +190,49 @@ func isRetryableError(err error) bool {
 		return true
 	}
 
+	if isRetryablePostgresError(err) {
+		return true
+	}
+
+	if isNetworkError(err) {
+		return true
+	}
+
+	return false
+}
+
+var (
+	networkErrors = []string{
+		"unexpected eof",
+		"connection reset by peer",
+		"broken pipe",
+		"connection refused",
+		"i/o timeout",       // Network timeouts
+		"no connection",     // Connection pool exhaustion
+		"connection closed", // Generic connection closure
+	}
+)
+
+func isNetworkError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errMsg := strings.ToLower(err.Error())
+	for _, netErr := range networkErrors {
+		if strings.Contains(errMsg, netErr) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isRetryablePostgresError(err error) bool {
+	if err == nil {
+		return false
+	}
+
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		switch pgErr.Code {
@@ -210,6 +254,7 @@ func isRetryableError(err error) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
