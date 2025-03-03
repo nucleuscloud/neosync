@@ -11,6 +11,7 @@ import (
 
 	"github.com/cenkalti/backoff/v5"
 	"github.com/go-sql-driver/mysql"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lib/pq"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqldbtx"
 )
@@ -107,6 +108,35 @@ func (r *RetryDBTX) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, 
 	return retry(ctx, operation, r.config.getRetryOpts)
 }
 
+func (r *RetryDBTX) RetryTx(ctx context.Context, opts *sql.TxOptions, fn func(*sql.Tx) error) error {
+	operation := func() (any, error) {
+		tx, err := r.dbtx.BeginTx(ctx, opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to begin transaction: %w", err)
+		}
+
+		// If fn returns error, rollback
+		err = fn(tx)
+		if err != nil {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				return nil, fmt.Errorf("error: %v, rollback error: %v", err, rollbackErr)
+			}
+			return nil, err
+		}
+
+		// If fn succeeds, commit
+		if err := tx.Commit(); err != nil {
+			return nil, fmt.Errorf("failed to commit transaction: %w", err)
+		}
+
+		return nil, nil
+	}
+
+	_, err := retry(ctx, operation, r.config.getRetryOpts)
+	return err
+}
+
 func retry[T any](ctx context.Context, fn func() (T, error), getOpts func() []backoff.RetryOption) (T, error) {
 	opts := getOpts()
 	return retryUnwrap(backoff.Retry(ctx, retryWrap(fn), opts...))
@@ -158,7 +188,20 @@ func isRetryableError(err error) bool {
 	if errors.Is(err, io.ErrUnexpectedEOF) {
 		return true
 	}
-	if pqErr, ok := err.(*pq.Error); ok {
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		switch pgErr.Code {
+		case pqSerializationFailure,
+			pqLockNotAvailable,
+			pqObjectInUse,
+			pqTooManyConnections:
+			return true
+		}
+	}
+
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) {
 		switch pqErr.Code {
 		case pqSerializationFailure,
 			pqLockNotAvailable,
