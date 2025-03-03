@@ -203,13 +203,13 @@ func isRetryableError(err error) bool {
 
 var (
 	networkErrors = []string{
-		"unexpected eof",
+		"unexpected eof", // Important for cases that don't explicitly return io.ErrUnexpectedEOF
 		"connection reset by peer",
 		"broken pipe",
 		"connection refused",
-		"i/o timeout",       // Network timeouts
-		"no connection",     // Connection pool exhaustion
-		"connection closed", // Generic connection closure
+		"i/o timeout",
+		"no connection",
+		"connection closed",
 	}
 )
 
