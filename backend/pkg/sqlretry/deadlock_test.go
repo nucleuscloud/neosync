@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lib/pq"
 )
 
@@ -189,13 +190,23 @@ func TestIsPostgresDeadlock(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:     "deadlock error",
+			name:     "deadlock error (lib/pq)",
 			err:      &pq.Error{Code: pqDeadlockDetected},
 			expected: true,
 		},
 		{
-			name:     "non-deadlock postgres error",
+			name:     "deadlock error (pgx)",
+			err:      &pgconn.PgError{Code: pqDeadlockDetected},
+			expected: true,
+		},
+		{
+			name:     "non-deadlock postgres error (lib/pq)",
 			err:      &pq.Error{Code: "23505"},
+			expected: false,
+		},
+		{
+			name:     "non-deadlock postgres error (pgx)",
+			err:      &pgconn.PgError{Code: "23505"},
 			expected: false,
 		},
 		{
@@ -259,4 +270,9 @@ func TestIsMSSQLDeadlock(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_Nick(t *testing.T) {
+	err := &pq.Error{Code: pqDeadlockDetected}
+	t.Log(err.Error())
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/cenkalti/backoff/v5"
 	"github.com/go-sql-driver/mysql"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lib/pq"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqldbtx"
 )
@@ -187,6 +188,18 @@ func isRetryableError(err error) bool {
 	if errors.Is(err, io.ErrUnexpectedEOF) {
 		return true
 	}
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		switch pgErr.Code {
+		case pqSerializationFailure,
+			pqLockNotAvailable,
+			pqObjectInUse,
+			pqTooManyConnections:
+			return true
+		}
+	}
+
 	var pqErr *pq.Error
 	if errors.As(err, &pqErr) {
 		switch pqErr.Code {

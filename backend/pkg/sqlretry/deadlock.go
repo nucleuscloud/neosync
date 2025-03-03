@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lib/pq"
 )
 
@@ -40,6 +41,11 @@ func isMysqlDeadlockError(err error) bool {
 func isPostgresDeadlock(err error) bool {
 	if err == nil {
 		return false
+	}
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == pqDeadlockDetected
 	}
 
 	var pqErr *pq.Error
