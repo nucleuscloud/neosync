@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"io"
 	"testing"
 
+	"github.com/cenkalti/backoff/v5"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqldbtx"
@@ -72,10 +74,27 @@ func TestIsRetryableError(t *testing.T) {
 			}
 		})
 
+		t.Run("wrapped serialization failure", func(t *testing.T) {
+			originalErr := &pq.Error{Code: pqSerializationFailure}
+			wrappedErr := fmt.Errorf("database error: %w", originalErr)
+			doubleWrappedErr := fmt.Errorf("transaction failed: %w", wrappedErr)
+			if !isRetryableError(doubleWrappedErr) {
+				t.Error("expected true for wrapped PostgreSQL serialization failure")
+			}
+		})
+
 		t.Run("lock not available", func(t *testing.T) {
 			err := &pq.Error{Code: pqLockNotAvailable}
 			if !isRetryableError(err) {
 				t.Error("expected true for PostgreSQL lock not available")
+			}
+		})
+
+		t.Run("wrapped lock not available", func(t *testing.T) {
+			originalErr := &pq.Error{Code: pqLockNotAvailable}
+			wrappedErr := fmt.Errorf("database error: %w", originalErr)
+			if !isRetryableError(wrappedErr) {
+				t.Error("expected true for wrapped PostgreSQL lock not available")
 			}
 		})
 
@@ -86,10 +105,41 @@ func TestIsRetryableError(t *testing.T) {
 			}
 		})
 
+		t.Run("wrapped object in use", func(t *testing.T) {
+			originalErr := &pq.Error{Code: pqObjectInUse}
+			wrappedErr := fmt.Errorf("database error: %w", originalErr)
+			if !isRetryableError(wrappedErr) {
+				t.Error("expected true for wrapped PostgreSQL object in use")
+			}
+		})
+
+		t.Run("too many connections", func(t *testing.T) {
+			err := &pq.Error{Code: pqTooManyConnections}
+			if !isRetryableError(err) {
+				t.Error("expected true for PostgreSQL too many connections")
+			}
+		})
+
+		t.Run("wrapped too many connections", func(t *testing.T) {
+			originalErr := &pq.Error{Code: pqTooManyConnections}
+			wrappedErr := fmt.Errorf("database error: %w", originalErr)
+			if !isRetryableError(wrappedErr) {
+				t.Error("expected true for wrapped PostgreSQL too many connections")
+			}
+		})
+
 		t.Run("non-retryable error", func(t *testing.T) {
 			err := &pq.Error{Code: "42601"} // syntax error
 			if isRetryableError(err) {
 				t.Error("expected false for non-retryable PostgreSQL error")
+			}
+		})
+
+		t.Run("wrapped non-retryable error", func(t *testing.T) {
+			originalErr := &pq.Error{Code: "42601"} // syntax error
+			wrappedErr := fmt.Errorf("database error: %w", originalErr)
+			if isRetryableError(wrappedErr) {
+				t.Error("expected false for wrapped non-retryable PostgreSQL error")
 			}
 		})
 	})
@@ -276,6 +326,140 @@ func TestRetryDBTX(t *testing.T) {
 				t.Error("expected row to match")
 			}
 		})
+	})
+}
+
+func TestRetryDBTX_PingContext(t *testing.T) {
+	t.Run("succeeds first try", func(t *testing.T) {
+		mockDB := sqldbtx.NewMockDBTX(t)
+
+		mockDB.EXPECT().
+			PingContext(mock.Anything).
+			Return(nil).
+			Once()
+
+		db := New(mockDB)
+		err := db.PingContext(context.Background())
+
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("retries on retryable error", func(t *testing.T) {
+		mockDB := sqldbtx.NewMockDBTX(t)
+
+		// First call returns a retryable error
+		mockDB.EXPECT().
+			PingContext(mock.Anything).
+			Return(&pq.Error{Code: pqDeadlockDetected}).
+			Once()
+
+		// Second call succeeds
+		mockDB.EXPECT().
+			PingContext(mock.Anything).
+			Return(nil).
+			Once()
+
+		db := New(mockDB, WithRetryOptions(func() []backoff.RetryOption {
+			return []backoff.RetryOption{}
+		}))
+		err := db.PingContext(context.Background())
+
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("fails on non-retryable error", func(t *testing.T) {
+		mockDB := sqldbtx.NewMockDBTX(t)
+		expectedErr := errors.New("non-retryable error")
+
+		mockDB.EXPECT().
+			PingContext(mock.Anything).
+			Return(expectedErr).
+			Once()
+
+		db := New(mockDB)
+		err := db.PingContext(context.Background())
+
+		if err != expectedErr {
+			t.Errorf("expected error %v, got %v", expectedErr, err)
+		}
+	})
+}
+
+func TestRetryDBTX_BeginTx(t *testing.T) {
+	t.Run("succeeds first try", func(t *testing.T) {
+		mockDB := sqldbtx.NewMockDBTX(t)
+		expectedTx := &sql.Tx{}
+		opts := &sql.TxOptions{Isolation: sql.LevelDefault}
+
+		mockDB.EXPECT().
+			BeginTx(mock.Anything, opts).
+			Return(expectedTx, nil).
+			Once()
+
+		db := New(mockDB)
+		tx, err := db.BeginTx(context.Background(), opts)
+
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if tx != expectedTx {
+			t.Error("expected transaction to match")
+		}
+	})
+
+	t.Run("retries on retryable error", func(t *testing.T) {
+		mockDB := sqldbtx.NewMockDBTX(t)
+		expectedTx := &sql.Tx{}
+		opts := &sql.TxOptions{Isolation: sql.LevelSerializable}
+
+		// First call returns a retryable error
+		mockDB.EXPECT().
+			BeginTx(mock.Anything, opts).
+			Return(nil, &pq.Error{Code: pqTooManyConnections}).
+			Once()
+
+		// Second call succeeds
+		mockDB.EXPECT().
+			BeginTx(mock.Anything, opts).
+			Return(expectedTx, nil).
+			Once()
+
+		db := New(mockDB, WithRetryOptions(func() []backoff.RetryOption {
+			return []backoff.RetryOption{}
+		}))
+		tx, err := db.BeginTx(context.Background(), opts)
+
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if tx != expectedTx {
+			t.Error("expected transaction to match")
+		}
+	})
+
+	t.Run("fails on non-retryable error", func(t *testing.T) {
+		mockDB := sqldbtx.NewMockDBTX(t)
+		expectedErr := errors.New("non-retryable error")
+		opts := &sql.TxOptions{}
+
+		mockDB.EXPECT().
+			BeginTx(mock.Anything, opts).
+			Return(nil, expectedErr).
+			Once()
+
+		db := New(mockDB)
+		tx, err := db.BeginTx(context.Background(), opts)
+
+		if err != expectedErr {
+			t.Errorf("expected error %v, got %v", expectedErr, err)
+		}
+		if tx != nil {
+			t.Error("expected nil transaction")
+		}
 	})
 }
 
