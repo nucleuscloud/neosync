@@ -1044,11 +1044,12 @@ func test_postgres_complex(
 	// should use init schema but currently broken
 	err = postgres.Target.RunSqlFiles(ctx, &folder, []string{"create-tables.sql"})
 	require.NoError(t, err)
-	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 
 	jobmappings := pg_complex.GetDefaultSyncJobMappings()
 
 	t.Run("sync", func(t *testing.T) {
+		neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
 		job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
 			AccountId:   accountId,
 			SourceConn:  sourceConn,
@@ -1141,6 +1142,7 @@ func test_postgres_complex(
 			"scientific_data.experiments": "experiment_id < 5",
 		}
 
+		neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 		job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
 			AccountId:   accountId,
 			SourceConn:  sourceConn,
