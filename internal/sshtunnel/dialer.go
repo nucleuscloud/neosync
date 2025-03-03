@@ -106,6 +106,7 @@ func (s *SSHDialer) Close() error {
 }
 
 const (
+	// this is a well known name for the keepalive request that is respected by most ssh servers
 	keepaliveName = "keepalive@openssh.com"
 )
 
@@ -119,7 +120,7 @@ func (s *SSHDialer) getClient(ctx context.Context) (*ssh.Client, error) {
 		if err == nil {
 			return s.client, nil
 		}
-		s.logger.Warn(fmt.Sprintf("SSH client was dead, closing and attempting to re-created: %s", err.Error()))
+		s.logger.Warn(fmt.Sprintf("SSH client was dead, closing and attempting to re-open connection: %s", err.Error()))
 		s.client.Close()
 		s.client = nil
 	}
