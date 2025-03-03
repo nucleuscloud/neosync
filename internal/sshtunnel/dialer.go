@@ -136,7 +136,7 @@ func (s *SSHDialer) getClient(ctx context.Context) (*ssh.Client, error) {
 		isRetryableError,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to dial ssh server after multiple attempts: %w", err)
 	}
 
 	s.client = client
