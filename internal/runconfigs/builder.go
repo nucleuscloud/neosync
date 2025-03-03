@@ -310,8 +310,6 @@ func (b *runConfigBuilder) buildInsertConfig() *RunConfig {
 // Inserts all non-nullable columns, then builds update configs for any nullable columns that reference other tables.
 // This is important to bring over as much subset data as possible.
 func (b *runConfigBuilder) buildConstraintHandlingConfigs() []*RunConfig {
-	var configs []*RunConfig
-
 	var where *string
 	if b.whereClause != nil {
 		where = b.whereClause
@@ -340,7 +338,7 @@ func (b *runConfigBuilder) buildConstraintHandlingConfigs() []*RunConfig {
 		remainingColumns[col] = true
 	}
 
-	updateConfigCount := 0
+	updateConfigs := []*RunConfig{}
 	// Build update configs for any nullable foreign keys
 	for _, fc := range b.foreignKeys {
 		if fc == nil || fc.ForeignKey == nil {
@@ -375,9 +373,13 @@ func (b *runConfigBuilder) buildConstraintHandlingConfigs() []*RunConfig {
 
 		// For columns that can be null, we do them after the main insert (Update).
 		if len(updateCols) > 0 {
-			updateConfigCount++
-			updateConfig := b.buildUpdateConfig(fc, updateCols, updateFkCols, where, orderByColumns, updateConfigCount)
-			configs = append(configs, updateConfig)
+			updateConfigCount := len(updateConfigs) + 1
+			var prevConfig *RunConfig
+			if len(updateConfigs) > 0 {
+				prevConfig = updateConfigs[len(updateConfigs)-1]
+			}
+			updateConfig := b.buildUpdateConfig(fc, updateCols, updateFkCols, where, orderByColumns, updateConfigCount, prevConfig)
+			updateConfigs = append(updateConfigs, updateConfig)
 		}
 	}
 
@@ -389,7 +391,7 @@ func (b *runConfigBuilder) buildConstraintHandlingConfigs() []*RunConfig {
 	}
 
 	// Insert config should be at the front, then any update configs follow.
-	configs = append([]*RunConfig{insertConfig}, configs...)
+	configs := append([]*RunConfig{insertConfig}, updateConfigs...)
 	return configs
 }
 
@@ -400,6 +402,7 @@ func (b *runConfigBuilder) buildUpdateConfig(
 	where *string,
 	orderByColumns []string,
 	count int,
+	prevConfig *RunConfig,
 ) *RunConfig {
 	// Add foreign key table as a dependency
 	dependsOn := []*DependsOn{
@@ -414,6 +417,15 @@ func (b *runConfigBuilder) buildUpdateConfig(
 		dependsOn = append(dependsOn, &DependsOn{
 			Table:   b.table.String(),
 			Columns: b.primaryKeys,
+		})
+	}
+
+	// If there is a previous update config, we need to add it as a dependency
+	// This helps with deadlocks
+	if prevConfig != nil {
+		dependsOn = append(dependsOn, &DependsOn{
+			Table:   prevConfig.table.String(),
+			Columns: prevConfig.insertColumns,
 		})
 	}
 
