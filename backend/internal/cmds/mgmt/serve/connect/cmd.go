@@ -523,18 +523,23 @@ func serve(ctx context.Context) error {
 	if cascadelicense.IsValid() {
 		slogger.Debug("enabling account hooks service")
 
-		encryptor, err := sym_encrypt.NewEncryptor(viper.GetString("NEOSYNC_SYM_ENCRYPTION_PASSWORD"))
-		if err != nil {
-			return err
+		accountHookOptions := []accounthooks.Option{}
+		var slackClient ee_slack.Interface
+		if viper.GetBool("SLACK_ACCOUNT_HOOKS_ENABLED") {
+			encryptor, err := sym_encrypt.NewEncryptor(viper.GetString("NEOSYNC_SYM_ENCRYPTION_PASSWORD"))
+			if err != nil {
+				return err
+			}
+			slackClient = ee_slack.NewClient(
+				encryptor,
+				ee_slack.WithAuthClientCreds(viper.GetString("SLACK_AUTH_CLIENT_ID"), viper.GetString("SLACK_AUTH_CLIENT_SECRET")),
+				ee_slack.WithScope(viper.GetString("SLACK_SCOPE")),
+				ee_slack.WithRedirectUrl(viper.GetString("SLACK_REDIRECT_URL")),
+			)
+			accountHookOptions = append(accountHookOptions, accounthooks.WithSlackClient(slackClient))
 		}
-		slackClient := ee_slack.NewClient(
-			encryptor,
-			ee_slack.WithAuthClientCreds(viper.GetString("SLACK_AUTH_CLIENT_ID"), viper.GetString("SLACK_AUTH_CLIENT_SECRET")),
-			ee_slack.WithScope(viper.GetString("SLACK_SCOPE")),
-			ee_slack.WithRedirectUrl(viper.GetString("SLACK_REDIRECT_URL")),
-		)
 
-		accountHookService := v1alpha1_accounthookservice.New(accounthooks.New(db, userdataclient, slackClient))
+		accountHookService := v1alpha1_accounthookservice.New(accounthooks.New(db, userdataclient, accountHookOptions...))
 
 		api.Handle(
 			mgmtv1alpha1connect.NewAccountHookServiceHandler(

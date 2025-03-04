@@ -9,6 +9,7 @@ import (
 
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
@@ -24,7 +25,6 @@ type Service struct {
 	cfg            *config
 	db             *neosyncdb.NeosyncDb
 	userdataclient userdata.Interface
-	slackClient    ee_slack.Interface
 }
 
 var _ Interface = (*Service)(nil)
@@ -45,14 +45,22 @@ type Interface interface {
 }
 
 type config struct {
+	isSlackEnabled bool
+	slackClient    ee_slack.Interface
 }
 
 type Option func(*config)
 
+func WithSlackClient(slackClient ee_slack.Interface) Option {
+	return func(c *config) {
+		c.slackClient = slackClient
+		c.isSlackEnabled = true
+	}
+}
+
 func New(
 	db *neosyncdb.NeosyncDb,
 	userdataclient userdata.Interface,
-	slackClient ee_slack.Interface,
 	opts ...Option,
 ) *Service {
 	cfg := &config{}
@@ -60,7 +68,7 @@ func New(
 		opt(cfg)
 	}
 
-	return &Service{cfg: cfg, db: db, userdataclient: userdataclient, slackClient: slackClient}
+	return &Service{cfg: cfg, db: db, userdataclient: userdataclient}
 }
 
 func (s *Service) GetAccountHooks(ctx context.Context, req *mgmtv1alpha1.GetAccountHooksRequest) (*mgmtv1alpha1.GetAccountHooksResponse, error) {
@@ -421,6 +429,10 @@ func (s *Service) GetSlackConnectionUrl(
 	ctx context.Context,
 	req *mgmtv1alpha1.GetSlackConnectionUrlRequest,
 ) (*mgmtv1alpha1.GetSlackConnectionUrlResponse, error) {
+	if !s.cfg.isSlackEnabled {
+		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceGetSlackConnectionUrlProcedure)
+	}
+
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("accountId", req.GetAccountId())
 
@@ -432,7 +444,7 @@ func (s *Service) GetSlackConnectionUrl(
 		return nil, err
 	}
 
-	slackUrl, err := s.slackClient.GetAuthorizeUrl(req.GetAccountId(), user.Id())
+	slackUrl, err := s.cfg.slackClient.GetAuthorizeUrl(req.GetAccountId(), user.Id())
 	if err != nil {
 		return nil, fmt.Errorf("unable to get slack authorize url: %w", err)
 	}
@@ -447,6 +459,10 @@ func (s *Service) HandleSlackOAuthCallback(
 	ctx context.Context,
 	req *mgmtv1alpha1.HandleSlackOAuthCallbackRequest,
 ) (*mgmtv1alpha1.HandleSlackOAuthCallbackResponse, error) {
+	if !s.cfg.isSlackEnabled {
+		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceHandleSlackOAuthCallbackProcedure)
+	}
+
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 
 	user, err := s.userdataclient.GetUser(ctx)
@@ -454,7 +470,7 @@ func (s *Service) HandleSlackOAuthCallback(
 		return nil, fmt.Errorf("unable to get user: %w", err)
 	}
 
-	oauthState, err := s.slackClient.ValidateState(ctx, req.GetState(), user.Id(), func(ctx context.Context, userId, accountId string) (bool, error) {
+	oauthState, err := s.cfg.slackClient.ValidateState(ctx, req.GetState(), user.Id(), func(ctx context.Context, userId, accountId string) (bool, error) {
 		parsedAccountUuid, err := neosyncdb.ToUuid(accountId)
 		if err != nil {
 			return false, err
@@ -478,7 +494,7 @@ func (s *Service) HandleSlackOAuthCallback(
 	logger.Debug("slack oauth state validated")
 
 	slackCode := req.GetCode()
-	oauthResp, err := s.slackClient.ExchangeCodeForAccessToken(ctx, slackCode)
+	oauthResp, err := s.cfg.slackClient.ExchangeCodeForAccessToken(ctx, slackCode)
 	if err != nil {
 		return nil, fmt.Errorf("unable to exchange slack code for access token: %w", err)
 	}
@@ -510,6 +526,10 @@ func (s *Service) TestSlackConnection(
 	ctx context.Context,
 	req *mgmtv1alpha1.TestSlackConnectionRequest,
 ) (*mgmtv1alpha1.TestSlackConnectionResponse, error) {
+	if !s.cfg.isSlackEnabled {
+		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceTestSlackConnectionProcedure)
+	}
+
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("accountId", req.GetAccountId())
 
@@ -548,7 +568,7 @@ func (s *Service) TestSlackConnection(
 	}
 
 	logger.Debug("testing slack connection")
-	testResp, err := s.slackClient.Test(ctx, accessToken)
+	testResp, err := s.cfg.slackClient.Test(ctx, accessToken)
 	if err != nil {
 		msg := err.Error()
 		return &mgmtv1alpha1.TestSlackConnectionResponse{
@@ -571,6 +591,10 @@ func (s *Service) SendSlackMessage(
 	ctx context.Context,
 	req *mgmtv1alpha1.SendSlackMessageRequest,
 ) (*mgmtv1alpha1.SendSlackMessageResponse, error) {
+	if !s.cfg.isSlackEnabled {
+		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceSendSlackMessageProcedure)
+	}
+
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("accountHookId", req.GetAccountHookId())
 
@@ -625,7 +649,7 @@ func (s *Service) SendSlackMessage(
 	}
 
 	logger.Debug("sending slack message")
-	err = s.slackClient.SendMessage(ctx, accessToken, slackChannelId, slack.MsgOptionBlocks(blocks...))
+	err = s.cfg.slackClient.SendMessage(ctx, accessToken, slackChannelId, slack.MsgOptionBlocks(blocks...))
 	if err != nil {
 		return nil, fmt.Errorf("unable to send slack message: %w", err)
 	}
