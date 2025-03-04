@@ -3,6 +3,7 @@ import FormHeader from '@/components/forms/FormHeader';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { AccountHookEvent } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import AccountHookSlackForm from './AccountHookSlackForm';
@@ -118,12 +119,15 @@ interface HookTypeProps {
 
 export function HookType(props: HookTypeProps): ReactElement {
   const { error, value, onChange } = props;
-
+  const { data: configData } = useGetSystemAppConfig();
+  // if there are slack hooks on the backend, we should show the option so the UI isn't totally broken
+  const isSlackEnabled =
+    value === 'slack' || (configData?.isSlackAccountHookEnabled ?? false);
   return (
     <div className="flex flex-col gap-4">
       <FormHeader
         title="Hook Type"
-        description="The type of hook. Currently only webhooks and slack are supported"
+        description="The type of hook"
         isErrored={!!error}
       />
       <ToggleGroup
@@ -137,7 +141,9 @@ export function HookType(props: HookTypeProps): ReactElement {
         value={value}
       >
         <ToggleGroupItem value="webhook">Webhook</ToggleGroupItem>
-        <ToggleGroupItem value="slack">Slack</ToggleGroupItem>
+        {isSlackEnabled && (
+          <ToggleGroupItem value="slack">Slack</ToggleGroupItem>
+        )}
       </ToggleGroup>
       <FormErrorMessage message={error} />
     </div>

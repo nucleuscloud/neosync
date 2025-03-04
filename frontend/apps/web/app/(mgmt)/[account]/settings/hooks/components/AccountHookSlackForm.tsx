@@ -1,3 +1,4 @@
+import ButtonText from '@/components/ButtonText';
 import FormErrorMessage from '@/components/FormErrorMessage';
 import FormHeader from '@/components/forms/FormHeader';
 import { useAccount } from '@/components/providers/account-provider';
@@ -10,11 +11,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { cn } from '@/libs/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { AccountHookService } from '@neosync/sdk';
 import { CheckCircledIcon, ReloadIcon } from '@radix-ui/react-icons';
-import { ReactElement } from 'react';
+import { ReactElement, useState } from 'react';
 import { GoXCircleFill } from 'react-icons/go';
+import { PiPlugs } from 'react-icons/pi';
 import { AccountHookSlackFormValues } from './validation';
 
 interface Props {
@@ -84,9 +87,9 @@ function ConnectToSlackButton(props: ConnectToSlackButtonProps): ReactElement {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-row gap-10 items-center">
+      <div className="flex flex-row gap-4 items-center">
         {testSlackConnection?.hasConfiguration ? (
-          <div className="flex flex-row gap-1 items-center">
+          <div className="flex flex-row gap-2 items-center">
             <CheckCircledIcon className="w-4 h-4" />
             <p>
               Slack is connected to {testSlackConnection.testResponse?.team}
@@ -102,11 +105,10 @@ function ConnectToSlackButton(props: ConnectToSlackButtonProps): ReactElement {
           <RecheckSlackConnectionButton onRefreshClick={onRefreshClick} />
         </div>
         <div className="flex">
-          <Button type="button" variant="outline" onClick={onConnectClick}>
-            {testSlackConnection?.hasConfiguration
-              ? 'Reconnect to Slack'
-              : 'Connect to Slack'}
-          </Button>
+          <ConnectSlackConnectionButton
+            onConnect={onConnectClick}
+            hasConfiguration={testSlackConnection?.hasConfiguration ?? false}
+          />
         </div>
       </div>
       <div className="flex flex-row gap-3">
@@ -122,27 +124,90 @@ function ConnectToSlackButton(props: ConnectToSlackButtonProps): ReactElement {
 }
 
 interface RecheckSlackConnectionButtonProps {
-  onRefreshClick(): void;
+  onRefreshClick(): Promise<void> | void;
 }
 function RecheckSlackConnectionButton(
   props: RecheckSlackConnectionButtonProps
 ): ReactElement {
   const { onRefreshClick } = props;
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  async function onClick(): Promise<void> {
+    if (isRefreshing) {
+      return;
+    }
+    setIsRefreshing(true);
+    try {
+      await onRefreshClick();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
+
   return (
     <TooltipProvider>
       <Tooltip delayDuration={200}>
         <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => onRefreshClick()}
-          >
-            <ReloadIcon className="h-4 w-4" />
+          <Button type="button" variant="outline" onClick={onClick}>
+            <ButtonText
+              leftIcon={
+                <ReloadIcon
+                  className={cn('h-4 w-4', isRefreshing && 'animate-spin')}
+                />
+              }
+              text="Verify"
+            />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Recheck Slack connection</p>
+          <p>Verify that Neosync has a connection to your Slack</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+interface ConnectSlackConnectionButtonProps {
+  onConnect(): Promise<void> | void;
+  hasConfiguration: boolean;
+}
+function ConnectSlackConnectionButton(
+  props: ConnectSlackConnectionButtonProps
+): ReactElement {
+  const { onConnect, hasConfiguration } = props;
+
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  async function onClick(): Promise<void> {
+    if (isConnecting) {
+      return;
+    }
+    setIsConnecting(true);
+    try {
+      await onConnect();
+    } finally {
+      setIsConnecting(false);
+    }
+  }
+
+  return (
+    <TooltipProvider>
+      <Tooltip delayDuration={200}>
+        <TooltipTrigger asChild>
+          <Button type="button" variant="outline" onClick={onClick}>
+            <ButtonText
+              leftIcon={<PiPlugs className="h-4 w-4" />}
+              text={hasConfiguration ? 'Reconnect' : 'Connect'}
+            />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>
+            {hasConfiguration
+              ? 'Reconnect Neosync to your Slack'
+              : 'Connect Neosync to your Slack'}
+          </p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
