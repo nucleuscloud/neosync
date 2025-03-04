@@ -374,6 +374,6 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 					},
 			},
 		},
-	} 
+	}
 }
 

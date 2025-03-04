@@ -28,6 +28,7 @@ import (
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/sql"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
@@ -716,7 +717,7 @@ func cmdConfigSqlDestinationToBatch(input *sqlDestinationConfig) *mgmtv1alpha1.B
 }
 
 func (c *clisync) runDestinationInitStatements(
-	syncConfigs []*tabledependency.RunConfig,
+	syncConfigs []*runconfigs.RunConfig,
 	schemaConfig *schemaConfig,
 ) error {
 	dependencyMap := buildDependencyMap(syncConfigs)
@@ -793,7 +794,7 @@ func (c *clisync) runDestinationInitStatements(
 func buildSyncConfigs(
 	schemaConfig *schemaConfig,
 	logger *slog.Logger,
-) []*tabledependency.RunConfig {
+) []*runconfigs.RunConfig {
 	tableColMap := getTableColMap(schemaConfig.Schemas)
 	if len(tableColMap) == 0 {
 		return nil
@@ -818,7 +819,7 @@ func buildSyncConfigs(
 		}
 	}
 
-	runConfigs, err := tabledependency.GetRunConfigs(schemaConfig.TableConstraints, map[string]string{}, primaryKeysMap, tableColMap, uniqueIndexesMap, uniqueConstraintsMap)
+	runConfigs, err := runconfigs.BuildRunConfigs(schemaConfig.TableConstraints, map[string]string{}, primaryKeysMap, tableColMap, uniqueIndexesMap, uniqueConstraintsMap)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil

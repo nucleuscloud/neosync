@@ -8,8 +8,8 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -93,8 +93,8 @@ type DestinationParams struct {
 type BenthosSourceConfig struct {
 	Config                  *neosync_benthos.BenthosConfig
 	Name                    string
-	DependsOn               []*tabledependency.DependsOn
-	RunType                 tabledependency.RunType
+	DependsOn               []*runconfigs.DependsOn
+	RunType                 runconfigs.RunType
 	TableSchema             string
 	TableName               string
 	Columns                 []string

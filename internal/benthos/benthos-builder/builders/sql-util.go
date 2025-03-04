@@ -11,9 +11,9 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	job_util "github.com/nucleuscloud/neosync/internal/job"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
@@ -421,7 +421,7 @@ func getColumnDefaultProperties(
 	return colDefaults, nil
 }
 
-func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*bb_internal.ReferenceKey, runconfig *tabledependency.RunConfig) map[string][]string {
+func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*bb_internal.ReferenceKey, runconfig *runconfigs.RunConfig) map[string][]string {
 	redisDependsOnMap := map[string][]string{}
 	for col, fks := range transformedForeignKeyToSourceMap {
 		if !slices.Contains(runconfig.InsertColumns(), col) {
@@ -434,7 +434,7 @@ func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*bb_in
 			redisDependsOnMap[fk.Table] = append(redisDependsOnMap[fk.Table], fk.Column)
 		}
 	}
-	if runconfig.RunType() == tabledependency.RunTypeUpdate && len(redisDependsOnMap) != 0 {
+	if runconfig.RunType() == runconfigs.RunTypeUpdate && len(redisDependsOnMap) != 0 {
 		redisDependsOnMap[runconfig.Table()] = runconfig.PrimaryKeys()
 	}
 	return redisDependsOnMap

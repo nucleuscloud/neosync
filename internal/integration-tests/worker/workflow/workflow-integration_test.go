@@ -101,6 +101,11 @@ func Test_Workflow(t *testing.T) {
 			test_postgres_small_batch_size(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
 
+		t.Run("complex", func(t *testing.T) {
+			t.Parallel()
+			test_postgres_complex(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
 		// Generate workflow tests
 		t.Run("generate", func(t *testing.T) {
 			t.Parallel()

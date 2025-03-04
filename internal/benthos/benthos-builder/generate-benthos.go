@@ -6,9 +6,9 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
@@ -93,8 +93,8 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 	var outputConfigs []*bb_internal.BenthosSourceConfig
 	if isOnlyBucketDestinations(b.job.Destinations) {
 		for _, sc := range sourceConfigs {
-			if sc.RunType == tabledependency.RunTypeInsert {
-				sc.DependsOn = []*tabledependency.DependsOn{}
+			if sc.RunType == runconfigs.RunTypeInsert {
+				sc.DependsOn = []*runconfigs.DependsOn{}
 				outputConfigs = append(outputConfigs, sc)
 			}
 		}
