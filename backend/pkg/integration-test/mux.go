@@ -250,7 +250,7 @@ func (s *NeosyncApiTestClient) setupMux(
 		accounthooks.New(
 			neosyncDb,
 			userclient,
-			s.Mocks.Slackclient,
+			accounthooks.WithSlackClient(s.Mocks.Slackclient),
 		),
 	)
 
