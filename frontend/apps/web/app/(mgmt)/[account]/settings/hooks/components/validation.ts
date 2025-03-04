@@ -179,7 +179,7 @@ function toSlackConfig(input: AccountHookConfig): AccountHookSlackFormValues {
   switch (input.config.case) {
     case 'slack': {
       return {
-        channelId: input.config.value.channel,
+        channelId: input.config.value.channelId,
       };
     }
     default: {
@@ -253,7 +253,7 @@ function toAccountHookConfig(
         config: {
           case: 'slack',
           value: create(AccountHookConfig_SlackHookSchema, {
-            channel: values.config.slack.channelId,
+            channelId: values.config.slack.channelId,
           }),
         },
       });

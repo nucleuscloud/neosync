@@ -598,7 +598,7 @@ func (s *Service) SendSlackMessage(
 	if slackHook == nil {
 		return nil, nucleuserrors.NewNotFound("slack hook not found")
 	}
-	slackChannelId := slackHook.GetChannel()
+	slackChannelId := slackHook.GetChannelId()
 
 	accountId, err := neosyncdb.ToUuid(hook.GetHook().GetAccountId())
 	if err != nil {
