@@ -163,12 +163,12 @@ func (p *PostgresManager) GetTableConstraintsBySchema(ctx context.Context, schem
 	for _, row := range nonFkConstraints {
 		tableName := sqlmanager_shared.BuildTable(row.SchemaName, row.TableName)
 		switch row.ConstraintType {
-		case "PRIMARY KEY":
+		case "p":
 			if _, exists := primaryKeyMap[tableName]; !exists {
 				primaryKeyMap[tableName] = []string{}
 			}
 			primaryKeyMap[tableName] = append(primaryKeyMap[tableName], sqlmanager_shared.DedupeSlice(row.ConstraintColumns)...)
-		case "UNIQUE":
+		case "u":
 			columns := sqlmanager_shared.DedupeSlice(row.ConstraintColumns)
 			uniqueConstraintsMap[tableName] = append(uniqueConstraintsMap[tableName], columns)
 		}
@@ -1091,17 +1091,3 @@ func GetPostgresColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.D
 
 	return
 }
-
-// func ToConstraintType(constraintType string) (sqlmanager_shared.ConstraintType, error) {
-// 	switch constraintType {
-// 	case "PRIMARY KEY":
-// 		return sqlmanager_shared.PrimaryConstraintType, nil
-// 	case "UNIQUE":
-// 		return sqlmanager_shared.UniqueConstraintType, nil
-// 	case "FOREIGN KEY":
-// 		return sqlmanager_shared.ForeignConstraintType, nil
-// 	case "CHECK":
-// 		return sqlmanager_shared.CheckConstraintType, nil
-// 	}
-// 	return -1, errors.ErrUnsupported
-// }
