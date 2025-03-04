@@ -173,6 +173,69 @@ func TestIsRetryableError(t *testing.T) {
 			t.Error("expected false for non-retryable generic error")
 		}
 	})
+
+	t.Run("Network Errors", func(t *testing.T) {
+		testCases := []struct {
+			name     string
+			err      error
+			expected bool
+		}{
+			{
+				name:     "unexpected EOF string error",
+				err:      errors.New("unexpected EOF"),
+				expected: true,
+			},
+			{
+				name:     "connection reset by peer",
+				err:      errors.New("write tcp 127.0.0.1:35645: connection reset by peer"),
+				expected: true,
+			},
+			{
+				name:     "broken pipe",
+				err:      errors.New("write tcp 127.0.0.1:35645: broken pipe"),
+				expected: true,
+			},
+			{
+				name:     "connection refused",
+				err:      errors.New("dial tcp 127.0.0.1:5432: connect: connection refused"),
+				expected: true,
+			},
+			{
+				name:     "i/o timeout",
+				err:      errors.New("dial tcp 127.0.0.1:5432: i/o timeout"),
+				expected: true,
+			},
+			{
+				name:     "no connection",
+				err:      errors.New("sql: no connection available"),
+				expected: true,
+			},
+			{
+				name:     "connection closed",
+				err:      errors.New("sql: connection closed"),
+				expected: true,
+			},
+			{
+				name:     "case insensitive unexpected EOF",
+				err:      errors.New("UnExpEcTeD EoF"),
+				expected: true,
+			},
+			{
+				name:     "wrapped network error",
+				err:      fmt.Errorf("database error: %w", errors.New("connection reset by peer")),
+				expected: true,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				result := isRetryableError(tc.err)
+				if result != tc.expected {
+					t.Errorf("expected isRetryableError to return %v for error: %v", tc.expected, tc.err)
+				}
+			})
+		}
+	})
 }
 
 func TestRetryDBTX(t *testing.T) {
@@ -276,6 +339,91 @@ func TestRetryDBTX(t *testing.T) {
 				Once()
 
 			db := New(mockDB)
+			rows, err := db.QueryContext(context.Background(), "SELECT 1", 1)
+
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+			if rows != expectedRows {
+				t.Error("expected rows to match")
+			}
+		})
+
+		t.Run("QueryContext retries on network errors", func(t *testing.T) {
+			testCases := []struct {
+				name          string
+				initialError  error
+				expectedRetry bool
+			}{
+				{
+					name:          "retries on connection reset",
+					initialError:  errors.New("write tcp 127.0.0.1:35645: connection reset by peer"),
+					expectedRetry: true,
+				},
+				{
+					name:          "retries on broken pipe",
+					initialError:  errors.New("write tcp 127.0.0.1:35645: broken pipe"),
+					expectedRetry: true,
+				},
+				{
+					name:          "retries on unexpected EOF",
+					initialError:  errors.New("unexpected EOF"),
+					expectedRetry: true,
+				},
+			}
+
+			for _, tc := range testCases {
+				t.Run(tc.name, func(t *testing.T) {
+					mockDB := sqldbtx.NewMockDBTX(t)
+					expectedRows := &sql.Rows{}
+
+					// First call returns the network error
+					mockDB.EXPECT().
+						QueryContext(mock.Anything, "SELECT 1", mock.Anything).
+						Return(nil, tc.initialError).
+						Once()
+
+					// Second call succeeds
+					mockDB.EXPECT().
+						QueryContext(mock.Anything, "SELECT 1", mock.Anything).
+						Return(expectedRows, nil).
+						Once()
+
+					db := New(mockDB, WithRetryOptions(func() []backoff.RetryOption {
+						return []backoff.RetryOption{}
+					}))
+					rows, err := db.QueryContext(context.Background(), "SELECT 1", 1)
+
+					if err != nil {
+						t.Errorf("unexpected error: %v", err)
+					}
+					if rows != expectedRows {
+						t.Error("expected rows to match")
+					}
+				})
+			}
+		})
+
+		t.Run("QueryContext multiple retries on persistent network errors", func(t *testing.T) {
+			mockDB := sqldbtx.NewMockDBTX(t)
+			expectedRows := &sql.Rows{}
+			networkErr := errors.New("write tcp 127.0.0.1:35645: connection reset by peer")
+
+			// Fail three times with network errors
+			mockDB.EXPECT().
+				QueryContext(mock.Anything, "SELECT 1", mock.Anything).
+				Return(nil, networkErr).
+				Times(3)
+
+			// Finally succeed
+			mockDB.EXPECT().
+				QueryContext(mock.Anything, "SELECT 1", mock.Anything).
+				Return(expectedRows, nil).
+				Once()
+
+			db := New(mockDB, WithRetryOptions(func() []backoff.RetryOption {
+				return []backoff.RetryOption{}
+			}))
 			rows, err := db.QueryContext(context.Background(), "SELECT 1", 1)
 
 			if err != nil {

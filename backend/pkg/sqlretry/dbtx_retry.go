@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/cenkalti/backoff/v5"
@@ -14,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lib/pq"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqldbtx"
+	"github.com/nucleuscloud/neosync/internal/backoffutil"
 )
 
 type RetryDBTX struct {
@@ -72,21 +74,21 @@ func (r *RetryDBTX) ExecContext(ctx context.Context, query string, args ...any) 
 	operation := func() (sql.Result, error) {
 		return r.dbtx.ExecContext(ctx, query, args...)
 	}
-	return retry(ctx, operation, r.config.getRetryOpts)
+	return backoffutil.Retry(ctx, operation, r.config.getRetryOpts, isRetryableError)
 }
 
 func (r *RetryDBTX) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
 	operation := func() (*sql.Stmt, error) {
 		return r.dbtx.PrepareContext(ctx, query)
 	}
-	return retry(ctx, operation, r.config.getRetryOpts)
+	return backoffutil.Retry(ctx, operation, r.config.getRetryOpts, isRetryableError)
 }
 
 func (r *RetryDBTX) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
 	operation := func() (*sql.Rows, error) {
 		return r.dbtx.QueryContext(ctx, query, args...)
 	}
-	return retry(ctx, operation, r.config.getRetryOpts)
+	return backoffutil.Retry(ctx, operation, r.config.getRetryOpts, isRetryableError)
 }
 
 func (r *RetryDBTX) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
@@ -97,7 +99,7 @@ func (r *RetryDBTX) PingContext(ctx context.Context) error {
 	operation := func() (any, error) {
 		return nil, r.dbtx.PingContext(ctx)
 	}
-	_, err := retry(ctx, operation, r.config.getRetryOpts)
+	_, err := backoffutil.Retry(ctx, operation, r.config.getRetryOpts, isRetryableError)
 	return err
 }
 
@@ -105,7 +107,7 @@ func (r *RetryDBTX) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, 
 	operation := func() (*sql.Tx, error) {
 		return r.dbtx.BeginTx(ctx, opts)
 	}
-	return retry(ctx, operation, r.config.getRetryOpts)
+	return backoffutil.Retry(ctx, operation, r.config.getRetryOpts, isRetryableError)
 }
 
 func (r *RetryDBTX) RetryTx(ctx context.Context, opts *sql.TxOptions, fn func(*sql.Tx) error) error {
@@ -133,39 +135,8 @@ func (r *RetryDBTX) RetryTx(ctx context.Context, opts *sql.TxOptions, fn func(*s
 		return nil, nil
 	}
 
-	_, err := retry(ctx, operation, r.config.getRetryOpts)
+	_, err := backoffutil.Retry(ctx, operation, r.config.getRetryOpts, isRetryableError)
 	return err
-}
-
-func retry[T any](ctx context.Context, fn func() (T, error), getOpts func() []backoff.RetryOption) (T, error) {
-	opts := getOpts()
-	return retryUnwrap(backoff.Retry(ctx, retryWrap(fn), opts...))
-}
-
-// wraps the input operation to properly handle retryable errors
-func retryWrap[T any](fn func() (T, error)) func() (T, error) {
-	return func() (T, error) {
-		res, err := fn()
-		if err != nil {
-			return res, handleErrorForRetry(err)
-		}
-		return res, nil
-	}
-}
-
-// unwraps the result of a final retryable operation and returns the result and the error
-func retryUnwrap[T any](res T, err error) (T, error) {
-	if err != nil {
-		return res, unwrapPermanentError(err)
-	}
-	return res, nil
-}
-
-func handleErrorForRetry(err error) error {
-	if isRetryableError(err) {
-		return err
-	}
-	return backoff.Permanent(err)
 }
 
 const (
@@ -189,6 +160,49 @@ func isRetryableError(err error) bool {
 		return true
 	}
 
+	if isRetryablePostgresError(err) {
+		return true
+	}
+
+	if isNetworkError(err) {
+		return true
+	}
+
+	return false
+}
+
+var (
+	networkErrors = []string{
+		"unexpected eof", // Important for cases that don't explicitly return io.ErrUnexpectedEOF
+		"connection reset by peer",
+		"broken pipe",
+		"connection refused",
+		"i/o timeout",
+		"no connection",
+		"connection closed",
+	}
+)
+
+func isNetworkError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errMsg := strings.ToLower(err.Error())
+	for _, netErr := range networkErrors {
+		if strings.Contains(errMsg, netErr) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isRetryablePostgresError(err error) bool {
+	if err == nil {
+		return false
+	}
+
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		switch pgErr.Code {
@@ -210,17 +224,6 @@ func isRetryableError(err error) bool {
 			return true
 		}
 	}
-	return false
-}
 
-// unwrapPermanentError unwraps a PermanentError and returns the underlying error
-func unwrapPermanentError(err error) error {
-	if err == nil {
-		return nil
-	}
-	permanentErr, ok := err.(*backoff.PermanentError)
-	if !ok {
-		return err
-	}
-	return permanentErr.Unwrap()
+	return false
 }
