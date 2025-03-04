@@ -74,7 +74,7 @@ column_defaults AS (
         n.nspname NOT IN('pg_catalog', 'pg_toast', 'information_schema')
         AND a.attnum > 0
         AND NOT a.attisdropped
-        AND c.relkind = 'r'
+        AND c.relkind IN ('r', 'p')
 ),
 identity_columns AS (
     SELECT
@@ -204,7 +204,7 @@ column_defaults AS (
         (n.nspname || '.' || c.relname) = ANY(sqlc.arg('schematables')::TEXT[])
         AND a.attnum > 0
         AND NOT a.attisdropped
-        AND c.relkind = 'r'
+        AND c.relkind IN ('r', 'p') 
 ),
 identity_columns AS (
     SELECT
