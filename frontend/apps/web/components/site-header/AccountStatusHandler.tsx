@@ -49,7 +49,6 @@ export function AccountStatusHandler(props: Props) {
       )}
       <Upgrade
         calendlyLink={systemAppConfig.calendlyUpgradeLink}
-        isNeosyncCloud={systemAppConfig.isNeosyncCloud}
         isAccountStatusValidResp={data}
         isLoading={isLoading}
       />
