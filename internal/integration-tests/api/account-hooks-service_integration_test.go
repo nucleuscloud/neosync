@@ -412,7 +412,7 @@ func (s *IntegrationTestSuite) createAccountHook_Slack(
 			Config: &mgmtv1alpha1.AccountHookConfig{
 				Config: &mgmtv1alpha1.AccountHookConfig_Slack{
 					Slack: &mgmtv1alpha1.AccountHookConfig_SlackHook{
-						Channel: "channel-id",
+						ChannelId: "channel-id",
 					},
 				},
 			},
