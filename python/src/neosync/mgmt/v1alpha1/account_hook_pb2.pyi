@@ -60,7 +60,7 @@ class NewAccountHook(_message.Message):
     def __init__(self, name: _Optional[str] = ..., description: _Optional[str] = ..., events: _Optional[_Iterable[_Union[AccountHookEvent, str]]] = ..., config: _Optional[_Union[AccountHookConfig, _Mapping]] = ..., enabled: bool = ...) -> None: ...
 
 class AccountHookConfig(_message.Message):
-    __slots__ = ("webhook",)
+    __slots__ = ("webhook", "slack")
     class WebHook(_message.Message):
         __slots__ = ("url", "secret", "disable_ssl_verification")
         URL_FIELD_NUMBER: _ClassVar[int]
@@ -70,9 +70,16 @@ class AccountHookConfig(_message.Message):
         secret: str
         disable_ssl_verification: bool
         def __init__(self, url: _Optional[str] = ..., secret: _Optional[str] = ..., disable_ssl_verification: bool = ...) -> None: ...
+    class SlackHook(_message.Message):
+        __slots__ = ("channel_id",)
+        CHANNEL_ID_FIELD_NUMBER: _ClassVar[int]
+        channel_id: str
+        def __init__(self, channel_id: _Optional[str] = ...) -> None: ...
     WEBHOOK_FIELD_NUMBER: _ClassVar[int]
+    SLACK_FIELD_NUMBER: _ClassVar[int]
     webhook: AccountHookConfig.WebHook
-    def __init__(self, webhook: _Optional[_Union[AccountHookConfig.WebHook, _Mapping]] = ...) -> None: ...
+    slack: AccountHookConfig.SlackHook
+    def __init__(self, webhook: _Optional[_Union[AccountHookConfig.WebHook, _Mapping]] = ..., slack: _Optional[_Union[AccountHookConfig.SlackHook, _Mapping]] = ...) -> None: ...
 
 class GetAccountHooksRequest(_message.Message):
     __slots__ = ("account_id",)
@@ -187,3 +194,62 @@ class GetActiveAccountHooksByEventResponse(_message.Message):
     HOOKS_FIELD_NUMBER: _ClassVar[int]
     hooks: _containers.RepeatedCompositeFieldContainer[AccountHook]
     def __init__(self, hooks: _Optional[_Iterable[_Union[AccountHook, _Mapping]]] = ...) -> None: ...
+
+class GetSlackConnectionUrlRequest(_message.Message):
+    __slots__ = ("account_id",)
+    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    account_id: str
+    def __init__(self, account_id: _Optional[str] = ...) -> None: ...
+
+class GetSlackConnectionUrlResponse(_message.Message):
+    __slots__ = ("url",)
+    URL_FIELD_NUMBER: _ClassVar[int]
+    url: str
+    def __init__(self, url: _Optional[str] = ...) -> None: ...
+
+class HandleSlackOAuthCallbackRequest(_message.Message):
+    __slots__ = ("state", "code")
+    STATE_FIELD_NUMBER: _ClassVar[int]
+    CODE_FIELD_NUMBER: _ClassVar[int]
+    state: str
+    code: str
+    def __init__(self, state: _Optional[str] = ..., code: _Optional[str] = ...) -> None: ...
+
+class HandleSlackOAuthCallbackResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class TestSlackConnectionRequest(_message.Message):
+    __slots__ = ("account_id",)
+    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    account_id: str
+    def __init__(self, account_id: _Optional[str] = ...) -> None: ...
+
+class TestSlackConnectionResponse(_message.Message):
+    __slots__ = ("has_configuration", "test_response", "error")
+    class Response(_message.Message):
+        __slots__ = ("url", "team")
+        URL_FIELD_NUMBER: _ClassVar[int]
+        TEAM_FIELD_NUMBER: _ClassVar[int]
+        url: str
+        team: str
+        def __init__(self, url: _Optional[str] = ..., team: _Optional[str] = ...) -> None: ...
+    HAS_CONFIGURATION_FIELD_NUMBER: _ClassVar[int]
+    TEST_RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    has_configuration: bool
+    test_response: TestSlackConnectionResponse.Response
+    error: str
+    def __init__(self, has_configuration: bool = ..., test_response: _Optional[_Union[TestSlackConnectionResponse.Response, _Mapping]] = ..., error: _Optional[str] = ...) -> None: ...
+
+class SendSlackMessageRequest(_message.Message):
+    __slots__ = ("account_hook_id", "event")
+    ACCOUNT_HOOK_ID_FIELD_NUMBER: _ClassVar[int]
+    EVENT_FIELD_NUMBER: _ClassVar[int]
+    account_hook_id: str
+    event: bytes
+    def __init__(self, account_hook_id: _Optional[str] = ..., event: _Optional[bytes] = ...) -> None: ...
+
+class SendSlackMessageResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...

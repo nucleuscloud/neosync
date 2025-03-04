@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -87,29 +88,69 @@ func (a *Activity) ExecuteAccountHook(
 		if cfg.Webhook == nil {
 			return nil, errors.New("webhook config was nil for account hook configuration")
 		}
-		webhook := cfg.Webhook
-		slogger.Debug(fmt.Sprintf("webhook url: %s, skipVerify: %t", webhook.GetUrl(), webhook.GetDisableSslVerification()))
-		jsonPayload, err := getPayload(req.Event)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get payload: %w", err)
+		if err := executeWebhook(ctx, cfg.Webhook, req.Event, slogger); err != nil {
+			return nil, fmt.Errorf("unable to execute webhook: %w", err)
 		}
 
-		slogger.Debug("generating hmac signature")
-		signature, err := generateHmac(webhook.GetSecret(), jsonPayload)
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate hmac signature: %w", err)
+	case *mgmtv1alpha1.AccountHookConfig_Slack:
+		slogger.Debug("executing slack message")
+		if cfg.Slack == nil {
+			return nil, errors.New("slack config was nil for account hook configuration")
 		}
-
-		slogger.Debug("executing webhook request")
-		if err := executeWebhookRequest(ctx, webhook.GetUrl(), jsonPayload, signature, webhook.GetDisableSslVerification()); err != nil {
-			return nil, fmt.Errorf("unable to execute webhook request: %w", err)
+		if err := executeSlackMessage(ctx, a.accounthookclient, req.HookId, req.Event); err != nil {
+			return nil, fmt.Errorf("unable to execute slack message: %w", err)
 		}
-
 	default:
 		slogger.Warn(fmt.Sprintf("hook config type %T not supported", cfg))
 	}
 
 	return &ExecuteHookResponse{}, nil
+}
+
+func executeSlackMessage(
+	ctx context.Context,
+	client mgmtv1alpha1connect.AccountHookServiceClient,
+	hookId string,
+	event *accounthook_events.Event,
+) error {
+	bits, err := json.Marshal(event)
+	if err != nil {
+		return fmt.Errorf("unable to marshal event: %w", err)
+	}
+	_, err = client.SendSlackMessage(ctx, connect.NewRequest(&mgmtv1alpha1.SendSlackMessageRequest{
+		AccountHookId: hookId,
+		Event:         bits,
+	}))
+	if err != nil {
+		return fmt.Errorf("unable to send slack message: %w", err)
+	}
+	return nil
+}
+
+func executeWebhook(
+	ctx context.Context,
+	webhook *mgmtv1alpha1.AccountHookConfig_WebHook,
+	event *accounthook_events.Event,
+	logger *slog.Logger,
+) error {
+	logger.Debug(fmt.Sprintf("webhook url: %s, skipVerify: %t", webhook.GetUrl(), webhook.GetDisableSslVerification()))
+	jsonPayload, err := getPayload(event)
+	if err != nil {
+		return fmt.Errorf("unable to get payload: %w", err)
+	}
+
+	logger.Debug("generating hmac signature")
+	signature, err := generateHmac(webhook.GetSecret(), jsonPayload)
+	if err != nil {
+		return fmt.Errorf("unable to generate hmac signature: %w", err)
+	}
+
+	logger.Debug("executing webhook request")
+	if err := executeWebhookRequest(ctx, webhook.GetUrl(), jsonPayload, signature, webhook.GetDisableSslVerification()); err != nil {
+		return fmt.Errorf("unable to execute webhook request: %w", err)
+	}
+
+	return nil
 }
 
 const (

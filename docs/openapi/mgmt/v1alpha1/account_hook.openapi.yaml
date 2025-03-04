@@ -185,16 +185,24 @@ components:
       allOf:
         - anyOf:
             - required:
+                - slack
+            - required:
                 - webhook
             - not:
                 anyOf:
                   - required:
+                      - slack
+                  - required:
                       - webhook
       anyOf:
+        - required:
+            - slack
         - required:
             - webhook
         - not:
             anyOf:
+              - required:
+                  - slack
               - required:
                   - webhook
       properties:
@@ -202,13 +210,26 @@ components:
           allOf:
             - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookConfig.WebHook'
           title: webhook
-          description: |-
-            Webhook-based hooks Slack-based hooks
-             SlackHook slack = 2;
-             Future: Discord, Teams, etc.
+          description: Webhook-based hooks
+        slack:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookConfig.SlackHook'
+          title: slack
+          description: 'Slack-based hooks Future: Discord, Teams, etc.'
       title: AccountHookConfig
       additionalProperties: false
       description: Hook-specific configuration
+    mgmt.v1alpha1.AccountHookConfig.SlackHook:
+      type: object
+      properties:
+        channelId:
+          type: string
+          title: channel_id
+          minLength: 1
+          description: The Slack channel id to post messages to.
+      title: SlackHook
+      additionalProperties: false
+      description: Slack hook configuration
     mgmt.v1alpha1.AccountHookConfig.WebHook:
       type: object
       properties:
@@ -346,6 +367,44 @@ components:
           description: The list of active account hooks.
       title: GetActiveAccountHooksByEventResponse
       additionalProperties: false
+    mgmt.v1alpha1.GetSlackConnectionUrlRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to retrieve the Slack connection URL for.
+      title: GetSlackConnectionUrlRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetSlackConnectionUrlResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          title: url
+          description: The Slack connection URL.
+      title: GetSlackConnectionUrlResponse
+      additionalProperties: false
+    mgmt.v1alpha1.HandleSlackOAuthCallbackRequest:
+      type: object
+      properties:
+        state:
+          type: string
+          title: state
+          minLength: 1
+          description: The Slack state.
+        code:
+          type: string
+          title: code
+          minLength: 1
+          description: The Slack code.
+      title: HandleSlackOAuthCallbackRequest
+      additionalProperties: false
+    mgmt.v1alpha1.HandleSlackOAuthCallbackResponse:
+      type: object
+      title: HandleSlackOAuthCallbackResponse
+      additionalProperties: false
     mgmt.v1alpha1.IsAccountHookNameAvailableRequest:
       type: object
       properties:
@@ -403,6 +462,25 @@ components:
       required:
         - config
       additionalProperties: false
+    mgmt.v1alpha1.SendSlackMessageRequest:
+      type: object
+      properties:
+        accountHookId:
+          type: string
+          title: account_hook_id
+          format: uuid
+          description: The account hook ID to send the Slack message to.
+        event:
+          type: string
+          title: event
+          format: byte
+          description: The marshaled event that was emitted by the worker.
+      title: SendSlackMessageRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SendSlackMessageResponse:
+      type: object
+      title: SendSlackMessageResponse
+      additionalProperties: false
     mgmt.v1alpha1.SetAccountHookEnabledRequest:
       type: object
       properties:
@@ -426,6 +504,62 @@ components:
           title: hook
           description: The updated account hook.
       title: SetAccountHookEnabledResponse
+      additionalProperties: false
+    mgmt.v1alpha1.TestSlackConnectionRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to test the Slack connection for.
+      title: TestSlackConnectionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.TestSlackConnectionResponse:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - error
+            - not:
+                anyOf:
+                  - required:
+                      - error
+        - anyOf:
+            - required:
+                - testResponse
+            - not:
+                anyOf:
+                  - required:
+                      - testResponse
+      properties:
+        hasConfiguration:
+          type: boolean
+          title: has_configuration
+          description: Whether there is an existing Slack configuration.
+        testResponse:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TestSlackConnectionResponse.Response'
+          title: test_response
+          description: The response from the Slack API.
+        error:
+          type: string
+          title: error
+          description: The error message if the connection failed.
+      title: TestSlackConnectionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.TestSlackConnectionResponse.Response:
+      type: object
+      properties:
+        url:
+          type: string
+          title: url
+          description: The URL of the Slack that is connected.
+        team:
+          type: string
+          title: team
+          description: The team name of the Slack that is connected.
+      title: Response
       additionalProperties: false
     mgmt.v1alpha1.UpdateAccountHookRequest:
       type: object
@@ -820,5 +954,149 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.GetActiveAccountHooksByEventResponse'
+  /mgmt.v1alpha1.AccountHookService/GetSlackConnectionUrl:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: GetSlackConnectionUrl
+      description: Retrieves the Slack connection url that allows a user to connect their Slack workspace to Neosync.
+      operationId: mgmt.v1alpha1.AccountHookService.GetSlackConnectionUrl
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetSlackConnectionUrlRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetSlackConnectionUrlResponse'
+  /mgmt.v1alpha1.AccountHookService/HandleSlackOAuthCallback:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: HandleSlackOAuthCallback
+      description: Handles the Slack OAuth callback.
+      operationId: mgmt.v1alpha1.AccountHookService.HandleSlackOAuthCallback
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.HandleSlackOAuthCallbackRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.HandleSlackOAuthCallbackResponse'
+  /mgmt.v1alpha1.AccountHookService/TestSlackConnection:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: TestSlackConnection
+      description: Tests the Slack connection by using the stored access token to initiate an auth test api call to slack.
+      operationId: mgmt.v1alpha1.AccountHookService.TestSlackConnection
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.TestSlackConnectionRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.TestSlackConnectionResponse'
+  /mgmt.v1alpha1.AccountHookService/SendSlackMessage:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: SendSlackMessage
+      description: For sending slack messages from the worker.
+      operationId: mgmt.v1alpha1.AccountHookService.SendSlackMessage
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SendSlackMessageRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SendSlackMessageResponse'
 tags:
   - name: mgmt.v1alpha1.AccountHookService

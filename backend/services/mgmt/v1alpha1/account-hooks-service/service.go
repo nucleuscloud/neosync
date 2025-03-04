@@ -86,3 +86,35 @@ func (s *Service) GetActiveAccountHooksByEvent(ctx context.Context, req *connect
 	}
 	return connect.NewResponse(resp), nil
 }
+
+func (s *Service) GetSlackConnectionUrl(ctx context.Context, req *connect.Request[mgmtv1alpha1.GetSlackConnectionUrlRequest]) (*connect.Response[mgmtv1alpha1.GetSlackConnectionUrlResponse], error) {
+	resp, err := s.hookservice.GetSlackConnectionUrl(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *Service) HandleSlackOAuthCallback(ctx context.Context, req *connect.Request[mgmtv1alpha1.HandleSlackOAuthCallbackRequest]) (*connect.Response[mgmtv1alpha1.HandleSlackOAuthCallbackResponse], error) {
+	resp, err := s.hookservice.HandleSlackOAuthCallback(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *Service) TestSlackConnection(ctx context.Context, req *connect.Request[mgmtv1alpha1.TestSlackConnectionRequest]) (*connect.Response[mgmtv1alpha1.TestSlackConnectionResponse], error) {
+	resp, err := s.hookservice.TestSlackConnection(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *Service) SendSlackMessage(ctx context.Context, req *connect.Request[mgmtv1alpha1.SendSlackMessageRequest]) (*connect.Response[mgmtv1alpha1.SendSlackMessageResponse], error) {
+	resp, err := s.hookservice.SendSlackMessage(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}

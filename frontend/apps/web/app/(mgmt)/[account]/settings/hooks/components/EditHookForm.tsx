@@ -53,6 +53,9 @@ export function EditHookForm({ hook, onSubmit }: EditHookFormProps) {
 
       const validatedData = await EditAccountHookFormValues.validate(formData, {
         abortEarly: false,
+        context: {
+          hookType: formData.hookType,
+        },
       });
 
       await onSubmit(editFormDataToAccountHook(hook, validatedData));

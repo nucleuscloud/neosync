@@ -62,7 +62,7 @@ export default function EditHookButton(props: Props): ReactElement {
         <DialogHeader>
           <DialogTitle>Edit Account Hook: {hook.name}</DialogTitle>
           <DialogDescription>
-            Change any of the available account hook settings.
+            Change any of the available account hook settings
           </DialogDescription>
         </DialogHeader>
         <EditHookForm key={hook.id} hook={hook} onSubmit={onUpdate} />

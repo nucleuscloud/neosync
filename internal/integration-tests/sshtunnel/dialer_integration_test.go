@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"log/slog"
 	"net"
 	"testing"
 	"time"
 
+	"github.com/cenkalti/backoff/v5"
 	gssh "github.com/gliderlabs/ssh"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mssqltunconnector"
@@ -299,8 +301,18 @@ func Test_SSHDialerResilience(t *testing.T) {
 
 		// Configure short retry intervals for testing
 		dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, &sshtunnel.SSHDialerConfig{
-			MaxRetries:        3,
-			InitialBackoff:    50 * time.Millisecond,
+			GetRetryOpts: func(logger *slog.Logger) []backoff.RetryOption {
+				backoffStrategy := backoff.NewExponentialBackOff()
+				backoffStrategy.InitialInterval = 50 * time.Millisecond
+				backoffStrategy.MaxInterval = 1 * time.Second
+				backoffStrategy.Multiplier = 2
+				backoffStrategy.RandomizationFactor = 0.3
+				return []backoff.RetryOption{
+					backoff.WithBackOff(backoffStrategy),
+					backoff.WithMaxTries(3),
+					backoff.WithMaxElapsedTime(5 * time.Second),
+				}
+			},
 			KeepAliveInterval: 100 * time.Millisecond,
 			KeepAliveTimeout:  50 * time.Millisecond,
 		}, testutil.GetConcurrentTestLogger(t))
@@ -364,8 +376,18 @@ func Test_SSHDialerResilience(t *testing.T) {
 		}
 
 		dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, &sshtunnel.SSHDialerConfig{
-			MaxRetries:        3,
-			InitialBackoff:    50 * time.Millisecond,
+			GetRetryOpts: func(logger *slog.Logger) []backoff.RetryOption {
+				backoffStrategy := backoff.NewExponentialBackOff()
+				backoffStrategy.InitialInterval = 50 * time.Millisecond
+				backoffStrategy.MaxInterval = 1 * time.Second
+				backoffStrategy.Multiplier = 2
+				backoffStrategy.RandomizationFactor = 0.3
+				return []backoff.RetryOption{
+					backoff.WithBackOff(backoffStrategy),
+					backoff.WithMaxTries(3),
+					backoff.WithMaxElapsedTime(5 * time.Second),
+				}
+			},
 			KeepAliveInterval: 100 * time.Millisecond,
 			KeepAliveTimeout:  50 * time.Millisecond,
 		}, testutil.GetConcurrentTestLogger(t))
@@ -395,8 +417,18 @@ func Test_SSHDialerResilience(t *testing.T) {
 		}
 
 		dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, &sshtunnel.SSHDialerConfig{
-			MaxRetries:        2,
-			InitialBackoff:    50 * time.Millisecond,
+			GetRetryOpts: func(logger *slog.Logger) []backoff.RetryOption {
+				backoffStrategy := backoff.NewExponentialBackOff()
+				backoffStrategy.InitialInterval = 50 * time.Millisecond
+				backoffStrategy.MaxInterval = 1 * time.Second
+				backoffStrategy.Multiplier = 2
+				backoffStrategy.RandomizationFactor = 0.3
+				return []backoff.RetryOption{
+					backoff.WithBackOff(backoffStrategy),
+					backoff.WithMaxTries(3),
+					backoff.WithMaxElapsedTime(5 * time.Second),
+				}
+			},
 			KeepAliveInterval: 100 * time.Millisecond,
 			KeepAliveTimeout:  50 * time.Millisecond,
 		}, testutil.GetConcurrentTestLogger(t))
@@ -406,7 +438,7 @@ func Test_SSHDialerResilience(t *testing.T) {
 		conn, err := dialer.DialContext(ctx, "tcp", "localhost:5555") // port that is not being used
 		require.Error(t, err)
 		require.Nil(t, conn)
-		require.Contains(t, err.Error(), "unable to dial ssh server after 2 attempts")
+		require.Contains(t, err.Error(), "unable to dial ssh server after multiple attempts")
 	})
 
 	t.Run("cancels retry attempts on context cancellation", func(t *testing.T) {
@@ -418,8 +450,18 @@ func Test_SSHDialerResilience(t *testing.T) {
 		}
 
 		dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, &sshtunnel.SSHDialerConfig{
-			MaxRetries:        5,
-			InitialBackoff:    1 * time.Second, // Longer backoff to ensure we can cancel
+			GetRetryOpts: func(logger *slog.Logger) []backoff.RetryOption {
+				backoffStrategy := backoff.NewExponentialBackOff()
+				backoffStrategy.InitialInterval = 1 * time.Second // Longer initial interval to ensure context cancellation is detected
+				backoffStrategy.MaxInterval = 5 * time.Second
+				backoffStrategy.Multiplier = 2
+				backoffStrategy.RandomizationFactor = 0.3
+				return []backoff.RetryOption{
+					backoff.WithBackOff(backoffStrategy),
+					backoff.WithMaxTries(5),
+					backoff.WithMaxElapsedTime(5 * time.Second),
+				}
+			},
 			KeepAliveInterval: 100 * time.Millisecond,
 			KeepAliveTimeout:  50 * time.Millisecond,
 		}, testutil.GetConcurrentTestLogger(t))
@@ -457,8 +499,18 @@ func Test_SSHDialerResilience(t *testing.T) {
 		}
 
 		dialer := sshtunnel.NewLazySSHDialer(addr, cconfig, &sshtunnel.SSHDialerConfig{
-			MaxRetries:        3,
-			InitialBackoff:    50 * time.Millisecond,
+			GetRetryOpts: func(logger *slog.Logger) []backoff.RetryOption {
+				backoffStrategy := backoff.NewExponentialBackOff()
+				backoffStrategy.InitialInterval = 50 * time.Millisecond
+				backoffStrategy.MaxInterval = 1 * time.Second
+				backoffStrategy.Multiplier = 2
+				backoffStrategy.RandomizationFactor = 0.3
+				return []backoff.RetryOption{
+					backoff.WithBackOff(backoffStrategy),
+					backoff.WithMaxTries(3),
+					backoff.WithMaxElapsedTime(5 * time.Second),
+				}
+			},
 			KeepAliveInterval: 30 * time.Second,
 			KeepAliveTimeout:  50 * time.Millisecond,
 		}, testutil.GetConcurrentTestLogger(t))

@@ -1,0 +1,9 @@
+---
+description: Prefer using sub-tests over table tests for easier readability and one-off testing.
+globs: **/*_test.go
+---
+
+# Adding Go Tests
+
+- When generating tests for a single Go Test, prefer generating sub tests instead of the table or data driven approach.
+- Prefer using require over assert when importing the mockery package
