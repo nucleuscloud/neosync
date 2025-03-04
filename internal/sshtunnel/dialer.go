@@ -26,7 +26,7 @@ type ContextDialer interface {
 var _ Dialer = (*SSHDialer)(nil)
 
 type SSHDialerConfig struct {
-	getRetryOpts func(logger *slog.Logger) []backoff.RetryOption
+	GetRetryOpts func(logger *slog.Logger) []backoff.RetryOption
 
 	KeepAliveInterval time.Duration
 	KeepAliveTimeout  time.Duration
@@ -45,7 +45,7 @@ type SSHDialer struct {
 
 func DefaultSSHDialerConfig() *SSHDialerConfig {
 	return &SSHDialerConfig{
-		getRetryOpts: func(logger *slog.Logger) []backoff.RetryOption {
+		GetRetryOpts: func(logger *slog.Logger) []backoff.RetryOption {
 			backoffStrategy := backoff.NewExponentialBackOff()
 			backoffStrategy.InitialInterval = 200 * time.Millisecond
 			backoffStrategy.MaxInterval = 30 * time.Second
@@ -132,7 +132,7 @@ func (s *SSHDialer) getClient(ctx context.Context) (*ssh.Client, error) {
 	client, err := backoffutil.Retry(
 		ctx,
 		operation,
-		func() []backoff.RetryOption { return s.dialCfg.getRetryOpts(s.logger) },
+		func() []backoff.RetryOption { return s.dialCfg.GetRetryOpts(s.logger) },
 		isRetryableError,
 	)
 	if err != nil {
