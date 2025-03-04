@@ -1,4 +1,5 @@
 'use client';
+import { useNeosyncUser } from '@/libs/hooks/useNeosyncUser';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
 import { UserAccount, UserAccountService } from '@neosync/sdk';
@@ -11,7 +12,7 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { useLocalStorage } from 'usehooks-ts';
+import { useLocalStorage, useSessionStorage } from 'usehooks-ts';
 
 interface AccountContextType {
   account: UserAccount | undefined;
@@ -35,18 +36,28 @@ const STORAGE_ACCOUNT_KEY = 'account';
 
 export default function AccountProvider(props: Props): ReactElement {
   const { children } = props;
-  const { account } = useParams();
   const accountName = useGetAccountName();
-  const [, setLastSelectedAccount] = useLocalStorage(
+
+  // Use both session and local storage
+  const [, setLastSelectedAccountSession] = useSessionStorage(
     STORAGE_ACCOUNT_KEY,
     accountName ?? DEFAULT_ACCOUNT_NAME
   );
+  const [, setLastSelectedAccountLocal] = useLocalStorage(
+    STORAGE_ACCOUNT_KEY,
+    accountName ?? DEFAULT_ACCOUNT_NAME
+  );
+
+  const { isLoading: isUserLoading } = useNeosyncUser();
 
   const {
     data: accountsResponse,
     isLoading,
     refetch: mutate,
-  } = useQuery(UserAccountService.method.getUserAccounts);
+  } = useQuery(UserAccountService.method.getUserAccounts, undefined, {
+    enabled: !isUserLoading,
+  });
+
   const router = useRouter();
 
   const [userAccount, setUserAccount] = useState<UserAccount | undefined>(
@@ -68,14 +79,13 @@ export default function AccountProvider(props: Props): ReactElement {
     }
     if (foundAccount) {
       setUserAccount(foundAccount);
-      setLastSelectedAccount(foundAccount.name);
-      const accountParam = getSingleOrUndefined(account);
-      if (!accountParam || accountParam !== foundAccount.name) {
-        router.push(`/${foundAccount.name}/jobs`);
-      }
+      // Update both storages
+      setLastSelectedAccountSession(foundAccount.name);
+      setLastSelectedAccountLocal(foundAccount.name);
     } else if (accountName !== DEFAULT_ACCOUNT_NAME) {
-      setLastSelectedAccount(DEFAULT_ACCOUNT_NAME);
-      router.push(`/${DEFAULT_ACCOUNT_NAME}/jobs`);
+      // Update both storages
+      setLastSelectedAccountSession(DEFAULT_ACCOUNT_NAME);
+      setLastSelectedAccountLocal(DEFAULT_ACCOUNT_NAME);
     }
   }, [
     userAccount?.id,
@@ -88,10 +98,9 @@ export default function AccountProvider(props: Props): ReactElement {
 
   function setAccount(userAccount: UserAccount): void {
     if (userAccount.name !== accountName) {
-      // this order matters. Otherwise if we push first,
-      // when it routes to the page, there is no account param and it defaults to personal /shrug
-      // by setting this here, it finds the last selected account and is able to effectively route to the correct spot.
-      setLastSelectedAccount(userAccount.name);
+      // Update both storages before routing
+      setLastSelectedAccountSession(userAccount.name);
+      setLastSelectedAccountLocal(userAccount.name);
       setUserAccount(userAccount);
       router.push(`/${userAccount.name}`);
     }
@@ -113,7 +122,12 @@ export default function AccountProvider(props: Props): ReactElement {
 
 function useGetAccountName(): string {
   const { account } = useParams();
-  const [storedAccount] = useLocalStorage(
+  // Check session storage first, then fall back to local storage
+  const [sessionAccount] = useSessionStorage(
+    STORAGE_ACCOUNT_KEY,
+    account ?? DEFAULT_ACCOUNT_NAME
+  );
+  const [localAccount] = useLocalStorage(
     STORAGE_ACCOUNT_KEY,
     account ?? DEFAULT_ACCOUNT_NAME
   );
@@ -122,9 +136,14 @@ function useGetAccountName(): string {
   if (accountParam) {
     return accountParam;
   }
-  const singleStoredAccount = getSingleOrUndefined(storedAccount);
-  if (singleStoredAccount) {
-    return singleStoredAccount;
+  // Prefer session storage account over local storage
+  const singleSessionAccount = getSingleOrUndefined(sessionAccount);
+  if (singleSessionAccount) {
+    return singleSessionAccount;
+  }
+  const singleLocalAccount = getSingleOrUndefined(localAccount);
+  if (singleLocalAccount) {
+    return singleLocalAccount;
   }
   return DEFAULT_ACCOUNT_NAME;
 }
