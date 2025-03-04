@@ -1047,56 +1047,43 @@ func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, sch
 
 const getNonForeignKeyTableConstraintsBySchema = `-- name: GetNonForeignKeyTableConstraintsBySchema :many
 SELECT
-    tc.constraint_name,
-    tc.constraint_type::TEXT AS constraint_type,
-    tc.table_schema AS schema_name,
-    tc.table_name,
+	pn.nspname AS schema_name,
+	c.relname AS table_name,
+	pgcon.conname AS constraint_name,
+	pgcon.contype::TEXT AS constraint_type,
     /* Collect all columns associated with this constraint, if any */
-    ARRAY_AGG(kcu.column_name ORDER BY kcu.ordinal_position)
-        FILTER (WHERE kcu.column_name IS NOT NULL)::TEXT[]  AS constraint_columns,
-    /* Pull the actual definition from pg_get_constraintdef for completeness */
-    pg_get_constraintdef(pgcon.oid)::TEXT AS constraint_definition
-FROM information_schema.table_constraints AS tc
-    /* LEFT JOIN so that constraints without specific columns (e.g. some CHECKs) aren’t lost */
-    LEFT JOIN information_schema.key_column_usage AS kcu
-        ON  tc.constraint_name = kcu.constraint_name
-        AND tc.table_schema = kcu.table_schema
-        AND tc.table_name   = kcu.table_name
-
-    /* Map the info_schema schema name to pg_namespace for use in pg_constraint */
-    JOIN pg_catalog.pg_namespace AS pn
-        ON pn.nspname = tc.table_schema
-
-    /* Retrieve the constraint definition from pg_get_constraintdef() */
-    JOIN pg_catalog.pg_constraint AS pgcon
-        ON  pgcon.conname     = tc.constraint_name
-        AND pgcon.connamespace = pn.oid
+	ARRAY_AGG(kcu.column_name ORDER BY kcu.ordinal_position) FILTER (WHERE kcu.column_name IS NOT NULL)::TEXT [] AS constraint_columns,
+	pg_get_constraintdef(pgcon.oid)::TEXT AS constraint_definition
+FROM
+	pg_catalog.pg_constraint pgcon
+	JOIN pg_catalog.pg_namespace pn ON pn.oid = pgcon.connamespace /* schema info */
+	JOIN pg_catalog.pg_class c ON c.oid = pgcon.conrelid /* table info */
+	LEFT JOIN information_schema.key_column_usage AS kcu ON pgcon.conname = kcu.constraint_name /* column info */
+		AND pn.nspname = kcu.table_schema
+		AND c.relname = kcu.table_name
 WHERE
-    tc.table_schema =  ANY($1::TEXT[])
-    /* Exclude foreign keys */
-    AND tc.constraint_type <> 'FOREIGN KEY'
+	pn.nspname = ANY($1::TEXT[])
+	/* Exclude foreign keys */
+	AND pgcon.contype != 'f'
 GROUP BY
-    tc.constraint_name,
-    tc.constraint_type,
-    tc.table_schema,
-    tc.table_name,
-    pgcon.oid
-ORDER BY
-    tc.table_name,
-    tc.constraint_name
+	pgcon.oid,
+	pgcon.conname,
+	pgcon.contype,
+	pn.nspname,
+	c.relname
 `
 
 type GetNonForeignKeyTableConstraintsBySchemaRow struct {
-	ConstraintName       string
-	ConstraintType       string
 	SchemaName           string
 	TableName            string
+	ConstraintName       string
+	ConstraintType       string
 	ConstraintColumns    []string
 	ConstraintDefinition string
 }
 
-func (q *Queries) GetNonForeignKeyTableConstraintsBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error) {
-	rows, err := db.QueryContext(ctx, getNonForeignKeyTableConstraintsBySchema, pq.Array(schema))
+func (q *Queries) GetNonForeignKeyTableConstraintsBySchema(ctx context.Context, db DBTX, schemas []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error) {
+	rows, err := db.QueryContext(ctx, getNonForeignKeyTableConstraintsBySchema, pq.Array(schemas))
 	if err != nil {
 		return nil, err
 	}
@@ -1105,10 +1092,10 @@ func (q *Queries) GetNonForeignKeyTableConstraintsBySchema(ctx context.Context, 
 	for rows.Next() {
 		var i GetNonForeignKeyTableConstraintsBySchemaRow
 		if err := rows.Scan(
-			&i.ConstraintName,
-			&i.ConstraintType,
 			&i.SchemaName,
 			&i.TableName,
+			&i.ConstraintName,
+			&i.ConstraintType,
 			pq.Array(&i.ConstraintColumns),
 			&i.ConstraintDefinition,
 		); err != nil {

@@ -543,7 +543,7 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 			if err != nil {
 				return nil, err
 			}
-			constraintType, err := ToConstraintType(constraint.ConstraintType)
+			constraintType, err := sqlmanager_shared.ToConstraintType(constraint.ConstraintType)
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert constraint type '%s': %w", constraint.ConstraintType, err)
 			}
@@ -1092,16 +1092,16 @@ func GetPostgresColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.D
 	return
 }
 
-func ToConstraintType(constraintType string) (sqlmanager_shared.ConstraintType, error) {
-	switch constraintType {
-	case "PRIMARY KEY":
-		return sqlmanager_shared.PrimaryConstraintType, nil
-	case "UNIQUE":
-		return sqlmanager_shared.UniqueConstraintType, nil
-	case "FOREIGN KEY":
-		return sqlmanager_shared.ForeignConstraintType, nil
-	case "CHECK":
-		return sqlmanager_shared.CheckConstraintType, nil
-	}
-	return -1, errors.ErrUnsupported
-}
+// func ToConstraintType(constraintType string) (sqlmanager_shared.ConstraintType, error) {
+// 	switch constraintType {
+// 	case "PRIMARY KEY":
+// 		return sqlmanager_shared.PrimaryConstraintType, nil
+// 	case "UNIQUE":
+// 		return sqlmanager_shared.UniqueConstraintType, nil
+// 	case "FOREIGN KEY":
+// 		return sqlmanager_shared.ForeignConstraintType, nil
+// 	case "CHECK":
+// 		return sqlmanager_shared.CheckConstraintType, nil
+// 	}
+// 	return -1, errors.ErrUnsupported
+// }

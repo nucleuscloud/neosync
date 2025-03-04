@@ -575,7 +575,7 @@ SELECT
 	pn.nspname AS schema_name,
 	c.relname AS table_name,
 	pgcon.conname AS constraint_name,
-	pgcon.contype AS constraint_type,
+	pgcon.contype::TEXT AS constraint_type,
     /* Collect all columns associated with this constraint, if any */
 	ARRAY_AGG(kcu.column_name ORDER BY kcu.ordinal_position) FILTER (WHERE kcu.column_name IS NOT NULL)::TEXT [] AS constraint_columns,
 	pg_get_constraintdef(pgcon.oid)::TEXT AS constraint_definition
@@ -587,7 +587,7 @@ FROM
 		AND pn.nspname = kcu.table_schema
 		AND c.relname = kcu.table_name
 WHERE
-	pn.nspname = ANY(sqlc.arg('schema')::TEXT[])
+	pn.nspname = ANY(sqlc.arg('schemas')::TEXT[])
 	/* Exclude foreign keys */
 	AND pgcon.contype != 'f'
 GROUP BY
