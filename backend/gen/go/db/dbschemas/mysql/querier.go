@@ -14,10 +14,12 @@ type Querier interface {
 	GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomTriggersBySchemaAndTablesParams) ([]*GetCustomTriggersBySchemaAndTablesRow, error)
 	GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error)
 	GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX, arg *GetDatabaseTableSchemasBySchemasAndTablesParams) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error)
-	GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, arg *GetIndicesBySchemasAndTablesParams) ([]*GetIndicesBySchemasAndTablesRow, error)
+	GetMariaDbIndicesBySchemasAndTables(ctx context.Context, db DBTX, arg *GetMariaDbIndicesBySchemasAndTablesParams) ([]*GetMariaDbIndicesBySchemasAndTablesRow, error)
+	GetMysqlIndicesBySchemasAndTables(ctx context.Context, db DBTX, arg *GetMysqlIndicesBySchemasAndTablesParams) ([]*GetMysqlIndicesBySchemasAndTablesRow, error)
 	GetMysqlRolePermissions(ctx context.Context, db DBTX) ([]*GetMysqlRolePermissionsRow, error)
 	GetTableConstraints(ctx context.Context, db DBTX, arg *GetTableConstraintsParams) ([]*GetTableConstraintsRow, error)
 	GetTableConstraintsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetTableConstraintsBySchemasRow, error)
+	GetVersion(ctx context.Context, db DBTX) (string, error)
 }
 
 var _ Querier = (*Queries)(nil)
