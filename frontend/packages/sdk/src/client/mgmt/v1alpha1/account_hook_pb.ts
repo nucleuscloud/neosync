@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file mgmt/v1alpha1/account_hook.proto.
  */
 export const file_mgmt_v1alpha1_account_hook: GenFile = /*@__PURE__*/
-  fileDesc("CiBtZ210L3YxYWxwaGExL2FjY291bnRfaG9vay5wcm90bxINbWdtdC52MWFscGhhMSLcAgoLQWNjb3VudEhvb2sSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRISCgphY2NvdW50X2lkGAQgASgJEi8KBmV2ZW50cxgFIAMoDjIfLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2tFdmVudBIwCgZjb25maWcYBiABKAsyIC5tZ210LnYxYWxwaGExLkFjY291bnRIb29rQ29uZmlnEhoKEmNyZWF0ZWRfYnlfdXNlcl9pZBgHIAEoCRIuCgpjcmVhdGVkX2F0GAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIaChJ1cGRhdGVkX2J5X3VzZXJfaWQYCSABKAkSLgoKdXBkYXRlZF9hdBgKIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDwoHZW5hYmxlZBgLIAEoCCLdAQoOTmV3QWNjb3VudEhvb2sSJwoEbmFtZRgBIAEoCUIZukgWchQyEl5bYS16MC05LV17MywxMDB9JBIcCgtkZXNjcmlwdGlvbhgCIAEoCUIHukgEcgIQARI5CgZldmVudHMYAyADKA4yHy5tZ210LnYxYWxwaGExLkFjY291bnRIb29rRXZlbnRCCLpIBZIBAggBEjgKBmNvbmZpZxgEIAEoCzIgLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2tDb25maWdCBrpIA8gBARIPCgdlbmFibGVkGAUgASgIIr4BChFBY2NvdW50SG9va0NvbmZpZxI7Cgd3ZWJob29rGAEgASgLMigubWdtdC52MWFscGhhMS5BY2NvdW50SG9va0NvbmZpZy5XZWJIb29rSAAaWwoHV2ViSG9vaxIVCgN1cmwYASABKAlCCLpIBXIDiAEBEhcKBnNlY3JldBgCIAEoCUIHukgEcgIQARIgChhkaXNhYmxlX3NzbF92ZXJpZmljYXRpb24YAyABKAhCDwoGY29uZmlnEgW6SAIIASI2ChZHZXRBY2NvdW50SG9va3NSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBIkQKF0dldEFjY291bnRIb29rc1Jlc3BvbnNlEikKBWhvb2tzGAEgAygLMhoubWdtdC52MWFscGhhMS5BY2NvdW50SG9vayItChVHZXRBY2NvdW50SG9va1JlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBIkIKFkdldEFjY291bnRIb29rUmVzcG9uc2USKAoEaG9vaxgBIAEoCzIaLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2sibQoYQ3JlYXRlQWNjb3VudEhvb2tSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBEjMKBGhvb2sYAiABKAsyHS5tZ210LnYxYWxwaGExLk5ld0FjY291bnRIb29rQga6SAPIAQEiRQoZQ3JlYXRlQWNjb3VudEhvb2tSZXNwb25zZRIoCgRob29rGAEgASgLMhoubWdtdC52MWFscGhhMS5BY2NvdW50SG9vayL1AQoYVXBkYXRlQWNjb3VudEhvb2tSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABARInCgRuYW1lGAIgASgJQhm6SBZyFDISXlthLXowLTktXXszLDEwMH0kEhwKC2Rlc2NyaXB0aW9uGAMgASgJQge6SARyAhABEjkKBmV2ZW50cxgEIAMoDjIfLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2tFdmVudEIIukgFkgECCAESMAoGY29uZmlnGAUgASgLMiAubWdtdC52MWFscGhhMS5BY2NvdW50SG9va0NvbmZpZxIPCgdlbmFibGVkGAYgASgIIkUKGVVwZGF0ZUFjY291bnRIb29rUmVzcG9uc2USKAoEaG9vaxgBIAEoCzIaLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2siMAoYRGVsZXRlQWNjb3VudEhvb2tSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABASJFChlEZWxldGVBY2NvdW50SG9va1Jlc3BvbnNlEigKBGhvb2sYASABKAsyGi5tZ210LnYxYWxwaGExLkFjY291bnRIb29rImoKIUlzQWNjb3VudEhvb2tOYW1lQXZhaWxhYmxlUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABARInCgRuYW1lGAIgASgJQhm6SBZyFDISXlthLXowLTktXXszLDEwMH0kIjoKIklzQWNjb3VudEhvb2tOYW1lQXZhaWxhYmxlUmVzcG9uc2USFAoMaXNfYXZhaWxhYmxlGAEgASgIIkUKHFNldEFjY291bnRIb29rRW5hYmxlZFJlcXVlc3QSFAoCaWQYASABKAlCCLpIBXIDsAEBEg8KB2VuYWJsZWQYAiABKAgiSQodU2V0QWNjb3VudEhvb2tFbmFibGVkUmVzcG9uc2USKAoEaG9vaxgBIAEoCzIaLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2sicwojR2V0QWN0aXZlQWNjb3VudEhvb2tzQnlFdmVudFJlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQESLgoFZXZlbnQYAiABKA4yHy5tZ210LnYxYWxwaGExLkFjY291bnRIb29rRXZlbnQiUQokR2V0QWN0aXZlQWNjb3VudEhvb2tzQnlFdmVudFJlc3BvbnNlEikKBWhvb2tzGAEgAygLMhoubWdtdC52MWFscGhhMS5BY2NvdW50SG9vayqvAQoQQWNjb3VudEhvb2tFdmVudBIiCh5BQ0NPVU5UX0hPT0tfRVZFTlRfVU5TUEVDSUZJRUQQABImCiJBQ0NPVU5UX0hPT0tfRVZFTlRfSk9CX1JVTl9DUkVBVEVEEAESJQohQUNDT1VOVF9IT09LX0VWRU5UX0pPQl9SVU5fRkFJTEVEEAISKAokQUNDT1VOVF9IT09LX0VWRU5UX0pPQl9SVU5fU1VDQ0VFREVEEAMyqAcKEkFjY291bnRIb29rU2VydmljZRJlCg9HZXRBY2NvdW50SG9va3MSJS5tZ210LnYxYWxwaGExLkdldEFjY291bnRIb29rc1JlcXVlc3QaJi5tZ210LnYxYWxwaGExLkdldEFjY291bnRIb29rc1Jlc3BvbnNlIgOQAgESYgoOR2V0QWNjb3VudEhvb2sSJC5tZ210LnYxYWxwaGExLkdldEFjY291bnRIb29rUmVxdWVzdBolLm1nbXQudjFhbHBoYTEuR2V0QWNjb3VudEhvb2tSZXNwb25zZSIDkAIBEmgKEUNyZWF0ZUFjY291bnRIb29rEicubWdtdC52MWFscGhhMS5DcmVhdGVBY2NvdW50SG9va1JlcXVlc3QaKC5tZ210LnYxYWxwaGExLkNyZWF0ZUFjY291bnRIb29rUmVzcG9uc2UiABJoChFVcGRhdGVBY2NvdW50SG9vaxInLm1nbXQudjFhbHBoYTEuVXBkYXRlQWNjb3VudEhvb2tSZXF1ZXN0GigubWdtdC52MWFscGhhMS5VcGRhdGVBY2NvdW50SG9va1Jlc3BvbnNlIgASaAoRRGVsZXRlQWNjb3VudEhvb2sSJy5tZ210LnYxYWxwaGExLkRlbGV0ZUFjY291bnRIb29rUmVxdWVzdBooLm1nbXQudjFhbHBoYTEuRGVsZXRlQWNjb3VudEhvb2tSZXNwb25zZSIAEoMBChpJc0FjY291bnRIb29rTmFtZUF2YWlsYWJsZRIwLm1nbXQudjFhbHBoYTEuSXNBY2NvdW50SG9va05hbWVBdmFpbGFibGVSZXF1ZXN0GjEubWdtdC52MWFscGhhMS5Jc0FjY291bnRIb29rTmFtZUF2YWlsYWJsZVJlc3BvbnNlIgASdAoVU2V0QWNjb3VudEhvb2tFbmFibGVkEisubWdtdC52MWFscGhhMS5TZXRBY2NvdW50SG9va0VuYWJsZWRSZXF1ZXN0GiwubWdtdC52MWFscGhhMS5TZXRBY2NvdW50SG9va0VuYWJsZWRSZXNwb25zZSIAEowBChxHZXRBY3RpdmVBY2NvdW50SG9va3NCeUV2ZW50EjIubWdtdC52MWFscGhhMS5HZXRBY3RpdmVBY2NvdW50SG9va3NCeUV2ZW50UmVxdWVzdBozLm1nbXQudjFhbHBoYTEuR2V0QWN0aXZlQWNjb3VudEhvb2tzQnlFdmVudFJlc3BvbnNlIgOQAgFCzAEKEWNvbS5tZ210LnYxYWxwaGExQhBBY2NvdW50SG9va1Byb3RvUAFaUGdpdGh1Yi5jb20vbnVjbGV1c2Nsb3VkL25lb3N5bmMvYmFja2VuZC9nZW4vZ28vcHJvdG9zL21nbXQvdjFhbHBoYTE7bWdtdHYxYWxwaGExogIDTVhYqgINTWdtdC5WMWFscGhhMcoCDU1nbXRcVjFhbHBoYTHiAhlNZ210XFYxYWxwaGExXEdQQk1ldGFkYXRh6gIOTWdtdDo6VjFhbHBoYTFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_timestamp]);
+  fileDesc("CiBtZ210L3YxYWxwaGExL2FjY291bnRfaG9vay5wcm90bxINbWdtdC52MWFscGhhMSLcAgoLQWNjb3VudEhvb2sSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRISCgphY2NvdW50X2lkGAQgASgJEi8KBmV2ZW50cxgFIAMoDjIfLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2tFdmVudBIwCgZjb25maWcYBiABKAsyIC5tZ210LnYxYWxwaGExLkFjY291bnRIb29rQ29uZmlnEhoKEmNyZWF0ZWRfYnlfdXNlcl9pZBgHIAEoCRIuCgpjcmVhdGVkX2F0GAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIaChJ1cGRhdGVkX2J5X3VzZXJfaWQYCSABKAkSLgoKdXBkYXRlZF9hdBgKIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDwoHZW5hYmxlZBgLIAEoCCLdAQoOTmV3QWNjb3VudEhvb2sSJwoEbmFtZRgBIAEoCUIZukgWchQyEl5bYS16MC05LV17MywxMDB9JBIcCgtkZXNjcmlwdGlvbhgCIAEoCUIHukgEcgIQARI5CgZldmVudHMYAyADKA4yHy5tZ210LnYxYWxwaGExLkFjY291bnRIb29rRXZlbnRCCLpIBZIBAggBEjgKBmNvbmZpZxgEIAEoCzIgLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2tDb25maWdCBrpIA8gBARIPCgdlbmFibGVkGAUgASgIIqUCChFBY2NvdW50SG9va0NvbmZpZxI7Cgd3ZWJob29rGAEgASgLMigubWdtdC52MWFscGhhMS5BY2NvdW50SG9va0NvbmZpZy5XZWJIb29rSAASOwoFc2xhY2sYAiABKAsyKi5tZ210LnYxYWxwaGExLkFjY291bnRIb29rQ29uZmlnLlNsYWNrSG9va0gAGlsKB1dlYkhvb2sSFQoDdXJsGAEgASgJQgi6SAVyA4gBARIXCgZzZWNyZXQYAiABKAlCB7pIBHICEAESIAoYZGlzYWJsZV9zc2xfdmVyaWZpY2F0aW9uGAMgASgIGigKCVNsYWNrSG9vaxIbCgpjaGFubmVsX2lkGAEgASgJQge6SARyAhABQg8KBmNvbmZpZxIFukgCCAEiNgoWR2V0QWNjb3VudEhvb2tzUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABASJEChdHZXRBY2NvdW50SG9va3NSZXNwb25zZRIpCgVob29rcxgBIAMoCzIaLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2siLQoVR2V0QWNjb3VudEhvb2tSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABASJCChZHZXRBY2NvdW50SG9va1Jlc3BvbnNlEigKBGhvb2sYASABKAsyGi5tZ210LnYxYWxwaGExLkFjY291bnRIb29rIm0KGENyZWF0ZUFjY291bnRIb29rUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABARIzCgRob29rGAIgASgLMh0ubWdtdC52MWFscGhhMS5OZXdBY2NvdW50SG9va0IGukgDyAEBIkUKGUNyZWF0ZUFjY291bnRIb29rUmVzcG9uc2USKAoEaG9vaxgBIAEoCzIaLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2si9QEKGFVwZGF0ZUFjY291bnRIb29rUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQESJwoEbmFtZRgCIAEoCUIZukgWchQyEl5bYS16MC05LV17MywxMDB9JBIcCgtkZXNjcmlwdGlvbhgDIAEoCUIHukgEcgIQARI5CgZldmVudHMYBCADKA4yHy5tZ210LnYxYWxwaGExLkFjY291bnRIb29rRXZlbnRCCLpIBZIBAggBEjAKBmNvbmZpZxgFIAEoCzIgLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2tDb25maWcSDwoHZW5hYmxlZBgGIAEoCCJFChlVcGRhdGVBY2NvdW50SG9va1Jlc3BvbnNlEigKBGhvb2sYASABKAsyGi5tZ210LnYxYWxwaGExLkFjY291bnRIb29rIjAKGERlbGV0ZUFjY291bnRIb29rUmVxdWVzdBIUCgJpZBgBIAEoCUIIukgFcgOwAQEiRQoZRGVsZXRlQWNjb3VudEhvb2tSZXNwb25zZRIoCgRob29rGAEgASgLMhoubWdtdC52MWFscGhhMS5BY2NvdW50SG9vayJqCiFJc0FjY291bnRIb29rTmFtZUF2YWlsYWJsZVJlcXVlc3QSHAoKYWNjb3VudF9pZBgBIAEoCUIIukgFcgOwAQESJwoEbmFtZRgCIAEoCUIZukgWchQyEl5bYS16MC05LV17MywxMDB9JCI6CiJJc0FjY291bnRIb29rTmFtZUF2YWlsYWJsZVJlc3BvbnNlEhQKDGlzX2F2YWlsYWJsZRgBIAEoCCJFChxTZXRBY2NvdW50SG9va0VuYWJsZWRSZXF1ZXN0EhQKAmlkGAEgASgJQgi6SAVyA7ABARIPCgdlbmFibGVkGAIgASgIIkkKHVNldEFjY291bnRIb29rRW5hYmxlZFJlc3BvbnNlEigKBGhvb2sYASABKAsyGi5tZ210LnYxYWxwaGExLkFjY291bnRIb29rInMKI0dldEFjdGl2ZUFjY291bnRIb29rc0J5RXZlbnRSZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBEi4KBWV2ZW50GAIgASgOMh8ubWdtdC52MWFscGhhMS5BY2NvdW50SG9va0V2ZW50IlEKJEdldEFjdGl2ZUFjY291bnRIb29rc0J5RXZlbnRSZXNwb25zZRIpCgVob29rcxgBIAMoCzIaLm1nbXQudjFhbHBoYTEuQWNjb3VudEhvb2siPAocR2V0U2xhY2tDb25uZWN0aW9uVXJsUmVxdWVzdBIcCgphY2NvdW50X2lkGAEgASgJQgi6SAVyA7ABASIsCh1HZXRTbGFja0Nvbm5lY3Rpb25VcmxSZXNwb25zZRILCgN1cmwYASABKAkiUAofSGFuZGxlU2xhY2tPQXV0aENhbGxiYWNrUmVxdWVzdBIWCgVzdGF0ZRgBIAEoCUIHukgEcgIQARIVCgRjb2RlGAIgASgJQge6SARyAhABIiIKIEhhbmRsZVNsYWNrT0F1dGhDYWxsYmFja1Jlc3BvbnNlIjoKGlRlc3RTbGFja0Nvbm5lY3Rpb25SZXF1ZXN0EhwKCmFjY291bnRfaWQYASABKAlCCLpIBXIDsAEBIuABChtUZXN0U2xhY2tDb25uZWN0aW9uUmVzcG9uc2USGQoRaGFzX2NvbmZpZ3VyYXRpb24YASABKAgSTwoNdGVzdF9yZXNwb25zZRgCIAEoCzIzLm1nbXQudjFhbHBoYTEuVGVzdFNsYWNrQ29ubmVjdGlvblJlc3BvbnNlLlJlc3BvbnNlSACIAQESEgoFZXJyb3IYAyABKAlIAYgBARolCghSZXNwb25zZRILCgN1cmwYASABKAkSDAoEdGVhbRgCIAEoCUIQCg5fdGVzdF9yZXNwb25zZUIICgZfZXJyb3IiSwoXU2VuZFNsYWNrTWVzc2FnZVJlcXVlc3QSIQoPYWNjb3VudF9ob29rX2lkGAEgASgJQgi6SAVyA7ABARINCgVldmVudBgCIAEoDCIaChhTZW5kU2xhY2tNZXNzYWdlUmVzcG9uc2UqrwEKEEFjY291bnRIb29rRXZlbnQSIgoeQUNDT1VOVF9IT09LX0VWRU5UX1VOU1BFQ0lGSUVEEAASJgoiQUNDT1VOVF9IT09LX0VWRU5UX0pPQl9SVU5fQ1JFQVRFRBABEiUKIUFDQ09VTlRfSE9PS19FVkVOVF9KT0JfUlVOX0ZBSUxFRBACEigKJEFDQ09VTlRfSE9PS19FVkVOVF9KT0JfUlVOX1NVQ0NFRURFRBADMvoKChJBY2NvdW50SG9va1NlcnZpY2USZQoPR2V0QWNjb3VudEhvb2tzEiUubWdtdC52MWFscGhhMS5HZXRBY2NvdW50SG9va3NSZXF1ZXN0GiYubWdtdC52MWFscGhhMS5HZXRBY2NvdW50SG9va3NSZXNwb25zZSIDkAIBEmIKDkdldEFjY291bnRIb29rEiQubWdtdC52MWFscGhhMS5HZXRBY2NvdW50SG9va1JlcXVlc3QaJS5tZ210LnYxYWxwaGExLkdldEFjY291bnRIb29rUmVzcG9uc2UiA5ACARJoChFDcmVhdGVBY2NvdW50SG9vaxInLm1nbXQudjFhbHBoYTEuQ3JlYXRlQWNjb3VudEhvb2tSZXF1ZXN0GigubWdtdC52MWFscGhhMS5DcmVhdGVBY2NvdW50SG9va1Jlc3BvbnNlIgASaAoRVXBkYXRlQWNjb3VudEhvb2sSJy5tZ210LnYxYWxwaGExLlVwZGF0ZUFjY291bnRIb29rUmVxdWVzdBooLm1nbXQudjFhbHBoYTEuVXBkYXRlQWNjb3VudEhvb2tSZXNwb25zZSIAEmgKEURlbGV0ZUFjY291bnRIb29rEicubWdtdC52MWFscGhhMS5EZWxldGVBY2NvdW50SG9va1JlcXVlc3QaKC5tZ210LnYxYWxwaGExLkRlbGV0ZUFjY291bnRIb29rUmVzcG9uc2UiABKDAQoaSXNBY2NvdW50SG9va05hbWVBdmFpbGFibGUSMC5tZ210LnYxYWxwaGExLklzQWNjb3VudEhvb2tOYW1lQXZhaWxhYmxlUmVxdWVzdBoxLm1nbXQudjFhbHBoYTEuSXNBY2NvdW50SG9va05hbWVBdmFpbGFibGVSZXNwb25zZSIAEnQKFVNldEFjY291bnRIb29rRW5hYmxlZBIrLm1nbXQudjFhbHBoYTEuU2V0QWNjb3VudEhvb2tFbmFibGVkUmVxdWVzdBosLm1nbXQudjFhbHBoYTEuU2V0QWNjb3VudEhvb2tFbmFibGVkUmVzcG9uc2UiABKMAQocR2V0QWN0aXZlQWNjb3VudEhvb2tzQnlFdmVudBIyLm1nbXQudjFhbHBoYTEuR2V0QWN0aXZlQWNjb3VudEhvb2tzQnlFdmVudFJlcXVlc3QaMy5tZ210LnYxYWxwaGExLkdldEFjdGl2ZUFjY291bnRIb29rc0J5RXZlbnRSZXNwb25zZSIDkAIBEncKFUdldFNsYWNrQ29ubmVjdGlvblVybBIrLm1nbXQudjFhbHBoYTEuR2V0U2xhY2tDb25uZWN0aW9uVXJsUmVxdWVzdBosLm1nbXQudjFhbHBoYTEuR2V0U2xhY2tDb25uZWN0aW9uVXJsUmVzcG9uc2UiA5ACARJ9ChhIYW5kbGVTbGFja09BdXRoQ2FsbGJhY2sSLi5tZ210LnYxYWxwaGExLkhhbmRsZVNsYWNrT0F1dGhDYWxsYmFja1JlcXVlc3QaLy5tZ210LnYxYWxwaGExLkhhbmRsZVNsYWNrT0F1dGhDYWxsYmFja1Jlc3BvbnNlIgAScQoTVGVzdFNsYWNrQ29ubmVjdGlvbhIpLm1nbXQudjFhbHBoYTEuVGVzdFNsYWNrQ29ubmVjdGlvblJlcXVlc3QaKi5tZ210LnYxYWxwaGExLlRlc3RTbGFja0Nvbm5lY3Rpb25SZXNwb25zZSIDkAIBEmUKEFNlbmRTbGFja01lc3NhZ2USJi5tZ210LnYxYWxwaGExLlNlbmRTbGFja01lc3NhZ2VSZXF1ZXN0GicubWdtdC52MWFscGhhMS5TZW5kU2xhY2tNZXNzYWdlUmVzcG9uc2UiAELMAQoRY29tLm1nbXQudjFhbHBoYTFCEEFjY291bnRIb29rUHJvdG9QAVpQZ2l0aHViLmNvbS9udWNsZXVzY2xvdWQvbmVvc3luYy9iYWNrZW5kL2dlbi9nby9wcm90b3MvbWdtdC92MWFscGhhMTttZ210djFhbHBoYTGiAgNNWFiqAg1NZ210LlYxYWxwaGExygINTWdtdFxWMWFscGhhMeICGU1nbXRcVjFhbHBoYTFcR1BCTWV0YWRhdGHqAg5NZ210OjpWMWFscGhhMWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message mgmt.v1alpha1.AccountHook
@@ -164,14 +164,20 @@ export type AccountHookConfig = Message<"mgmt.v1alpha1.AccountHookConfig"> & {
     /**
      * Webhook-based hooks
      *
-     * Slack-based hooks
-     * SlackHook slack = 2;
-     * Future: Discord, Teams, etc.
-     *
      * @generated from field: mgmt.v1alpha1.AccountHookConfig.WebHook webhook = 1;
      */
     value: AccountHookConfig_WebHook;
     case: "webhook";
+  } | {
+    /**
+     * Slack-based hooks
+     *
+     * Future: Discord, Teams, etc.
+     *
+     * @generated from field: mgmt.v1alpha1.AccountHookConfig.SlackHook slack = 2;
+     */
+    value: AccountHookConfig_SlackHook;
+    case: "slack";
   } | { case: undefined; value?: undefined };
 };
 
@@ -216,6 +222,27 @@ export type AccountHookConfig_WebHook = Message<"mgmt.v1alpha1.AccountHookConfig
  */
 export const AccountHookConfig_WebHookSchema: GenMessage<AccountHookConfig_WebHook> = /*@__PURE__*/
   messageDesc(file_mgmt_v1alpha1_account_hook, 2, 0);
+
+/**
+ * Slack hook configuration
+ *
+ * @generated from message mgmt.v1alpha1.AccountHookConfig.SlackHook
+ */
+export type AccountHookConfig_SlackHook = Message<"mgmt.v1alpha1.AccountHookConfig.SlackHook"> & {
+  /**
+   * The Slack channel id to post messages to.
+   *
+   * @generated from field: string channel_id = 1;
+   */
+  channelId: string;
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.AccountHookConfig.SlackHook.
+ * Use `create(AccountHookConfig_SlackHookSchema)` to create a new message.
+ */
+export const AccountHookConfig_SlackHookSchema: GenMessage<AccountHookConfig_SlackHook> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 2, 1);
 
 /**
  * @generated from message mgmt.v1alpha1.GetAccountHooksRequest
@@ -587,6 +614,200 @@ export const GetActiveAccountHooksByEventResponseSchema: GenMessage<GetActiveAcc
   messageDesc(file_mgmt_v1alpha1_account_hook, 18);
 
 /**
+ * @generated from message mgmt.v1alpha1.GetSlackConnectionUrlRequest
+ */
+export type GetSlackConnectionUrlRequest = Message<"mgmt.v1alpha1.GetSlackConnectionUrlRequest"> & {
+  /**
+   * The account ID to retrieve the Slack connection URL for.
+   *
+   * @generated from field: string account_id = 1;
+   */
+  accountId: string;
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.GetSlackConnectionUrlRequest.
+ * Use `create(GetSlackConnectionUrlRequestSchema)` to create a new message.
+ */
+export const GetSlackConnectionUrlRequestSchema: GenMessage<GetSlackConnectionUrlRequest> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 19);
+
+/**
+ * @generated from message mgmt.v1alpha1.GetSlackConnectionUrlResponse
+ */
+export type GetSlackConnectionUrlResponse = Message<"mgmt.v1alpha1.GetSlackConnectionUrlResponse"> & {
+  /**
+   * The Slack connection URL.
+   *
+   * @generated from field: string url = 1;
+   */
+  url: string;
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.GetSlackConnectionUrlResponse.
+ * Use `create(GetSlackConnectionUrlResponseSchema)` to create a new message.
+ */
+export const GetSlackConnectionUrlResponseSchema: GenMessage<GetSlackConnectionUrlResponse> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 20);
+
+/**
+ * @generated from message mgmt.v1alpha1.HandleSlackOAuthCallbackRequest
+ */
+export type HandleSlackOAuthCallbackRequest = Message<"mgmt.v1alpha1.HandleSlackOAuthCallbackRequest"> & {
+  /**
+   * The Slack state.
+   *
+   * @generated from field: string state = 1;
+   */
+  state: string;
+
+  /**
+   * The Slack code.
+   *
+   * @generated from field: string code = 2;
+   */
+  code: string;
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.HandleSlackOAuthCallbackRequest.
+ * Use `create(HandleSlackOAuthCallbackRequestSchema)` to create a new message.
+ */
+export const HandleSlackOAuthCallbackRequestSchema: GenMessage<HandleSlackOAuthCallbackRequest> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 21);
+
+/**
+ * @generated from message mgmt.v1alpha1.HandleSlackOAuthCallbackResponse
+ */
+export type HandleSlackOAuthCallbackResponse = Message<"mgmt.v1alpha1.HandleSlackOAuthCallbackResponse"> & {
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.HandleSlackOAuthCallbackResponse.
+ * Use `create(HandleSlackOAuthCallbackResponseSchema)` to create a new message.
+ */
+export const HandleSlackOAuthCallbackResponseSchema: GenMessage<HandleSlackOAuthCallbackResponse> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 22);
+
+/**
+ * @generated from message mgmt.v1alpha1.TestSlackConnectionRequest
+ */
+export type TestSlackConnectionRequest = Message<"mgmt.v1alpha1.TestSlackConnectionRequest"> & {
+  /**
+   * The account ID to test the Slack connection for.
+   *
+   * @generated from field: string account_id = 1;
+   */
+  accountId: string;
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.TestSlackConnectionRequest.
+ * Use `create(TestSlackConnectionRequestSchema)` to create a new message.
+ */
+export const TestSlackConnectionRequestSchema: GenMessage<TestSlackConnectionRequest> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 23);
+
+/**
+ * @generated from message mgmt.v1alpha1.TestSlackConnectionResponse
+ */
+export type TestSlackConnectionResponse = Message<"mgmt.v1alpha1.TestSlackConnectionResponse"> & {
+  /**
+   * Whether there is an existing Slack configuration.
+   *
+   * @generated from field: bool has_configuration = 1;
+   */
+  hasConfiguration: boolean;
+
+  /**
+   * The response from the Slack API.
+   *
+   * @generated from field: optional mgmt.v1alpha1.TestSlackConnectionResponse.Response test_response = 2;
+   */
+  testResponse?: TestSlackConnectionResponse_Response;
+
+  /**
+   * The error message if the connection failed.
+   *
+   * @generated from field: optional string error = 3;
+   */
+  error?: string;
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.TestSlackConnectionResponse.
+ * Use `create(TestSlackConnectionResponseSchema)` to create a new message.
+ */
+export const TestSlackConnectionResponseSchema: GenMessage<TestSlackConnectionResponse> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 24);
+
+/**
+ * @generated from message mgmt.v1alpha1.TestSlackConnectionResponse.Response
+ */
+export type TestSlackConnectionResponse_Response = Message<"mgmt.v1alpha1.TestSlackConnectionResponse.Response"> & {
+  /**
+   * The URL of the Slack that is connected.
+   *
+   * @generated from field: string url = 1;
+   */
+  url: string;
+
+  /**
+   * The team name of the Slack that is connected.
+   *
+   * @generated from field: string team = 2;
+   */
+  team: string;
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.TestSlackConnectionResponse.Response.
+ * Use `create(TestSlackConnectionResponse_ResponseSchema)` to create a new message.
+ */
+export const TestSlackConnectionResponse_ResponseSchema: GenMessage<TestSlackConnectionResponse_Response> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 24, 0);
+
+/**
+ * @generated from message mgmt.v1alpha1.SendSlackMessageRequest
+ */
+export type SendSlackMessageRequest = Message<"mgmt.v1alpha1.SendSlackMessageRequest"> & {
+  /**
+   * The account hook ID to send the Slack message to.
+   *
+   * @generated from field: string account_hook_id = 1;
+   */
+  accountHookId: string;
+
+  /**
+   * The marshaled event that was emitted by the worker.
+   *
+   * @generated from field: bytes event = 2;
+   */
+  event: Uint8Array;
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.SendSlackMessageRequest.
+ * Use `create(SendSlackMessageRequestSchema)` to create a new message.
+ */
+export const SendSlackMessageRequestSchema: GenMessage<SendSlackMessageRequest> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 25);
+
+/**
+ * @generated from message mgmt.v1alpha1.SendSlackMessageResponse
+ */
+export type SendSlackMessageResponse = Message<"mgmt.v1alpha1.SendSlackMessageResponse"> & {
+};
+
+/**
+ * Describes the message mgmt.v1alpha1.SendSlackMessageResponse.
+ * Use `create(SendSlackMessageResponseSchema)` to create a new message.
+ */
+export const SendSlackMessageResponseSchema: GenMessage<SendSlackMessageResponse> = /*@__PURE__*/
+  messageDesc(file_mgmt_v1alpha1_account_hook, 26);
+
+/**
  * Enum of all possible events that can trigger an account hook.
  *
  * @generated from enum mgmt.v1alpha1.AccountHookEvent
@@ -710,6 +931,46 @@ export const AccountHookService: GenService<{
     methodKind: "unary";
     input: typeof GetActiveAccountHooksByEventRequestSchema;
     output: typeof GetActiveAccountHooksByEventResponseSchema;
+  },
+  /**
+   * Retrieves the Slack connection url that allows a user to connect their Slack workspace to Neosync.
+   *
+   * @generated from rpc mgmt.v1alpha1.AccountHookService.GetSlackConnectionUrl
+   */
+  getSlackConnectionUrl: {
+    methodKind: "unary";
+    input: typeof GetSlackConnectionUrlRequestSchema;
+    output: typeof GetSlackConnectionUrlResponseSchema;
+  },
+  /**
+   * Handles the Slack OAuth callback.
+   *
+   * @generated from rpc mgmt.v1alpha1.AccountHookService.HandleSlackOAuthCallback
+   */
+  handleSlackOAuthCallback: {
+    methodKind: "unary";
+    input: typeof HandleSlackOAuthCallbackRequestSchema;
+    output: typeof HandleSlackOAuthCallbackResponseSchema;
+  },
+  /**
+   * Tests the Slack connection by using the stored access token to initiate an auth test api call to slack.
+   *
+   * @generated from rpc mgmt.v1alpha1.AccountHookService.TestSlackConnection
+   */
+  testSlackConnection: {
+    methodKind: "unary";
+    input: typeof TestSlackConnectionRequestSchema;
+    output: typeof TestSlackConnectionResponseSchema;
+  },
+  /**
+   * For sending slack messages from the worker.
+   *
+   * @generated from rpc mgmt.v1alpha1.AccountHookService.SendSlackMessage
+   */
+  sendSlackMessage: {
+    methodKind: "unary";
+    input: typeof SendSlackMessageRequestSchema;
+    output: typeof SendSlackMessageResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_mgmt_v1alpha1_account_hook, 0);

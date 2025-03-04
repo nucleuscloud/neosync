@@ -31,7 +31,7 @@ func Test_New(t *testing.T) {
 	require.NotNil(t, a)
 }
 
-func Test_Activity_Success(t *testing.T) {
+func Test_Activity_Webhook_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 	env := testSuite.NewTestActivityEnvironment()
@@ -116,6 +116,66 @@ func Test_Activity_Success(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, jobRunSucceededEvent["jobId"], "test-job-id")
 	require.Equal(t, jobRunSucceededEvent["jobRunId"], "test-run-id")
+}
+
+func Test_Activity_Slack_Success(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
+	env := testSuite.NewTestActivityEnvironment()
+
+	hookId := uuid.NewString()
+	accountId := uuid.NewString()
+
+	mux := http.NewServeMux()
+	var srv *httptest.Server
+
+	mux.Handle(mgmtv1alpha1connect.AccountHookServiceGetAccountHookProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.AccountHookServiceGetAccountHookProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetAccountHookRequest]) (*connect.Response[mgmtv1alpha1.GetAccountHookResponse], error) {
+			if r.Msg.GetId() == hookId {
+				return connect.NewResponse(&mgmtv1alpha1.GetAccountHookResponse{
+					Hook: &mgmtv1alpha1.AccountHook{
+						Id:          hookId,
+						AccountId:   accountId,
+						Name:        "test-hook",
+						Description: "test-description",
+						Events:      []mgmtv1alpha1.AccountHookEvent{mgmtv1alpha1.AccountHookEvent_ACCOUNT_HOOK_EVENT_JOB_RUN_SUCCEEDED},
+						Config: &mgmtv1alpha1.AccountHookConfig{
+							Config: &mgmtv1alpha1.AccountHookConfig_Slack{
+								Slack: &mgmtv1alpha1.AccountHookConfig_SlackHook{
+									ChannelId: "test-channel-id",
+								},
+							},
+						},
+					},
+				}), nil
+			}
+			return nil, connect.NewError(connect.CodeNotFound, errors.New("invalid test input"))
+		},
+	))
+
+	mux.Handle(mgmtv1alpha1connect.AccountHookServiceSendSlackMessageProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.AccountHookServiceSendSlackMessageProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.SendSlackMessageRequest]) (*connect.Response[mgmtv1alpha1.SendSlackMessageResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.SendSlackMessageResponse{}), nil
+		},
+	))
+
+	srv = startHTTPServer(t, mux)
+	accounthookclient := mgmtv1alpha1connect.NewAccountHookServiceClient(srv.Client(), srv.URL)
+	activity := New(accounthookclient)
+
+	env.RegisterActivity(activity)
+
+	val, err := env.ExecuteActivity(activity.ExecuteAccountHook, &ExecuteHookRequest{
+		HookId: hookId,
+		Event:  accounthook_events.NewEvent_JobRunSucceeded(accountId, "test-job-id", "test-run-id"),
+	})
+	require.NoError(t, err)
+	res := &ExecuteHookResponse{}
+	err = val.Get(res)
+	require.NoError(t, err)
+	require.NotNil(t, res)
 }
 
 func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {

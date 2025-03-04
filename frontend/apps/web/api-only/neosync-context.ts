@@ -37,6 +37,9 @@ export function withNeosyncContext<T = unknown>(
         },
       });
       const output = await handler({ client: neosyncClient });
+      if (output instanceof NextResponse) {
+        return output;
+      }
       return NextResponse.json(output);
     } catch (err) {
       if (err instanceof ConnectError) {

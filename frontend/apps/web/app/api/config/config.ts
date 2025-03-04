@@ -36,6 +36,8 @@ export function getSystemAppConfig(): SystemAppConfig {
     isJobHooksEnabled: process.env.JOBHOOKS_ENABLED === 'true',
     isAccountHooksEnabled:
       isNeosyncCloud || process.env.ACCOUNT_HOOKS_ENABLED === 'true',
+    isSlackAccountHookEnabled:
+      process.env.SLACK_ACCOUNT_HOOKS_ENABLED === 'true',
     isRbacEnabled: isNeosyncCloud || process.env.RBAC_ENABLED === 'true',
     gtag: {
       enabled: isAnalyticsEnabled() && !!process.env.GTAG,

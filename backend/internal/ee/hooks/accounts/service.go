@@ -4,15 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"time"
 
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
+	accounthook_events "github.com/nucleuscloud/neosync/internal/ee/events"
 	"github.com/nucleuscloud/neosync/internal/ee/rbac"
+	ee_slack "github.com/nucleuscloud/neosync/internal/ee/slack"
 	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
+	"github.com/slack-go/slack"
 )
 
 type Service struct {
@@ -32,12 +38,25 @@ type Interface interface {
 	IsAccountHookNameAvailable(ctx context.Context, req *mgmtv1alpha1.IsAccountHookNameAvailableRequest) (*mgmtv1alpha1.IsAccountHookNameAvailableResponse, error)
 	SetAccountHookEnabled(ctx context.Context, req *mgmtv1alpha1.SetAccountHookEnabledRequest) (*mgmtv1alpha1.SetAccountHookEnabledResponse, error)
 	GetActiveAccountHooksByEvent(ctx context.Context, req *mgmtv1alpha1.GetActiveAccountHooksByEventRequest) (*mgmtv1alpha1.GetActiveAccountHooksByEventResponse, error)
+	GetSlackConnectionUrl(ctx context.Context, req *mgmtv1alpha1.GetSlackConnectionUrlRequest) (*mgmtv1alpha1.GetSlackConnectionUrlResponse, error)
+	HandleSlackOAuthCallback(ctx context.Context, req *mgmtv1alpha1.HandleSlackOAuthCallbackRequest) (*mgmtv1alpha1.HandleSlackOAuthCallbackResponse, error)
+	TestSlackConnection(ctx context.Context, req *mgmtv1alpha1.TestSlackConnectionRequest) (*mgmtv1alpha1.TestSlackConnectionResponse, error)
+	SendSlackMessage(ctx context.Context, req *mgmtv1alpha1.SendSlackMessageRequest) (*mgmtv1alpha1.SendSlackMessageResponse, error)
 }
 
 type config struct {
+	isSlackEnabled bool
+	slackClient    ee_slack.Interface
 }
 
 type Option func(*config)
+
+func WithSlackClient(slackClient ee_slack.Interface) Option {
+	return func(c *config) {
+		c.slackClient = slackClient
+		c.isSlackEnabled = true
+	}
+}
 
 func New(
 	db *neosyncdb.NeosyncDb,
@@ -337,6 +356,8 @@ func (s *Service) CreateAccountHook(ctx context.Context, req *mgmtv1alpha1.Creat
 		return nil, err
 	}
 
+	// todo: if slack, join channel
+
 	return &mgmtv1alpha1.CreateAccountHookResponse{
 		Hook: dto,
 	}, nil
@@ -397,7 +418,327 @@ func (s *Service) UpdateAccountHook(ctx context.Context, req *mgmtv1alpha1.Updat
 		return nil, err
 	}
 
+	// todo: if slack and channel has changed, join channel
+
 	return &mgmtv1alpha1.UpdateAccountHookResponse{
 		Hook: dto,
 	}, nil
+}
+
+func (s *Service) GetSlackConnectionUrl(
+	ctx context.Context,
+	req *mgmtv1alpha1.GetSlackConnectionUrlRequest,
+) (*mgmtv1alpha1.GetSlackConnectionUrlResponse, error) {
+	if !s.cfg.isSlackEnabled {
+		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceGetSlackConnectionUrlProcedure)
+	}
+
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("accountId", req.GetAccountId())
+
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(req.GetAccountId()), rbac.AccountAction_Edit); err != nil {
+		return nil, err
+	}
+
+	slackUrl, err := s.cfg.slackClient.GetAuthorizeUrl(req.GetAccountId(), user.Id())
+	if err != nil {
+		return nil, fmt.Errorf("unable to get slack authorize url: %w", err)
+	}
+	logger.Debug("slack authorize url retrieved")
+
+	return &mgmtv1alpha1.GetSlackConnectionUrlResponse{
+		Url: slackUrl,
+	}, nil
+}
+
+func (s *Service) HandleSlackOAuthCallback(
+	ctx context.Context,
+	req *mgmtv1alpha1.HandleSlackOAuthCallbackRequest,
+) (*mgmtv1alpha1.HandleSlackOAuthCallbackResponse, error) {
+	if !s.cfg.isSlackEnabled {
+		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceHandleSlackOAuthCallbackProcedure)
+	}
+
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get user: %w", err)
+	}
+
+	oauthState, err := s.cfg.slackClient.ValidateState(ctx, req.GetState(), user.Id(), func(ctx context.Context, userId, accountId string) (bool, error) {
+		parsedAccountUuid, err := neosyncdb.ToUuid(accountId)
+		if err != nil {
+			return false, err
+		}
+		ok, err := s.db.Q.IsUserInAccount(ctx, s.db.Db, db_queries.IsUserInAccountParams{
+			AccountId: parsedAccountUuid,
+			UserId:    user.PgId(),
+		})
+		if err != nil {
+			return false, fmt.Errorf("unable to check if user is in account: %w", err)
+		}
+		return ok != 0, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to validate slack oauth state: %w", err)
+	}
+
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(oauthState.AccountId), rbac.AccountAction_Edit); err != nil {
+		return nil, err
+	}
+	logger.Debug("slack oauth state validated")
+
+	slackCode := req.GetCode()
+	oauthResp, err := s.cfg.slackClient.ExchangeCodeForAccessToken(ctx, slackCode)
+	if err != nil {
+		return nil, fmt.Errorf("unable to exchange slack code for access token: %w", err)
+	}
+
+	oauthRespBytes, err := json.Marshal(oauthResp)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshal slack oauth response: %w", err)
+	}
+
+	accountUuid, err := neosyncdb.ToUuid(oauthState.AccountId)
+	if err != nil {
+		return nil, fmt.Errorf("unable to convert account id to uuid: %w", err)
+	}
+
+	_, err = s.db.Q.CreateSlackOAuthConnection(ctx, s.db.Db, db_queries.CreateSlackOAuthConnectionParams{
+		AccountID:       accountUuid,
+		OauthV2Response: oauthRespBytes,
+		CreatedByUserID: user.PgId(),
+		UpdatedByUserID: user.PgId(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to store slack access token: %w", err)
+	}
+
+	return &mgmtv1alpha1.HandleSlackOAuthCallbackResponse{}, nil
+}
+
+func (s *Service) TestSlackConnection(
+	ctx context.Context,
+	req *mgmtv1alpha1.TestSlackConnectionRequest,
+) (*mgmtv1alpha1.TestSlackConnectionResponse, error) {
+	if !s.cfg.isSlackEnabled {
+		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceTestSlackConnectionProcedure)
+	}
+
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("accountId", req.GetAccountId())
+
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(req.GetAccountId()), rbac.AccountAction_View); err != nil {
+		return nil, err
+	}
+
+	accountId, err := neosyncdb.ToUuid(req.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Debug("retrieving slack access token")
+
+	accessToken, err := s.db.Q.GetSlackAccessToken(ctx, s.db.Db, accountId)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, fmt.Errorf("unable to get slack access token: %w", err)
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		msg := "slack oauth connection not found"
+		return &mgmtv1alpha1.TestSlackConnectionResponse{
+			HasConfiguration: false,
+			Error:            &msg,
+		}, nil
+	}
+
+	if accessToken == "" {
+		msg := "slack access token not found"
+		return &mgmtv1alpha1.TestSlackConnectionResponse{
+			HasConfiguration: false,
+			Error:            &msg,
+		}, nil
+	}
+
+	logger.Debug("testing slack connection")
+	testResp, err := s.cfg.slackClient.Test(ctx, accessToken)
+	if err != nil {
+		msg := err.Error()
+		return &mgmtv1alpha1.TestSlackConnectionResponse{
+			HasConfiguration: true,
+			Error:            &msg,
+		}, nil
+	}
+	logger.Debug("slack connection test successful")
+	return &mgmtv1alpha1.TestSlackConnectionResponse{
+		HasConfiguration: true,
+		Error:            nil,
+		TestResponse: &mgmtv1alpha1.TestSlackConnectionResponse_Response{
+			Url:  testResp.URL,
+			Team: testResp.Team,
+		},
+	}, nil
+}
+
+func (s *Service) SendSlackMessage(
+	ctx context.Context,
+	req *mgmtv1alpha1.SendSlackMessageRequest,
+) (*mgmtv1alpha1.SendSlackMessageResponse, error) {
+	if !s.cfg.isSlackEnabled {
+		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceSendSlackMessageProcedure)
+	}
+
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("accountHookId", req.GetAccountHookId())
+
+	hook, err := s.GetAccountHook(ctx, &mgmtv1alpha1.GetAccountHookRequest{
+		Id: req.GetAccountHookId(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.userdataclient.GetUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := user.EnforceAccount(ctx, userdata.NewIdentifier(hook.GetHook().GetAccountId()), rbac.AccountAction_Edit); err != nil {
+		return nil, err
+	}
+
+	if !hook.GetHook().GetEnabled() {
+		logger.Warn("received event for disabled account hook")
+		return &mgmtv1alpha1.SendSlackMessageResponse{}, nil
+	}
+
+	slackHook := hook.GetHook().GetConfig().GetSlack()
+	if slackHook == nil {
+		return nil, nucleuserrors.NewNotFound("slack hook not found")
+	}
+	slackChannelId := slackHook.GetChannelId()
+
+	accountId, err := neosyncdb.ToUuid(hook.GetHook().GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken, err := s.db.Q.GetSlackAccessToken(ctx, s.db.Db, accountId)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, fmt.Errorf("unable to get slack access token: %w", err)
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("slack oauth connection not found")
+	}
+
+	var event *accounthook_events.Event
+	if err := json.Unmarshal(req.GetEvent(), &event); err != nil {
+		return nil, fmt.Errorf("unable to unmarshal event: %w", err)
+	}
+
+	blocks := getSlackBlocksByEvent(event, logger)
+
+	if len(blocks) == 0 {
+		logger.Warn("received event that generated no slack blocks")
+		return &mgmtv1alpha1.SendSlackMessageResponse{}, nil
+	}
+
+	logger.Debug("sending slack message")
+	err = s.cfg.slackClient.SendMessage(ctx, accessToken, slackChannelId, slack.MsgOptionBlocks(blocks...))
+	if err != nil {
+		return nil, fmt.Errorf("unable to send slack message: %w", err)
+	}
+
+	return &mgmtv1alpha1.SendSlackMessageResponse{}, nil
+}
+
+func getSlackBlocksByEvent(event *accounthook_events.Event, logger *slog.Logger) []slack.Block {
+	switch event.Name {
+	case mgmtv1alpha1.AccountHookEvent_ACCOUNT_HOOK_EVENT_JOB_RUN_CREATED:
+		if event.JobRunCreated == nil {
+			logger.Warn("received job run created event with no job run created data")
+			return nil
+		}
+
+		headerText := slack.NewTextBlockObject(slack.PlainTextType, "🚀 New Job Run Started", false, false)
+		headerSection := slack.NewHeaderBlock(headerText)
+
+		jobFields := []*slack.TextBlockObject{
+			slack.NewTextBlockObject(slack.MarkdownType, "*Job ID:*\n"+event.JobRunCreated.JobId, false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, "*Job Run ID:*\n"+event.JobRunCreated.JobRunId, false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, "*Started At:*\n<!date^"+fmt.Sprint(event.Timestamp.Unix())+"^{date_short_pretty} at {time}|"+event.Timestamp.Format(time.RFC3339)+">", false, false),
+		}
+		fieldsSection := slack.NewSectionBlock(nil, jobFields, nil)
+
+		divider := slack.NewDividerBlock()
+
+		blocks := []slack.Block{
+			headerSection,
+			divider,
+			fieldsSection,
+		}
+
+		return blocks
+
+	case mgmtv1alpha1.AccountHookEvent_ACCOUNT_HOOK_EVENT_JOB_RUN_FAILED:
+		if event.JobRunFailed == nil {
+			logger.Warn("received job run failed event with no job run failed data")
+			return nil
+		}
+
+		headerText := slack.NewTextBlockObject(slack.PlainTextType, "� Job Run Failed", false, false)
+		headerSection := slack.NewHeaderBlock(headerText)
+
+		jobFields := []*slack.TextBlockObject{
+			slack.NewTextBlockObject(slack.MarkdownType, "*Job ID:*\n"+event.JobRunFailed.JobId, false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, "*Job Run ID:*\n"+event.JobRunFailed.JobRunId, false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, "*Failed At:*\n<!date^"+fmt.Sprint(event.Timestamp.Unix())+"^{date_short_pretty} at {time}|"+event.Timestamp.Format(time.RFC3339)+">", false, false),
+		}
+		fieldsSection := slack.NewSectionBlock(nil, jobFields, nil)
+
+		divider := slack.NewDividerBlock()
+
+		blocks := []slack.Block{
+			headerSection,
+			divider,
+			fieldsSection,
+		}
+
+		return blocks
+
+	case mgmtv1alpha1.AccountHookEvent_ACCOUNT_HOOK_EVENT_JOB_RUN_SUCCEEDED:
+		if event.JobRunSucceeded == nil {
+			logger.Warn("received job run succeeded event with no job run succeeded data")
+			return nil
+		}
+
+		headerText := slack.NewTextBlockObject(slack.PlainTextType, "✅ Job Run Succeeded", false, false)
+		headerSection := slack.NewHeaderBlock(headerText)
+
+		jobFields := []*slack.TextBlockObject{
+			slack.NewTextBlockObject(slack.MarkdownType, "*Job ID:*\n"+event.JobRunSucceeded.JobId, false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, "*Job Run ID:*\n"+event.JobRunSucceeded.JobRunId, false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, "*Succeeded At:*\n<!date^"+fmt.Sprint(event.Timestamp.Unix())+"^{date_short_pretty} at {time}|"+event.Timestamp.Format(time.RFC3339)+">", false, false),
+		}
+		fieldsSection := slack.NewSectionBlock(nil, jobFields, nil)
+
+		divider := slack.NewDividerBlock()
+
+		blocks := []slack.Block{
+			headerSection,
+			divider,
+			fieldsSection,
+		}
+
+		return blocks
+
+	default:
+		logger.Warn("received unsupported slack event", "event", event.Name)
+		return nil
+	}
 }
