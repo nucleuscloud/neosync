@@ -71,10 +71,10 @@ class AccountHookConfig(_message.Message):
         disable_ssl_verification: bool
         def __init__(self, url: _Optional[str] = ..., secret: _Optional[str] = ..., disable_ssl_verification: bool = ...) -> None: ...
     class SlackHook(_message.Message):
-        __slots__ = ("channel",)
-        CHANNEL_FIELD_NUMBER: _ClassVar[int]
-        channel: str
-        def __init__(self, channel: _Optional[str] = ...) -> None: ...
+        __slots__ = ("channel_id",)
+        CHANNEL_ID_FIELD_NUMBER: _ClassVar[int]
+        channel_id: str
+        def __init__(self, channel_id: _Optional[str] = ...) -> None: ...
     WEBHOOK_FIELD_NUMBER: _ClassVar[int]
     SLACK_FIELD_NUMBER: _ClassVar[int]
     webhook: AccountHookConfig.WebHook

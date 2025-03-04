@@ -222,11 +222,11 @@ components:
     mgmt.v1alpha1.AccountHookConfig.SlackHook:
       type: object
       properties:
-        channel:
+        channelId:
           type: string
-          title: channel
+          title: channel_id
           minLength: 1
-          description: The Slack channel to post messages to.
+          description: The Slack channel id to post messages to.
       title: SlackHook
       additionalProperties: false
       description: Slack hook configuration

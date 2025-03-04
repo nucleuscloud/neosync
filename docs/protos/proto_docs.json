@@ -231,8 +231,8 @@
           "extensions": [],
           "fields": [
             {
-              "name": "channel",
-              "description": "The Slack channel to post messages to.",
+              "name": "channel_id",
+              "description": "The Slack channel id to post messages to.",
               "label": "",
               "type": "string",
               "longType": "string",

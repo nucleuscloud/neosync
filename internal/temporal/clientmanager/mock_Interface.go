@@ -6,7 +6,7 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
-	internal "go.temporal.io/sdk/client"
+	internal "go.temporal.io/sdk/internal"
 
 	slog "log/slog"
 

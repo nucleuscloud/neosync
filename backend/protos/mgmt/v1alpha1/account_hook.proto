@@ -88,8 +88,8 @@ message AccountHookConfig {
 
   // Slack hook configuration
   message SlackHook {
-    // The Slack channel to post messages to.
-    string channel = 1 [(buf.validate.field).string.min_len = 1];
+    // The Slack channel id to post messages to.
+    string channel_id = 1 [(buf.validate.field).string.min_len = 1];
   }
 }
 
