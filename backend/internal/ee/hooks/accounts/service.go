@@ -691,7 +691,7 @@ func getSlackBlocksByEvent(event *accounthook_events.Event, logger *slog.Logger)
 			return nil
 		}
 
-		headerText := slack.NewTextBlockObject(slack.PlainTextType, "� Job Run Failed", false, false)
+		headerText := slack.NewTextBlockObject(slack.PlainTextType, "🔴 Job Run Failed", false, false)
 		headerSection := slack.NewHeaderBlock(headerText)
 
 		jobFields := []*slack.TextBlockObject{
