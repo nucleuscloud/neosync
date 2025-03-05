@@ -63,8 +63,12 @@ func ToJobRunEventTaskDto(event *history.HistoryEvent, taskError *mgmtv1alpha1.J
 }
 
 func ToJobRunEventTaskErrorDto(failure *temporalfailure.Failure, retryState enums.RetryState) *mgmtv1alpha1.JobRunEventTaskError {
+	msg := failure.Message
+	if failure.GetCause() != nil {
+		msg = fmt.Sprintf("%s: %s", failure.GetMessage(), failure.GetCause().GetMessage())
+	}
 	return &mgmtv1alpha1.JobRunEventTaskError{
-		Message:    failure.Message,
+		Message:    msg,
 		RetryState: retryState.String(),
 	}
 }
