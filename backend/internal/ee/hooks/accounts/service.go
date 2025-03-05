@@ -459,10 +459,14 @@ func (s *Service) UpdateAccountHook(ctx context.Context, req *mgmtv1alpha1.Updat
 }
 
 func hasSlackChannelIdChanged(oldHook, newHook *mgmtv1alpha1.AccountHook) bool {
-	oldSlackConfig := oldHook.GetConfig().GetSlack()
-	newSlackConfig := newHook.GetConfig().GetSlack()
+	if oldHook == nil || newHook == nil {
+		return false
+	}
 
-	return oldSlackConfig.GetChannelId() != newSlackConfig.GetChannelId()
+	oldChannelId := oldHook.GetConfig().GetSlack().GetChannelId()
+	newChannelId := newHook.GetConfig().GetSlack().GetChannelId()
+
+	return oldChannelId != newChannelId
 }
 
 func (s *Service) GetSlackConnectionUrl(
