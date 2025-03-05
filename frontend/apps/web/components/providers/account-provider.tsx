@@ -37,6 +37,7 @@ const STORAGE_ACCOUNT_KEY = 'account';
 export default function AccountProvider(props: Props): ReactElement {
   const { children } = props;
   const accountName = useGetAccountName();
+  const { account } = useParams();
 
   // Use both session and local storage
   const [, setLastSelectedAccountSession] = useSessionStorage<
@@ -84,10 +85,16 @@ export default function AccountProvider(props: Props): ReactElement {
       // Update both storages
       setLastSelectedAccountSession(foundAccount.name);
       setLastSelectedAccountLocal(foundAccount.name);
+      const accountParam = getSingleOrUndefined(account);
+      // only want to push here if we actually have an account param. Otherwise we might push on a page like /invite or /hooks/slack
+      if (!!accountParam && accountParam !== foundAccount.name) {
+        router.push(`/${foundAccount.name}/jobs`);
+      }
     } else if (accountName !== DEFAULT_ACCOUNT_NAME) {
       // Update both storages
       setLastSelectedAccountSession(DEFAULT_ACCOUNT_NAME);
       setLastSelectedAccountLocal(DEFAULT_ACCOUNT_NAME);
+      router.push(`/${DEFAULT_ACCOUNT_NAME}/jobs`);
     }
   }, [
     userAccount?.id,
@@ -125,6 +132,7 @@ export default function AccountProvider(props: Props): ReactElement {
 
 function useGetAccountName(): string {
   const { account } = useParams();
+  console.log('account param value', account);
   const [sessionAccount] = useSessionStorage<string | undefined>(
     STORAGE_ACCOUNT_KEY,
     undefined
