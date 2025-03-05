@@ -39,16 +39,19 @@ export default function ListBox<TData>(props: Props<TData>): ReactElement {
   return (
     <div
       className={cn(
-        'h-[164px] relative w-full rounded-md border border-gray-300 dark:border-gray-700 ',
+        'h-[164px]  rounded-md border border-gray-300 dark:border-gray-700 w-[350px]',
         tableContainerClassName,
         rows.length > 0 && 'overflow-auto'
       )}
       ref={tableContainerRef}
     >
-      <StickyHeaderTable>
-        <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 grid rounded-md">
+      <StickyHeaderTable className="w-full">
+        <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 grid ">
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="flex flex-row px-2">
+            <TableRow
+              key={headerGroup.id}
+              className="flex flex-row px-2 w-full"
+            >
               {headerGroup.headers.map((header) => {
                 return (
                   <TableHead
@@ -90,10 +93,7 @@ export default function ListBox<TData>(props: Props<TData>): ReactElement {
                   rowVirtualizer.measureElement(node);
                 }} // measure dynamic row height
                 key={row.id}
-                style={{
-                  transform: `translateY(${virtualRow.start}px)`,
-                }}
-                className="items-center flex absolute w-full px-2"
+                className="items-center flex  w-full px-2"
                 onClick={row.getToggleSelectedHandler()}
               >
                 {row.getVisibleCells().map((cell) => {
@@ -105,7 +105,7 @@ export default function ListBox<TData>(props: Props<TData>): ReactElement {
                         minWidth: cell.column.getSize(),
                       }}
                     >
-                      <div className="truncate">
+                      <div>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
