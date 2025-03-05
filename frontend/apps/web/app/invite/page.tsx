@@ -56,6 +56,7 @@ export default function InvitePage(): ReactElement {
       acceptTeamInvite({ token })
         .then((res) => {
           if (res.account) {
+            toast.success('Invite accepted');
             setAccount(res.account);
             mutateUserAccount();
             router.replace(`/${res.account.name}`);
