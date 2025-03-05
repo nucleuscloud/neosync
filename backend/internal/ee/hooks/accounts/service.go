@@ -356,7 +356,7 @@ func (s *Service) CreateAccountHook(ctx context.Context, req *mgmtv1alpha1.Creat
 		return nil, err
 	}
 
-	go s.joinSlackChannel(ctx, dto, logger)
+	go s.joinSlackChannel(context.Background(), dto, logger)
 
 	return &mgmtv1alpha1.CreateAccountHookResponse{
 		Hook: dto,
@@ -449,7 +449,7 @@ func (s *Service) UpdateAccountHook(ctx context.Context, req *mgmtv1alpha1.Updat
 	}
 
 	if hasSlackChannelIdChanged(getResp.GetHook(), dto) {
-		go s.joinSlackChannel(ctx, dto, logger)
+		go s.joinSlackChannel(context.Background(), dto, logger)
 	}
 
 	return &mgmtv1alpha1.UpdateAccountHookResponse{
