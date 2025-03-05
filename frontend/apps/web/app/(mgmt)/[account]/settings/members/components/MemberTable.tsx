@@ -315,6 +315,8 @@ function DataTableRowActions({
   const { mutateAsync } = useMutation(
     UserAccountService.method.removeTeamAccountMember
   );
+  const { data: config } = useGetSystemAppConfig();
+  const isRbacEnabled = config?.isRbacEnabled ?? false;
 
   async function onRemove(): Promise<void> {
     if (!account?.id) {
@@ -346,18 +348,20 @@ function DataTableRowActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <UpdateMemberRoleDialog
-          member={member}
-          onUpdated={() => onUpdated()}
-          dialogButton={
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onSelect={(e) => e.preventDefault()}
-            >
-              Update Role
-            </DropdownMenuItem>
-          }
-        />
+        {isRbacEnabled && (
+          <UpdateMemberRoleDialog
+            member={member}
+            onUpdated={() => onUpdated()}
+            dialogButton={
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onSelect={(e) => e.preventDefault()}
+              >
+                Update Role
+              </DropdownMenuItem>
+            }
+          />
+        )}
         <DeleteConfirmationDialog
           trigger={
             <DropdownMenuItem
