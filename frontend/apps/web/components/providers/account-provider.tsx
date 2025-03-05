@@ -39,13 +39,12 @@ export default function AccountProvider(props: Props): ReactElement {
   const accountName = useGetAccountName();
 
   // Use both session and local storage
-  const [, setLastSelectedAccountSession] = useSessionStorage(
+  const [, setLastSelectedAccountSession] = useSessionStorage<
+    string | undefined
+  >(STORAGE_ACCOUNT_KEY, undefined);
+  const [, setLastSelectedAccountLocal] = useLocalStorage<string | undefined>(
     STORAGE_ACCOUNT_KEY,
-    accountName ?? DEFAULT_ACCOUNT_NAME
-  );
-  const [, setLastSelectedAccountLocal] = useLocalStorage(
-    STORAGE_ACCOUNT_KEY,
-    accountName ?? DEFAULT_ACCOUNT_NAME
+    undefined
   );
 
   const { isLoading: isUserLoading } = useNeosyncUser();
@@ -54,6 +53,7 @@ export default function AccountProvider(props: Props): ReactElement {
     data: accountsResponse,
     isLoading,
     refetch: mutate,
+    isPending,
   } = useQuery(UserAccountService.method.getUserAccounts, undefined, {
     enabled: !isUserLoading,
   });
@@ -65,7 +65,8 @@ export default function AccountProvider(props: Props): ReactElement {
   );
 
   useEffect(() => {
-    if (isLoading) {
+    // need to check for isPending because the query is conditionally enabled but the data is not yet available
+    if (isLoading || accountsResponse == null || isPending) {
       return;
     }
     if (userAccount?.name === accountName) {
@@ -77,6 +78,7 @@ export default function AccountProvider(props: Props): ReactElement {
     if (userAccount && foundAccount && userAccount.id === foundAccount.id) {
       return;
     }
+
     if (foundAccount) {
       setUserAccount(foundAccount);
       // Update both storages
@@ -93,6 +95,7 @@ export default function AccountProvider(props: Props): ReactElement {
     userAccount?.type,
     accountsResponse?.accounts.length,
     isLoading,
+    isPending,
     accountName,
   ]);
 
@@ -122,14 +125,13 @@ export default function AccountProvider(props: Props): ReactElement {
 
 function useGetAccountName(): string {
   const { account } = useParams();
-  // Check session storage first, then fall back to local storage
-  const [sessionAccount] = useSessionStorage(
+  const [sessionAccount] = useSessionStorage<string | undefined>(
     STORAGE_ACCOUNT_KEY,
-    account ?? DEFAULT_ACCOUNT_NAME
+    undefined
   );
-  const [localAccount] = useLocalStorage(
+  const [localAccount] = useLocalStorage<string | undefined>(
     STORAGE_ACCOUNT_KEY,
-    account ?? DEFAULT_ACCOUNT_NAME
+    undefined
   );
 
   const accountParam = getSingleOrUndefined(account);
