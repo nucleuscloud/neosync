@@ -152,6 +152,7 @@ func Test_BuildRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 				[]string{"aa_id"},
 				[]*DependsOn{
 					{Table: "public.a", Columns: []string{"id"}},
+					{Table: "public.a", Columns: []string{"a_id"}},
 				},
 				nil),
 		}
@@ -460,7 +461,7 @@ func Test_BuildRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 			expect: []*RunConfig{
 				buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "c_id", "d_id", "other_id"}, []string{"id", "other_id"}, []*DependsOn{}, []*SubsetPath{}),
 				buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "c_id"}, []string{"c_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.c", Columns: []string{"id"}}}, []*SubsetPath{}),
-				buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "d_id"}, []string{"d_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}, []*SubsetPath{}),
+				buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "d_id"}, []string{"d_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"c_id"}}}, []*SubsetPath{}),
 				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "b_id"}, []string{"id"}, []*DependsOn{}, []*SubsetPath{}),
 				buildRunConfig("public.a", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "b_id"}, []string{"b_id"}, []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}, []*SubsetPath{}),
 				buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "a_id"}, []string{"id", "a_id"}, []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}, []*SubsetPath{}),
@@ -574,7 +575,7 @@ func Test_BuildRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 			expect: []*RunConfig{
 				buildRunConfig("public.a", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "b_id"}, []string{"id", "b_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}, []*SubsetPath{}),
 				buildRunConfig("public.b", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "c_id", "bb_id", "other_id"}, []string{"id", "other_id"}, []*DependsOn{}, []*SubsetPath{}),
-				buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "c_id"}, []string{"c_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.c", Columns: []string{"id"}}}, []*SubsetPath{}),
+				buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "c_id"}, []string{"c_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.c", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"bb_id"}}}, []*SubsetPath{}),
 				buildRunConfig("public.b", RunTypeUpdate, []string{"id"}, &emptyWhere, []string{"id", "bb_id"}, []string{"bb_id"}, []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}, []*SubsetPath{}),
 				buildRunConfig("public.c", RunTypeInsert, []string{"id"}, &emptyWhere, []string{"id", "a_id"}, []string{"id", "a_id"}, []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}, []*SubsetPath{}),
 			},
@@ -852,7 +853,7 @@ func Test_BuildRunConfigs_HumanResources(t *testing.T) {
 		buildRunConfig("public.employees", RunTypeUpdate, []string{"employee_id"}, &emptyWhere,
 			[]string{"employee_id", "manager_id"},
 			[]string{"manager_id"},
-			[]*DependsOn{{Table: "public.employees", Columns: []string{"employee_id"}}}, []*SubsetPath{}),
+			[]*DependsOn{{Table: "public.employees", Columns: []string{"employee_id"}}, {Table: "public.employees", Columns: []string{"department_id"}}}, []*SubsetPath{}),
 		buildRunConfig("public.employees", RunTypeUpdate, []string{"employee_id"}, &emptyWhere,
 			[]string{"employee_id", "department_id"},
 			[]string{"department_id"},
@@ -961,6 +962,7 @@ func Test_BuildRunConfigs_Complex_CircularDependency(t *testing.T) {
 			[]*DependsOn{
 				{Table: "public.table_4", Columns: []string{"id_4"}},
 				{Table: "public.table_3", Columns: []string{"id_3"}},
+				{Table: "public.table_4", Columns: []string{"next_id_4"}},
 			}, []*SubsetPath{}),
 		buildRunConfig("public.table_4", RunTypeUpdate, []string{"id_4"}, &emptyWhere,
 			[]string{"id_4", "next_id_4"},
@@ -986,6 +988,7 @@ func Test_BuildRunConfigs_Complex_CircularDependency(t *testing.T) {
 			[]*DependsOn{
 				{Table: "public.table_2", Columns: []string{"id_2"}},
 				{Table: "public.table_3", Columns: []string{"id_3"}},
+				{Table: "public.table_2", Columns: []string{"prev_id_2"}},
 			}, []*SubsetPath{}),
 		buildRunConfig("public.table_1", RunTypeInsert, []string{"id_1"}, &emptyWhere,
 			[]string{"id_1", "name_1", "address_1", "prev_id_1", "next_id_1"},
@@ -1130,6 +1133,7 @@ func Test_BuildRunConfigs_CircularDependency_MultipleFksPerTable(t *testing.T) {
 			[]*DependsOn{
 				{Table: "public.c", Columns: []string{"id"}},
 				{Table: "public.b", Columns: []string{"id"}},
+				{Table: "public.c", Columns: []string{"acb_id"}},
 			}, []*SubsetPath{}),
 		buildRunConfig("public.c", RunTypeUpdate, []string{"id"}, &emptyWhere,
 			[]string{"id", "acb_id"},
