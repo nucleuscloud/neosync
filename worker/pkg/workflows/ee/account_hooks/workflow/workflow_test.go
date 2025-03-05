@@ -1,6 +1,7 @@
 package accounthook_workflow
 
 import (
+	"errors"
 	"testing"
 
 	accounthook_events "github.com/nucleuscloud/neosync/internal/ee/events"
@@ -40,5 +41,30 @@ func Test_ProcessAccountHook(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, &ProcessAccountHookResponse{}, result)
 
+	env.AssertExpectations(t)
+}
+
+func Test_ProcessAccountHook_Error(t *testing.T) {
+	var ts testsuite.WorkflowTestSuite
+	env := ts.NewTestWorkflowEnvironment()
+
+	var hooksByEventActivity *hooks_by_event_activity.Activity
+	env.OnActivity(hooksByEventActivity.GetAccountHooksByEvent, mock.Anything, mock.Anything).
+		Return(&hooks_by_event_activity.RunHooksByEventResponse{
+			HookIds: []string{"hook1", "hook2"},
+		}, nil).Once()
+
+	var executeHookActivity *execute_hook_activity.Activity
+	env.OnActivity(executeHookActivity.ExecuteAccountHook, mock.Anything, mock.Anything).
+		Return(nil, errors.New("error"))
+
+	env.RegisterWorkflow(ProcessAccountHook)
+
+	env.ExecuteWorkflow(ProcessAccountHook, &ProcessAccountHookRequest{
+		Event: accounthook_events.NewEvent_JobRunCreated("123", "456", "789"),
+	})
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.Error(t, env.GetWorkflowError())
 	env.AssertExpectations(t)
 }
