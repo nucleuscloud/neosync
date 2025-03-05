@@ -389,6 +389,7 @@ func (s *Service) joinSlackChannel(ctx context.Context, hook *mgmtv1alpha1.Accou
 	err = s.cfg.slackClient.JoinChannel(ctx, accessToken, channelId, logger)
 	if err != nil {
 		logger.Error("unable to join slack channel", "error", err)
+		return
 	}
 	logger.Debug("joined slack channel")
 }
