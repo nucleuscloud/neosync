@@ -393,6 +393,7 @@ func serve(ctx context.Context) error {
 			mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure,
 			mgmtv1alpha1connect.AccountHookServiceGetActiveAccountHooksByEventProcedure,
 			mgmtv1alpha1connect.AccountHookServiceGetAccountHookProcedure,
+			mgmtv1alpha1connect.AccountHookServiceSendSlackMessageProcedure,
 		})
 		stdAuthInterceptors = append(
 			stdAuthInterceptors,
