@@ -142,8 +142,6 @@ WHERE
 	customers.name = 'Jane';
 ```
 
-
-
 ### Subsetting with a WHERE Clause on the `orders` Table
 
 If a WHERE clause is applied to the `orders` table, Neosync will propagate this condition to the related tables as follows:
@@ -155,8 +153,6 @@ If a WHERE clause is applied to the `orders` table, Neosync will propagate this 
 **Payments Table**: No subset is applied to the `payments` table because Neosync takes a top-down approach.
 
 **Orders Table**: Neosync will apply the WHERE clause directly to the `orders` table. For example, if the condition is `total_amount > 100`, only orders with a total amount greater than 100 will be included in the subset.
-
-
 
 ### Subsetting with WHERE Clauses on Both `addresses` and `customers` Tables
 
@@ -216,7 +212,6 @@ WHERE
 ```
 
 In this example, Neosync effectively combines the subset conditions on both the `addresses` and `customers` tables to ensure that all related data in the `orders` and `payments` tables is relevant to the specified conditions.
-
 
 ## Examples: Subsetting by Foreign Key Disabled
 
