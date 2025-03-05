@@ -6,7 +6,7 @@ import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
 import { JobService, JobStatus } from '@neosync/sdk';
 import { PauseIcon, PlayIcon } from '@radix-ui/react-icons';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useEffect, useState, type JSX } from 'react';
 import { toast } from 'sonner';
 
 interface Props {

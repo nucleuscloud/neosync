@@ -1,4 +1,5 @@
 'use client';
+import { use } from 'react';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import { useAccount } from '@/components/providers/account-provider';
 import ResourceId from '@/components/ResourceId';
@@ -10,7 +11,8 @@ import Error from 'next/error';
 import { useRouter } from 'next/navigation';
 import { useGetConnectionComponentDetails } from '../components/useGetConnectionComponentDetails';
 
-export default function EditConnectionPage({ params }: PageProps) {
+export default function EditConnectionPage(props: PageProps) {
+  const params = use(props.params);
   const id = params?.id ?? '';
   const { account } = useAccount();
 

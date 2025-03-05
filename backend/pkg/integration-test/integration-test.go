@@ -15,6 +15,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/billing"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	ee_slack "github.com/nucleuscloud/neosync/internal/ee/slack"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	clientmanager "github.com/nucleuscloud/neosync/internal/temporal/clientmanager"
@@ -31,6 +32,7 @@ type Mocks struct {
 	Prometheusclient       *promapiv1mock.MockAPI
 	Billingclient          *billing.MockInterface
 	Presidio               Presidiomocks
+	Slackclient            *ee_slack.MockInterface
 }
 
 type Presidiomocks struct {
@@ -106,6 +108,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 			Anonymizer: presidioapi.NewMockAnonymizeInterface(t),
 			Entities:   presidioapi.NewMockEntityInterface(t),
 		},
+		Slackclient: ee_slack.NewMockInterface(t),
 	}
 
 	err = s.InitializeTest(ctx, t)

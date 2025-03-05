@@ -73,6 +73,7 @@ export function UserNav(): ReactElement | null {
                   callbackUrl: `/api/auth/provider-sign-out?idToken=${session.data.idToken}`,
                 });
               } catch (err) {
+                console.error(err);
                 toast.error('Unable to sign out of provider session');
               }
             }}

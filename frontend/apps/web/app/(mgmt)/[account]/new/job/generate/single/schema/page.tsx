@@ -53,7 +53,7 @@ import {
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { ReactElement, use, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
@@ -66,7 +66,8 @@ import {
   SingleTableSchemaFormValues,
 } from '../../../job-form-validations';
 
-export default function Page({ searchParams }: PageProps): ReactElement {
+export default function Page(props: PageProps): ReactElement {
+  const searchParams = use(props.searchParams);
   const { account } = useAccount();
   const router = useRouter();
   const posthog = usePostHog();

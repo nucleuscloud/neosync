@@ -221,7 +221,7 @@ function EditTransformerConfig(
 
 function NoAdditionalTransformerConfigurations(): ReactElement {
   return (
-    <Alert className="border-gray-200 dark:border-gray-700 shadow-sm">
+    <Alert className="border-gray-200 dark:border-gray-700 shadow-xs">
       <div className="flex flex-row items-center gap-4">
         <MixerHorizontalIcon className="h-4 w-4" />
         <AlertDescription className="text-gray-500">

@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/lib/pq"
 )
 
 const (
@@ -22,8 +23,17 @@ func IsConflict(err error) bool {
 		return false
 	}
 
-	pqErr, ok := err.(*pgconn.PgError)
-	return ok && pqErr.Code == PqUniqueViolationCode
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == PqUniqueViolationCode {
+		return true
+	}
+
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) && pqErr.Code == PqUniqueViolationCode {
+		return true
+	}
+
+	return false
 }
 
 func IsNoRows(err error) bool {

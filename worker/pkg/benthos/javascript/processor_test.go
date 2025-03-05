@@ -296,3 +296,26 @@ code: |
 
 	require.NoError(t, proc.Close(bCtx))
 }
+
+func Test_NeosyncProcessor_Ok(t *testing.T) {
+	conf, err := javascriptProcessorConfig().ParseYAML(fmt.Sprintf(`
+code: |
+  (() => {
+    let foo = neosync.transformCharacterScramble("123", null);
+    benthos.v0_msg_set_string(foo);
+  })();
+`), nil)
+	require.NoError(t, err)
+
+	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources())
+	require.NoError(t, err)
+
+	bCtx, done := context.WithTimeout(context.Background(), time.Second*30)
+	defer done()
+
+	resBatches, err := proc.ProcessBatch(bCtx, service.MessageBatch{
+		service.NewMessage([]byte("first")),
+	})
+	require.NoError(t, err)
+	require.Len(t, resBatches, 1)
+}

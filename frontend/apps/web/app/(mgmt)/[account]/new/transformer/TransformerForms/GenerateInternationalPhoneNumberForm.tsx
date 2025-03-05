@@ -19,7 +19,7 @@ export default function GenerateInternationalPhoneNumberForm(
 
   return (
     <div className="flex flex-col w-full space-y-4">
-      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-xs">
         <div className="space-y-0.5">
           <FormLabel>Minimum Length</FormLabel>
           <FormDescription>
@@ -50,7 +50,7 @@ export default function GenerateInternationalPhoneNumberForm(
           </div>
         </div>
       </div>
-      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-xs">
         <div className="space-y-0.5 ">
           <FormLabel>Maximum Length</FormLabel>
           <FormDescription>

@@ -7,12 +7,11 @@ import { useQuery } from '@connectrpc/connect-query';
 import { Connection, ConnectionService } from '@neosync/sdk';
 import Error from 'next/error';
 import { useRouter } from 'next/navigation';
-import { ReactElement } from 'react';
+import { ReactElement, use } from 'react';
 import { useGetConnectionComponentDetails } from '../components/useGetConnectionComponentDetails';
 
-export default function CloneConnectionPage({
-  params,
-}: PageProps): ReactElement {
+export default function CloneConnectionPage(props: PageProps): ReactElement {
+  const params = use(props.params);
   const id = params?.id ?? '';
 
   const { data: connection, isLoading } = useQuery(

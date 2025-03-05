@@ -15,3 +15,4 @@ from neosync.mgmt.v1alpha1.job_pb2 import *
 from neosync.mgmt.v1alpha1.metrics_pb2 import *
 from neosync.mgmt.v1alpha1.transformer_pb2 import *
 from neosync.mgmt.v1alpha1.user_account_pb2 import *
+from neosync.mgmt.v1alpha1.account_hook_pb2 import *

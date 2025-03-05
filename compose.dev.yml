@@ -40,6 +40,7 @@ services:
       - neosync_app_nodemodules:/app/node_modules
       - neosync_web_nodemodules:/app/apps/web/node_modules
       - neosync_sdk_nodemodules:/app/packages/sdk/node_modules
+      - neosync_next_cache:/app/apps/web/.next
 
   db:
     container_name: neosync-db
@@ -51,7 +52,7 @@ services:
       - POSTGRES_PASSWORD=foofar
       - PGUSER=postgres
     healthcheck:
-      test: ['CMD', 'pg_isready']
+      test: ["CMD", "pg_isready"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -168,6 +169,7 @@ volumes:
   neosync_app_nodemodules:
   neosync_web_nodemodules:
   neosync_sdk_nodemodules:
+  neosync_next_cache:
 
 networks:
   neosync-network:

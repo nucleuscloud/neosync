@@ -39,7 +39,14 @@ import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { formatDuration, intervalToDuration } from 'date-fns';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useMemo, useState } from 'react';
+import {
+  ReactElement,
+  use,
+  useEffect,
+  useMemo,
+  useState,
+  type JSX,
+} from 'react';
 import { toast } from 'sonner';
 import { format as formatSql } from 'sql-formatter';
 import yaml from 'yaml';
@@ -48,7 +55,8 @@ import JobRunActivityErrors from './components/JobRunActivityErrors';
 import JobRunActivityTable from './components/JobRunActivityTable';
 import JobRunLogs from './components/JobRunLogs';
 
-export default function Page({ params }: PageProps): ReactElement {
+export default function Page(props: PageProps): ReactElement {
+  const params = use(props.params);
   const { account } = useAccount();
   const accountId = account?.id || '';
   const id = decodeURIComponent(params?.id ?? '');

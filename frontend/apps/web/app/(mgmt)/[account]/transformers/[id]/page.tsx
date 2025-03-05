@@ -1,4 +1,5 @@
 'use client';
+import { use } from 'react';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
@@ -14,9 +15,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
 import UpdateTransformerForm from './components/UpdateTransformerForm';
 
-export default function UpdateUserDefinedTransformerPage({
-  params,
-}: PageProps) {
+export default function UpdateUserDefinedTransformerPage(props: PageProps) {
+  const params = use(props.params);
   const id = params?.id ?? '';
 
   const { data, isLoading } = useQuery(

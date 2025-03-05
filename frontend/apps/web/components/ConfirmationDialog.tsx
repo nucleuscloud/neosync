@@ -1,6 +1,6 @@
 import { cn } from '@/libs/utils';
 import { AlertDialogTitle } from '@radix-ui/react-alert-dialog';
-import { ReactElement, ReactNode, useState } from 'react';
+import { ReactElement, ReactNode, useState, type JSX } from 'react';
 import ButtonText from './ButtonText';
 import Spinner from './Spinner';
 import {

@@ -9,6 +9,8 @@ export interface SystemAppConfig {
   signInProviderId?: string;
   isMetricsServiceEnabled: boolean;
   isJobHooksEnabled: boolean;
+  isAccountHooksEnabled: boolean;
+  isSlackAccountHookEnabled: boolean;
   gtag: GtagConfig;
 
   calendlyUpgradeLink: string;

@@ -70,7 +70,7 @@ message AccountHookConfig {
     // Webhook-based hooks
     WebHook webhook = 1;
     // Slack-based hooks
-    // SlackHook slack = 2;
+    SlackHook slack = 2;
     // Future: Discord, Teams, etc.
   }
 
@@ -87,16 +87,10 @@ message AccountHookConfig {
   }
 
   // Slack hook configuration
-  // message SlackHook {
-  //   // The Slack webhook URL.
-  //   string webhook_url = 1 [(buf.validate.field).string.uri = true];
-
-  //   // The Slack channel to post messages to.
-  //   string channel = 2 [(buf.validate.field).string.min_len = 1];
-
-  //   // The message template to use.
-  //   string message_template = 3 [(buf.validate.field).string.min_len = 1];
-  // }
+  message SlackHook {
+    // The Slack channel id to post messages to.
+    string channel_id = 1 [(buf.validate.field).string.min_len = 1];
+  }
 }
 
 message GetAccountHooksRequest {
@@ -141,7 +135,7 @@ message UpdateAccountHookRequest {
   string description = 3 [(buf.validate.field).string.min_len = 1];
 
   // The events that will trigger this hook.
-  repeated AccountHookEvent events = 4;
+  repeated AccountHookEvent events = 4 [(buf.validate.field).repeated.min_items = 1];
 
   // Hook-type specific configuration.
   AccountHookConfig config = 5;
@@ -203,6 +197,55 @@ message GetActiveAccountHooksByEventResponse {
   repeated AccountHook hooks = 1;
 }
 
+message GetSlackConnectionUrlRequest {
+  // The account ID to retrieve the Slack connection URL for.
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetSlackConnectionUrlResponse {
+  // The Slack connection URL.
+  string url = 1;
+}
+
+message HandleSlackOAuthCallbackRequest {
+  // The Slack state.
+  string state = 1 [(buf.validate.field).string.min_len = 1];
+  // The Slack code.
+  string code = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+message HandleSlackOAuthCallbackResponse {}
+
+message TestSlackConnectionRequest {
+  // The account ID to test the Slack connection for.
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message TestSlackConnectionResponse {
+  // Whether there is an existing Slack configuration.
+  bool has_configuration = 1;
+  // The response from the Slack API.
+  optional Response test_response = 2;
+  // The error message if the connection failed.
+  optional string error = 3;
+
+  message Response {
+    // The URL of the Slack that is connected.
+    string url = 1;
+    // The team name of the Slack that is connected.
+    string team = 2;
+  }
+}
+
+message SendSlackMessageRequest {
+  // The account hook ID to send the Slack message to.
+  string account_hook_id = 1 [(buf.validate.field).string.uuid = true];
+  // The marshaled event that was emitted by the worker.
+  bytes event = 2;
+}
+
+message SendSlackMessageResponse {}
+
 service AccountHookService {
   // Retrieves all account hooks.
   rpc GetAccountHooks(GetAccountHooksRequest) returns (GetAccountHooksResponse) {
@@ -226,4 +269,20 @@ service AccountHookService {
   rpc GetActiveAccountHooksByEvent(GetActiveAccountHooksByEventRequest) returns (GetActiveAccountHooksByEventResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
+
+  // Retrieves the Slack connection url that allows a user to connect their Slack workspace to Neosync.
+  rpc GetSlackConnectionUrl(GetSlackConnectionUrlRequest) returns (GetSlackConnectionUrlResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Handles the Slack OAuth callback.
+  rpc HandleSlackOAuthCallback(HandleSlackOAuthCallbackRequest) returns (HandleSlackOAuthCallbackResponse) {}
+
+  // Tests the Slack connection by using the stored access token to initiate an auth test api call to slack.
+  rpc TestSlackConnection(TestSlackConnectionRequest) returns (TestSlackConnectionResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // For sending slack messages from the worker.
+  rpc SendSlackMessage(SendSlackMessageRequest) returns (SendSlackMessageResponse) {}
 }

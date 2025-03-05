@@ -19,6 +19,7 @@ from neosync.mgmt.v1alpha1 import (
     metrics_pb2_grpc,
     transformer_pb2_grpc,
     user_account_pb2_grpc,
+    account_hook_pb2_grpc,
 )
 
 # Function that returns the access token
@@ -82,6 +83,7 @@ class Neosync:
             self.channel
         )
         self.apikeys = api_key_pb2_grpc.ApiKeyServiceStub(self.channel)
+        self.account_hooks = account_hook_pb2_grpc.AccountHookServiceStub(self.channel)
 
     def close(self):
         """Closes the gRPC channel"""

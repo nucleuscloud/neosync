@@ -38,7 +38,7 @@ export default function SupportDrawer(): ReactElement {
           href={link.href}
           target="_blank"
           rel="noreferrer"
-          className="border border-gray-300 dark:border-gray-700 bg-transparent shadow-sm hover:bg-accent hover:text-accent-foreground rounded-md px-8 py-2"
+          className="border border-gray-300 dark:border-gray-700 bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground rounded-md px-8 py-2"
         >
           <div className="flex flex-row justify-between items-center">
             <div className="flex flex-col gap-1">

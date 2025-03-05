@@ -2,9 +2,11 @@ package sqlretry
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lib/pq"
 )
 
@@ -23,6 +25,15 @@ func TestIsDeadlockError(t *testing.T) {
 			}
 		})
 
+		t.Run("wrapped deadlock error", func(t *testing.T) {
+			originalErr := &mysql.MySQLError{Number: mysqlDeadlock}
+			wrappedErr := fmt.Errorf("database error: %w", originalErr)
+			doubleWrappedErr := fmt.Errorf("transaction failed: %w", wrappedErr)
+			if !isDeadlockError(doubleWrappedErr) {
+				t.Error("expected true for wrapped MySQL deadlock error")
+			}
+		})
+
 		t.Run("lock timeout error", func(t *testing.T) {
 			err := &mysql.MySQLError{Number: mysqlLockTimeout}
 			if !isDeadlockError(err) {
@@ -30,10 +41,26 @@ func TestIsDeadlockError(t *testing.T) {
 			}
 		})
 
+		t.Run("wrapped lock timeout error", func(t *testing.T) {
+			originalErr := &mysql.MySQLError{Number: mysqlLockTimeout}
+			wrappedErr := fmt.Errorf("database error: %w", originalErr)
+			if !isDeadlockError(wrappedErr) {
+				t.Error("expected true for wrapped MySQL lock timeout error")
+			}
+		})
+
 		t.Run("non-deadlock error", func(t *testing.T) {
 			err := &mysql.MySQLError{Number: 1000}
 			if isDeadlockError(err) {
 				t.Error("expected false for non-deadlock MySQL error")
+			}
+		})
+
+		t.Run("wrapped non-deadlock error", func(t *testing.T) {
+			originalErr := &mysql.MySQLError{Number: 1000}
+			wrappedErr := fmt.Errorf("database error: %w", originalErr)
+			if isDeadlockError(wrappedErr) {
+				t.Error("expected false for wrapped non-deadlock MySQL error")
 			}
 		})
 	})
@@ -46,10 +73,27 @@ func TestIsDeadlockError(t *testing.T) {
 			}
 		})
 
+		t.Run("wrapped deadlock error", func(t *testing.T) {
+			originalErr := &pq.Error{Code: pqDeadlockDetected}
+			wrappedErr := fmt.Errorf("database error: %w", originalErr)
+			doubleWrappedErr := fmt.Errorf("transaction failed: %w", wrappedErr)
+			if !isDeadlockError(doubleWrappedErr) {
+				t.Error("expected true for wrapped PostgreSQL deadlock error")
+			}
+		})
+
 		t.Run("non-deadlock error", func(t *testing.T) {
 			err := &pq.Error{Code: "23505"} // unique violation error
 			if isDeadlockError(err) {
 				t.Error("expected false for non-deadlock PostgreSQL error")
+			}
+		})
+
+		t.Run("wrapped non-deadlock error", func(t *testing.T) {
+			originalErr := &pq.Error{Code: "23505"} // unique violation error
+			wrappedErr := fmt.Errorf("database error: %w", originalErr)
+			if isDeadlockError(wrappedErr) {
+				t.Error("expected false for wrapped non-deadlock PostgreSQL error")
 			}
 		})
 	})
@@ -146,13 +190,23 @@ func TestIsPostgresDeadlock(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:     "deadlock error",
+			name:     "deadlock error (lib/pq)",
 			err:      &pq.Error{Code: pqDeadlockDetected},
 			expected: true,
 		},
 		{
-			name:     "non-deadlock postgres error",
+			name:     "deadlock error (pgx)",
+			err:      &pgconn.PgError{Code: pqDeadlockDetected},
+			expected: true,
+		},
+		{
+			name:     "non-deadlock postgres error (lib/pq)",
 			err:      &pq.Error{Code: "23505"},
+			expected: false,
+		},
+		{
+			name:     "non-deadlock postgres error (pgx)",
+			err:      &pgconn.PgError{Code: "23505"},
 			expected: false,
 		},
 		{
@@ -216,4 +270,9 @@ func TestIsMSSQLDeadlock(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_Nick(t *testing.T) {
+	err := &pq.Error{Code: pqDeadlockDetected}
+	t.Log(err.Error())
 }
