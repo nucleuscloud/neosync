@@ -3,7 +3,6 @@ package benthosbuilder_builders
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -80,7 +79,7 @@ func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(ctx context.Context, p
 			},
 		}
 		configs = append(configs, &bb_internal.BenthosSourceConfig{
-			Name:      fmt.Sprintf("%s.%s", config.Table(), config.RunType()),
+			Name:      config.Id(),
 			Config:    bc,
 			DependsOn: config.DependsOn(),
 			RunType:   config.RunType(),

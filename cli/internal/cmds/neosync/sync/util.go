@@ -66,7 +66,7 @@ func groupConfigsByDependency(configs []*benthosbuilder.BenthosConfigResponse, l
 	for len(configMap) > 0 {
 		// prevents looping forever
 		if prevTableLen == len(configMap) {
-			logger.Info("Unable to order configs by dependency. No path found.")
+			logger.Error("Unable to order configs by dependency. No path found.")
 			return nil
 		}
 		prevTableLen = len(configMap)
