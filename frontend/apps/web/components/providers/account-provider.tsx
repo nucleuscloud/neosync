@@ -36,10 +36,9 @@ const STORAGE_ACCOUNT_KEY = 'account';
 
 export default function AccountProvider(props: Props): ReactElement {
   const { children } = props;
-  const accountName = useGetAccountName();
   const { account } = useParams();
+  const accountName = useGetAccountName();
 
-  // Use both session and local storage
   const [, setLastSelectedAccountSession] = useSessionStorage<
     string | undefined
   >(STORAGE_ACCOUNT_KEY, undefined);
@@ -132,7 +131,7 @@ export default function AccountProvider(props: Props): ReactElement {
 
 function useGetAccountName(): string {
   const { account } = useParams();
-  console.log('account param value', account);
+
   const [sessionAccount] = useSessionStorage<string | undefined>(
     STORAGE_ACCOUNT_KEY,
     undefined
