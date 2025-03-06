@@ -105,7 +105,7 @@ export default function ListBox<TData>(props: Props<TData>): ReactElement {
                         minWidth: cell.column.getSize(),
                       }}
                     >
-                      <div className="truncate">
+                      <div>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
