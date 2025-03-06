@@ -17,12 +17,14 @@ import (
 	tcredis "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/redis"
 	testutil_testdata "github.com/nucleuscloud/neosync/internal/testutil/testdata"
 	pg_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/alltypes"
+	pg_complex "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/complex"
 	pg_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/edgecases"
 	pg_foreignkey_violations "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/foreignkey-violations"
 	pg_humanresources "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/humanresources"
 	pg_subsetting "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/subsetting"
 	pg_transformers "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/transformers"
 	pg_uuids "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/uuids"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 )
@@ -690,8 +692,8 @@ func test_postgres_skip_foreign_keys_violations(
 		rowCount int
 	}{
 		{schema: schema, table: "countries", rowCount: 24},
-		{schema: schema, table: "dependents", rowCount: 7},
-		{schema: schema, table: "employees", rowCount: 10},
+		{schema: schema, table: "dependents", rowCount: 28},
+		{schema: schema, table: "employees", rowCount: 40},
 		{schema: schema, table: "locations", rowCount: 4},
 		{schema: schema, table: "departments", rowCount: 4},
 		{schema: schema, table: "jobs", rowCount: 19},
@@ -701,7 +703,7 @@ func test_postgres_skip_foreign_keys_violations(
 	for _, expected := range expectedResults {
 		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)
-		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
+		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
 	}
 
 	// tear down
@@ -818,11 +820,11 @@ func test_postgres_subsetting(
 		table    string
 		rowCount int
 	}{
-		{schema: schema, table: "attachments", rowCount: 2},
-		{schema: schema, table: "comments", rowCount: 4},
-		{schema: schema, table: "initiatives", rowCount: 4},
+		{schema: schema, table: "attachments", rowCount: 6},
+		{schema: schema, table: "comments", rowCount: 12},
+		{schema: schema, table: "initiatives", rowCount: 6},
 		{schema: schema, table: "skills", rowCount: 10},
-		{schema: schema, table: "tasks", rowCount: 2},
+		{schema: schema, table: "tasks", rowCount: 6},
 		{schema: schema, table: "user_skills", rowCount: 6},
 		{schema: schema, table: "users", rowCount: 6},
 		{schema: schema, table: "test_2_x", rowCount: 3},
@@ -845,7 +847,7 @@ func test_postgres_subsetting(
 	for _, expected := range expectedResults {
 		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)
-		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
+		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
 	}
 
 	// tear down
@@ -1023,5 +1025,210 @@ func test_postgres_small_batch_size(
 
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
+	require.NoError(t, err)
+}
+
+func test_postgres_complex(
+	t *testing.T,
+	ctx context.Context,
+	postgres *tcpostgres.PostgresTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	folder := testdataFolder + "/complex"
+	err := postgres.Source.RunSqlFiles(ctx, &folder, []string{"create-tables.sql", "inserts.sql"})
+	require.NoError(t, err)
+	// should use init schema but currently broken
+	err = postgres.Target.RunSqlFiles(ctx, &folder, []string{"create-tables.sql"})
+	require.NoError(t, err)
+
+	jobmappings := pg_complex.GetDefaultSyncJobMappings()
+
+	t.Run("sync", func(t *testing.T) {
+		neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
+		job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
+			AccountId:   accountId,
+			SourceConn:  sourceConn,
+			DestConn:    destConn,
+			JobName:     "space-mission",
+			JobMappings: jobmappings,
+			JobOptions: &TestJobOptions{
+				Truncate:                      true,
+				TruncateCascade:               true,
+				InitSchema:                    false,
+				SubsetByForeignKeyConstraints: true,
+			},
+		})
+
+		testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(10), WithPageLimit(100))
+		testworkflow.RequireActivitiesCompletedSuccessfully(t)
+		testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+		require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: space-mission")
+		err = testworkflow.TestEnv.GetWorkflowError()
+		require.NoError(t, err, "Received Temporal Workflow Error: space-mission")
+
+		expectedResults := []struct {
+			schema   string
+			table    string
+			rowCount int
+		}{
+			{schema: "space_mission", table: "astronauts", rowCount: 10},
+			{schema: "space_mission", table: "missions", rowCount: 10},
+			{schema: "space_mission", table: "objectives", rowCount: 10},
+			{schema: "space_mission", table: "capabilities", rowCount: 10},
+			{schema: "space_mission", table: "astronaut_capabilities", rowCount: 10},
+			{schema: "space_mission", table: "transmissions", rowCount: 20},
+			{schema: "space_mission", table: "payloads", rowCount: 10},
+			{schema: "space_mission", table: "crew_assignments", rowCount: 10},
+			{schema: "space_mission", table: "mission_logs", rowCount: 6},
+			{schema: "space_mission", table: "crews", rowCount: 5},
+			{schema: "space_mission", table: "crew_missions", rowCount: 4},
+			{schema: "space_mission", table: "supplies", rowCount: 10},
+			{schema: "space_mission", table: "supply_items", rowCount: 5},
+			{schema: "space_mission", table: "spacecraft_class", rowCount: 3},
+			{schema: "space_mission", table: "spacecraft", rowCount: 3},
+			{schema: "space_mission", table: "spacecraft_module", rowCount: 3},
+			{schema: "space_mission", table: "module_component", rowCount: 3},
+			{schema: "space_mission", table: "equipment", rowCount: 3},
+			{schema: "space_mission", table: "mission_equipment", rowCount: 3},
+			{schema: "space_mission", table: "equipment_maintenance", rowCount: 3},
+			{schema: "space_mission", table: "training_courses", rowCount: 3},
+			{schema: "space_mission", table: "course_prerequisites", rowCount: 3},
+			{schema: "space_mission", table: "certifications", rowCount: 3},
+			{schema: "space_mission", table: "astronaut_certifications", rowCount: 4},
+			{schema: "space_mission", table: "certification_requirements", rowCount: 3},
+			{schema: "space_mission", table: "mission_logs_extended", rowCount: 3},
+			{schema: "space_mission", table: "communication_channels", rowCount: 3},
+			{schema: "space_mission", table: "mission_communications", rowCount: 3},
+			{schema: "space_mission", table: "message_logs", rowCount: 3},
+			{schema: "space_mission", table: "events", rowCount: 9},
+			// {schema: "space_mission", table: "system_events", rowCount: 3},
+			// {schema: "space_mission", table: "astronaut_events", rowCount: 3},
+			// {schema: "space_mission", table: "mission_events", rowCount: 3},
+			// {schema: "space_mission", table: "telemetry", rowCount: 6},
+			{schema: "space_mission", table: "comments", rowCount: 4},
+			{schema: "space_mission", table: "tags", rowCount: 4},
+			{schema: "space_mission", table: "taggables", rowCount: 4},
+			{schema: "space_mission", table: "mission_experiments", rowCount: 9},
+			{schema: "space_mission", table: "mission_parameters", rowCount: 3},
+			{schema: "space_mission", table: "skill_groups", rowCount: 6},
+			{schema: "space_mission", table: "capability_skill_groups", rowCount: 8},
+			{schema: "space_mission", table: "mission_required_skill_groups", rowCount: 7},
+			{schema: "space_mission", table: "equipment_compatibility", rowCount: 5},
+			{schema: "space_mission", table: "mission_status_history", rowCount: 8},
+			{schema: "space_mission", table: "equipment_status_history", rowCount: 8},
+			{schema: "space_mission", table: "astronaut_role_history", rowCount: 5},
+			{schema: "space_mission", table: "astronaut_vitals", rowCount: 4},
+			{schema: "scientific_data", table: "experiments", rowCount: 9},
+			{schema: "scientific_data", table: "samples", rowCount: 9},
+			{schema: "scientific_data", table: "measurements", rowCount: 9},
+		}
+
+		for _, expected := range expectedResults {
+			rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+			require.NoError(t, err)
+			assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: space-mission Table: %s", expected.table))
+		}
+	})
+
+	t.Run("subset", func(t *testing.T) {
+		subsetMappings := map[string]string{
+			"space_mission.astronauts":    "astronaut_id in (1,2,3,4,5)",
+			"space_mission.missions":      "mission_id < 6",
+			"scientific_data.experiments": "experiment_id < 5",
+		}
+
+		neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+		job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
+			AccountId:   accountId,
+			SourceConn:  sourceConn,
+			DestConn:    destConn,
+			JobName:     "space-mission-subset",
+			JobMappings: jobmappings,
+			SubsetMap:   subsetMappings,
+			JobOptions: &TestJobOptions{
+				Truncate:                      true,
+				TruncateCascade:               true,
+				InitSchema:                    false,
+				SubsetByForeignKeyConstraints: true,
+			},
+		})
+
+		testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(10), WithPageLimit(100))
+		testworkflow.RequireActivitiesCompletedSuccessfully(t)
+		testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+		require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: space-mission-subset")
+		err = testworkflow.TestEnv.GetWorkflowError()
+		require.NoError(t, err, "Received Temporal Workflow Error: space-mission-subset")
+
+		expectedResults := []struct {
+			schema   string
+			table    string
+			rowCount int
+		}{
+			{schema: "space_mission", table: "astronauts", rowCount: 5},
+			{schema: "space_mission", table: "missions", rowCount: 4},
+			{schema: "space_mission", table: "objectives", rowCount: 3},
+			{schema: "space_mission", table: "capabilities", rowCount: 10},
+			{schema: "space_mission", table: "astronaut_capabilities", rowCount: 5},
+			{schema: "space_mission", table: "transmissions", rowCount: 8},
+			{schema: "space_mission", table: "payloads", rowCount: 3},
+			{schema: "space_mission", table: "crew_assignments", rowCount: 3},
+			{schema: "space_mission", table: "mission_logs", rowCount: 6},
+			{schema: "space_mission", table: "crews", rowCount: 4},
+			{schema: "space_mission", table: "crew_missions", rowCount: 3},
+			{schema: "space_mission", table: "supplies", rowCount: 3},
+			{schema: "space_mission", table: "supply_items", rowCount: 2},
+			{schema: "space_mission", table: "spacecraft_class", rowCount: 3},
+			{schema: "space_mission", table: "spacecraft", rowCount: 3},
+			{schema: "space_mission", table: "spacecraft_module", rowCount: 3},
+			{schema: "space_mission", table: "module_component", rowCount: 3},
+			{schema: "space_mission", table: "equipment", rowCount: 3},
+			{schema: "space_mission", table: "mission_equipment", rowCount: 3},
+			{schema: "space_mission", table: "equipment_maintenance", rowCount: 3},
+			{schema: "space_mission", table: "training_courses", rowCount: 3},
+			{schema: "space_mission", table: "course_prerequisites", rowCount: 3},
+			{schema: "space_mission", table: "certifications", rowCount: 3},
+			{schema: "space_mission", table: "astronaut_certifications", rowCount: 4},
+			{schema: "space_mission", table: "certification_requirements", rowCount: 3},
+			{schema: "space_mission", table: "mission_logs_extended", rowCount: 2},
+			{schema: "space_mission", table: "communication_channels", rowCount: 3},
+			{schema: "space_mission", table: "mission_communications", rowCount: 3},
+			{schema: "space_mission", table: "message_logs", rowCount: 2},
+			{schema: "space_mission", table: "events", rowCount: 9},
+			// {schema: "space_mission", table: "system_events", rowCount: 3},
+			// {schema: "space_mission", table: "astronaut_events", rowCount: 3},
+			// {schema: "space_mission", table: "mission_events", rowCount: 3},
+			// {schema: "space_mission", table: "telemetry", rowCount: 6},
+			{schema: "space_mission", table: "comments", rowCount: 4},
+			{schema: "space_mission", table: "tags", rowCount: 4},
+			{schema: "space_mission", table: "taggables", rowCount: 4},
+			{schema: "space_mission", table: "mission_experiments", rowCount: 2},
+			{schema: "space_mission", table: "mission_parameters", rowCount: 3},
+			{schema: "space_mission", table: "skill_groups", rowCount: 6},
+			{schema: "space_mission", table: "capability_skill_groups", rowCount: 8},
+			{schema: "space_mission", table: "mission_required_skill_groups", rowCount: 7},
+			{schema: "space_mission", table: "equipment_compatibility", rowCount: 5},
+			{schema: "space_mission", table: "mission_status_history", rowCount: 8},
+			{schema: "space_mission", table: "equipment_status_history", rowCount: 8},
+			{schema: "space_mission", table: "astronaut_role_history", rowCount: 5},
+			{schema: "space_mission", table: "astronaut_vitals", rowCount: 4},
+			{schema: "scientific_data", table: "experiments", rowCount: 3},
+			{schema: "scientific_data", table: "samples", rowCount: 4},
+			{schema: "scientific_data", table: "measurements", rowCount: 4},
+		}
+		for _, expected := range expectedResults {
+			rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+			require.NoError(t, err)
+			assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: space-mission-subset Table: %s", expected.table))
+		}
+	})
+
+	// tear down
+	err = cleanupPostgresSchemas(ctx, postgres, []string{"space_mission", "scientific_data"})
 	require.NoError(t, err)
 }

@@ -14,8 +14,8 @@ CREATE TABLE mssqltest.initiatives (
     initiative_id INT IDENTITY(1,1) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    lead_id INT,
-    client_id INT
+    lead_id INT NOT NULL,
+    client_id INT NOT NULL
 );
 
 CREATE TABLE mssqltest.tasks (
@@ -23,9 +23,9 @@ CREATE TABLE mssqltest.tasks (
     title VARCHAR(200) NOT NULL,
     description TEXT,
     status VARCHAR(50),
-    initiative_id INT,
-    assignee_id INT,
-    reviewer_id INT
+    initiative_id INT NOT NULL,
+    assignee_id INT NOT NULL,
+    reviewer_id INT NOT NULL
 );
 
 CREATE TABLE mssqltest.skills (
@@ -37,7 +37,7 @@ CREATE TABLE mssqltest.skills (
 CREATE TABLE mssqltest.user_skills (
     user_skill_id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
-    skill_id INT,
+    skill_id INT NOT NULL,
     proficiency_level INT CHECK (proficiency_level BETWEEN 1 AND 5)
 );
 
@@ -57,8 +57,8 @@ CREATE TABLE mssqltest.attachments (
     file_path VARCHAR(255) NOT NULL,
     uploaded_by INT NOT NULL,
     task_id INT NOT NULL,
-    initiative_id INT,
-    comment_id INT
+    initiative_id INT NOT NULL,
+    comment_id INT NOT NULL
 );
 
 

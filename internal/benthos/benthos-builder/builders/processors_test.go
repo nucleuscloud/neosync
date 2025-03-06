@@ -9,8 +9,8 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,7 +38,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 			}},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 		map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{"address"}, nil, nil, false),
+		runconfigs.NewRunConfig("id", sqlmanager_shared.SchemaTable{}, runconfigs.RunTypeInsert, nil, nil, nil, []string{"address"}, nil, false),
 		nil,
 		[]string{},
 	)
@@ -97,7 +97,7 @@ func Test_buildProcessorConfigsGenerateJavascript(t *testing.T) {
 			}},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 		map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{"test"}, nil, nil, false),
+		runconfigs.NewRunConfig("id", sqlmanager_shared.SchemaTable{}, runconfigs.RunTypeInsert, nil, nil, nil, []string{"test"}, nil, false),
 		nil,
 		[]string{},
 	)
@@ -165,7 +165,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 			{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}},
 			{Schema: "public", Table: "users", Column: ageCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT2.Config}}},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{nameCol, ageCol}, nil, nil, false),
+		runconfigs.NewRunConfig("id", sqlmanager_shared.SchemaTable{}, runconfigs.RunTypeInsert, nil, nil, nil, []string{nameCol, ageCol}, nil, false),
 		nil,
 		[]string{},
 	)
@@ -234,7 +234,7 @@ func Test_buildProcessorConfigsTransformAndGenerateJavascript(t *testing.T) {
 			{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}},
 			{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT2.Config}}},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{nameCol, col2}, nil, nil, false),
+		runconfigs.NewRunConfig("id", sqlmanager_shared.SchemaTable{}, runconfigs.RunTypeInsert, nil, nil, nil, []string{nameCol, col2}, nil, false),
 		nil,
 		[]string{},
 	)
@@ -294,7 +294,7 @@ func Test_buildProcessorConfigsJavascript_DeepKeys(t *testing.T) {
 			}},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 		map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{"foo.bar.baz"}, nil, nil, false),
+		runconfigs.NewRunConfig("id", sqlmanager_shared.SchemaTable{}, runconfigs.RunTypeInsert, nil, nil, nil, []string{"foo.bar.baz"}, nil, false),
 		nil,
 		[]string{},
 	)

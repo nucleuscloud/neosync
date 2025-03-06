@@ -13,10 +13,10 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	javascript_userland "github.com/nucleuscloud/neosync/internal/javascript/userland"
 	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
@@ -27,7 +27,7 @@ import (
 func buildProcessorConfigsByRunType(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	config *tabledependency.RunConfig,
+	config *runconfigs.RunConfig,
 	columnForeignKeysMap map[string][]*bb_internal.ReferenceKey,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	jobId, runId string,
@@ -37,7 +37,7 @@ func buildProcessorConfigsByRunType(
 	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
 	mappedKeys []string,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
-	if config.RunType() == tabledependency.RunTypeUpdate {
+	if config.RunType() == runconfigs.RunTypeUpdate {
 		// sql update processor configs
 		processorConfigs, err := buildSqlUpdateProcessorConfigs(config, redisConfig, jobId, runId, transformedFktoPkMap)
 		if err != nil {
@@ -72,7 +72,7 @@ func buildProcessorConfigsByRunType(
 }
 
 func buildSqlUpdateProcessorConfigs(
-	config *tabledependency.RunConfig,
+	config *runconfigs.RunConfig,
 	redisConfig *neosync_redis.RedisConfig,
 	jobId, runId string,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
@@ -129,7 +129,7 @@ func buildProcessorConfigs(
 	fkSourceCols []string,
 	jobId, runId string,
 	redisConfig *neosync_redis.RedisConfig,
-	runconfig *tabledependency.RunConfig,
+	runconfig *runconfigs.RunConfig,
 	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
 	mappedKeys []string,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
