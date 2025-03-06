@@ -1,6 +1,11 @@
 'use client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AccountStatus, IsAccountStatusValidResponse } from '@neosync/sdk';
+import { useQuery } from '@connectrpc/connect-query';
+import {
+  AccountStatus,
+  IsAccountStatusValidResponse,
+  UserAccountService,
+} from '@neosync/sdk';
 import { ArrowUpIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { IoAlertCircleOutline } from 'react-icons/io5';
@@ -20,17 +25,18 @@ import UpgradeButton from './UpgradeButton';
 
 interface UpgradeProps {
   calendlyLink: string;
-  isNeosyncCloud: boolean;
   isAccountStatusValidResp: IsAccountStatusValidResponse | undefined;
   isLoading: boolean;
 }
 
 export default function Upgrade(props: UpgradeProps): ReactElement | null {
-  const { calendlyLink, isNeosyncCloud, isAccountStatusValidResp, isLoading } =
-    props;
+  const { calendlyLink, isAccountStatusValidResp, isLoading } = props;
   const { account } = useAccount();
+  const { data: systemInfo } = useQuery(
+    UserAccountService.method.getSystemInformation
+  );
   // always surface the upgrade button for non-neosynccloud users
-  if (!isNeosyncCloud) {
+  if (!systemInfo?.license?.isValid && !systemInfo?.license?.isNeosyncCloud) {
     return <UpgradeButton href={calendlyLink} target="_blank" />;
   }
 
