@@ -1,5 +1,5 @@
 ---
-title: 02/13 - Connection Security
+title: 02/27 - Connection Security
 hide_table_of_contents: false
 slug: /connection-security
 authors:
