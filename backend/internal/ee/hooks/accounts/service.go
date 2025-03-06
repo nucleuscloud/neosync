@@ -356,11 +356,42 @@ func (s *Service) CreateAccountHook(ctx context.Context, req *mgmtv1alpha1.Creat
 		return nil, err
 	}
 
-	// todo: if slack, join channel
+	go s.joinSlackChannel(context.Background(), dto, logger)
 
 	return &mgmtv1alpha1.CreateAccountHookResponse{
 		Hook: dto,
 	}, nil
+}
+
+func (s *Service) joinSlackChannel(ctx context.Context, hook *mgmtv1alpha1.AccountHook, logger *slog.Logger) {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Error("panic when attempting to join slack channel", "error", r)
+		}
+	}()
+
+	slackConfig := hook.GetConfig().GetSlack()
+	if slackConfig == nil {
+		return
+	}
+	channelId := slackConfig.GetChannelId()
+	accountId, err := neosyncdb.ToUuid(hook.GetAccountId())
+	if err != nil {
+		logger.Error("unable to parse account id when attempting to join slack channel", "error", err)
+		return
+	}
+	accessToken, err := s.db.Q.GetSlackAccessToken(ctx, s.db.Db, accountId)
+	if err != nil {
+		logger.Error("unable to get slack access token when attempting to join slack channel", "error", err)
+		return
+	}
+
+	err = s.cfg.slackClient.JoinChannel(ctx, accessToken, channelId, logger)
+	if err != nil {
+		logger.Error("unable to join slack channel", "error", err)
+		return
+	}
+	logger.Debug("joined slack channel")
 }
 
 func (s *Service) UpdateAccountHook(ctx context.Context, req *mgmtv1alpha1.UpdateAccountHookRequest) (*mgmtv1alpha1.UpdateAccountHookResponse, error) {
@@ -418,11 +449,24 @@ func (s *Service) UpdateAccountHook(ctx context.Context, req *mgmtv1alpha1.Updat
 		return nil, err
 	}
 
-	// todo: if slack and channel has changed, join channel
+	if hasSlackChannelIdChanged(getResp.GetHook(), dto) {
+		go s.joinSlackChannel(context.Background(), dto, logger)
+	}
 
 	return &mgmtv1alpha1.UpdateAccountHookResponse{
 		Hook: dto,
 	}, nil
+}
+
+func hasSlackChannelIdChanged(oldHook, newHook *mgmtv1alpha1.AccountHook) bool {
+	if oldHook == nil || newHook == nil {
+		return false
+	}
+
+	oldChannelId := oldHook.GetConfig().GetSlack().GetChannelId()
+	newChannelId := newHook.GetConfig().GetSlack().GetChannelId()
+
+	return oldChannelId != newChannelId
 }
 
 func (s *Service) GetSlackConnectionUrl(
