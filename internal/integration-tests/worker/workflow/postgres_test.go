@@ -1041,9 +1041,6 @@ func test_postgres_complex(
 	folder := testdataFolder + "/complex"
 	err := postgres.Source.RunSqlFiles(ctx, &folder, []string{"create-tables.sql", "inserts.sql"})
 	require.NoError(t, err)
-	// should use init schema but currently broken
-	err = postgres.Target.RunSqlFiles(ctx, &folder, []string{"create-tables.sql"})
-	require.NoError(t, err)
 
 	jobmappings := pg_complex.GetDefaultSyncJobMappings()
 
@@ -1059,7 +1056,7 @@ func test_postgres_complex(
 			JobOptions: &TestJobOptions{
 				Truncate:                      true,
 				TruncateCascade:               true,
-				InitSchema:                    false,
+				InitSchema:                    true,
 				SubsetByForeignKeyConstraints: true,
 			},
 		})
@@ -1109,7 +1106,7 @@ func test_postgres_complex(
 			// {schema: "space_mission", table: "system_events", rowCount: 3},
 			// {schema: "space_mission", table: "astronaut_events", rowCount: 3},
 			// {schema: "space_mission", table: "mission_events", rowCount: 3},
-			// {schema: "space_mission", table: "telemetry", rowCount: 6},
+			{schema: "space_mission", table: "telemetry", rowCount: 6},
 			{schema: "space_mission", table: "comments", rowCount: 4},
 			{schema: "space_mission", table: "tags", rowCount: 4},
 			{schema: "space_mission", table: "taggables", rowCount: 4},
@@ -1153,7 +1150,7 @@ func test_postgres_complex(
 			JobOptions: &TestJobOptions{
 				Truncate:                      true,
 				TruncateCascade:               true,
-				InitSchema:                    false,
+				InitSchema:                    true,
 				SubsetByForeignKeyConstraints: true,
 			},
 		})
@@ -1203,7 +1200,7 @@ func test_postgres_complex(
 			// {schema: "space_mission", table: "system_events", rowCount: 3},
 			// {schema: "space_mission", table: "astronaut_events", rowCount: 3},
 			// {schema: "space_mission", table: "mission_events", rowCount: 3},
-			// {schema: "space_mission", table: "telemetry", rowCount: 6},
+			{schema: "space_mission", table: "telemetry", rowCount: 6},
 			{schema: "space_mission", table: "comments", rowCount: 4},
 			{schema: "space_mission", table: "tags", rowCount: 4},
 			{schema: "space_mission", table: "taggables", rowCount: 4},

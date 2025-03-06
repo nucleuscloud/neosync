@@ -317,7 +317,7 @@ func (p *PostgresTestContainer) DropSchemas(ctx context.Context, schemas []strin
 }
 
 func (p *PostgresTestContainer) GetTableRowCount(ctx context.Context, schema, table string) (int, error) {
-	rows := p.DB.QueryRow(ctx, fmt.Sprintf("SELECT COUNT(*) FROM %q.%q;", schema, table))
+	rows := p.DB.QueryRow(ctx, fmt.Sprintf("SELECT COUNT(*) FROM ONLY %q.%q;", schema, table))
 	var count int
 	err := rows.Scan(&count)
 	if err != nil {

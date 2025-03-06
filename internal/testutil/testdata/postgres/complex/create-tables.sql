@@ -374,7 +374,7 @@ CREATE TABLE IF NOT EXISTS events (
     description TEXT
 );
 
--- not currently supported
+-- more works needs to be done to support inheritance
 -- CREATE TABLE IF NOT EXISTS system_events (
 --     system_name VARCHAR(100) NOT NULL,
 --     component_id INTEGER,
@@ -396,24 +396,24 @@ CREATE TABLE IF NOT EXISTS events (
 --     affected_objectives INTEGER[]
 -- ) INHERITS (events);
 
--- CREATE TABLE telemetry (
---     telemetry_id BIGSERIAL,
---     timestamp TIMESTAMP NOT NULL,
---     spacecraft_id INTEGER NOT NULL REFERENCES spacecraft(spacecraft_id),
---     sensor_type VARCHAR(50) NOT NULL,
---     reading NUMERIC(12,4) NOT NULL,
---     unit VARCHAR(20),
---     coordinates POINT,
---     is_anomaly BOOLEAN DEFAULT FALSE,
---     PRIMARY KEY (telemetry_id, timestamp)
--- ) PARTITION BY RANGE (timestamp);
+CREATE TABLE telemetry (
+    telemetry_id BIGSERIAL,
+    timestamp TIMESTAMP NOT NULL,
+    spacecraft_id INTEGER NOT NULL REFERENCES spacecraft(spacecraft_id),
+    sensor_type VARCHAR(50) NOT NULL,
+    reading NUMERIC(12,4) NOT NULL,
+    unit VARCHAR(20),
+    coordinates POINT,
+    is_anomaly BOOLEAN DEFAULT FALSE,
+    PRIMARY KEY (telemetry_id, timestamp)
+) PARTITION BY RANGE (timestamp);
 
--- CREATE TABLE telemetry_2023 PARTITION OF telemetry
---     FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
--- CREATE TABLE telemetry_2024 PARTITION OF telemetry
---     FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
--- CREATE TABLE telemetry_2025 PARTITION OF telemetry
---     FOR VALUES FROM ('2025-01-01') TO ('2026-01-01');
+CREATE TABLE telemetry_2023 PARTITION OF telemetry
+    FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+CREATE TABLE telemetry_2024 PARTITION OF telemetry
+    FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
+CREATE TABLE telemetry_2025 PARTITION OF telemetry
+    FOR VALUES FROM ('2025-01-01') TO ('2026-01-01');
 
 
 CREATE TABLE IF NOT EXISTS comments (
