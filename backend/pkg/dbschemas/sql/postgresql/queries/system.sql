@@ -75,7 +75,7 @@ column_defaults AS (
         AND a.attnum > 0
         AND NOT a.attisdropped
         AND c.relkind IN ('r', 'p')
-        -- exclude partitions
+        -- exclude child partitions
         AND c.relispartition = FALSE
 ),
 identity_columns AS (
@@ -207,7 +207,7 @@ column_defaults AS (
         AND a.attnum > 0
         AND NOT a.attisdropped
         AND c.relkind IN ('r', 'p')
-        -- exclude partitions
+        -- exclude child partitions
         AND c.relispartition = FALSE
 ),
 identity_columns AS (
