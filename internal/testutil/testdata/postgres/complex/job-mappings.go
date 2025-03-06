@@ -1771,102 +1771,102 @@ func GetDefaultSyncJobMappings() []*mgmtv1alpha1.JobMapping {
 				},
 			},
 		},
-		// {
-		// 	Schema: "space_mission",
-		// 	Table:  "telemetry",
-		// 	Column: "telemetry_id",
-		// 	Transformer: &mgmtv1alpha1.JobMappingTransformer{
-		// 		Config: &mgmtv1alpha1.TransformerConfig{
-		// 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-		// 				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-		// 			},
-		// 		},
-		// 	},
-		// },
-		// {
-		// 	Schema: "space_mission",
-		// 	Table:  "telemetry",
-		// 	Column: "timestamp",
-		// 	Transformer: &mgmtv1alpha1.JobMappingTransformer{
-		// 		Config: &mgmtv1alpha1.TransformerConfig{
-		// 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-		// 				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-		// 			},
-		// 		},
-		// 	},
-		// },
-		// {
-		// 	Schema: "space_mission",
-		// 	Table:  "telemetry",
-		// 	Column: "spacecraft_id",
-		// 	Transformer: &mgmtv1alpha1.JobMappingTransformer{
-		// 		Config: &mgmtv1alpha1.TransformerConfig{
-		// 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-		// 				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-		// 			},
-		// 		},
-		// 	},
-		// },
-		// {
-		// 	Schema: "space_mission",
-		// 	Table:  "telemetry",
-		// 	Column: "sensor_type",
-		// 	Transformer: &mgmtv1alpha1.JobMappingTransformer{
-		// 		Config: &mgmtv1alpha1.TransformerConfig{
-		// 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-		// 				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-		// 			},
-		// 		},
-		// 	},
-		// },
-		// {
-		// 	Schema: "space_mission",
-		// 	Table:  "telemetry",
-		// 	Column: "reading",
-		// 	Transformer: &mgmtv1alpha1.JobMappingTransformer{
-		// 		Config: &mgmtv1alpha1.TransformerConfig{
-		// 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-		// 				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-		// 			},
-		// 		},
-		// 	},
-		// },
-		// {
-		// 	Schema: "space_mission",
-		// 	Table:  "telemetry",
-		// 	Column: "unit",
-		// 	Transformer: &mgmtv1alpha1.JobMappingTransformer{
-		// 		Config: &mgmtv1alpha1.TransformerConfig{
-		// 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-		// 				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-		// 			},
-		// 		},
-		// 	},
-		// },
-		// {
-		// 	Schema: "space_mission",
-		// 	Table:  "telemetry",
-		// 	Column: "coordinates",
-		// 	Transformer: &mgmtv1alpha1.JobMappingTransformer{
-		// 		Config: &mgmtv1alpha1.TransformerConfig{
-		// 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-		// 				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-		// 			},
-		// 		},
-		// 	},
-		// },
-		// {
-		// 	Schema: "space_mission",
-		// 	Table:  "telemetry",
-		// 	Column: "is_anomaly",
-		// 	Transformer: &mgmtv1alpha1.JobMappingTransformer{
-		// 		Config: &mgmtv1alpha1.TransformerConfig{
-		// 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-		// 				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-		// 			},
-		// 		},
-		// 	},
-		// },
+		{
+			Schema: "space_mission",
+			Table:  "telemetry",
+			Column: "telemetry_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
+			},
+		},
+		{
+			Schema: "space_mission",
+			Table:  "telemetry",
+			Column: "timestamp",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
+			},
+		},
+		{
+			Schema: "space_mission",
+			Table:  "telemetry",
+			Column: "spacecraft_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
+			},
+		},
+		{
+			Schema: "space_mission",
+			Table:  "telemetry",
+			Column: "sensor_type",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
+			},
+		},
+		{
+			Schema: "space_mission",
+			Table:  "telemetry",
+			Column: "reading",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
+			},
+		},
+		{
+			Schema: "space_mission",
+			Table:  "telemetry",
+			Column: "unit",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
+			},
+		},
+		{
+			Schema: "space_mission",
+			Table:  "telemetry",
+			Column: "coordinates",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
+			},
+		},
+		{
+			Schema: "space_mission",
+			Table:  "telemetry",
+			Column: "is_anomaly",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
+			},
+		},
 		{
 			Schema: "space_mission",
 			Table:  "comments",
