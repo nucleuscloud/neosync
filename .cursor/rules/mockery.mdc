@@ -1,8 +1,8 @@
 ---
 description: Lays out Mockery best practices
 globs: **/*_test.go
+alwaysApply: false
 ---
-
 ## Use .EXPECT Instead of .ON Syntax when using Mocks
 
 - Mockery has two types of mocking syntax. .On("MyFunction") and .EXPECT().MyFunction
