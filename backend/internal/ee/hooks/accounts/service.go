@@ -765,7 +765,7 @@ func getSlackBlocksByEvent(event *accounthook_events.Event, appBaseUrl, accountN
 		jobFields := []*slack.TextBlockObject{
 			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job ID:*\n%s", buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunFailed.JobId)), false, false),
 			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job Run ID:*\n%s", buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunFailed.JobRunId)), false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, "*Failed At:*\n<!date^"+fmt.Sprint(event.Timestamp.Unix())+"^{date_short_pretty} at {time}|"+event.Timestamp.Format(time.RFC3339)+">", false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Failed At:*\n<!date^%d^{date_short_pretty} at {time}|%s>", event.Timestamp.Unix(), event.Timestamp.Format(time.RFC3339)), false, false),
 		}
 		fieldsSection := slack.NewSectionBlock(nil, jobFields, nil)
 
@@ -791,7 +791,7 @@ func getSlackBlocksByEvent(event *accounthook_events.Event, appBaseUrl, accountN
 		jobFields := []*slack.TextBlockObject{
 			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job ID:*\n%s", buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunSucceeded.JobId)), false, false),
 			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job Run ID:*\n%s", buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunSucceeded.JobRunId)), false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, "*Succeeded At:*\n<!date^"+fmt.Sprint(event.Timestamp.Unix())+"^{date_short_pretty} at {time}|"+event.Timestamp.Format(time.RFC3339)+">", false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Succeeded At:*\n<!date^%d^{date_short_pretty} at {time}|%s>", event.Timestamp.Unix(), event.Timestamp.Format(time.RFC3339)), false, false),
 		}
 		fieldsSection := slack.NewSectionBlock(nil, jobFields, nil)
 
