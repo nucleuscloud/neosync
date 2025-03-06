@@ -763,8 +763,8 @@ func getSlackBlocksByEvent(event *accounthook_events.Event, appBaseUrl, accountN
 		headerSection := slack.NewHeaderBlock(headerText)
 
 		jobFields := []*slack.TextBlockObject{
-			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job ID:* %s", buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunCreated.JobId)), false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job Run ID:* %s", buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunCreated.JobRunId)), false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job ID:* %s", buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunFailed.JobId)), false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job Run ID:* %s", buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunFailed.JobRunId)), false, false),
 			slack.NewTextBlockObject(slack.MarkdownType, "*Failed At:*\n<!date^"+fmt.Sprint(event.Timestamp.Unix())+"^{date_short_pretty} at {time}|"+event.Timestamp.Format(time.RFC3339)+">", false, false),
 		}
 		fieldsSection := slack.NewSectionBlock(nil, jobFields, nil)
@@ -789,8 +789,8 @@ func getSlackBlocksByEvent(event *accounthook_events.Event, appBaseUrl, accountN
 		headerSection := slack.NewHeaderBlock(headerText)
 
 		jobFields := []*slack.TextBlockObject{
-			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job ID:* %s", buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunCreated.JobId)), false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job Run ID:* %s", buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunCreated.JobRunId)), false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job ID:* %s", buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunSucceeded.JobId)), false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job Run ID:* %s", buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunSucceeded.JobRunId)), false, false),
 			slack.NewTextBlockObject(slack.MarkdownType, "*Succeeded At:*\n<!date^"+fmt.Sprint(event.Timestamp.Unix())+"^{date_short_pretty} at {time}|"+event.Timestamp.Format(time.RFC3339)+">", false, false),
 		}
 		fieldsSection := slack.NewSectionBlock(nil, jobFields, nil)
