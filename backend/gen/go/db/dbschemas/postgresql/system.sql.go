@@ -513,6 +513,8 @@ column_defaults AS (
         AND a.attnum > 0
         AND NOT a.attisdropped
         AND c.relkind IN ('r', 'p')
+        -- exclude partitions
+        AND c.relispartition = FALSE
 ),
 identity_columns AS (
     SELECT
@@ -710,7 +712,9 @@ column_defaults AS (
         (n.nspname || '.' || c.relname) = ANY($1::TEXT[])
         AND a.attnum > 0
         AND NOT a.attisdropped
-        AND c.relkind IN ('r', 'p') 
+        AND c.relkind IN ('r', 'p')
+        -- exclude partitions
+        AND c.relispartition = FALSE
 ),
 identity_columns AS (
     SELECT
