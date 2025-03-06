@@ -52,7 +52,7 @@ services:
       - POSTGRES_PASSWORD=foofar
       - PGUSER=postgres
     healthcheck:
-      test: ["CMD", "pg_isready"]
+      test: ['CMD', 'pg_isready']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -73,6 +73,7 @@ services:
       - HOST=0.0.0.0
       - PORT=8080
       - NUCLEUS_ENV=dev
+      - APP_BASEURL=http://localhost:3000
       - TEMPORAL_URL=temporal:7233
       - DB_AUTO_MIGRATE=true
       - DB_SCHEMA_DIR=/workspace/backend/sql/postgresql/schema
