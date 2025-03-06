@@ -1,0 +1,74 @@
+---
+description: Prefer using sub-tests over table tests for easier readability and one-off testing.
+globs: **/*_test.go
+alwaysApply: false
+---
+
+# Adding Go Tests
+
+- When generating tests for a single Go Test, prefer generating sub tests instead of the table or using loops
+- prefer to prefix the test name with `Test_` as we find it makes it easier to read. Example: `Test_MyFunction` instead of `TestMyFunction`.
+
+## Bad
+
+```go
+func Test_isTokenValid(t *testing.T) {
+  type testcase struct {
+    token     *string
+		expiresAt *time.Time
+		expBuffer time.Duration
+
+		expected bool
+	}
+
+	testcases := []testcase{
+    {token: nil, expiresAt: nil, expected: false},
+		{token: ptr("foo"), expiresAt: nil, expected: false},
+	}
+
+	for _, testcase := range testcases {
+    t.Run(t.Name(), func(t *testing.T) {
+      assert.Equal(t, testcase.expected, isTokenValid(testcase.token, testcase.expiresAt, testcase.expBuffer))
+		})
+	}
+}
+```
+
+## Good
+```go
+func Test_isTokenValid(t *testing.T) {
+  t.Run("nil", func(t *testing.T) {
+    assert.Equal(t, false, isTokenValid(nil, nil, nil))
+  })
+
+  t.Run("non-nil", func(t *testing.T {
+    token := "foo"
+    assert.Equal(t, false, isTokenValid(&token, nil, nil))
+  })
+}
+```
+
+# Assertion style
+
+- When generating test assertions, prefer using `require` or `assert` from `stretchr` instead of using an if condition.
+
+## Bad
+
+```go
+func Test_isOk(t *testing.T) {
+	isOk := false
+
+	if !isOk {
+		t.Fatal("isOk is false")
+	}
+}
+```
+
+## Good
+
+```go
+func Test_isOk(t *testing.T) {
+	isOk := false
+	require.True(t, isOk, "is not okay")
+}
+```
