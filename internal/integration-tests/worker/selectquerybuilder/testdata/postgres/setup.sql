@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS transaction (
     amount double precision NOT NULL,
     created timestamp without time zone,
     updated timestamp without time zone,
-  	department_id bigint, -- to be fk
+  	department_id bigint NOT NULL, -- to be fk
     date date,
     currency text NOT NULL,
     settings json DEFAULT '{
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS expense_report (
     currency character varying(5),
     transaction_type integer NOT NULL,
     paid boolean DEFAULT false,
-    transaction_id bigint, -- fk
+    transaction_id bigint NOT NULL, -- fk
     adjustment_amount numeric(15,2),
     CONSTRAINT transaction_type_valid_values CHECK ((transaction_type = ANY (ARRAY[1, 2]))),
   	CONSTRAINT expense_report_pkey PRIMARY KEY (id),
@@ -69,14 +69,14 @@ CREATE TABLE IF NOT EXISTS expense_report (
 
 CREATE TABLE IF NOT EXISTS expense (
     id bigint NOT NULL PRIMARY KEY,
-    report_id bigint,
+    report_id bigint NOT NULL,
   	CONSTRAINT expense_report_d_fkey FOREIGN KEY (report_id) REFERENCES expense_report (ID) ON DELETE CASCADE
 );
 
 
 CREATE TABLE IF NOT EXISTS item (
     id bigint NOT NULL PRIMARY KEY,
-    expense_id bigint,
+    expense_id bigint NOT NULL,
   	CONSTRAINT expense_id_fkey FOREIGN KEY (expense_id) REFERENCES expense (ID) ON DELETE CASCADE
 );
 
@@ -466,8 +466,8 @@ CREATE TABLE initiatives (
     initiative_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    lead_id INTEGER,
-    client_id INTEGER
+    lead_id INTEGER NOT NULL,
+    client_id INTEGER NOT NULL
 );
 
 CREATE TABLE tasks (
@@ -475,9 +475,9 @@ CREATE TABLE tasks (
     title VARCHAR(200) NOT NULL,
     description TEXT,
     status VARCHAR(50),
-    initiative_id INTEGER,
-    assignee_id INTEGER,
-    reviewer_id INTEGER
+    initiative_id INTEGER NOT NULL,
+    assignee_id INTEGER NOT NULL,
+    reviewer_id INTEGER NOT NULL
 );
 
 CREATE TABLE skills (
@@ -489,7 +489,7 @@ CREATE TABLE skills (
 CREATE TABLE user_skills (
     user_skill_id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
-    skill_id INTEGER,
+    skill_id INTEGER NOT NULL,
     proficiency_level INTEGER CHECK (proficiency_level BETWEEN 1 AND 5)
 );
 
@@ -509,8 +509,8 @@ CREATE TABLE attachments (
     file_path VARCHAR(255) NOT NULL,
     uploaded_by INTEGER NOT NULL,
     task_id INTEGER NOT NULL,
-    initiative_id INTEGER,
-    comment_id INTEGER
+    initiative_id INTEGER NOT NULL,
+    comment_id INTEGER NOT NULL
 );
 
 ALTER TABLE users

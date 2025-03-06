@@ -10,10 +10,10 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
+	rc "github.com/nucleuscloud/neosync/internal/runconfigs"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
@@ -89,11 +89,13 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 			"name": &mgmtv1alpha1.JobMappingTransformer{},
 		},
 	}
-	queryMap := map[string]map[tabledependency.RunType]*sqlmanager_shared.SelectQuery{
-		"public.users": {tabledependency.RunTypeInsert: &sqlmanager_shared.SelectQuery{Query: ""}},
+
+	runconfigId := "public.users.insert"
+	queryMap := map[string]*sqlmanager_shared.SelectQuery{
+		"public.users.insert": {Query: ""},
 	}
-	runconfigs := []*tabledependency.RunConfig{
-		tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*tabledependency.DependsOn{}, nil, false),
+	runconfigs := []*rc.RunConfig{
+		rc.NewRunConfig(runconfigId, sqlmanager_shared.SchemaTable{Schema: "public", Table: "users"}, rc.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*rc.DependsOn{}, false),
 	}
 	logger := testutil.GetTestLogger(t)
 	connectionId := uuid.NewString()
@@ -182,12 +184,13 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		},
 	}
 
-	runconfigs := []*tabledependency.RunConfig{
-		tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*tabledependency.DependsOn{}, nil, false),
+	schemaTable := sqlmanager_shared.SchemaTable{Schema: "public", Table: "users"}
+	runconfigs := []*rc.RunConfig{
+		rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*rc.DependsOn{}, false),
 	}
 
-	queryMap := map[string]map[tabledependency.RunType]*sqlmanager_shared.SelectQuery{
-		"public.users": {tabledependency.RunTypeInsert: &sqlmanager_shared.SelectQuery{Query: ""}},
+	queryMap := map[string]*sqlmanager_shared.SelectQuery{
+		schemaTable.String(): {Query: ""},
 	}
 	logger := testutil.GetTestLogger(t)
 	connectionId := uuid.NewString()
@@ -280,7 +283,8 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	ctx := context.Background()
 
-	runconfig := tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{}, []*tabledependency.DependsOn{}, nil, false)
+	schemaTable := sqlmanager_shared.SchemaTable{Schema: "public", Table: "users"}
+	runconfig := rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{}, nil, []string{}, []string{}, []*rc.DependsOn{}, false)
 	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
@@ -289,7 +293,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	require.Nil(t, err)
 	require.Empty(t, output)
 
-	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{"id"}, []*tabledependency.DependsOn{}, nil, false)
+	runconfig = rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{}, nil, []string{}, []string{"id"}, []*rc.DependsOn{}, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id"},
 	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
@@ -310,7 +314,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	require.Nil(t, err)
 	require.Empty(t, output)
 
-	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{"id", "name"}, []*tabledependency.DependsOn{}, nil, false)
+	runconfig = rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{}, nil, []string{}, []string{"id", "name"}, []*rc.DependsOn{}, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
@@ -355,7 +359,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 		},
 	}
 
-	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"email"}, []string{"email"}, []*tabledependency.DependsOn{}, nil, false)
+	runconfig = rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{"id"}, nil, []string{"email"}, []string{"email"}, []*rc.DependsOn{}, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}}, groupedSchemas, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 
@@ -403,7 +407,8 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 		},
 	}
 
-	runconfig := tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}, nil, false)
+	schemaTable := sqlmanager_shared.SchemaTable{Schema: "public", Table: "users"}
+	runconfig := rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{"id"}, nil, []string{"id"}, []string{"id"}, []*rc.DependsOn{}, false)
 	resp, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil,
 		[]string{})

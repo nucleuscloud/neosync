@@ -8,8 +8,8 @@ import (
 	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -28,7 +28,7 @@ func (b *awsS3SyncBuilder) BuildDestinationConfig(ctx context.Context, params *b
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	benthosConfig := params.SourceConfig
-	if benthosConfig.RunType == tabledependency.RunTypeUpdate {
+	if benthosConfig.RunType == runconfigs.RunTypeUpdate {
 		return config, nil
 	}
 	destinationOpts := params.DestinationOpts.GetAwsS3Options()
