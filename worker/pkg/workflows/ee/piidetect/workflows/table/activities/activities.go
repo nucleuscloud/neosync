@@ -1,12 +1,15 @@
 package piidetect_table_activities
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"regexp"
 	"strings"
+	"sync"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -222,9 +225,11 @@ func (a *Activities) DetectPiiRegex(ctx context.Context, req *DetectPiiRegexRequ
 }
 
 type DetectPiiLLMRequest struct {
+	TableSchema  string
 	TableName    string
 	ColumnData   []*ColumnData
 	ShouldSample bool
+	ConnectionId string
 }
 
 type DetectPiiLLMResponse struct {
@@ -236,17 +241,136 @@ type PiiDetectReport struct {
 	Confidence float64
 }
 
-func (a *Activities) DetectPiiLLM(ctx context.Context, req *DetectPiiLLMRequest) (*DetectPiiLLMResponse, error) {
-	logger := activity.GetLogger(ctx)
+type sampleDataStream struct {
+	records Records
+	mu      sync.Mutex
+}
 
-	columnNames := make([]string, len(req.ColumnData))
-	for i, col := range req.ColumnData {
-		columnNames[i] = col.Column
+var _ connectiondata.SampleDataStream = (*sampleDataStream)(nil)
+
+func (s *sampleDataStream) Send(resp *mgmtv1alpha1.GetConnectionDataStreamResponse) error {
+	decoder := gob.NewDecoder(bytes.NewReader(resp.GetRowBytes()))
+	var record map[string]any
+	err := decoder.Decode(&record)
+	if err != nil {
+		return err
 	}
 
-	if req.ShouldSample {
-		// todo: sample data from the table
-		logger.Warn("Sampling data from table is not yet implemented")
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.records = append(s.records, record)
+	return nil
+}
+
+func sampleDataCollector() *sampleDataStream {
+	return &sampleDataStream{
+		records: []map[string]any{},
+	}
+}
+
+func (s *sampleDataStream) GetRecords() Records {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	// Make a deep copy of the records
+	copiedRecords := make(Records, len(s.records))
+	for i, record := range s.records {
+		// Copy each map
+		copiedRecord := make(map[string]any, len(record))
+		for k, v := range record {
+			copiedRecord[k] = v
+		}
+		copiedRecords[i] = copiedRecord
+	}
+	return copiedRecords
+}
+
+type Records []map[string]any
+
+func (r *Records) toAssociativeArray() map[string][]any {
+	if len(*r) == 0 {
+		return nil
+	}
+
+	// Create a map to hold all values for each column
+	columnValues := make(map[string][]any)
+
+	// Collect all column names first
+	for _, record := range *r {
+		for colName := range record {
+			if _, exists := columnValues[colName]; !exists {
+				columnValues[colName] = []any{}
+			}
+		}
+	}
+
+	// Populate the values for each column
+	for _, record := range *r {
+		for colName, value := range record {
+			columnValues[colName] = append(columnValues[colName], value)
+		}
+	}
+
+	return columnValues
+}
+
+func (r *Records) ToPromptString() (string, error) {
+	if len(*r) == 0 {
+		return "[]", nil
+	}
+
+	columnValues := r.toAssociativeArray()
+
+	jsonBytes, err := json.Marshal(columnValues)
+	if err != nil {
+		return "", fmt.Errorf("unable to convert to JSON: %w", err)
+	}
+
+	return string(jsonBytes), nil
+}
+
+func (a *Activities) getSampleData(ctx context.Context, req *DetectPiiLLMRequest, logger *slog.Logger) (Records, error) {
+	connResp, err := a.connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.ConnectionId,
+	}))
+	if err != nil {
+		return nil, err
+	}
+	connection := connResp.Msg.GetConnection()
+	connectionData, err := a.connectiondatabuilder.NewDataConnection(logger, connection)
+	if err != nil {
+		return nil, err
+	}
+	collector := sampleDataCollector()
+	err = connectionData.SampleData(ctx, collector, req.TableSchema, req.TableName, 10)
+	if err != nil {
+		return nil, err
+	}
+	return collector.GetRecords(), nil
+}
+
+func (a *Activities) DetectPiiLLM(ctx context.Context, req *DetectPiiLLMRequest) (*DetectPiiLLMResponse, error) {
+	logger := activity.GetLogger(ctx)
+	slogger := temporallogger.NewSlogger(logger)
+
+	var records Records
+	if req.ShouldSample && req.ConnectionId != "" {
+		sampleRecords, err := a.getSampleData(ctx, req, slogger)
+		if err != nil {
+			return nil, err
+		}
+		records = sampleRecords
+	} else {
+		records = Records{}
+		for _, col := range req.ColumnData {
+			records = append(records, map[string]any{
+				col.Column: map[string]any{},
+			})
+		}
+	}
+
+	recordPromptStr, err := records.ToPromptString()
+	if err != nil {
+		return nil, err
 	}
 
 	chatResp, err := a.openaiclient.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
@@ -266,7 +390,7 @@ Provide your response as a JSON object that has the key called "output", where t
 
 Here is the table name: %s
 
-Here are the fields: %s`, strings.Join(GetAllPiiCategoriesAsStrings(), ", "), req.TableName, strings.Join(columnNames, ", "))),
+Here are the fields and (optionally) values: %s`, strings.Join(GetAllPiiCategoriesAsStrings(), ", "), req.TableName, recordPromptStr)),
 		}),
 	})
 	if err != nil {

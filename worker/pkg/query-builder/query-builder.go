@@ -74,6 +74,33 @@ func BuildSelectLimitQuery(
 	return sql, nil
 }
 
+func BuildSampledSelectLimitQuery(
+	driver, table string, limit uint,
+) (string, error) {
+
+	var randCol string
+	switch driver {
+	case sqlmanager_shared.GoquPostgresDriver:
+		randCol = "RANDOM()"
+	case sqlmanager_shared.MysqlDriver:
+		randCol = "RAND()"
+	case sqlmanager_shared.MssqlDriver:
+		randCol = "NEWID()"
+	}
+
+	builder := getGoquDialect(driver)
+	sqltable := goqu.I(table)
+	sql, _, err := builder.
+		From((sqltable)).
+		Order(goqu.C(randCol).Asc()).
+		Limit(limit).
+		ToSQL()
+	if err != nil {
+		return "", err
+	}
+	return sql, nil
+}
+
 func BuildInsertQuery(
 	driver, schema, table string,
 	records []goqu.Record,

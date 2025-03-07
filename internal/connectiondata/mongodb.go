@@ -31,6 +31,15 @@ func NewMongoDbConnectionDataService(
 	}
 }
 
+func (s *MongoDbConnectionDataService) SampleData(
+	ctx context.Context,
+	stream SampleDataStream,
+	schema, table string,
+	numRows uint,
+) error {
+	return errors.ErrUnsupported
+}
+
 func (s *MongoDbConnectionDataService) StreamData(
 	ctx context.Context,
 	stream *connect.ServerStream[mgmtv1alpha1.GetConnectionDataStreamResponse],
