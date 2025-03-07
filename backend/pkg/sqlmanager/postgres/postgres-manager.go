@@ -505,12 +505,13 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 			key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
 			partitionTables[key.String()] = record
 			if !record.IsPartitioned {
+				ks := key.String()
 				errgrp.Go(func() error {
-					partitionhierarchy, err := p.querier.GetPartitionHierarchyByTable(errctx, p.db, key.String())
+					partitionhierarchy, err := p.querier.GetPartitionHierarchyByTable(errctx, p.db, ks)
 					if err != nil {
 						return err
 					}
-					partitionHierarchy[key.String()] = partitionhierarchy
+					partitionHierarchy[ks] = partitionhierarchy
 					return nil
 				})
 			}
