@@ -494,6 +494,7 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 		return nil
 	})
 
+	mu := sync.Mutex{}
 	partitionTables := map[string]*pg_queries.GetPartitionedTablesBySchemaRow{}
 	partitionHierarchy := map[string][]*pg_queries.GetPartitionHierarchyByTableRow{}
 	errgrp.Go(func() error {
@@ -503,7 +504,9 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 		}
 		for _, record := range partitiontables {
 			key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
+			mu.Lock()
 			partitionTables[key.String()] = record
+			mu.Unlock()
 			if !record.IsPartitioned {
 				ks := key.String()
 				errgrp.Go(func() error {
@@ -511,7 +514,9 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 					if err != nil {
 						return err
 					}
+					mu.Lock()
 					partitionHierarchy[ks] = partitionhierarchy
+					mu.Unlock()
 					return nil
 				})
 			}
