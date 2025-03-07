@@ -332,6 +332,19 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	// skip foreign key violations if the query could return rows that violate foreign key constraints
 	skipForeignKeyViolations := destOpts.SkipForeignKeyViolations || (query != nil && query.IsNotForeignKeySafeSubset)
 
+	columnDataTypes := map[string]string{}
+	for _, c := range benthosConfig.Columns {
+		colType, ok := colInfoMap[c]
+		if ok {
+			columnDataTypes[c] = colType.DataType
+		}
+	}
+
+	sqlProcessor, err := getSqlBatchProcessors(b.driver, benthosConfig.Columns, columnDataTypes, columnDefaultProperties)
+	if err != nil {
+		return nil, err
+	}
+
 	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
 	if benthosConfig.RunType == rc.RunTypeUpdate {
 		config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
@@ -348,8 +361,9 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 						WhereColumns:             benthosConfig.PrimaryKeys,
 
 						Batching: &neosync_benthos.Batching{
-							Period: destOpts.BatchPeriod,
-							Count:  destOpts.BatchCount,
+							Period:     destOpts.BatchPeriod,
+							Count:      destOpts.BatchCount,
+							Processors: []*neosync_benthos.BatchProcessor{sqlProcessor},
 						},
 					},
 				},
@@ -391,19 +405,6 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 					Column: col,
 				})
 			}
-		}
-
-		columnDataTypes := map[string]string{}
-		for _, c := range benthosConfig.Columns {
-			colType, ok := colInfoMap[c]
-			if ok {
-				columnDataTypes[c] = colType.DataType
-			}
-		}
-
-		sqlProcessor, err := getSqlBatchProcessors(b.driver, benthosConfig.Columns, columnDataTypes, columnDefaultProperties)
-		if err != nil {
-			return nil, err
 		}
 
 		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, columnDefaultProperties)

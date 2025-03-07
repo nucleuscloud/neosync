@@ -470,17 +470,54 @@ CREATE TABLE IF NOT EXISTS scientific_data.samples (
 );
 
 CREATE TABLE IF NOT EXISTS scientific_data.measurements (
-    measurement_id SERIAL PRIMARY KEY,
+    measurement_id SERIAL,
     sample_id INTEGER REFERENCES scientific_data.samples(sample_id),
     parameter VARCHAR(100) NOT NULL,
     value NUMERIC(15,6),
     unit VARCHAR(30),
-    measured_at TIMESTAMP,
+    measured_at DATE,
     measured_by_astronaut_id INTEGER REFERENCES space_mission.astronauts(astronaut_id),
     instrument VARCHAR(100),
     confidence_level DECIMAL(5,2),
-    is_verified BOOLEAN DEFAULT FALSE
-);
+    is_verified BOOLEAN DEFAULT FALSE,
+    PRIMARY KEY (measurement_id, measured_at, instrument)
+) PARTITION BY RANGE (measured_at);
+
+
+CREATE TABLE scientific_data.measurement_2022
+    PARTITION OF scientific_data.measurements
+    FOR VALUES FROM ('2022-01-01') TO ('2023-01-01')
+    PARTITION BY LIST (instrument);
+
+CREATE TABLE scientific_data.measurement_2022_digital_microscope
+    PARTITION OF scientific_data.measurement_2022
+    FOR VALUES IN ('Digital Microscope');
+
+CREATE TABLE scientific_data.measurement_2022_mass_spectrometer
+    PARTITION OF scientific_data.measurement_2022
+    FOR VALUES IN ('Mass Spectrometer');
+
+CREATE TABLE scientific_data.measurement_2022_other
+    PARTITION OF scientific_data.measurement_2022
+    DEFAULT;
+
+CREATE TABLE scientific_data.measurement_2023
+    PARTITION OF scientific_data.measurements
+    FOR VALUES FROM ('2023-01-01') TO ('2024-01-01')
+    PARTITION BY LIST (instrument);
+
+CREATE TABLE scientific_data.measurement_2023_digital_microscope
+    PARTITION OF scientific_data.measurement_2023
+    FOR VALUES IN ('Digital Microscope');
+
+CREATE TABLE scientific_data.measurement_2023_mass_spectrometer
+    PARTITION OF scientific_data.measurement_2023
+    FOR VALUES IN ('Mass Spectrometer');
+
+CREATE TABLE scientific_data.measurement_2023_other
+    PARTITION OF scientific_data.measurement_2023
+    default;
+
 
 
 CREATE TABLE IF NOT EXISTS space_mission.mission_experiments (

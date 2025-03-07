@@ -489,7 +489,7 @@ ORDER BY
     function_name;
 
 
--- name: GetExtensions :many
+-- name: GetExtensionsBySchemas :many
 SELECT
     e.extname AS extension_name,
     e.extversion AS installed_version,
@@ -497,7 +497,7 @@ SELECT
 FROM
     pg_catalog.pg_extension e
 LEFT JOIN pg_catalog.pg_namespace n ON e.extnamespace = n.oid
-WHERE extname != 'plpgsql'
+WHERE extname != 'plpgsql' AND (n.nspname = ANY(sqlc.arg('schema')::TEXT[]) OR n.nspname = 'public')
 ORDER BY
     extname;
 
@@ -592,8 +592,8 @@ FROM
 		AND c.relname = kcu.table_name
 WHERE
 	pn.nspname = ANY(sqlc.arg('schemas')::TEXT[])
-	-- Exclude foreign keys
-	AND pgcon.contype != 'f'
+	-- Exclude foreign keys, and partition tables
+	AND pgcon.contype != 'f' AND c.relispartition = FALSE
 GROUP BY
 	pgcon.oid,
 	pgcon.conname,
@@ -692,3 +692,37 @@ FROM pg_catalog.pg_class AS tbl
 WHERE ns.nspname = ANY(sqlc.arg('schema')::TEXT[])
   AND idx_meta.indisunique = true
 GROUP BY ns.nspname, tbl.relname, idx.relname;
+
+-- name: GetPartitionedTablesBySchema :many
+SELECT
+	n.nspname AS schema_name,
+	c.relname AS table_name,
+	c.relispartition AS is_partitioned, -- false for partitioned tables, true for child partitions
+	pg_get_partkeydef (c.oid) AS partition_key
+FROM
+	pg_catalog.pg_class c
+	JOIN pg_catalog.pg_namespace n ON c.relnamespace = n.oid
+WHERE
+	c.relkind = 'p' -- 'p' indicates a partitioned table
+	AND n.nspname = ANY(sqlc.arg('schema')::TEXT[]);
+
+-- name: GetPartitionHierarchyByTable :many
+SELECT
+    child_ns.nspname          AS schema_name,
+    child_cls.relname         AS table_name,
+    parent_ns.nspname         AS parent_schema_name,
+    parent_cls.relname        AS parent_table_name,
+    COALESCE(
+        pg_get_expr(child_cls.relpartbound, child_cls.oid),
+        ''
+    )::TEXT AS partition_bound
+FROM pg_partition_tree(sqlc.arg('table')::TEXT) AS t
+JOIN pg_catalog.pg_class child_cls
+    ON child_cls.oid = t.relid
+JOIN pg_catalog.pg_namespace child_ns
+    ON child_ns.oid = child_cls.relnamespace
+LEFT JOIN pg_catalog.pg_class parent_cls
+    ON parent_cls.oid = t.parentrelid
+LEFT JOIN pg_catalog.pg_namespace parent_ns
+    ON parent_ns.oid = parent_cls.relnamespace;
+

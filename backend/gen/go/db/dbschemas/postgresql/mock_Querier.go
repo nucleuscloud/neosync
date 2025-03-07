@@ -380,29 +380,29 @@ func (_c *MockQuerier_GetDatabaseTableSchemasBySchemasAndTables_Call) RunAndRetu
 	return _c
 }
 
-// GetExtensions provides a mock function with given fields: ctx, db
-func (_m *MockQuerier) GetExtensions(ctx context.Context, db DBTX) ([]*GetExtensionsRow, error) {
-	ret := _m.Called(ctx, db)
+// GetExtensionsBySchemas provides a mock function with given fields: ctx, db, schema
+func (_m *MockQuerier) GetExtensionsBySchemas(ctx context.Context, db DBTX, schema []string) ([]*GetExtensionsBySchemasRow, error) {
+	ret := _m.Called(ctx, db, schema)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetExtensions")
+		panic("no return value specified for GetExtensionsBySchemas")
 	}
 
-	var r0 []*GetExtensionsRow
+	var r0 []*GetExtensionsBySchemasRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX) ([]*GetExtensionsRow, error)); ok {
-		return rf(ctx, db)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) ([]*GetExtensionsBySchemasRow, error)); ok {
+		return rf(ctx, db, schema)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX) []*GetExtensionsRow); ok {
-		r0 = rf(ctx, db)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) []*GetExtensionsBySchemasRow); ok {
+		r0 = rf(ctx, db, schema)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*GetExtensionsRow)
+			r0 = ret.Get(0).([]*GetExtensionsBySchemasRow)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX) error); ok {
-		r1 = rf(ctx, db)
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, []string) error); ok {
+		r1 = rf(ctx, db, schema)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -410,31 +410,32 @@ func (_m *MockQuerier) GetExtensions(ctx context.Context, db DBTX) ([]*GetExtens
 	return r0, r1
 }
 
-// MockQuerier_GetExtensions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetExtensions'
-type MockQuerier_GetExtensions_Call struct {
+// MockQuerier_GetExtensionsBySchemas_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetExtensionsBySchemas'
+type MockQuerier_GetExtensionsBySchemas_Call struct {
 	*mock.Call
 }
 
-// GetExtensions is a helper method to define mock.On call
+// GetExtensionsBySchemas is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-func (_e *MockQuerier_Expecter) GetExtensions(ctx interface{}, db interface{}) *MockQuerier_GetExtensions_Call {
-	return &MockQuerier_GetExtensions_Call{Call: _e.mock.On("GetExtensions", ctx, db)}
+//   - schema []string
+func (_e *MockQuerier_Expecter) GetExtensionsBySchemas(ctx interface{}, db interface{}, schema interface{}) *MockQuerier_GetExtensionsBySchemas_Call {
+	return &MockQuerier_GetExtensionsBySchemas_Call{Call: _e.mock.On("GetExtensionsBySchemas", ctx, db, schema)}
 }
 
-func (_c *MockQuerier_GetExtensions_Call) Run(run func(ctx context.Context, db DBTX)) *MockQuerier_GetExtensions_Call {
+func (_c *MockQuerier_GetExtensionsBySchemas_Call) Run(run func(ctx context.Context, db DBTX, schema []string)) *MockQuerier_GetExtensionsBySchemas_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX))
+		run(args[0].(context.Context), args[1].(DBTX), args[2].([]string))
 	})
 	return _c
 }
 
-func (_c *MockQuerier_GetExtensions_Call) Return(_a0 []*GetExtensionsRow, _a1 error) *MockQuerier_GetExtensions_Call {
+func (_c *MockQuerier_GetExtensionsBySchemas_Call) Return(_a0 []*GetExtensionsBySchemasRow, _a1 error) *MockQuerier_GetExtensionsBySchemas_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockQuerier_GetExtensions_Call) RunAndReturn(run func(context.Context, DBTX) ([]*GetExtensionsRow, error)) *MockQuerier_GetExtensions_Call {
+func (_c *MockQuerier_GetExtensionsBySchemas_Call) RunAndReturn(run func(context.Context, DBTX, []string) ([]*GetExtensionsBySchemasRow, error)) *MockQuerier_GetExtensionsBySchemas_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -559,9 +560,9 @@ func (_c *MockQuerier_GetIndicesBySchemasAndTables_Call) RunAndReturn(run func(c
 	return _c
 }
 
-// GetNonForeignKeyTableConstraintsBySchema provides a mock function with given fields: ctx, db, schema
-func (_m *MockQuerier) GetNonForeignKeyTableConstraintsBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error) {
-	ret := _m.Called(ctx, db, schema)
+// GetNonForeignKeyTableConstraintsBySchema provides a mock function with given fields: ctx, db, schemas
+func (_m *MockQuerier) GetNonForeignKeyTableConstraintsBySchema(ctx context.Context, db DBTX, schemas []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error) {
+	ret := _m.Called(ctx, db, schemas)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetNonForeignKeyTableConstraintsBySchema")
@@ -570,10 +571,10 @@ func (_m *MockQuerier) GetNonForeignKeyTableConstraintsBySchema(ctx context.Cont
 	var r0 []*GetNonForeignKeyTableConstraintsBySchemaRow
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error)); ok {
-		return rf(ctx, db, schema)
+		return rf(ctx, db, schemas)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) []*GetNonForeignKeyTableConstraintsBySchemaRow); ok {
-		r0 = rf(ctx, db, schema)
+		r0 = rf(ctx, db, schemas)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*GetNonForeignKeyTableConstraintsBySchemaRow)
@@ -581,7 +582,7 @@ func (_m *MockQuerier) GetNonForeignKeyTableConstraintsBySchema(ctx context.Cont
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, DBTX, []string) error); ok {
-		r1 = rf(ctx, db, schema)
+		r1 = rf(ctx, db, schemas)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -597,12 +598,12 @@ type MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call struct {
 // GetNonForeignKeyTableConstraintsBySchema is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-//   - schema []string
-func (_e *MockQuerier_Expecter) GetNonForeignKeyTableConstraintsBySchema(ctx interface{}, db interface{}, schema interface{}) *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call {
-	return &MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call{Call: _e.mock.On("GetNonForeignKeyTableConstraintsBySchema", ctx, db, schema)}
+//   - schemas []string
+func (_e *MockQuerier_Expecter) GetNonForeignKeyTableConstraintsBySchema(ctx interface{}, db interface{}, schemas interface{}) *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call {
+	return &MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call{Call: _e.mock.On("GetNonForeignKeyTableConstraintsBySchema", ctx, db, schemas)}
 }
 
-func (_c *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call) Run(run func(ctx context.Context, db DBTX, schema []string)) *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call {
+func (_c *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call) Run(run func(ctx context.Context, db DBTX, schemas []string)) *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(DBTX), args[2].([]string))
 	})
@@ -615,6 +616,126 @@ func (_c *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call) Return(_a0 
 }
 
 func (_c *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call) RunAndReturn(run func(context.Context, DBTX, []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error)) *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetPartitionHierarchyByTable provides a mock function with given fields: ctx, db, table
+func (_m *MockQuerier) GetPartitionHierarchyByTable(ctx context.Context, db DBTX, table string) ([]*GetPartitionHierarchyByTableRow, error) {
+	ret := _m.Called(ctx, db, table)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPartitionHierarchyByTable")
+	}
+
+	var r0 []*GetPartitionHierarchyByTableRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) ([]*GetPartitionHierarchyByTableRow, error)); ok {
+		return rf(ctx, db, table)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) []*GetPartitionHierarchyByTableRow); ok {
+		r0 = rf(ctx, db, table)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*GetPartitionHierarchyByTableRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, string) error); ok {
+		r1 = rf(ctx, db, table)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetPartitionHierarchyByTable_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPartitionHierarchyByTable'
+type MockQuerier_GetPartitionHierarchyByTable_Call struct {
+	*mock.Call
+}
+
+// GetPartitionHierarchyByTable is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - table string
+func (_e *MockQuerier_Expecter) GetPartitionHierarchyByTable(ctx interface{}, db interface{}, table interface{}) *MockQuerier_GetPartitionHierarchyByTable_Call {
+	return &MockQuerier_GetPartitionHierarchyByTable_Call{Call: _e.mock.On("GetPartitionHierarchyByTable", ctx, db, table)}
+}
+
+func (_c *MockQuerier_GetPartitionHierarchyByTable_Call) Run(run func(ctx context.Context, db DBTX, table string)) *MockQuerier_GetPartitionHierarchyByTable_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetPartitionHierarchyByTable_Call) Return(_a0 []*GetPartitionHierarchyByTableRow, _a1 error) *MockQuerier_GetPartitionHierarchyByTable_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetPartitionHierarchyByTable_Call) RunAndReturn(run func(context.Context, DBTX, string) ([]*GetPartitionHierarchyByTableRow, error)) *MockQuerier_GetPartitionHierarchyByTable_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetPartitionedTablesBySchema provides a mock function with given fields: ctx, db, schema
+func (_m *MockQuerier) GetPartitionedTablesBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetPartitionedTablesBySchemaRow, error) {
+	ret := _m.Called(ctx, db, schema)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPartitionedTablesBySchema")
+	}
+
+	var r0 []*GetPartitionedTablesBySchemaRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) ([]*GetPartitionedTablesBySchemaRow, error)); ok {
+		return rf(ctx, db, schema)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) []*GetPartitionedTablesBySchemaRow); ok {
+		r0 = rf(ctx, db, schema)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*GetPartitionedTablesBySchemaRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, []string) error); ok {
+		r1 = rf(ctx, db, schema)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetPartitionedTablesBySchema_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPartitionedTablesBySchema'
+type MockQuerier_GetPartitionedTablesBySchema_Call struct {
+	*mock.Call
+}
+
+// GetPartitionedTablesBySchema is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - schema []string
+func (_e *MockQuerier_Expecter) GetPartitionedTablesBySchema(ctx interface{}, db interface{}, schema interface{}) *MockQuerier_GetPartitionedTablesBySchema_Call {
+	return &MockQuerier_GetPartitionedTablesBySchema_Call{Call: _e.mock.On("GetPartitionedTablesBySchema", ctx, db, schema)}
+}
+
+func (_c *MockQuerier_GetPartitionedTablesBySchema_Call) Run(run func(ctx context.Context, db DBTX, schema []string)) *MockQuerier_GetPartitionedTablesBySchema_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].([]string))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetPartitionedTablesBySchema_Call) Return(_a0 []*GetPartitionedTablesBySchemaRow, _a1 error) *MockQuerier_GetPartitionedTablesBySchema_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetPartitionedTablesBySchema_Call) RunAndReturn(run func(context.Context, DBTX, []string) ([]*GetPartitionedTablesBySchemaRow, error)) *MockQuerier_GetPartitionedTablesBySchema_Call {
 	_c.Call.Return(run)
 	return _c
 }
