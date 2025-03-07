@@ -327,7 +327,7 @@ func (r *Records) toAssociativeArray(maxRecords uint) map[string][]any {
 
 func (r *Records) ToPromptString(maxRecords uint) (string, error) {
 	if len(*r) == 0 {
-		return "[]", nil
+		return "{}", nil
 	}
 
 	columnValues := r.toAssociativeArray(maxRecords)
