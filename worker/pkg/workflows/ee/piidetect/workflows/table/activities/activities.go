@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"maps"
 	"regexp"
 	"sync"
 	"text/template"
@@ -278,9 +279,7 @@ func (s *sampleDataStream) GetRecords() Records {
 	for i, record := range s.records {
 		// Copy each map
 		copiedRecord := make(map[string]any, len(record))
-		for k, v := range record {
-			copiedRecord[k] = v
-		}
+		maps.Copy(copiedRecord, record)
 		copiedRecords[i] = copiedRecord
 	}
 	return copiedRecords
