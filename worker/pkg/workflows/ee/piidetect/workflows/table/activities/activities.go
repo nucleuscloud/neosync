@@ -318,7 +318,7 @@ func (r *Records) toAssociativeArray(maxRecords uint) map[string][]any {
 
 	// limit the number of records to the maxRecords
 	for colName, values := range columnValues {
-		if len(values) > int(maxRecords) {
+		if uint(len(values)) > maxRecords {
 			columnValues[colName] = values[:maxRecords]
 		}
 	}
