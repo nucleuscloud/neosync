@@ -4,28 +4,34 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"strings"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/internal/connectiondata"
+	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	"github.com/openai/openai-go"
 	"go.temporal.io/sdk/activity"
 )
 
 type Activities struct {
-	conndataclient mgmtv1alpha1connect.ConnectionDataServiceClient
-	openaiclient   *openai.Client
+	connclient            mgmtv1alpha1connect.ConnectionServiceClient
+	openaiclient          *openai.Client
+	connectiondatabuilder connectiondata.ConnectionDataBuilder
 }
 
 func New(
-	conndataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	openaiclient *openai.Client,
+	connectiondatabuilder connectiondata.ConnectionDataBuilder,
 ) *Activities {
 	return &Activities{
-		conndataclient: conndataclient,
-		openaiclient:   openaiclient,
+		connclient:            connclient,
+		openaiclient:          openaiclient,
+		connectiondatabuilder: connectiondatabuilder,
 	}
 }
 
@@ -47,17 +53,19 @@ type ColumnData struct {
 }
 
 func (a *Activities) GetColumnData(ctx context.Context, req *GetColumnDataRequest) (*GetColumnDataResponse, error) {
-	resp, err := a.conndataclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
-		ConnectionId: req.ConnectionId,
-		SchemaConfig: &mgmtv1alpha1.ConnectionSchemaConfig{
-			// Schema: req.TableSchema,
-		},
-	}))
+	logger := activity.GetLogger(ctx)
+	slogger := temporallogger.NewSlogger(logger)
+
+	databaseColumns, err := a.getTableDetailsFromConnection(
+		ctx,
+		req.ConnectionId,
+		req.TableSchema,
+		req.TableName,
+		slogger,
+	)
 	if err != nil {
 		return nil, err
 	}
-
-	databaseColumns := getSchemasByTable(resp.Msg.GetSchemas(), req.TableSchema, req.TableName)
 
 	columnData := make([]*ColumnData, len(databaseColumns))
 	for i, column := range databaseColumns {
@@ -72,6 +80,34 @@ func (a *Activities) GetColumnData(ctx context.Context, req *GetColumnDataReques
 	return &GetColumnDataResponse{
 		ColumnData: columnData,
 	}, nil
+}
+
+func (a *Activities) getTableDetailsFromConnection(
+	ctx context.Context,
+	connectionId string,
+	tableSchema string,
+	tableName string,
+	logger *slog.Logger,
+) ([]*mgmtv1alpha1.DatabaseColumn, error) {
+	connResp, err := a.connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: connectionId,
+	}))
+	if err != nil {
+		return nil, err
+	}
+	connection := connResp.Msg.GetConnection()
+
+	connectionData, err := a.connectiondatabuilder.NewDataConnection(logger, connection)
+	if err != nil {
+		return nil, err
+	}
+
+	tableDetails, err := connectionData.GetTableSchema(ctx, tableSchema, tableName)
+	if err != nil {
+		return nil, err
+	}
+
+	return getSchemasByTable(tableDetails, tableSchema, tableName), nil
 }
 
 type PiiCategory string

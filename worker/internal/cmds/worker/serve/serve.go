@@ -16,17 +16,24 @@ import (
 	"connectrpc.com/grpcreflect"
 	"connectrpc.com/otelconnect"
 	"github.com/go-logr/logr"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
+	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	benthosstream "github.com/nucleuscloud/neosync/internal/benthos-stream"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/mongoprovider"
 	"github.com/nucleuscloud/neosync/internal/connection-manager/providers/sqlprovider"
+	"github.com/nucleuscloud/neosync/internal/connectiondata"
 	retry_interceptor "github.com/nucleuscloud/neosync/internal/connectrpc/interceptors/retry"
 	cloudlicense "github.com/nucleuscloud/neosync/internal/ee/cloud-license"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
+	neosync_gcp "github.com/nucleuscloud/neosync/internal/gcp"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 	pyroscope_env "github.com/nucleuscloud/neosync/internal/pyroscope"
 	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
@@ -291,10 +298,11 @@ func serve(ctx context.Context) error {
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(httpclient, neosyncurl, connectInterceptorOption)
-	conndataclient := mgmtv1alpha1connect.NewConnectionDataServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	accounthookclient := mgmtv1alpha1connect.NewAccountHookServiceClient(httpclient, neosyncurl, connectInterceptorOption)
-	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
+
+	sqlConnector := &sqlconnect.SqlOpenConnector{}
+	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(sqlConnector))
 	go sqlconnmanager.Reaper(logger)
 	defer sqlconnmanager.Shutdown(logger)
 
@@ -338,7 +346,19 @@ func serve(ctx context.Context) error {
 
 		openaiclient := openai.NewClient(option.WithAPIKey(viper.GetString("OPENAI_API_KEY")))
 
-		piidetect_workflow_register.Register(w, conndataclient, openaiclient)
+		neosynctyperegistry := neosynctypes.NewTypeRegistry(logger)
+		conndatabuilder := connectiondata.NewConnectionDataBuilder(
+			sqlConnector,
+			sqlmanager,
+			pg_queries.New(),
+			mysql_queries.New(),
+			awsmanager.New(),
+			neosync_gcp.NewManager(),
+			mongoconnect.NewConnector(),
+			neosynctyperegistry,
+		)
+
+		piidetect_workflow_register.Register(w, connclient, openaiclient, conndatabuilder)
 	}
 
 	if err := w.Start(); err != nil {
