@@ -37,7 +37,7 @@ type Option interface {
 // WithValidator configures the [Interceptor] to use a customized
 // [protovalidate.Validator]. See [protovalidate.ValidatorOption] for the range
 // of available customizations.
-func WithValidator(validator *protovalidate.Validator) Option {
+func WithValidator(validator protovalidate.Validator) Option {
 	return optionFunc(func(i *Interceptor) {
 		i.validator = validator
 	})
@@ -63,7 +63,7 @@ func WithValidator(validator *protovalidate.Validator) Option {
 //
 // [detailed representation of the error]: https://pkg.go.dev/buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate#Violations
 type Interceptor struct {
-	validator *protovalidate.Validator
+	validator protovalidate.Validator
 }
 
 // NewInterceptor builds an Interceptor. The default configuration is
@@ -118,7 +118,7 @@ func (i *Interceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) co
 type streamingClientInterceptor struct {
 	connect.StreamingClientConn
 
-	validator *protovalidate.Validator
+	validator protovalidate.Validator
 }
 
 func (s *streamingClientInterceptor) Send(msg any) error {
@@ -131,7 +131,7 @@ func (s *streamingClientInterceptor) Send(msg any) error {
 type streamingHandlerInterceptor struct {
 	connect.StreamingHandlerConn
 
-	validator *protovalidate.Validator
+	validator protovalidate.Validator
 }
 
 func (s *streamingHandlerInterceptor) Receive(msg any) error {
@@ -145,7 +145,7 @@ type optionFunc func(*Interceptor)
 
 func (f optionFunc) apply(i *Interceptor) { f(i) }
 
-func validate(validator *protovalidate.Validator, msg any) error {
+func validate(validator protovalidate.Validator, msg any) error {
 	protoMsg, ok := msg.(proto.Message)
 	if !ok {
 		return fmt.Errorf("expected proto.Message, got %T", msg)

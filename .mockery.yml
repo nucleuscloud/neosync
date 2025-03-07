@@ -94,7 +94,7 @@ packages:
     interfaces:
       Interface:
       DbContainer:
-  github.com/nucleuscloud/neosync/backend/internal/gcp:
+  github.com/nucleuscloud/neosync/internal/gcp:
     interfaces:
       ManagerInterface:
       ClientInterface:
