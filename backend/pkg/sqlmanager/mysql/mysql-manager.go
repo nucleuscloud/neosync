@@ -160,6 +160,11 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 				val := columnDefaultDefault // With this type columnDefaultStr will be surrounded by parentheses when translated to SQL
 				columnDefaultType = &val
 			}
+			if (!row.ColumnDefaultRaw.Valid || (row.ColumnDefaultRaw.Valid && row.ColumnDefaultRaw.String == "" || row.ColumnDefaultRaw.String == "NULL")) && row.IsNullable == 1 {
+				columnDefaultStr = ""
+				columnDefaultType = nil
+			}
+			fmt.Println("FOO", columnDefaultStr, columnDefaultType)
 
 			// Note: there is a slight mismatch here between how we bring this data in to be surfaced vs how we utilize it when building the init table statements.
 			// They seem to be disconnected however
@@ -352,41 +357,14 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 	}
 
 	indexmap := map[string]map[string][]string{}
-	var indexMapMu sync.Mutex
-	for schema, tables := range schemaset {
-		errgrp.Go(func() error {
-			idxrecords, err := m.querier.GetIndicesBySchemasAndTables(errctx, m.pool, &mysql_queries.GetIndicesBySchemasAndTablesParams{
-				Schema: schema,
-				Tables: tables,
-			})
-			if err != nil {
-				return fmt.Errorf("failed to build mysql indices by schemas and tables: %w", err)
-			}
-
-			indexMapMu.Lock()
-			defer indexMapMu.Unlock()
-			for _, record := range idxrecords {
-				key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
-				if _, exists := indexmap[key.String()]; !exists {
-					indexmap[key.String()] = make(map[string][]string)
-				}
-				// Group columns/expressions by index name
-				if record.ColumnName.Valid {
-					indexmap[key.String()][record.IndexName] = append(
-						indexmap[key.String()][record.IndexName],
-						record.ColumnName.String,
-					)
-				} else if record.Expression.Valid {
-					indexmap[key.String()][record.IndexName] = append(
-						indexmap[key.String()][record.IndexName],
-						// expressions must be wrapped in parentheses on creation, but don't come out of the DB in that format /shrug
-						fmt.Sprintf("(%s)", record.Expression.String),
-					)
-				}
-			}
-			return nil
-		})
-	}
+	errgrp.Go(func() error {
+		resp, err := m.getIndicesBySchemasAndTables(ctx, schemaset)
+		if err != nil {
+			return err
+		}
+		indexmap = resp
+		return nil
+	})
 
 	if err := errgrp.Wait(); err != nil {
 		return nil, err
@@ -422,6 +400,15 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			columnDefaultStr, err = EscapeMysqlDefaultColumn(columnDefaultStr, columnDefaultType)
 			if err != nil {
 				return nil, fmt.Errorf("failed to escape column default: %w", err)
+			}
+
+			if (!record.ColumnDefaultRaw.Valid || (record.ColumnDefaultRaw.Valid && record.ColumnDefaultRaw.String == "" || record.ColumnDefaultRaw.String == "NULL")) && record.IsNullable == 1 {
+				columnDefaultStr = ""
+				columnDefaultType = nil
+			}
+			fmt.Println("FOO", columnDefaultStr, columnDefaultType, identityType)
+			if identityType != nil && *identityType == "" {
+				fmt.Println("ID TYPE", *identityType)
 			}
 
 			genExp, err := convertUInt8ToString(record.GenerationExp)
@@ -461,6 +448,113 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 		output = append(output, info)
 	}
 	return output, nil
+}
+
+func (m *MysqlManager) getIndicesBySchemasAndTables(ctx context.Context, schemaset map[string][]string) (map[string]map[string][]string, error) {
+	version, err := m.querier.GetVersion(ctx, m.pool)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get mysql version: %w", err)
+	}
+	if isMariaDb(version) {
+		return m.getMariaDbIndiciesBySchemasAndTables(ctx, schemaset)
+	}
+	return m.getMysqlIndiciesBySchemasAndTables(ctx, schemaset)
+}
+
+func (m *MysqlManager) getMariaDbIndiciesBySchemasAndTables(ctx context.Context, schemaset map[string][]string) (map[string]map[string][]string, error) {
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(5)
+
+	var resultMu sync.Mutex
+	results := make([][]*mysql_queries.GetMariaDbIndicesBySchemasAndTablesRow, 0, len(schemaset))
+	for schema, tables := range schemaset {
+		errgrp.Go(func() error {
+			idxrecords, err := m.querier.GetMariaDbIndicesBySchemasAndTables(errctx, m.pool, &mysql_queries.GetMariaDbIndicesBySchemasAndTablesParams{
+				Schema: schema,
+				Tables: tables,
+			})
+			if err != nil {
+				return fmt.Errorf("failed to build mysql indices by schemas and tables: %w", err)
+			}
+			resultMu.Lock()
+			defer resultMu.Unlock()
+			results = append(results, idxrecords)
+			return nil
+		})
+	}
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	indexmap := map[string]map[string][]string{}
+	for _, records := range results {
+		for _, record := range records {
+			key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
+			if _, exists := indexmap[key.String()]; !exists {
+				indexmap[key.String()] = make(map[string][]string)
+			}
+			// Group composite columns by index name
+			if record.ColumnName.Valid {
+				indexmap[key.String()][record.IndexName] = append(
+					indexmap[key.String()][record.IndexName],
+					record.ColumnName.String,
+				)
+			}
+		}
+	}
+	return indexmap, nil
+}
+
+func (m *MysqlManager) getMysqlIndiciesBySchemasAndTables(ctx context.Context, schemaset map[string][]string) (map[string]map[string][]string, error) {
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(5)
+
+	var resultMu sync.Mutex
+	results := make([][]*mysql_queries.GetMysqlIndicesBySchemasAndTablesRow, 0, len(schemaset))
+	for schema, tables := range schemaset {
+		errgrp.Go(func() error {
+			idxrecords, err := m.querier.GetMysqlIndicesBySchemasAndTables(errctx, m.pool, &mysql_queries.GetMysqlIndicesBySchemasAndTablesParams{
+				Schema: schema,
+				Tables: tables,
+			})
+			if err != nil {
+				return fmt.Errorf("failed to build mysql indices by schemas and tables: %w", err)
+			}
+
+			resultMu.Lock()
+			defer resultMu.Unlock()
+			results = append(results, idxrecords)
+			return nil
+		})
+	}
+
+	indexmap := map[string]map[string][]string{}
+	for _, records := range results {
+		for _, record := range records {
+			key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
+			if _, exists := indexmap[key.String()]; !exists {
+				indexmap[key.String()] = make(map[string][]string)
+			}
+			// Group columns/expressions by index name
+			if record.ColumnName.Valid {
+				indexmap[key.String()][record.IndexName] = append(
+					indexmap[key.String()][record.IndexName],
+					record.ColumnName.String,
+				)
+			} else if record.Expression.Valid {
+				indexmap[key.String()][record.IndexName] = append(
+					indexmap[key.String()][record.IndexName],
+					// expressions must be wrapped in parentheses on creation, but don't come out of the DB in that format /shrug
+					fmt.Sprintf("(%s)", record.Expression.String),
+				)
+			}
+		}
+	}
+	return indexmap, nil
+}
+
+func isMariaDb(version string) bool {
+	return strings.Contains(version, "MariaDB")
 }
 
 func (m *MysqlManager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {

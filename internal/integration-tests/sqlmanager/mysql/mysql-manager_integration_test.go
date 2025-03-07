@@ -43,6 +43,11 @@ func Test_MysqlManager(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	testMysqlManager(t, ctx, sourceDB, target.DB)
+}
+
+func testMysqlManager(t *testing.T, ctx context.Context, sourceDB *sql.DB, targetDB *sql.DB) {
 	manager := mysql.NewManager(mysql_queries.New(), sourceDB, func() {})
 
 	t.Run("GetTableConstraintsBySchema", func(t *testing.T) {
@@ -292,20 +297,21 @@ func Test_MysqlManager(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, actual)
 		for _, stmt := range actual {
-			_, err = target.DB.ExecContext(context.Background(), stmt.CreateTableStatement)
+			fmt.Printf("executing create table statement %q\n", stmt.CreateTableStatement)
+			_, err = targetDB.ExecContext(context.Background(), stmt.CreateTableStatement)
 			require.NoError(t, err)
 		}
 		for _, stmt := range actual {
 			t.Logf("statements %+v", stmt.IndexStatements)
 			for _, index := range stmt.IndexStatements {
 				t.Logf("executing index statement %q", index)
-				_, err = target.DB.ExecContext(context.Background(), index)
+				_, err = targetDB.ExecContext(context.Background(), index)
 				require.NoError(t, err)
 			}
 		}
 		for _, stmt := range actual {
 			for _, alter := range stmt.AlterTableStatements {
-				_, err = target.DB.ExecContext(context.Background(), alter.Statement)
+				_, err = targetDB.ExecContext(context.Background(), alter.Statement)
 				require.NoError(t, err)
 			}
 		}
@@ -361,7 +367,7 @@ func Test_MysqlManager(t *testing.T) {
 		for _, block := range statements {
 			t.Logf("executing %d statements for label %q", len(block.Statements), block.Label)
 			for _, stmt := range block.Statements {
-				_, err = target.DB.ExecContext(ctx, stmt)
+				_, err = targetDB.ExecContext(ctx, stmt)
 				require.NoError(t, err, "failed to execute %s statement %q", block.Label, stmt)
 			}
 		}
@@ -402,14 +408,14 @@ func setup(ctx context.Context, containers *tcmysql.MysqlTestSyncContainer) erro
 
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.Go(func() error {
-		err := containers.Source.RunSqlFiles(errctx, &baseDir, []string{"setup.sql"})
+		err := containers.Source.RunSqlFiles(errctx, &baseDir, []string{"mysql/setup.sql"})
 		if err != nil {
 			return fmt.Errorf("encountered error when executing source setup statement: %w", err)
 		}
 		return nil
 	})
 	errgrp.Go(func() error {
-		err := containers.Target.RunSqlFiles(errctx, &baseDir, []string{"init.sql"})
+		err := containers.Target.RunSqlFiles(errctx, &baseDir, []string{"mysql/init.sql"})
 		if err != nil {
 			return fmt.Errorf("encountered error when executing dest setup statement: %w", err)
 		}
