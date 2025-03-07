@@ -16,12 +16,12 @@ func New() *Workflow {
 }
 
 type TablePiiDetectRequest struct {
-	JobId            string
-	ConnectionId     string
-	TableSchema      string
-	TableName        string
-	ShouldSampleData bool
-
+	JobId              string
+	ConnectionId       string
+	TableSchema        string
+	TableName          string
+	ShouldSampleData   bool
+	UserPrompt         string
 	PreviousResultsKey *string // incremental mode to only detect pii for new columns
 }
 
@@ -97,6 +97,7 @@ func (w *Workflow) TablePiiDetect(ctx workflow.Context, req *TablePiiDetectReque
 			ColumnData:   columDataResp.ColumnData,
 			ShouldSample: req.ShouldSampleData,
 			ConnectionId: req.ConnectionId,
+			UserPrompt:   req.UserPrompt,
 		},
 	).Get(ctx, &llmResp)
 	if err != nil {

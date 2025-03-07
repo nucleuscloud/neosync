@@ -77,7 +77,6 @@ func BuildSelectLimitQuery(
 func BuildSampledSelectLimitQuery(
 	driver, table string, limit uint,
 ) (string, error) {
-
 	var randStmt string
 	switch driver {
 	case sqlmanager_shared.GoquPostgresDriver:

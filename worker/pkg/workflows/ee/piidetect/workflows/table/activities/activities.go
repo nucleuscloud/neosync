@@ -230,6 +230,7 @@ type DetectPiiLLMRequest struct {
 	ColumnData   []*ColumnData
 	ShouldSample bool
 	ConnectionId string
+	UserPrompt   string
 }
 
 type DetectPiiLLMResponse struct {
@@ -362,6 +363,8 @@ Provide your response as a JSON object that has the key called "output", where t
 
 Here is the table name: {{.TableName}}
 
+{{if .UserPrompt}}{{.UserPrompt}}{{end}}
+
 Here are the fields and (optionally) values: {{.RecordData}}`
 
 var piiDetectionPromptTmpl = template.Must(template.New("pii_detection_prompt").Parse(piiDetectionPrompt))
@@ -396,6 +399,7 @@ func (a *Activities) DetectPiiLLM(ctx context.Context, req *DetectPiiLLMRequest)
 		"Categories": GetAllPiiCategoriesAsStrings(),
 		"TableName":  req.TableName,
 		"RecordData": recordPromptStr,
+		"UserPrompt": req.UserPrompt,
 	})
 	if err != nil {
 		return nil, err
