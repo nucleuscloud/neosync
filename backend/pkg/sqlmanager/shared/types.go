@@ -70,6 +70,7 @@ type TableInitStatement struct {
 	CreateTableStatement string
 	AlterTableStatements []*AlterTableStatement
 	IndexStatements      []string
+	PartitionStatements  []string
 }
 
 type AlterTableStatement struct {

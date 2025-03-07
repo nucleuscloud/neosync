@@ -1107,6 +1107,9 @@ func test_postgres_complex(
 			// {schema: "space_mission", table: "astronaut_events", rowCount: 3},
 			// {schema: "space_mission", table: "mission_events", rowCount: 3},
 			{schema: "space_mission", table: "telemetry", rowCount: 6},
+			{schema: "space_mission", table: "telemetry_2023", rowCount: 2},
+			{schema: "space_mission", table: "telemetry_2024", rowCount: 2},
+			{schema: "space_mission", table: "telemetry_2025", rowCount: 2},
 			{schema: "space_mission", table: "comments", rowCount: 4},
 			{schema: "space_mission", table: "tags", rowCount: 4},
 			{schema: "space_mission", table: "taggables", rowCount: 4},
@@ -1123,6 +1126,14 @@ func test_postgres_complex(
 			{schema: "scientific_data", table: "experiments", rowCount: 9},
 			{schema: "scientific_data", table: "samples", rowCount: 9},
 			{schema: "scientific_data", table: "measurements", rowCount: 9},
+			{schema: "scientific_data", table: "measurement_2022", rowCount: 4},
+			{schema: "scientific_data", table: "measurement_2022_digital_microscope", rowCount: 2},
+			{schema: "scientific_data", table: "measurement_2022_mass_spectrometer", rowCount: 1},
+			{schema: "scientific_data", table: "measurement_2022_other", rowCount: 1},
+			{schema: "scientific_data", table: "measurement_2023", rowCount: 5},
+			{schema: "scientific_data", table: "measurement_2023_digital_microscope", rowCount: 2},
+			{schema: "scientific_data", table: "measurement_2023_mass_spectrometer", rowCount: 2},
+			{schema: "scientific_data", table: "measurement_2023_other", rowCount: 1},
 		}
 
 		for _, expected := range expectedResults {
@@ -1201,6 +1212,9 @@ func test_postgres_complex(
 			// {schema: "space_mission", table: "astronaut_events", rowCount: 3},
 			// {schema: "space_mission", table: "mission_events", rowCount: 3},
 			{schema: "space_mission", table: "telemetry", rowCount: 6},
+			{schema: "space_mission", table: "telemetry_2023", rowCount: 2},
+			{schema: "space_mission", table: "telemetry_2024", rowCount: 2},
+			{schema: "space_mission", table: "telemetry_2025", rowCount: 2},
 			{schema: "space_mission", table: "comments", rowCount: 4},
 			{schema: "space_mission", table: "tags", rowCount: 4},
 			{schema: "space_mission", table: "taggables", rowCount: 4},
@@ -1217,6 +1231,15 @@ func test_postgres_complex(
 			{schema: "scientific_data", table: "experiments", rowCount: 3},
 			{schema: "scientific_data", table: "samples", rowCount: 4},
 			{schema: "scientific_data", table: "measurements", rowCount: 4},
+			{schema: "scientific_data", table: "measurements", rowCount: 9},
+			{schema: "scientific_data", table: "measurement_2022", rowCount: 4},
+			{schema: "scientific_data", table: "measurement_2022_digital_microscope", rowCount: 2},
+			{schema: "scientific_data", table: "measurement_2022_mass_spectrometer", rowCount: 1},
+			{schema: "scientific_data", table: "measurement_2022_other", rowCount: 1},
+			{schema: "scientific_data", table: "measurement_2023", rowCount: 5},
+			{schema: "scientific_data", table: "measurement_2023_digital_microscope", rowCount: 2},
+			{schema: "scientific_data", table: "measurement_2023_mass_spectrometer", rowCount: 2},
+			{schema: "scientific_data", table: "measurement_2023_other", rowCount: 1},
 		}
 		for _, expected := range expectedResults {
 			rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
