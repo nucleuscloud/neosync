@@ -92,8 +92,11 @@ func (w *Workflow) TablePiiDetect(ctx workflow.Context, req *TablePiiDetectReque
 		}),
 		activities.DetectPiiLLM,
 		&piidetect_table_activities.DetectPiiLLMRequest{
-			TableName:  req.TableName,
-			ColumnData: columDataResp.ColumnData,
+			TableSchema:  req.TableSchema,
+			TableName:    req.TableName,
+			ColumnData:   columDataResp.ColumnData,
+			ShouldSample: req.ShouldSampleData,
+			ConnectionId: req.ConnectionId,
 		},
 	).Get(ctx, &llmResp)
 	if err != nil {
@@ -124,8 +127,6 @@ func (w *Workflow) TablePiiDetect(ctx workflow.Context, req *TablePiiDetectReque
 			}
 		}
 	}
-
-	// if sample data is enabled, we should query to retrieve some sample data as well, but maybe that should not come back to the workflow
 
 	return wfResp, nil
 }

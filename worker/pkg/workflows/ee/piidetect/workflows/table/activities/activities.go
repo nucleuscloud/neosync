@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"log/slog"
 	"regexp"
-	"strings"
 	"sync"
+	"text/template"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -306,6 +306,10 @@ func (r *Records) toAssociativeArray() map[string][]any {
 	// Populate the values for each column
 	for _, record := range *r {
 		for colName, value := range record {
+			// skip empty maps
+			if m, ok := value.(map[string]any); ok && len(m) == 0 {
+				continue
+			}
 			columnValues[colName] = append(columnValues[colName], value)
 		}
 	}
@@ -348,6 +352,20 @@ func (a *Activities) getSampleData(ctx context.Context, req *DetectPiiLLMRequest
 	return collector.GetRecords(), nil
 }
 
+const piiDetectionPrompt = `You are a data classification expert tasked with identifying if database fields contain Personally Identifiable Information (PII).
+Classify each field based on its name into one of these categories: {{.Categories}}
+
+Provide your response as a JSON object that has the key called "output", where the value is an array of objects, each with the following keys:
+- "field_name": The name of the field.
+- "category": The most likely category.
+- "confidence": A number between 0 and 1 indicating your confidence in this classification (1 being the most confident).
+
+Here is the table name: {{.TableName}}
+
+Here are the fields and (optionally) values: {{.RecordData}}`
+
+var piiDetectionPromptTmpl = template.Must(template.New("pii_detection_prompt").Parse(piiDetectionPrompt))
+
 func (a *Activities) DetectPiiLLM(ctx context.Context, req *DetectPiiLLMRequest) (*DetectPiiLLMResponse, error) {
 	logger := activity.GetLogger(ctx)
 	slogger := temporallogger.NewSlogger(logger)
@@ -373,24 +391,25 @@ func (a *Activities) DetectPiiLLM(ctx context.Context, req *DetectPiiLLMRequest)
 		return nil, err
 	}
 
+	var promptBuf bytes.Buffer
+	err = piiDetectionPromptTmpl.Execute(&promptBuf, map[string]any{
+		"Categories": GetAllPiiCategoriesAsStrings(),
+		"TableName":  req.TableName,
+		"RecordData": recordPromptStr,
+	})
+	if err != nil {
+		return nil, err
+	}
+	userMessage := promptBuf.String()
+	logger.Debug("LLM PII detection prompt", "prompt", userMessage)
+
 	chatResp, err := a.openaiclient.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
 		Temperature:    openai.F(0.0),
 		Model:          openai.F(openai.ChatModelGPT4o),
 		ResponseFormat: openai.F[openai.ChatCompletionNewParamsResponseFormatUnion](openai.ResponseFormatJSONObjectParam{Type: openai.F(openai.ResponseFormatJSONObjectTypeJSONObject)}),
 		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
 			openai.SystemMessage("You are a helpful assistant that classifies database fields for PII."),
-			openai.UserMessage(fmt.Sprintf(
-				`You are a data classification expert tasked with identifying if database fields contain Personally Identifiable Information (PII).
-Classify each field based on its name into one of these categories: %s
-
-Provide your response as a JSON object that has the key called "output", where the value is an array of objects, each with the following keys:
-- "field_name": The name of the field.
-- "category": The most likely category.
-- "confidence": A number between 0 and 1 indicating your confidence in this classification (1 being the most confident).
-
-Here is the table name: %s
-
-Here are the fields and (optionally) values: %s`, strings.Join(GetAllPiiCategoriesAsStrings(), ", "), req.TableName, recordPromptStr)),
+			openai.UserMessage(userMessage),
 		}),
 	})
 	if err != nil {
