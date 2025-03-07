@@ -334,7 +334,7 @@ func (r *Records) ToPromptString(maxRecords uint) (string, error) {
 
 	jsonBytes, err := json.Marshal(columnValues)
 	if err != nil {
-		return "", fmt.Errorf("unable to convert to JSON: %w", err)
+		return "", fmt.Errorf("unable to convert column values to JSON in prompt string: %w", err)
 	}
 
 	return string(jsonBytes), nil
