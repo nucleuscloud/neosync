@@ -585,6 +585,29 @@ class CreateJobRequest(_message.Message):
     virtual_foreign_keys: _containers.RepeatedCompositeFieldContainer[VirtualForeignConstraint]
     def __init__(self, account_id: _Optional[str] = ..., job_name: _Optional[str] = ..., cron_schedule: _Optional[str] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[CreateJobDestination, _Mapping]]] = ..., initiate_job_run: bool = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ...) -> None: ...
 
+class JobTypeConfig(_message.Message):
+    __slots__ = ("sync", "pii_detect")
+    class JobTypeSync(_message.Message):
+        __slots__ = ()
+        def __init__(self) -> None: ...
+    class JobTypePiiDetect(_message.Message):
+        __slots__ = ("data_sampling",)
+        class DataSampling(_message.Message):
+            __slots__ = ("is_enabled", "sample_percentage")
+            IS_ENABLED_FIELD_NUMBER: _ClassVar[int]
+            SAMPLE_PERCENTAGE_FIELD_NUMBER: _ClassVar[int]
+            is_enabled: bool
+            sample_percentage: int
+            def __init__(self, is_enabled: bool = ..., sample_percentage: _Optional[int] = ...) -> None: ...
+        DATA_SAMPLING_FIELD_NUMBER: _ClassVar[int]
+        data_sampling: JobTypeConfig.JobTypePiiDetect.DataSampling
+        def __init__(self, data_sampling: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.DataSampling, _Mapping]] = ...) -> None: ...
+    SYNC_FIELD_NUMBER: _ClassVar[int]
+    PII_DETECT_FIELD_NUMBER: _ClassVar[int]
+    sync: JobTypeConfig.JobTypeSync
+    pii_detect: JobTypeConfig.JobTypePiiDetect
+    def __init__(self, sync: _Optional[_Union[JobTypeConfig.JobTypeSync, _Mapping]] = ..., pii_detect: _Optional[_Union[JobTypeConfig.JobTypePiiDetect, _Mapping]] = ...) -> None: ...
+
 class WorkflowOptions(_message.Message):
     __slots__ = ("run_timeout",)
     RUN_TIMEOUT_FIELD_NUMBER: _ClassVar[int]

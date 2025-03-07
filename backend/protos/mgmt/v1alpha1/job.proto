@@ -525,6 +525,51 @@ message CreateJobRequest {
   // repeated NewJobHook hooks = 11;
 }
 
+message JobTypeConfig {
+  oneof job_type {
+    option (buf.validate.oneof).required = false;
+    JobTypeSync sync = 1;
+    JobTypePiiDetect pii_detect = 2;
+  }
+
+  message JobTypeSync {}
+
+  message JobTypePiiDetect {
+    // The configuration for data sampling
+    DataSampling data_sampling = 1;
+
+    message DataSampling {
+      bool is_enabled = 1;
+      // The percentage of data to sample
+      optional uint32 sample_percentage = 2 [
+        (buf.validate.field).uint32.gte = 1,
+        (buf.validate.field).uint32.lte = 20
+      ];
+    }
+
+    // message Recognizer {
+    //   string name = 1;
+    //   bool is_enabled = 2;
+
+    //   oneof recognizer {
+    //     option (buf.validate.oneof).required = false;
+    //     RegexRecognizer regex = 3;
+    //     ExactRecognizer exact = 4;
+    //   }
+
+    //   message RegexRecognizer {
+    //     // The regex to use for recognizing PII
+    //     string regex = 1;
+    //   }
+
+    //   message ExactRecognizer {
+    //     // The exact value to recognize
+    //     string value = 1;
+    //   }
+    // }
+  }
+}
+
 // Config that contains various timeouts that are configured in the underlying temporal workflow
 // More options will come in the future as needed
 message WorkflowOptions {

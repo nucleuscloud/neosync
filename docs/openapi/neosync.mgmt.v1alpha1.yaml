@@ -12390,6 +12390,87 @@ components:
           description: The status of the job
       title: JobStatusRecord
       additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - piiDetect
+            - required:
+                - sync
+            - not:
+                anyOf:
+                  - required:
+                      - piiDetect
+                  - required:
+                      - sync
+      anyOf:
+        - required:
+            - piiDetect
+        - required:
+            - sync
+        - not:
+            anyOf:
+              - required:
+                  - piiDetect
+              - required:
+                  - sync
+      properties:
+        sync:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync'
+          title: sync
+        piiDetect:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect
+          title: pii_detect
+      title: JobTypeConfig
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect:
+      type: object
+      properties:
+        dataSampling:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling
+          title: data_sampling
+          description: The configuration for data sampling
+      title: JobTypePiiDetect
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - samplePercentage
+            - not:
+                anyOf:
+                  - required:
+                      - samplePercentage
+      anyOf:
+        - required:
+            - samplePercentage
+        - not:
+            anyOf:
+              - required:
+                  - samplePercentage
+      properties:
+        isEnabled:
+          type: boolean
+          title: is_enabled
+        samplePercentage:
+          type: integer
+          title: sample_percentage
+          maximum: 20
+          minimum: 1
+          description: The percentage of data to sample
+      title: DataSampling
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync:
+      type: object
+      title: JobTypeSync
+      additionalProperties: false
     mgmt.v1alpha1.MongoDBDestinationConnectionOptions:
       type: object
       title: MongoDBDestinationConnectionOptions

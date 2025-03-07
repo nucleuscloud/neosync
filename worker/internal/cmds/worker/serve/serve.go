@@ -31,9 +31,12 @@ import (
 	pyroscope_env "github.com/nucleuscloud/neosync/internal/pyroscope"
 	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	"github.com/openai/openai-go"
+	"github.com/openai/openai-go/option"
 
 	datasync_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/register"
 	accounthook_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow/register"
+	piidetect_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/register"
 	tablesync_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow/register"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -288,6 +291,7 @@ func serve(ctx context.Context) error {
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(httpclient, neosyncurl, connectInterceptorOption)
+	conndataclient := mgmtv1alpha1connect.NewConnectionDataServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	accounthookclient := mgmtv1alpha1connect.NewAccountHookServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}))
@@ -331,6 +335,10 @@ func serve(ctx context.Context) error {
 	if cascadelicense.IsValid() {
 		logger.Debug("ee license is valid, registering account hook activities")
 		accounthook_workflow_register.Register(w, accounthookclient)
+
+		openaiclient := openai.NewClient(option.WithAPIKey(viper.GetString("OPENAI_API_KEY")))
+
+		piidetect_workflow_register.Register(w, conndataclient, openaiclient)
 	}
 
 	if err := w.Start(); err != nil {

@@ -14320,6 +14320,113 @@
           ]
         },
         {
+          "name": "JobTypeConfig",
+          "longName": "JobTypeConfig",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "sync",
+              "description": "",
+              "label": "",
+              "type": "JobTypeSync",
+              "longType": "JobTypeConfig.JobTypeSync",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "job_type",
+              "defaultValue": ""
+            },
+            {
+              "name": "pii_detect",
+              "description": "",
+              "label": "",
+              "type": "JobTypePiiDetect",
+              "longType": "JobTypeConfig.JobTypePiiDetect",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "job_type",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "JobTypePiiDetect",
+          "longName": "JobTypeConfig.JobTypePiiDetect",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "data_sampling",
+              "description": "The configuration for data sampling",
+              "label": "",
+              "type": "DataSampling",
+              "longType": "JobTypeConfig.JobTypePiiDetect.DataSampling",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "DataSampling",
+          "longName": "JobTypeConfig.JobTypePiiDetect.DataSampling",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_enabled",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "sample_percentage",
+              "description": "The percentage of data to sample",
+              "label": "optional",
+              "type": "uint32",
+              "longType": "uint32",
+              "fullType": "uint32",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_sample_percentage",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "JobTypeSync",
+          "longName": "JobTypeConfig.JobTypeSync",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "MongoDBDestinationConnectionOptions",
           "longName": "MongoDBDestinationConnectionOptions",
           "fullName": "mgmt.v1alpha1.MongoDBDestinationConnectionOptions",
