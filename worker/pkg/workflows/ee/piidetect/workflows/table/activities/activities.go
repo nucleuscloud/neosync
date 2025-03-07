@@ -167,6 +167,8 @@ type DetectPiiRegexResponse struct {
 }
 
 func (a *Activities) DetectPiiRegex(ctx context.Context, req *DetectPiiRegexRequest) (*DetectPiiRegexResponse, error) {
+	logger := activity.GetLogger(ctx)
+
 	piiColumns := make(map[string]PiiCategory)
 
 	for _, dbCol := range req.ColumnData {
@@ -175,6 +177,8 @@ func (a *Activities) DetectPiiRegex(ctx context.Context, req *DetectPiiRegexRequ
 			piiColumns[column] = category
 		}
 	}
+
+	logger.Debug("Regex PII detection complete")
 
 	return &DetectPiiRegexResponse{
 		PiiColumns: piiColumns,
@@ -222,7 +226,7 @@ Classify each field based on its name into one of these categories: %s
 Provide your response as a JSON object that has the key called "output", where the value is an array of objects, each with the following keys:
 - "field_name": The name of the field.
 - "category": The most likely category.
-- "confidence": A number between 0 and 1 indicating your confidence in this classification (10 being the most confident).
+- "confidence": A number between 0 and 1 indicating your confidence in this classification (1 being the most confident).
 
 Here is the table name: %s
 
@@ -245,6 +249,8 @@ Here are the fields: %s`, strings.Join(GetAllPiiCategoriesAsStrings(), ", "), re
 			Confidence: column.Confidence,
 		}
 	}
+
+	logger.Debug("LLM PII detection complete")
 
 	return &DetectPiiLLMResponse{
 		PiiColumns: piiColumns,

@@ -100,7 +100,7 @@ func (w *Workflow) TablePiiDetect(ctx workflow.Context, req *TablePiiDetectReque
 		return nil, err
 	}
 
-	logger.Debug("PII detection complete", "piiColumns", regexResp.PiiColumns)
+	logger.Debug("PII detection complete")
 
 	wfResp := &TablePiiDetectResponse{
 		PiiColumns: make(map[string]PiiDetectReport),
