@@ -197,11 +197,7 @@ func BuildBenthosRedisTlsConfig(redisConfig *neosync_redis.RedisConfig) *neosync
 	return tls
 }
 
-func GetJobSourceConnection(
-	ctx context.Context,
-	jobSource *mgmtv1alpha1.JobSource,
-	connclient mgmtv1alpha1connect.ConnectionServiceClient,
-) (*mgmtv1alpha1.Connection, error) {
+func GetJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (string, error) {
 	var connectionId string
 	switch jobSourceConfig := jobSource.GetOptions().GetConfig().(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:
@@ -219,7 +215,19 @@ func GetJobSourceConnection(
 	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
 		connectionId = jobSourceConfig.Dynamodb.GetConnectionId()
 	default:
-		return nil, fmt.Errorf("unsupported job source options type for job source connection: %T", jobSourceConfig)
+		return "", fmt.Errorf("unsupported job source options type for job source connection: %T", jobSourceConfig)
+	}
+	return connectionId, nil
+}
+
+func GetJobSourceConnection(
+	ctx context.Context,
+	jobSource *mgmtv1alpha1.JobSource,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+) (*mgmtv1alpha1.Connection, error) {
+	connectionId, err := GetJobSourceConnectionId(jobSource)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get job source connection id: %w", err)
 	}
 	sourceConnection, err := GetConnectionById(ctx, connclient, connectionId)
 	if err != nil {

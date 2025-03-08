@@ -17,6 +17,10 @@ import (
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 )
 
+type SampleDataStream interface {
+	Send(resp *mgmtv1alpha1.GetConnectionDataStreamResponse) error
+}
+
 type ConnectionDataService interface {
 	StreamData(
 		ctx context.Context,
@@ -29,6 +33,18 @@ type ConnectionDataService interface {
 	GetTableConstraints(ctx context.Context) (*mgmtv1alpha1.GetConnectionTableConstraintsResponse, error)
 	GetTableSchema(ctx context.Context, schema, table string) ([]*mgmtv1alpha1.DatabaseColumn, error)
 	GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error)
+	SampleData(
+		ctx context.Context,
+		stream SampleDataStream,
+		schema, table string,
+		numRows uint,
+	) error
+	GetAllTables(ctx context.Context) ([]TableIdentifier, error)
+}
+
+type TableIdentifier struct {
+	Schema string
+	Table  string
 }
 
 type ConnectionDataBuilder interface {

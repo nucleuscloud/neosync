@@ -11213,6 +11213,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "job_type",
+              "description": "The type of job to create",
+              "label": "",
+              "type": "JobTypeConfig",
+              "longType": "JobTypeConfig",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -13190,6 +13202,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "job_type",
+              "description": "The type of job",
+              "label": "",
+              "type": "JobTypeConfig",
+              "longType": "JobTypeConfig",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -14318,6 +14342,101 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "JobTypeConfig",
+          "longName": "JobTypeConfig",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig",
+          "description": "Specifies the job type along with any specific configuration for that job type",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "sync",
+              "description": "This is the default if no job type is specified",
+              "label": "",
+              "type": "JobTypeSync",
+              "longType": "JobTypeConfig.JobTypeSync",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "job_type",
+              "defaultValue": ""
+            },
+            {
+              "name": "pii_detect",
+              "description": "",
+              "label": "",
+              "type": "JobTypePiiDetect",
+              "longType": "JobTypeConfig.JobTypePiiDetect",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "job_type",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "JobTypePiiDetect",
+          "longName": "JobTypeConfig.JobTypePiiDetect",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "data_sampling",
+              "description": "The configuration for data sampling",
+              "label": "",
+              "type": "DataSampling",
+              "longType": "JobTypeConfig.JobTypePiiDetect.DataSampling",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "DataSampling",
+          "longName": "JobTypeConfig.JobTypePiiDetect.DataSampling",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_enabled",
+              "description": "The percentage of data to sample\noptional uint32 sample_percentage = 2 [\n  (buf.validate.field).uint32.gte = 1,\n  (buf.validate.field).uint32.lte = 20\n];",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "JobTypeSync",
+          "longName": "JobTypeConfig.JobTypeSync",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync",
+          "description": "The configuration for a data sync job",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "MongoDBDestinationConnectionOptions",

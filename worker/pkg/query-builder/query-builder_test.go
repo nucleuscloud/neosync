@@ -69,6 +69,73 @@ func Test_BuildSelectQuery(t *testing.T) {
 	}
 }
 
+func Test_BuildSampledSelectLimitQuery(t *testing.T) {
+	t.Run("postgres sample with limit", func(t *testing.T) {
+		driver := sqlmanager_shared.GoquPostgresDriver
+		table := "public.accounts"
+		limit := uint(10)
+		expected := `SELECT * FROM "public"."accounts" ORDER BY RANDOM() ASC LIMIT 10`
+
+		sql, err := BuildSampledSelectLimitQuery(driver, table, limit)
+		require.NoError(t, err)
+		require.Equal(t, expected, sql)
+	})
+
+	t.Run("postgres sample with schema.table format", func(t *testing.T) {
+		driver := sqlmanager_shared.GoquPostgresDriver
+		table := "schema.table_name"
+		limit := uint(100)
+		expected := `SELECT * FROM "schema"."table_name" ORDER BY RANDOM() ASC LIMIT 100`
+
+		sql, err := BuildSampledSelectLimitQuery(driver, table, limit)
+		require.NoError(t, err)
+		require.Equal(t, expected, sql)
+	})
+
+	t.Run("mysql sample with limit", func(t *testing.T) {
+		driver := sqlmanager_shared.MysqlDriver
+		table := "public.accounts"
+		limit := uint(10)
+		expected := "SELECT * FROM `public`.`accounts` ORDER BY RAND() ASC LIMIT 10"
+
+		sql, err := BuildSampledSelectLimitQuery(driver, table, limit)
+		require.NoError(t, err)
+		require.Equal(t, expected, sql)
+	})
+
+	t.Run("mysql sample with schema.table format", func(t *testing.T) {
+		driver := sqlmanager_shared.MysqlDriver
+		table := "schema.table_name"
+		limit := uint(100)
+		expected := "SELECT * FROM `schema`.`table_name` ORDER BY RAND() ASC LIMIT 100"
+
+		sql, err := BuildSampledSelectLimitQuery(driver, table, limit)
+		require.NoError(t, err)
+		require.Equal(t, expected, sql)
+	})
+	t.Run("mssql sample with limit", func(t *testing.T) {
+		driver := sqlmanager_shared.MssqlDriver
+		table := "public.accounts"
+		limit := uint(10)
+		expected := `SELECT  TOP (10) * FROM "public"."accounts" ORDER BY NEWID() ASC`
+
+		sql, err := BuildSampledSelectLimitQuery(driver, table, limit)
+		require.NoError(t, err)
+		require.Equal(t, expected, sql)
+	})
+
+	t.Run("mssql sample with schema.table format", func(t *testing.T) {
+		driver := sqlmanager_shared.MssqlDriver
+		table := "schema.table_name"
+		limit := uint(100)
+		expected := `SELECT  TOP (100) * FROM "schema"."table_name" ORDER BY NEWID() ASC`
+
+		sql, err := BuildSampledSelectLimitQuery(driver, table, limit)
+		require.NoError(t, err)
+		require.Equal(t, expected, sql)
+	})
+}
+
 func Test_BuildUpdateQuery(t *testing.T) {
 	tests := []struct {
 		name           string

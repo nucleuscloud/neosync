@@ -35,6 +35,19 @@ func NewAwsDynamodbConnectionDataService(
 	}
 }
 
+func (s *AwsDynamodbConnectionDataService) GetAllTables(ctx context.Context) ([]TableIdentifier, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (s *AwsDynamodbConnectionDataService) SampleData(
+	ctx context.Context,
+	stream SampleDataStream,
+	schema, table string,
+	numRows uint,
+) error {
+	return errors.ErrUnsupported
+}
+
 func (s *AwsDynamodbConnectionDataService) StreamData(
 	ctx context.Context,
 	stream *connect.ServerStream[mgmtv1alpha1.GetConnectionDataStreamResponse],
