@@ -46,6 +46,10 @@ func NewAwsS3ConnectionDataService(
 	}
 }
 
+func (s *AwsS3ConnectionDataService) GetAllTables(ctx context.Context) ([]TableIdentifier, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (s *AwsS3ConnectionDataService) SampleData(
 	ctx context.Context,
 	stream SampleDataStream,

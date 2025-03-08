@@ -562,7 +562,7 @@ class BatchConfig(_message.Message):
     def __init__(self, count: _Optional[int] = ..., period: _Optional[str] = ...) -> None: ...
 
 class CreateJobRequest(_message.Message):
-    __slots__ = ("account_id", "job_name", "cron_schedule", "mappings", "source", "destinations", "initiate_job_run", "workflow_options", "sync_options", "virtual_foreign_keys")
+    __slots__ = ("account_id", "job_name", "cron_schedule", "mappings", "source", "destinations", "initiate_job_run", "workflow_options", "sync_options", "virtual_foreign_keys", "job_type")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     JOB_NAME_FIELD_NUMBER: _ClassVar[int]
     CRON_SCHEDULE_FIELD_NUMBER: _ClassVar[int]
@@ -573,6 +573,7 @@ class CreateJobRequest(_message.Message):
     WORKFLOW_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     SYNC_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     VIRTUAL_FOREIGN_KEYS_FIELD_NUMBER: _ClassVar[int]
+    JOB_TYPE_FIELD_NUMBER: _ClassVar[int]
     account_id: str
     job_name: str
     cron_schedule: str
@@ -583,7 +584,8 @@ class CreateJobRequest(_message.Message):
     workflow_options: WorkflowOptions
     sync_options: ActivityOptions
     virtual_foreign_keys: _containers.RepeatedCompositeFieldContainer[VirtualForeignConstraint]
-    def __init__(self, account_id: _Optional[str] = ..., job_name: _Optional[str] = ..., cron_schedule: _Optional[str] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[CreateJobDestination, _Mapping]]] = ..., initiate_job_run: bool = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ...) -> None: ...
+    job_type: JobTypeConfig
+    def __init__(self, account_id: _Optional[str] = ..., job_name: _Optional[str] = ..., cron_schedule: _Optional[str] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[CreateJobDestination, _Mapping]]] = ..., initiate_job_run: bool = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ..., job_type: _Optional[_Union[JobTypeConfig, _Mapping]] = ...) -> None: ...
 
 class JobTypeConfig(_message.Message):
     __slots__ = ("sync", "pii_detect")
@@ -593,12 +595,10 @@ class JobTypeConfig(_message.Message):
     class JobTypePiiDetect(_message.Message):
         __slots__ = ("data_sampling",)
         class DataSampling(_message.Message):
-            __slots__ = ("is_enabled", "sample_percentage")
+            __slots__ = ("is_enabled",)
             IS_ENABLED_FIELD_NUMBER: _ClassVar[int]
-            SAMPLE_PERCENTAGE_FIELD_NUMBER: _ClassVar[int]
             is_enabled: bool
-            sample_percentage: int
-            def __init__(self, is_enabled: bool = ..., sample_percentage: _Optional[int] = ...) -> None: ...
+            def __init__(self, is_enabled: bool = ...) -> None: ...
         DATA_SAMPLING_FIELD_NUMBER: _ClassVar[int]
         data_sampling: JobTypeConfig.JobTypePiiDetect.DataSampling
         def __init__(self, data_sampling: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.DataSampling, _Mapping]] = ...) -> None: ...
@@ -883,7 +883,7 @@ class CancelJobRunResponse(_message.Message):
     def __init__(self) -> None: ...
 
 class Job(_message.Message):
-    __slots__ = ("id", "created_by_user_id", "created_at", "updated_by_user_id", "updated_at", "name", "source", "destinations", "mappings", "cron_schedule", "account_id", "sync_options", "workflow_options", "virtual_foreign_keys")
+    __slots__ = ("id", "created_by_user_id", "created_at", "updated_by_user_id", "updated_at", "name", "source", "destinations", "mappings", "cron_schedule", "account_id", "sync_options", "workflow_options", "virtual_foreign_keys", "job_type")
     ID_FIELD_NUMBER: _ClassVar[int]
     CREATED_BY_USER_ID_FIELD_NUMBER: _ClassVar[int]
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
@@ -898,6 +898,7 @@ class Job(_message.Message):
     SYNC_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     WORKFLOW_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     VIRTUAL_FOREIGN_KEYS_FIELD_NUMBER: _ClassVar[int]
+    JOB_TYPE_FIELD_NUMBER: _ClassVar[int]
     id: str
     created_by_user_id: str
     created_at: _timestamp_pb2.Timestamp
@@ -912,7 +913,8 @@ class Job(_message.Message):
     sync_options: ActivityOptions
     workflow_options: WorkflowOptions
     virtual_foreign_keys: _containers.RepeatedCompositeFieldContainer[VirtualForeignConstraint]
-    def __init__(self, id: _Optional[str] = ..., created_by_user_id: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., updated_by_user_id: _Optional[str] = ..., updated_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., name: _Optional[str] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[JobDestination, _Mapping]]] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., cron_schedule: _Optional[str] = ..., account_id: _Optional[str] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ...) -> None: ...
+    job_type: JobTypeConfig
+    def __init__(self, id: _Optional[str] = ..., created_by_user_id: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., updated_by_user_id: _Optional[str] = ..., updated_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., name: _Optional[str] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[JobDestination, _Mapping]]] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., cron_schedule: _Optional[str] = ..., account_id: _Optional[str] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ..., job_type: _Optional[_Union[JobTypeConfig, _Mapping]] = ...) -> None: ...
 
 class JobRecentRun(_message.Message):
     __slots__ = ("start_time", "job_run_id")

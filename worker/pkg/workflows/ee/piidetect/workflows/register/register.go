@@ -4,6 +4,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/internal/connectiondata"
 	piidetect_job_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/job"
+	piidetect_job_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/job/activities"
 	piidetect_table_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table"
 	piidetect_table_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table/activities"
 	"github.com/openai/openai-go"
@@ -17,6 +18,7 @@ type Worker interface {
 func Register(
 	w Worker,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	jobclient mgmtv1alpha1connect.JobServiceClient,
 	openaiclient *openai.Client,
 	connectiondatabuilder connectiondata.ConnectionDataBuilder,
 ) {
@@ -30,4 +32,8 @@ func Register(
 	w.RegisterActivity(tablePiiDetectActivitites.GetColumnData)
 	w.RegisterActivity(tablePiiDetectActivitites.DetectPiiRegex)
 	w.RegisterActivity(tablePiiDetectActivitites.DetectPiiLLM)
+
+	jobPiiDetectActivitites := piidetect_job_activities.New(jobclient, connclient, connectiondatabuilder)
+	w.RegisterActivity(jobPiiDetectActivitites.GetPiiDetectJobDetails)
+	w.RegisterActivity(jobPiiDetectActivitites.GetTablesToPiiScan)
 }

@@ -37,6 +37,10 @@ func NewGcpConnectionDataService(
 	}
 }
 
+func (s *GcpConnectionDataService) GetAllTables(ctx context.Context) ([]TableIdentifier, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (s *GcpConnectionDataService) SampleData(
 	ctx context.Context,
 	stream SampleDataStream,

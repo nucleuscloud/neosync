@@ -11213,6 +11213,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "job_type",
+              "description": "The type of job to create",
+              "label": "",
+              "type": "JobTypeConfig",
+              "longType": "JobTypeConfig",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -13190,6 +13202,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "job_type",
+              "description": "The type of job",
+              "label": "",
+              "type": "JobTypeConfig",
+              "longType": "JobTypeConfig",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -14323,7 +14347,7 @@
           "name": "JobTypeConfig",
           "longName": "JobTypeConfig",
           "fullName": "mgmt.v1alpha1.JobTypeConfig",
-          "description": "",
+          "description": "Specifies the job type along with any specific configuration for that job type",
           "hasExtensions": false,
           "hasFields": true,
           "hasOneofs": true,
@@ -14331,7 +14355,7 @@
           "fields": [
             {
               "name": "sync",
-              "description": "",
+              "description": "This is the default if no job type is specified",
               "label": "",
               "type": "JobTypeSync",
               "longType": "JobTypeConfig.JobTypeSync",
@@ -14386,12 +14410,12 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": true,
+          "hasOneofs": false,
           "extensions": [],
           "fields": [
             {
               "name": "is_enabled",
-              "description": "",
+              "description": "The percentage of data to sample\noptional uint32 sample_percentage = 2 [\n  (buf.validate.field).uint32.gte = 1,\n  (buf.validate.field).uint32.lte = 20\n];",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -14400,18 +14424,6 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
-            },
-            {
-              "name": "sample_percentage",
-              "description": "The percentage of data to sample",
-              "label": "optional",
-              "type": "uint32",
-              "longType": "uint32",
-              "fullType": "uint32",
-              "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "_sample_percentage",
-              "defaultValue": ""
             }
           ]
         },
@@ -14419,7 +14431,7 @@
           "name": "JobTypeSync",
           "longName": "JobTypeConfig.JobTypeSync",
           "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync",
-          "description": "",
+          "description": "The configuration for a data sync job",
           "hasExtensions": false,
           "hasFields": false,
           "hasOneofs": false,

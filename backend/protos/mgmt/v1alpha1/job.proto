@@ -521,17 +521,22 @@ message CreateJobRequest {
   // The list of virtual foreign keys that will be used to further constrain the data ontop of the database defined constraints
   repeated VirtualForeignConstraint virtual_foreign_keys = 10;
 
+  // The type of job to create
+  JobTypeConfig job_type = 11;
+
   // Specify and job hooks that should be created
   // repeated NewJobHook hooks = 11;
 }
 
+// Specifies the job type along with any specific configuration for that job type
 message JobTypeConfig {
   oneof job_type {
-    option (buf.validate.oneof).required = false;
-    JobTypeSync sync = 1;
+    option (buf.validate.oneof).required = false; // false for backwards compatibility
+    JobTypeSync sync = 1; // This is the default if no job type is specified
     JobTypePiiDetect pii_detect = 2;
   }
 
+  // The configuration for a data sync job
   message JobTypeSync {}
 
   message JobTypePiiDetect {
@@ -540,11 +545,11 @@ message JobTypeConfig {
 
     message DataSampling {
       bool is_enabled = 1;
-      // The percentage of data to sample
-      optional uint32 sample_percentage = 2 [
-        (buf.validate.field).uint32.gte = 1,
-        (buf.validate.field).uint32.lte = 20
-      ];
+      // // The percentage of data to sample
+      // optional uint32 sample_percentage = 2 [
+      //   (buf.validate.field).uint32.gte = 1,
+      //   (buf.validate.field).uint32.lte = 20
+      // ];
     }
 
     // message Recognizer {
@@ -853,6 +858,9 @@ message Job {
 
   // Any virtual foreign keys that are configured as a part of this job
   repeated VirtualForeignConstraint virtual_foreign_keys = 14;
+
+  // The type of job
+  JobTypeConfig job_type = 15;
 }
 
 message JobRecentRun {

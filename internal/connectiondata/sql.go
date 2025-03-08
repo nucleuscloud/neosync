@@ -45,6 +45,10 @@ func NewSQLConnectionDataService(
 	}
 }
 
+func (s *SQLConnectionDataService) GetAllTables(ctx context.Context) ([]TableIdentifier, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (s *SQLConnectionDataService) SampleData(
 	ctx context.Context,
 	stream SampleDataStream,

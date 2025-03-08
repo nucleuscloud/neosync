@@ -10666,6 +10666,11 @@ components:
           description: >-
             The list of virtual foreign keys that will be used to further
             constrain the data ontop of the database defined constraints
+        jobType:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig'
+          title: job_type
+          description: The type of job to create
       title: CreateJobRequest
       additionalProperties: false
     mgmt.v1alpha1.CreateJobResponse:
@@ -11657,6 +11662,11 @@ components:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
           description: Any virtual foreign keys that are configured as a part of this job
+        jobType:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig'
+          title: job_type
+          description: The type of job
       title: Job
       additionalProperties: false
     mgmt.v1alpha1.JobDestination:
@@ -12420,6 +12430,7 @@ components:
           allOf:
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync'
           title: sync
+          description: This is the default if no job type is specified
         piiDetect:
           allOf:
             - $ref: >-
@@ -12427,6 +12438,9 @@ components:
           title: pii_detect
       title: JobTypeConfig
       additionalProperties: false
+      description: >-
+        Specifies the job type along with any specific configuration for that
+        job type
     mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect:
       type: object
       properties:
@@ -12440,37 +12454,23 @@ components:
       additionalProperties: false
     mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling:
       type: object
-      allOf:
-        - anyOf:
-            - required:
-                - samplePercentage
-            - not:
-                anyOf:
-                  - required:
-                      - samplePercentage
-      anyOf:
-        - required:
-            - samplePercentage
-        - not:
-            anyOf:
-              - required:
-                  - samplePercentage
       properties:
         isEnabled:
           type: boolean
           title: is_enabled
-        samplePercentage:
-          type: integer
-          title: sample_percentage
-          maximum: 20
-          minimum: 1
-          description: The percentage of data to sample
+          description: |-
+            // The percentage of data to sample
+             optional uint32 sample_percentage = 2 [
+               (buf.validate.field).uint32.gte = 1,
+               (buf.validate.field).uint32.lte = 20
+             ];
       title: DataSampling
       additionalProperties: false
     mgmt.v1alpha1.JobTypeConfig.JobTypeSync:
       type: object
       title: JobTypeSync
       additionalProperties: false
+      description: The configuration for a data sync job
     mgmt.v1alpha1.MongoDBDestinationConnectionOptions:
       type: object
       title: MongoDBDestinationConnectionOptions

@@ -39,6 +39,12 @@ type ConnectionDataService interface {
 		schema, table string,
 		numRows uint,
 	) error
+	GetAllTables(ctx context.Context) ([]TableIdentifier, error)
+}
+
+type TableIdentifier struct {
+	Schema string
+	Table  string
 }
 
 type ConnectionDataBuilder interface {
