@@ -1,7 +1,7 @@
 package piidetect_job_workflow
 
 import (
-	"sync/atomic"
+	"fmt"
 	"time"
 
 	piidetect_job_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/job/activities"
@@ -86,31 +86,15 @@ func (w *Workflow) orchestrateTables(
 ) error {
 	workselector := workflow.NewNamedSelector(ctx, "job_pii_detect")
 
-	maxConcurrency := int32(3)
-	inFlight := atomic.Int32{}
+	maxConcurrency := 3
+	inFlightLimiter := workflow.NewSemaphore(ctx, int64(maxConcurrency))
 
 	tableWf := piidetect_table_workflow.New()
 
-	remainingTables := len(tables)
-	completedTables := 0
-	mu := workflow.NewMutex(ctx)
-
-	// Process next table
-	processNextTable := func() error {
-		err := mu.Lock(ctx)
-		if err != nil {
-			return err
+	processTable := func(table piidetect_job_activities.TableIdentifier) error {
+		if err := inFlightLimiter.Acquire(ctx, 1); err != nil {
+			return fmt.Errorf("unable to acquire semaphore: %w", err)
 		}
-		defer mu.Unlock()
-
-		if completedTables >= len(tables) {
-			return nil
-		}
-
-		table := tables[completedTables]
-		completedTables++
-
-		inFlight.Add(1)
 		workselector.AddFuture(
 			workflow.ExecuteChildWorkflow(
 				workflow.WithChildOptions(
@@ -133,7 +117,7 @@ func (w *Workflow) orchestrateTables(
 			func(f workflow.Future) {
 				var wfResult *piidetect_table_workflow.TablePiiDetectResponse
 				err := f.Get(ctx, &wfResult)
-				inFlight.Add(-1)
+				inFlightLimiter.Release(1)
 				if err != nil {
 					logger.Error("activity did not complete", "err", err)
 				}
@@ -143,26 +127,13 @@ func (w *Workflow) orchestrateTables(
 		return nil
 	}
 
-	// Start first table
-	err := processNextTable()
-	if err != nil {
-		return err
-	}
-	remainingTables--
-
-	// Process all tables with controlled concurrency
-	for remainingTables > 0 || inFlight.Load() > 0 {
-		// Start more work if we can
-		if inFlight.Load() < maxConcurrency && remainingTables > 0 {
-			err = processNextTable()
-			if err != nil {
-				return err
-			}
-			remainingTables--
-			continue
+	for _, table := range tables {
+		if err := processTable(table); err != nil {
+			return err
 		}
+	}
 
-		// Wait for completion
+	for workselector.HasPending() {
 		workselector.Select(ctx)
 	}
 
