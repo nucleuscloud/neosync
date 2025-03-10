@@ -1,17 +1,13 @@
--- Ensure use of InnoDB for transactional support
-SET default_storage_engine=INNODB;
 SET FOREIGN_KEY_CHECKS=0;  -- (Disable FK checks for initial creation to handle ordering)
 
--- 1. Core Tables Creation
 
 CREATE TABLE IF NOT EXISTS agency (
     id          INT AUTO_INCREMENT PRIMARY KEY,
     name        VARCHAR(100) NOT NULL UNIQUE,
     country     VARCHAR(64),
     founded_year YEAR,
-    -- Additional fields can be added as needed
     INDEX (country)
-) ENGINE=InnoDB;
+);
 
 CREATE TABLE IF NOT EXISTS astronaut (
     id              INT AUTO_INCREMENT PRIMARY KEY,
@@ -27,7 +23,7 @@ CREATE TABLE IF NOT EXISTS astronaut (
     FOREIGN KEY (agency_id) REFERENCES agency(id)
         ON UPDATE CASCADE
         ON DELETE SET NULL
-) ENGINE=InnoDB;
+);
 
 CREATE TABLE IF NOT EXISTS spacecraft (
     id              INT AUTO_INCREMENT PRIMARY KEY,
@@ -41,7 +37,7 @@ CREATE TABLE IF NOT EXISTS spacecraft (
     FOREIGN KEY (agency_id) REFERENCES agency(id)
         ON UPDATE CASCADE
         ON DELETE SET NULL
-) ENGINE=InnoDB;
+);
 
 CREATE TABLE IF NOT EXISTS celestial_body (
     id           INT AUTO_INCREMENT PRIMARY KEY,
@@ -54,7 +50,7 @@ CREATE TABLE IF NOT EXISTS celestial_body (
     FOREIGN KEY (parent_body_id) REFERENCES celestial_body(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
-    CONSTRAINT chk_positive_mass CHECK (mass >= 0 OR mass IS NULL)) ENGINE=InnoDB;
+    CONSTRAINT chk_positive_mass CHECK (mass >= 0 OR mass IS NULL));
 
 CREATE TABLE IF NOT EXISTS launch_site (
     id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -64,7 +60,7 @@ CREATE TABLE IF NOT EXISTS launch_site (
     country     VARCHAR(50),
     CONSTRAINT uq_site_name UNIQUE (name),
     SPATIAL INDEX (location_coord)
-) ENGINE=InnoDB;
+);
 
 CREATE TABLE IF NOT EXISTS mission (
     id               INT AUTO_INCREMENT PRIMARY KEY,
@@ -97,23 +93,8 @@ CREATE TABLE IF NOT EXISTS mission (
     FOREIGN KEY (commander_id) REFERENCES astronaut(id)
         ON UPDATE CASCADE
         ON DELETE SET NULL
-) ENGINE=InnoDB;
+);
 
--- Now, create a BEFORE INSERT trigger to enforce commander logic
-DELIMITER $$
-CREATE TRIGGER trg_mission_commander_check
-BEFORE INSERT ON mission
-FOR EACH ROW
-BEGIN
-    IF NEW.mission_type = 'Unmanned' AND NEW.commander_id IS NOT NULL THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Unmanned missions must not have a commander.';
-    ELSEIF NEW.mission_type = 'Manned' AND NEW.commander_id IS NULL THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Manned missions must have a commander.';
-    END IF;
-END$$
-DELIMITER ;
 
 
 
@@ -129,7 +110,7 @@ CREATE TABLE IF NOT EXISTS mission_crew (
         ON UPDATE CASCADE
         ON DELETE CASCADE,
     INDEX idx_mc_astronaut (astronaut_id)  -- index for queries by astronaut
-) ENGINE=InnoDB;
+);
 
 CREATE TABLE IF NOT EXISTS research_project (
     id              INT AUTO_INCREMENT PRIMARY KEY,
@@ -143,7 +124,7 @@ CREATE TABLE IF NOT EXISTS research_project (
         ON DELETE SET NULL,
     CONSTRAINT uq_project_title UNIQUE (title),
     FULLTEXT INDEX idx_project_desc (title, description)
-) ENGINE=InnoDB;
+);
 
 CREATE TABLE IF NOT EXISTS project_mission (
     project_id  INT NOT NULL,
@@ -155,7 +136,7 @@ CREATE TABLE IF NOT EXISTS project_mission (
     FOREIGN KEY (mission_id) REFERENCES mission(id)
         ON UPDATE CASCADE
         ON DELETE CASCADE
-) ENGINE=InnoDB;
+);
 
 CREATE TABLE IF NOT EXISTS mission_log (
     log_id      INT AUTO_INCREMENT PRIMARY KEY,
@@ -166,7 +147,7 @@ CREATE TABLE IF NOT EXISTS mission_log (
         ON UPDATE CASCADE
         ON DELETE CASCADE,
     INDEX idx_log_mission (mission_id)
-) ENGINE=InnoDB;
+);
 
 
 -- 2. Add Foreign Keys for circular references (after both tables exist)
@@ -181,199 +162,6 @@ ALTER TABLE spacecraft
         ON UPDATE CASCADE
         ON DELETE SET NULL;
 
--- 3. Stored Procedures and Functions
-
-DELIMITER $$
-
--- Stored Procedure: Assign an astronaut to a mission with a given role (with transaction)
-CREATE PROCEDURE assign_astronaut_to_mission(
-    IN p_mission_id INT,
-    IN p_astronaut_id INT,
-    IN p_role VARCHAR(20)
-)
-BEGIN
-    -- Error handler: rollback on any error
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
-    BEGIN 
-        ROLLBACK;
-        RESIGNAL;  -- propagate error after rollback
-    END;
-    START TRANSACTION;
-        -- Insert crew assignment
-        INSERT INTO mission_crew(mission_id, astronaut_id, role)
-        VALUES (p_mission_id, p_astronaut_id, p_role);
-        -- If role is Commander, update mission's commander_id (assign this astronaut as mission commander)
-        IF UPPER(p_role) = 'COMMANDER' THEN
-            UPDATE mission 
-            SET commander_id = p_astronaut_id
-            WHERE id = p_mission_id;
-        END IF;
-        -- If astronaut has no first mission recorded, set it to this mission
-        IF (SELECT first_mission_id FROM astronaut WHERE id = p_astronaut_id) IS NULL THEN
-            UPDATE astronaut
-            SET first_mission_id = p_mission_id
-            WHERE id = p_astronaut_id;
-        END IF;
-    COMMIT;
-END$$
-
-
-
--- 4. Triggers
-
--- Trigger: Before inserting a mission crew record, enforce one commander and no crew on unmanned missions
-CREATE TRIGGER trg_before_mission_crew_insert
-BEFORE INSERT ON mission_crew
-FOR EACH ROW
-BEGIN
-    -- Ensure no duplicate commander assignment
-    IF NEW.role = 'Commander' THEN 
-        DECLARE current_commander INT;
-        SELECT commander_id INTO current_commander FROM mission WHERE id = NEW.mission_id;
-        IF current_commander IS NOT NULL AND current_commander != NEW.astronaut_id THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'Cannot assign a second commander to the mission';
-        END IF;
-    END IF;
-    -- Prevent crew assignment to unmanned missions
-    IF (SELECT mission_type FROM mission WHERE id = NEW.mission_id) = 'Unmanned' THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Cannot assign crew to an unmanned mission';
-    END IF;
-END$$
-
--- Trigger: After inserting a mission crew record, update mission commander and astronaut first mission if needed
-CREATE TRIGGER trg_after_mission_crew_insert
-AFTER INSERT ON mission_crew
-FOR EACH ROW
-BEGIN
-    -- If a commander was added to crew, ensure mission.commander_id is set to that astronaut
-    IF NEW.role = 'Commander' THEN
-        UPDATE mission
-        SET commander_id = NEW.astronaut_id
-        WHERE id = NEW.mission_id;
-    END IF;
-    -- If the astronaut has no first_mission recorded, set this mission as their first mission
-    IF (SELECT first_mission_id FROM astronaut WHERE id = NEW.astronaut_id) IS NULL THEN
-        UPDATE astronaut
-        SET first_mission_id = NEW.mission_id
-        WHERE id = NEW.astronaut_id;
-    END IF;
-END$$
-
--- Trigger: Before inserting a mission, ensure unmanned missions have no commander (commander_id should be NULL if unmanned)
-CREATE TRIGGER trg_before_mission_insert
-BEFORE INSERT ON mission
-FOR EACH ROW
-BEGIN
-    IF NEW.mission_type = 'Unmanned' AND NEW.commander_id IS NOT NULL THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Unmanned missions cannot have a commander';
-    END IF;
-END$$
-
--- Trigger: After inserting a mission, log creation and auto-add commander to crew if provided
-CREATE TRIGGER trg_after_mission_insert
-AFTER INSERT ON mission
-FOR EACH ROW
-BEGIN
-    -- Log mission creation
-    INSERT INTO mission_log(mission_id, event)
-    VALUES (NEW.id, CONCAT('Mission "', NEW.name, '" created'));
-    -- If a commander was specified, automatically add them to mission_crew
-    IF NEW.commander_id IS NOT NULL THEN
-        INSERT IGNORE INTO mission_crew(mission_id, astronaut_id, role)
-        VALUES (NEW.id, NEW.commander_id, 'Commander');
-        -- (INSERT IGNORE is used to avoid error if a record somehow already exists)
-    END IF;
-END$$
-
--- Trigger: After updating a mission, log status/commander changes and update spacecraft status
-CREATE TRIGGER trg_after_mission_update
-AFTER UPDATE ON mission
-FOR EACH ROW
-BEGIN
-    -- Log status change
-    IF NEW.status <> OLD.status THEN
-        INSERT INTO mission_log(mission_id, event)
-        VALUES (NEW.id, CONCAT('Mission status changed from ', OLD.status, ' to ', NEW.status));
-        -- Update spacecraft status based on mission status changes
-        IF NEW.status = 'Active' THEN
-            UPDATE spacecraft
-            SET status = 'In Mission'
-            WHERE id = NEW.spacecraft_id;
-        ELSEIF NEW.status = 'Completed' THEN
-            UPDATE spacecraft
-            SET status = 'Operational',
-                last_mission_id = NEW.id
-            WHERE id = NEW.spacecraft_id;
-        ELSEIF NEW.status IN ('Failed','Aborted') THEN
-            UPDATE spacecraft
-            SET status = 'Lost',
-                last_mission_id = NEW.id
-            WHERE id = NEW.spacecraft_id;
-        END IF;
-    END IF;
-    -- Log commander change
-    IF NEW.commander_id <> OLD.commander_id THEN
-        IF NEW.commander_id IS NULL THEN
-            INSERT INTO mission_log(mission_id, event)
-            VALUES (NEW.id, 'Mission commander unassigned');
-        ELSE 
-            -- Fetch new commander's name for the log
-            INSERT INTO mission_log(mission_id, event)
-            VALUES (NEW.id, CONCAT('Commander changed to astronaut ID ', NEW.commander_id));
-            -- (In practice, we might join astronaut for name, but for simplicity using ID)
-        END IF;
-    END IF;
-END$$
-
-DELIMITER ;
-
--- 5. Views
-
--- View: Mission Summary (combining details from multiple tables)
-CREATE OR REPLACE VIEW v_mission_summary AS
-SELECT 
-    m.id AS mission_id,
-    m.name AS mission_name,
-    m.mission_type,
-    m.status,
-    m.launch_date,
-    m.return_date,
-    DATEDIFF(m.return_date, m.launch_date) AS duration_days,
-    cb.name AS destination_name,
-    ls.name AS launch_site_name,
-    sc.name AS spacecraft_name,
-    CONCAT(ascomm.first_name, ' ', ascomm.last_name) AS commander_name,
-    ag.name AS primary_agency,
-    -- subquery to count crew members on this mission
-    (SELECT COUNT(*) FROM mission_crew mc WHERE mc.mission_id = m.id) AS crew_count
-FROM mission m
-LEFT JOIN astronaut ascomm ON m.commander_id = ascomm.id
-LEFT JOIN spacecraft sc ON m.spacecraft_id = sc.id
-LEFT JOIN celestial_body cb ON m.destination_id = cb.id
-LEFT JOIN launch_site ls ON m.launch_site_id = ls.id
-LEFT JOIN agency ag ON m.primary_agency_id = ag.id;
-
--- View: Astronaut Stats (missions count and total days in space per astronaut)
-CREATE OR REPLACE VIEW v_astronaut_stats AS
-SELECT 
-    a.id AS astronaut_id,
-    CONCAT(a.first_name, ' ', a.last_name) AS astronaut_name,
-    a.nationality,
-    a.status,
-    ag.name AS agency_name,
-    -- Count distinct missions (in case an astronaut had multiple roles in same mission, though our model prevents duplicates)
-    IFNULL(COUNT(DISTINCT mc.mission_id), 0) AS mission_count,
-    IFNULL(SUM(DATEDIFF(m.return_date, m.launch_date)), 0) AS total_days_in_space,
-    fm.name AS first_mission_name
-FROM astronaut a
-LEFT JOIN agency ag ON a.agency_id = ag.id
-LEFT JOIN mission fm ON a.first_mission_id = fm.id
-LEFT JOIN mission_crew mc ON a.id = mc.astronaut_id
-LEFT JOIN mission m ON mc.mission_id = m.id AND m.return_date IS NOT NULL  -- only count completed missions for days
-GROUP BY a.id, a.first_name, a.last_name, a.nationality, a.status, ag.name, fm.name;
 
 
 
@@ -381,12 +169,12 @@ GROUP BY a.id, a.first_name, a.last_name, a.nationality, a.status, ag.name, fm.n
 CREATE TABLE IF NOT EXISTS observatory (
     id                INT AUTO_INCREMENT PRIMARY KEY,
     name              VARCHAR(100) NOT NULL,
-    agency_id         INT NOT NULL,  -- cross-schema reference to agency
-    launch_site_id    INT NULL,      -- optional link to launch_site if co-located
-    location_coord    POINT NULL,    -- optional spatial coordinate for ground location
+    agency_id         INT NOT NULL, 
+    launch_site_id    INT NULL,     
+    location_coord    POINT NULL,   
     status            ENUM('Active','Under Maintenance','Retired') NOT NULL DEFAULT 'Active',
     CONSTRAINT uq_observatory_name UNIQUE (name)
-) ENGINE=InnoDB;
+);
 
 -- 2) TELESCOPE
 CREATE TABLE IF NOT EXISTS telescope (
@@ -394,46 +182,46 @@ CREATE TABLE IF NOT EXISTS telescope (
     observatory_id    INT NOT NULL,
     name              VARCHAR(100) NOT NULL,
     telescope_type    ENUM('Optical','Radio','Infrared','UV','X-Ray','Other') NOT NULL DEFAULT 'Optical',
-    mirror_diameter_m DOUBLE,  -- diameter in meters
+    mirror_diameter_m DOUBLE,
     status            ENUM('Operational','Damaged','Retired') DEFAULT 'Operational',
     CONSTRAINT uq_telescope_name UNIQUE (name)
-) ENGINE=InnoDB;
+);
 
 -- 3) INSTRUMENT
 CREATE TABLE IF NOT EXISTS instrument (
     id                 INT AUTO_INCREMENT PRIMARY KEY,
     name               VARCHAR(100) NOT NULL,
     instrument_type    ENUM('Camera','Spectrometer','Sensor','Module','Other') NOT NULL,
-    telescope_id       INT NULL,  -- if installed on a telescope
-    spacecraft_id      INT NULL,  -- cross-schema reference to spacecraft
+    telescope_id       INT NULL, 
+    spacecraft_id      INT NULL,
     status            ENUM('Available','In Use','Damaged','Retired') DEFAULT 'Available',
     CONSTRAINT uq_instrument_name UNIQUE (name)
-) ENGINE=InnoDB;
+);
 
 -- 4) OBSERVATION_SESSION
 CREATE TABLE IF NOT EXISTS observation_session (
     id                  INT AUTO_INCREMENT PRIMARY KEY,
-    telescope_id        INT NULL,  -- which telescope used
-    instrument_id       INT NULL,  -- which instrument used, if not the telescope alone
-    target_body_id      INT NULL,  -- cross-schema reference: celestial_body
-    mission_id          INT NULL,  -- cross-schema reference: mission (if part of a mission)
+    telescope_id        INT NULL, 
+    instrument_id       INT NULL, 
+    target_body_id      INT NULL, 
+    mission_id          INT NULL, 
     start_time          DATETIME NOT NULL,
     end_time            DATETIME NULL,
     seeing_conditions   ENUM('Excellent','Good','Fair','Poor') DEFAULT 'Good',
     notes               TEXT
-) ENGINE=InnoDB;
+);
 
 -- 5) DATA_SET
 CREATE TABLE IF NOT EXISTS data_set (
     id                INT AUTO_INCREMENT PRIMARY KEY,
     name              VARCHAR(100) NOT NULL,
-    mission_id        INT NULL,  -- cross-schema reference: mission
-    observation_id    INT NULL,  -- reference cosmic_research.observation_session
+    mission_id        INT NULL,  
+    observation_id    INT NULL,  
     data_description  TEXT,
-    data_blob         LONGBLOB NULL,  -- optional raw data
+    data_blob         LONGBLOB NULL,  
     collected_on      DATE NOT NULL,
     CONSTRAINT uq_data_set_name UNIQUE (name)
-) ENGINE=InnoDB;
+);
 
 -- 6) RESEARCH_PAPER
 CREATE TABLE IF NOT EXISTS research_paper (
@@ -442,19 +230,19 @@ CREATE TABLE IF NOT EXISTS research_paper (
     abstract       TEXT,
     published_date DATE,
     doi            VARCHAR(100),  -- unique ID for academic papers
-    project_id     INT NULL,      -- cross-schema reference: research_project
-    observatory_id INT NULL,      -- if the paper is from ground-based research
+    project_id     INT NULL,     
+    observatory_id INT NULL,      
     CONSTRAINT uq_paper_doi UNIQUE (doi),
     FULLTEXT INDEX idx_paper_ft (title, abstract)
-) ENGINE=InnoDB;
+);
 
 -- 7) PAPER_CITATION
 CREATE TABLE IF NOT EXISTS paper_citation (
-    citing_paper_id    INT NOT NULL,  -- referencing cosmic_research.research_paper
-    cited_paper_id     INT NOT NULL,  -- referencing cosmic_research.research_paper
+    citing_paper_id    INT NOT NULL,  
+    cited_paper_id     INT NOT NULL, 
     citation_date      DATE NOT NULL,
     PRIMARY KEY (citing_paper_id, cited_paper_id)
-) ENGINE=InnoDB;
+);
 
 -- 8) GRANT
 CREATE TABLE IF NOT EXISTS `grant` (
@@ -466,32 +254,29 @@ CREATE TABLE IF NOT EXISTS `grant` (
     end_date        DATE NULL,
     status          ENUM('Proposed','Awarded','Active','Closed','Canceled') NOT NULL DEFAULT 'Proposed',
     CONSTRAINT uq_grant_number UNIQUE (grant_number)
-) ENGINE=InnoDB;
+);
 
 -- 9) GRANT_RESEARCH_PROJECT
 CREATE TABLE IF NOT EXISTS grant_research_project (
     grant_id          INT NOT NULL,
-    research_project_id INT NOT NULL,  -- cross-schema reference: research_project
+    research_project_id INT NOT NULL,  
     allocated_amount  DECIMAL(15,2),
     PRIMARY KEY (grant_id, research_project_id)
-) ENGINE=InnoDB;
+);
 
 -- 10) INSTRUMENT_USAGE
 CREATE TABLE IF NOT EXISTS instrument_usage (
     id               INT AUTO_INCREMENT PRIMARY KEY,
     instrument_id    INT NOT NULL,
-    telescope_id     INT NULL,   -- if used on a telescope
-    spacecraft_id    INT NULL,   -- cross-schema reference: spacecraft
+    telescope_id     INT NULL,  
+    spacecraft_id    INT NULL,   
     start_date       DATE NOT NULL,
     end_date         DATE NULL,
     usage_notes      TEXT
-) ENGINE=InnoDB;
+);
 
 SET FOREIGN_KEY_CHECKS=1;
 
--- Now add the foreign keys referencing the original space schema and local references.
--- NOTE: The exact schema name of the original DB is assumed to be `space`.
--- Adjust if your actual schema name is different.
 
 ALTER TABLE observatory
     ADD CONSTRAINT fk_obs_agency
@@ -622,7 +407,6 @@ ALTER TABLE instrument_usage
 -- Sample Constraints & Triggers for Additional Complexity
 --
 
--- Example CHECK constraints (MySQL 8+)
 ALTER TABLE telescope
     ADD CONSTRAINT chk_telescope_mirror CHECK (
         (telescope_type IN ('Optical','Infrared','UV','X-Ray') AND mirror_diameter_m > 0)
@@ -630,8 +414,7 @@ ALTER TABLE telescope
         OR (telescope_type = 'Other')
     );
 
--- Example trigger: Prevent new observation sessions on a retired telescope
-DELIMITER $$
+-- DELIMITER $$
 CREATE TRIGGER trg_before_observation_session_insert
 BEFORE INSERT ON observation_session
 FOR EACH ROW
@@ -642,11 +425,10 @@ BEGIN
             SET MESSAGE_TEXT = 'Cannot create observation session on a retired telescope.';
         END IF;
     END IF;
-END$$
-DELIMITER ;
+END;
+-- DELIMITER ;
 
--- Example stored procedure: awarding a grant
-DELIMITER $$
+-- DELIMITER $$
 CREATE PROCEDURE sp_award_grant(
     IN p_grant_id INT,
     IN p_start_date DATE,
@@ -667,14 +449,12 @@ BEGIN
             end_date   = p_end_date,
             funding_amount = p_amount
         WHERE id = p_grant_id;
-
-        -- We could insert a log or do additional checks here...
     COMMIT;
-END$$
-DELIMITER ;
+END;
+-- DELIMITER ;
 
 -- Example function: count citations of a research paper
-DELIMITER $$
+-- DELIMITER $$
 CREATE FUNCTION fn_paper_citation_count(p_paper_id INT)
 RETURNS INT
 DETERMINISTIC
@@ -686,8 +466,8 @@ BEGIN
     FROM paper_citation
     WHERE cited_paper_id = p_paper_id;
     RETURN ccount;
-END$$
-DELIMITER ;
+END;
+-- DELIMITER ;
 
 --
 -- Example View: v_cross_schema_projects
@@ -710,8 +490,55 @@ JOIN grant_research_project grp ON g.id = grp.grant_id
 JOIN research_project rp ON grp.research_project_id = rp.id
 LEFT JOIN agency s_ag ON g.agency_id = s_ag.id;
 
+-- 5. Views
 
-DELIMITER $$
+-- View: Mission Summary (combining details from multiple tables)
+CREATE OR REPLACE VIEW v_mission_summary AS
+SELECT 
+    m.id AS mission_id,
+    m.name AS mission_name,
+    m.mission_type,
+    m.status,
+    m.launch_date,
+    m.return_date,
+    DATEDIFF(m.return_date, m.launch_date) AS duration_days,
+    cb.name AS destination_name,
+    ls.name AS launch_site_name,
+    sc.name AS spacecraft_name,
+    CONCAT(ascomm.first_name, ' ', ascomm.last_name) AS commander_name,
+    ag.name AS primary_agency,
+    -- subquery to count crew members on this mission
+    (SELECT COUNT(*) FROM mission_crew mc WHERE mc.mission_id = m.id) AS crew_count
+FROM mission m
+LEFT JOIN astronaut ascomm ON m.commander_id = ascomm.id
+LEFT JOIN spacecraft sc ON m.spacecraft_id = sc.id
+LEFT JOIN celestial_body cb ON m.destination_id = cb.id
+LEFT JOIN launch_site ls ON m.launch_site_id = ls.id
+LEFT JOIN agency ag ON m.primary_agency_id = ag.id;
+
+-- View: Astronaut Stats (missions count and total days in space per astronaut)
+CREATE OR REPLACE VIEW v_astronaut_stats AS
+SELECT 
+    a.id AS astronaut_id,
+    CONCAT(a.first_name, ' ', a.last_name) AS astronaut_name,
+    a.nationality,
+    a.status,
+    ag.name AS agency_name,
+    -- Count distinct missions (in case an astronaut had multiple roles in same mission, though our model prevents duplicates)
+    IFNULL(COUNT(DISTINCT mc.mission_id), 0) AS mission_count,
+    IFNULL(SUM(DATEDIFF(m.return_date, m.launch_date)), 0) AS total_days_in_space,
+    fm.name AS first_mission_name
+FROM astronaut a
+LEFT JOIN agency ag ON a.agency_id = ag.id
+LEFT JOIN mission fm ON a.first_mission_id = fm.id
+LEFT JOIN mission_crew mc ON a.id = mc.astronaut_id
+LEFT JOIN mission m ON mc.mission_id = m.id AND m.return_date IS NOT NULL  -- only count completed missions for days
+GROUP BY a.id, a.first_name, a.last_name, a.nationality, a.status, ag.name, fm.name;
+
+
+
+
+-- DELIMITER $$
 -- Stored Function: Mission duration in days
 CREATE FUNCTION mission_duration_days(p_mission_id INT)
 RETURNS INT
@@ -729,11 +556,11 @@ BEGIN
     FROM mission
     WHERE id = p_mission_id;
     RETURN days;
-END$$
+END;
 
-DELIMITER ;
+-- DELIMITER ;
 
-DELIMITER $$
+-- DELIMITER $$
 
 CREATE FUNCTION astronaut_mission_count(p_astro_id INT)
 RETURNS INT
@@ -745,6 +572,166 @@ BEGIN
     FROM mission_crew
     WHERE astronaut_id = p_astro_id;
     RETURN IFNULL(m_count, 0);
-END$$
+END;
 
-DELIMITER ;
+-- DELIMITER ;
+-- Now, create a BEFORE INSERT trigger to enforce commander logic
+-- DELIMITER $$
+CREATE TRIGGER trg_mission_commander_check
+BEFORE INSERT ON mission
+FOR EACH ROW
+BEGIN
+    IF NEW.mission_type = 'Unmanned' AND NEW.commander_id IS NOT NULL THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Unmanned missions must not have a commander.';
+    ELSEIF NEW.mission_type = 'Manned' AND NEW.commander_id IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Manned missions must have a commander.';
+    END IF;
+END;
+-- DELIMITER ;
+-- 4. Triggers
+
+CREATE TRIGGER trg_before_mission_crew_insert
+BEFORE INSERT ON mission_crew
+FOR EACH ROW
+BEGIN
+    DECLARE current_commander INT;
+    
+    -- Ensure no duplicate commander assignment
+    IF NEW.role = 'Commander' THEN 
+        SELECT commander_id INTO current_commander 
+        FROM mission 
+        WHERE id = NEW.mission_id;
+        IF current_commander IS NOT NULL AND current_commander != NEW.astronaut_id THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Cannot assign a second commander to the mission';
+        END IF;
+    END IF;
+    
+    -- Prevent crew assignment to unmanned missions
+    IF (SELECT mission_type FROM mission WHERE id = NEW.mission_id) = 'Unmanned' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Cannot assign crew to an unmanned mission';
+    END IF;
+END;
+-- Trigger: After inserting a mission crew record, update mission commander and astronaut first mission if needed
+CREATE TRIGGER trg_after_mission_crew_insert
+AFTER INSERT ON mission_crew
+FOR EACH ROW
+BEGIN
+    -- If a commander was added to crew, ensure mission.commander_id is set to that astronaut
+    IF NEW.role = 'Commander' THEN
+        UPDATE mission
+        SET commander_id = NEW.astronaut_id
+        WHERE id = NEW.mission_id;
+    END IF;
+    -- If the astronaut has no first_mission recorded, set this mission as their first mission
+    IF (SELECT first_mission_id FROM astronaut WHERE id = NEW.astronaut_id) IS NULL THEN
+        UPDATE astronaut
+        SET first_mission_id = NEW.mission_id
+        WHERE id = NEW.astronaut_id;
+    END IF;
+END;
+
+-- Trigger: Before inserting a mission, ensure unmanned missions have no commander (commander_id should be NULL if unmanned)
+CREATE TRIGGER trg_before_mission_insert
+BEFORE INSERT ON mission
+FOR EACH ROW
+BEGIN
+    IF NEW.mission_type = 'Unmanned' AND NEW.commander_id IS NOT NULL THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Unmanned missions cannot have a commander';
+    END IF;
+END;
+
+-- Trigger: After inserting a mission, log creation and auto-add commander to crew if provided
+CREATE TRIGGER trg_after_mission_insert
+AFTER INSERT ON mission
+FOR EACH ROW
+BEGIN
+    -- Log mission creation
+    INSERT INTO mission_log(mission_id, event)
+    VALUES (NEW.id, CONCAT('Mission "', NEW.name, '" created'));
+    -- If a commander was specified, automatically add them to mission_crew
+    IF NEW.commander_id IS NOT NULL THEN
+        INSERT IGNORE INTO mission_crew(mission_id, astronaut_id, role)
+        VALUES (NEW.id, NEW.commander_id, 'Commander');
+    END IF;
+END;
+
+-- Trigger: After updating a mission, log status/commander changes and update spacecraft status
+CREATE TRIGGER trg_after_mission_update
+AFTER UPDATE ON mission
+FOR EACH ROW
+BEGIN
+    -- Log status change
+    IF NEW.status <> OLD.status THEN
+        INSERT INTO mission_log(mission_id, event)
+        VALUES (NEW.id, CONCAT('Mission status changed from ', OLD.status, ' to ', NEW.status));
+        -- Update spacecraft status based on mission status changes
+        IF NEW.status = 'Active' THEN
+            UPDATE spacecraft
+            SET status = 'In Mission'
+            WHERE id = NEW.spacecraft_id;
+        ELSEIF NEW.status = 'Completed' THEN
+            UPDATE spacecraft
+            SET status = 'Operational',
+                last_mission_id = NEW.id
+            WHERE id = NEW.spacecraft_id;
+        ELSEIF NEW.status IN ('Failed','Aborted') THEN
+            UPDATE spacecraft
+            SET status = 'Lost',
+                last_mission_id = NEW.id
+            WHERE id = NEW.spacecraft_id;
+        END IF;
+    END IF;
+    -- Log commander change
+    IF NEW.commander_id <> OLD.commander_id THEN
+        IF NEW.commander_id IS NULL THEN
+            INSERT INTO mission_log(mission_id, event)
+            VALUES (NEW.id, 'Mission commander unassigned');
+        ELSE 
+            -- Fetch new commander's name for the log
+            INSERT INTO mission_log(mission_id, event)
+            VALUES (NEW.id, CONCAT('Commander changed to astronaut ID ', NEW.commander_id));
+        END IF;
+    END IF;
+END;
+
+-- DELIMITER ;
+-- 3. Stored Procedures and Functions
+
+-- DELIMITER $$
+
+-- Stored Procedure: Assign an astronaut to a mission with a given role (with transaction)
+CREATE PROCEDURE assign_astronaut_to_mission(
+    IN p_mission_id INT,
+    IN p_astronaut_id INT,
+    IN p_role VARCHAR(20)
+)
+BEGIN
+    -- Error handler: rollback on any error
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN 
+        ROLLBACK;
+        RESIGNAL;  
+    END;
+    START TRANSACTION;
+        -- Insert crew assignment
+        INSERT INTO mission_crew(mission_id, astronaut_id, role)
+        VALUES (p_mission_id, p_astronaut_id, p_role);
+        -- If role is Commander, update mission's commander_id (assign this astronaut as mission commander)
+        IF UPPER(p_role) = 'COMMANDER' THEN
+            UPDATE mission 
+            SET commander_id = p_astronaut_id
+            WHERE id = p_mission_id;
+        END IF;
+        -- If astronaut has no first mission recorded, set it to this mission
+        IF (SELECT first_mission_id FROM astronaut WHERE id = p_astronaut_id) IS NULL THEN
+            UPDATE astronaut
+            SET first_mission_id = p_mission_id
+            WHERE id = p_astronaut_id;
+        END IF;
+    COMMIT;
+END;
