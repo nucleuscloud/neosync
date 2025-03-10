@@ -121,6 +121,7 @@ func (w *Workflow) orchestrateTables(
 				if err != nil {
 					logger.Error("activity did not complete", "err", err)
 				}
+				logger.Debug("table pii detect completed", "table", table.Table, "schema", table.Schema)
 				// todo: handle result, good or bad
 			},
 		)
