@@ -6,8 +6,8 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
+	runconfigs "github.com/nucleuscloud/neosync/internal/runconfigs"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/require"
 
@@ -24,7 +24,7 @@ func Test_buildPostTableSyncRunCtx(t *testing.T) {
 		benthosConfigs := []*benthosbuilder.BenthosConfigResponse{
 			{
 				Name:    "config1",
-				RunType: tabledependency.RunTypeUpdate,
+				RunType: runconfigs.RunTypeUpdate,
 			},
 		}
 		destinations := []*mgmtv1alpha1.JobDestination{
@@ -43,7 +43,7 @@ func Test_buildPostTableSyncRunCtx(t *testing.T) {
 		benthosConfigs := []*benthosbuilder.BenthosConfigResponse{
 			{
 				Name:    "config1",
-				RunType: tabledependency.RunTypeInsert,
+				RunType: runconfigs.RunTypeInsert,
 				ColumnDefaultProperties: map[string]*neosync_benthos.ColumnDefaultProperties{
 					"col1": {NeedsReset: true, HasDefaultTransformer: false},
 				},
@@ -52,7 +52,7 @@ func Test_buildPostTableSyncRunCtx(t *testing.T) {
 			},
 			{
 				Name:    "config2",
-				RunType: tabledependency.RunTypeInsert,
+				RunType: runconfigs.RunTypeInsert,
 				ColumnDefaultProperties: map[string]*neosync_benthos.ColumnDefaultProperties{
 					"col1": {NeedsOverride: true},
 				},
@@ -105,7 +105,7 @@ func Test_buildPostTableSyncRunCtx(t *testing.T) {
 func Test_BuildPgPostTableSyncStatement(t *testing.T) {
 	t.Run("Update run type", func(t *testing.T) {
 		bcUpdate := &benthosbuilder.BenthosConfigResponse{
-			RunType: tabledependency.RunTypeUpdate,
+			RunType: runconfigs.RunTypeUpdate,
 		}
 		resultUpdate := buildPgPostTableSyncStatement(bcUpdate)
 		require.Empty(t, resultUpdate, "Expected empty slice for Update run type")
@@ -113,7 +113,7 @@ func Test_BuildPgPostTableSyncStatement(t *testing.T) {
 
 	t.Run("No columns need reset", func(t *testing.T) {
 		bcNoReset := &benthosbuilder.BenthosConfigResponse{
-			RunType: tabledependency.RunTypeInsert,
+			RunType: runconfigs.RunTypeInsert,
 			ColumnDefaultProperties: map[string]*neosync_benthos.ColumnDefaultProperties{
 				"col1": {NeedsReset: false, HasDefaultTransformer: false},
 				"col2": {NeedsReset: false, HasDefaultTransformer: true},
@@ -127,7 +127,7 @@ func Test_BuildPgPostTableSyncStatement(t *testing.T) {
 
 	t.Run("Some columns need reset", func(t *testing.T) {
 		bcSomeReset := &benthosbuilder.BenthosConfigResponse{
-			RunType: tabledependency.RunTypeInsert,
+			RunType: runconfigs.RunTypeInsert,
 			ColumnDefaultProperties: map[string]*neosync_benthos.ColumnDefaultProperties{
 				"col1": {NeedsReset: true, HasDefaultTransformer: false},
 				"col2": {NeedsReset: false, HasDefaultTransformer: true},
@@ -148,7 +148,7 @@ func Test_BuildPgPostTableSyncStatement(t *testing.T) {
 func Test_BuildMssqlPostTableSyncStatement(t *testing.T) {
 	t.Run("Update run type", func(t *testing.T) {
 		bcUpdate := &benthosbuilder.BenthosConfigResponse{
-			RunType: tabledependency.RunTypeUpdate,
+			RunType: runconfigs.RunTypeUpdate,
 		}
 		resultUpdate := buildMssqlPostTableSyncStatement(bcUpdate)
 		require.Empty(t, resultUpdate, "Expected empty slice for Update run type")
@@ -156,7 +156,7 @@ func Test_BuildMssqlPostTableSyncStatement(t *testing.T) {
 
 	t.Run("No columns need override", func(t *testing.T) {
 		bcNoOverride := &benthosbuilder.BenthosConfigResponse{
-			RunType: tabledependency.RunTypeInsert,
+			RunType: runconfigs.RunTypeInsert,
 			ColumnDefaultProperties: map[string]*neosync_benthos.ColumnDefaultProperties{
 				"col1": {NeedsOverride: false},
 				"col2": {NeedsOverride: false},
@@ -170,7 +170,7 @@ func Test_BuildMssqlPostTableSyncStatement(t *testing.T) {
 
 	t.Run("Some columns need override", func(t *testing.T) {
 		bcSomeOverride := &benthosbuilder.BenthosConfigResponse{
-			RunType: tabledependency.RunTypeInsert,
+			RunType: runconfigs.RunTypeInsert,
 			ColumnDefaultProperties: map[string]*neosync_benthos.ColumnDefaultProperties{
 				"col1": {NeedsOverride: true},
 				"col2": {NeedsOverride: false},

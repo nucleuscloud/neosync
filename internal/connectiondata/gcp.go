@@ -12,9 +12,9 @@ import (
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
+	neosync_gcp "github.com/nucleuscloud/neosync/internal/gcp"
 )
 
 type GcpConnectionDataService struct {

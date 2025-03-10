@@ -47,6 +47,7 @@ type Interface interface {
 type config struct {
 	isSlackEnabled bool
 	slackClient    ee_slack.Interface
+	appBaseUrl     string
 }
 
 type Option func(*config)
@@ -55,6 +56,12 @@ func WithSlackClient(slackClient ee_slack.Interface) Option {
 	return func(c *config) {
 		c.slackClient = slackClient
 		c.isSlackEnabled = true
+	}
+}
+
+func WithAppBaseUrl(appBaseUrl string) Option {
+	return func(c *config) {
+		c.appBaseUrl = appBaseUrl
 	}
 }
 
@@ -356,11 +363,42 @@ func (s *Service) CreateAccountHook(ctx context.Context, req *mgmtv1alpha1.Creat
 		return nil, err
 	}
 
-	// todo: if slack, join channel
+	go s.joinSlackChannel(context.Background(), dto, logger)
 
 	return &mgmtv1alpha1.CreateAccountHookResponse{
 		Hook: dto,
 	}, nil
+}
+
+func (s *Service) joinSlackChannel(ctx context.Context, hook *mgmtv1alpha1.AccountHook, logger *slog.Logger) {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Error("panic when attempting to join slack channel", "error", r)
+		}
+	}()
+
+	slackConfig := hook.GetConfig().GetSlack()
+	if slackConfig == nil {
+		return
+	}
+	channelId := slackConfig.GetChannelId()
+	accountId, err := neosyncdb.ToUuid(hook.GetAccountId())
+	if err != nil {
+		logger.Error("unable to parse account id when attempting to join slack channel", "error", err)
+		return
+	}
+	accessToken, err := s.db.Q.GetSlackAccessToken(ctx, s.db.Db, accountId)
+	if err != nil {
+		logger.Error("unable to get slack access token when attempting to join slack channel", "error", err)
+		return
+	}
+
+	err = s.cfg.slackClient.JoinChannel(ctx, accessToken, channelId, logger)
+	if err != nil {
+		logger.Error("unable to join slack channel", "error", err)
+		return
+	}
+	logger.Debug("joined slack channel")
 }
 
 func (s *Service) UpdateAccountHook(ctx context.Context, req *mgmtv1alpha1.UpdateAccountHookRequest) (*mgmtv1alpha1.UpdateAccountHookResponse, error) {
@@ -418,11 +456,24 @@ func (s *Service) UpdateAccountHook(ctx context.Context, req *mgmtv1alpha1.Updat
 		return nil, err
 	}
 
-	// todo: if slack and channel has changed, join channel
+	if hasSlackChannelIdChanged(getResp.GetHook(), dto) {
+		go s.joinSlackChannel(context.Background(), dto, logger)
+	}
 
 	return &mgmtv1alpha1.UpdateAccountHookResponse{
 		Hook: dto,
 	}, nil
+}
+
+func hasSlackChannelIdChanged(oldHook, newHook *mgmtv1alpha1.AccountHook) bool {
+	if oldHook == nil || newHook == nil {
+		return false
+	}
+
+	oldChannelId := oldHook.GetConfig().GetSlack().GetChannelId()
+	newChannelId := newHook.GetConfig().GetSlack().GetChannelId()
+
+	return oldChannelId != newChannelId
 }
 
 func (s *Service) GetSlackConnectionUrl(
@@ -641,7 +692,12 @@ func (s *Service) SendSlackMessage(
 		return nil, fmt.Errorf("unable to unmarshal event: %w", err)
 	}
 
-	blocks := getSlackBlocksByEvent(event, logger)
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accountId)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get account: %w", err)
+	}
+
+	blocks := getSlackBlocksByEvent(event, s.cfg.appBaseUrl, account.AccountSlug, logger)
 
 	if len(blocks) == 0 {
 		logger.Warn("received event that generated no slack blocks")
@@ -657,7 +713,19 @@ func (s *Service) SendSlackMessage(
 	return &mgmtv1alpha1.SendSlackMessageResponse{}, nil
 }
 
-func getSlackBlocksByEvent(event *accounthook_events.Event, logger *slog.Logger) []slack.Block {
+func buildJobIdUrlForSlack(appBaseUrl, accountName, jobId string) string {
+	return fmt.Sprintf("<%s/jobs/%s|%s>", buildAccountBaseUrl(appBaseUrl, accountName), jobId, jobId)
+}
+
+func buildJobRunUrlForSlack(appBaseUrl, accountName, jobRunId string) string {
+	return fmt.Sprintf("<%s/runs/%s|%s>", buildAccountBaseUrl(appBaseUrl, accountName), jobRunId, jobRunId)
+}
+
+func buildAccountBaseUrl(appBaseUrl, accountName string) string {
+	return fmt.Sprintf("%s/%s", appBaseUrl, accountName)
+}
+
+func getSlackBlocksByEvent(event *accounthook_events.Event, appBaseUrl, accountName string, logger *slog.Logger) []slack.Block {
 	switch event.Name {
 	case mgmtv1alpha1.AccountHookEvent_ACCOUNT_HOOK_EVENT_JOB_RUN_CREATED:
 		if event.JobRunCreated == nil {
@@ -669,9 +737,9 @@ func getSlackBlocksByEvent(event *accounthook_events.Event, logger *slog.Logger)
 		headerSection := slack.NewHeaderBlock(headerText)
 
 		jobFields := []*slack.TextBlockObject{
-			slack.NewTextBlockObject(slack.MarkdownType, "*Job ID:*\n"+event.JobRunCreated.JobId, false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, "*Job Run ID:*\n"+event.JobRunCreated.JobRunId, false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, "*Started At:*\n<!date^"+fmt.Sprint(event.Timestamp.Unix())+"^{date_short_pretty} at {time}|"+event.Timestamp.Format(time.RFC3339)+">", false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job ID:*\n%s", buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunCreated.JobId)), false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job Run ID:*\n%s", buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunCreated.JobRunId)), false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Started At:*\n<!date^%d^{date_short_pretty} at {time}|%s>", event.Timestamp.Unix(), event.Timestamp.Format(time.RFC3339)), false, false),
 		}
 		fieldsSection := slack.NewSectionBlock(nil, jobFields, nil)
 
@@ -691,13 +759,13 @@ func getSlackBlocksByEvent(event *accounthook_events.Event, logger *slog.Logger)
 			return nil
 		}
 
-		headerText := slack.NewTextBlockObject(slack.PlainTextType, "� Job Run Failed", false, false)
+		headerText := slack.NewTextBlockObject(slack.PlainTextType, "🔴 Job Run Failed", false, false)
 		headerSection := slack.NewHeaderBlock(headerText)
 
 		jobFields := []*slack.TextBlockObject{
-			slack.NewTextBlockObject(slack.MarkdownType, "*Job ID:*\n"+event.JobRunFailed.JobId, false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, "*Job Run ID:*\n"+event.JobRunFailed.JobRunId, false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, "*Failed At:*\n<!date^"+fmt.Sprint(event.Timestamp.Unix())+"^{date_short_pretty} at {time}|"+event.Timestamp.Format(time.RFC3339)+">", false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job ID:*\n%s", buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunFailed.JobId)), false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job Run ID:*\n%s", buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunFailed.JobRunId)), false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Failed At:*\n<!date^%d^{date_short_pretty} at {time}|%s>", event.Timestamp.Unix(), event.Timestamp.Format(time.RFC3339)), false, false),
 		}
 		fieldsSection := slack.NewSectionBlock(nil, jobFields, nil)
 
@@ -721,9 +789,9 @@ func getSlackBlocksByEvent(event *accounthook_events.Event, logger *slog.Logger)
 		headerSection := slack.NewHeaderBlock(headerText)
 
 		jobFields := []*slack.TextBlockObject{
-			slack.NewTextBlockObject(slack.MarkdownType, "*Job ID:*\n"+event.JobRunSucceeded.JobId, false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, "*Job Run ID:*\n"+event.JobRunSucceeded.JobRunId, false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, "*Succeeded At:*\n<!date^"+fmt.Sprint(event.Timestamp.Unix())+"^{date_short_pretty} at {time}|"+event.Timestamp.Format(time.RFC3339)+">", false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job ID:*\n%s", buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunSucceeded.JobId)), false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job Run ID:*\n%s", buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunSucceeded.JobRunId)), false, false),
+			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Succeeded At:*\n<!date^%d^{date_short_pretty} at {time}|%s>", event.Timestamp.Unix(), event.Timestamp.Format(time.RFC3339)), false, false),
 		}
 		fieldsSection := slack.NewSectionBlock(nil, jobFields, nil)
 

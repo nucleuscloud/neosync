@@ -277,14 +277,13 @@ CREATE SEQUENCE flights_flight_id_seq
 
 ALTER SEQUENCE flights_flight_id_seq OWNED BY flights.flight_id;
 
+-- tests duplicate check constraint name
 CREATE TABLE seats (
     aircraft_code character(3) NOT NULL,
     seat_no character varying(4) NOT NULL,
     fare_conditions character varying(10) NOT NULL,
-    CONSTRAINT seats_fare_conditions_check CHECK (((fare_conditions)::text = ANY (ARRAY[('Economy'::character varying)::text, ('Comfort'::character varying)::text, ('Business'::character varying)::text])))
+    CONSTRAINT fare_conditions_check CHECK (((fare_conditions)::text = ANY (ARRAY[('Economy'::character varying)::text, ('Comfort'::character varying)::text, ('Business'::character varying)::text])))
 );
-
-
 
 CREATE TABLE ticket_flights (
     ticket_no character(13) NOT NULL,
@@ -292,7 +291,7 @@ CREATE TABLE ticket_flights (
     fare_conditions character varying(10) NOT NULL,
     amount numeric(10,2) NOT NULL,
     CONSTRAINT ticket_flights_amount_check CHECK ((amount >= (0)::numeric)),
-    CONSTRAINT ticket_flights_fare_conditions_check CHECK (((fare_conditions)::text = ANY (ARRAY[('Economy'::character varying)::text, ('Comfort'::character varying)::text, ('Business'::character varying)::text])))
+    CONSTRAINT fare_conditions_check CHECK (((fare_conditions)::text = ANY (ARRAY[('Economy'::character varying)::text, ('Comfort'::character varying)::text, ('Business'::character varying)::text])))
 );
 
 

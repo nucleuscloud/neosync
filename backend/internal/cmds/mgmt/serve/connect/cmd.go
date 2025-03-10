@@ -46,10 +46,8 @@ import (
 	authlogging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth_logging"
 	bookend_logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/bookend"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	"github.com/nucleuscloud/neosync/backend/internal/connectiondata"
 	accounthooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/accounts"
 	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
-	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
@@ -71,12 +69,14 @@ import (
 	"github.com/nucleuscloud/neosync/internal/authmgmt/keycloak"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	"github.com/nucleuscloud/neosync/internal/connectiondata"
 	cloudlicense "github.com/nucleuscloud/neosync/internal/ee/cloud-license"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	"github.com/nucleuscloud/neosync/internal/ee/rbac/enforcer"
 	ee_slack "github.com/nucleuscloud/neosync/internal/ee/slack"
+	neosync_gcp "github.com/nucleuscloud/neosync/internal/gcp"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
@@ -393,6 +393,7 @@ func serve(ctx context.Context) error {
 			mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure,
 			mgmtv1alpha1connect.AccountHookServiceGetActiveAccountHooksByEventProcedure,
 			mgmtv1alpha1connect.AccountHookServiceGetAccountHookProcedure,
+			mgmtv1alpha1connect.AccountHookServiceSendSlackMessageProcedure,
 		})
 		stdAuthInterceptors = append(
 			stdAuthInterceptors,
@@ -523,7 +524,7 @@ func serve(ctx context.Context) error {
 	if cascadelicense.IsValid() {
 		slogger.Debug("enabling account hooks service")
 
-		accountHookOptions := []accounthooks.Option{}
+		accountHookOptions := []accounthooks.Option{accounthooks.WithAppBaseUrl(getAppBaseUrl())}
 		var slackClient ee_slack.Interface
 		if viper.GetBool("SLACK_ACCOUNT_HOOKS_ENABLED") {
 			encryptor, err := sym_encrypt.NewEncryptor(viper.GetString("NEOSYNC_SYM_ENCRYPTION_PASSWORD"))

@@ -1,6 +1,7 @@
 package accounthook_workflow
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -60,11 +61,15 @@ func ProcessAccountHook(wfctx workflow.Context, req *ProcessAccountHookRequest) 
 		)
 	}
 
+	errs := []error{}
 	for _, future := range futures {
 		var execResp *execute_hook_activity.ExecuteHookResponse
 		if err := future.Get(wfctx, &execResp); err != nil {
-			return nil, fmt.Errorf("error executing hook: %w", err)
+			errs = append(errs, fmt.Errorf("error executing hook: %w", err))
 		}
+	}
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("error executing hooks: %w", errors.Join(errs...))
 	}
 
 	return &ProcessAccountHookResponse{}, nil

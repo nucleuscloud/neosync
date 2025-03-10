@@ -61,6 +61,7 @@ services:
       - HOST=0.0.0.0
       - PORT=8080
       - NUCLEUS_ENV=dev
+      - APP_BASEURL=http://localhost:3000
       - TEMPORAL_URL=temporal:7233
       - DB_AUTO_MIGRATE=true
       - DB_SCHEMA_DIR=/migrations

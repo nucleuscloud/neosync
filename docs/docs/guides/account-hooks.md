@@ -34,7 +34,7 @@ From here a new hook may be created. Click on the new hook button and you'll be 
 
 There are a few different configuration options available to you to further fine tune when the hook runs.
 
-Today, only `Webhook` hooks are supported, with plans for Slack, Discord, and other integrations in the future.
+Today, `Webhook` and `Slack` hooks are supported, with plans for, Discord, and other integrations in the future.
 
 ![New Hook Form](/img/accounthooks/new-hook-form.png)
 
@@ -104,7 +104,11 @@ The payload for the `Job Run Succeeded` event is the following:
 }
 ```
 
-## Webhook Authentication
+## Webhooks
+
+Webhooks are bare bones web requests that give you full control over what to do with the messages. The possibilities are endless!
+
+### Webhook Authentication
 
 Webhooks are authenticated using a HMAC hash of the payload and a secret key.
 
@@ -116,7 +120,7 @@ The HMAC hash is sent in the `X-Neosync-Signature` header.
 
 The HMAC hash algorithm is sent in the `X-Neosync-Signature-Type` header.
 
-## More Request Details and Response Information
+### More Request Details and Response Information
 
 Each webhook is sent as a POST request to the webhook URL.
 
@@ -186,9 +190,38 @@ func verifyHmac(secret string, payload []byte, signature string) (bool, error) {
 
 ```
 
+## Slack
+
+The Slack configuration offers a first-party way of receiving notifications.
+
+Today the messages are fully controlled by Neosync and cannot be altered.
+
+Configuring the Slack hook requires using Oauth to install the `Neosync` Slack App into your Slack's workspace.
+The hook configuration itself asks for the `Channel Id` that will be used to send the notifications for your specific hook configuration.
+
+When creating the hook, the Slack app will attempt to automatically join the channel, provided it is public.
+
+> For private slack channels, the Neosync app will have to be manually invited to it, as Slack does not provide a way to automatically do this.
+
+### Setting up OAuth
+
+When in the slack hook form for the first time, you'll see a notice that says `Slack is not connected`.
+
+There are two buttons, `Verify` and `Connect`. Click the `Connect` button first. This will open a pop-up window that will
+take you through the Slack oauth flow of installing the Neosync app to your workspace. If all goes well, you'll land back on the Neosync page with a success and can simply close the window. If an error occurred, that will surface on the page as well.
+
+After closing the window, the hook form may still show that it is not connected. Click the `Verify` button to initiate a request to re-check that Neosync is now connected to your Slack. If so, you'll see a message like `Slack is connected to <team>`. You should only ever have to do this once, but if something needs to change, you can now click on the `Re-connect` button to go through the oauth flow a second time.
+
+You may now enter your channel id and submit the form!
+
+### Finding your Slack Channel Id.
+
+In slack, go to your channel. Click the name of your channel at the top of the app. This will open a channel info dialog.
+At the bottom if this dialog you will find your channel's id. Copy that and paste it into the slack configuration.
+
 ## Retries
 
-If a webhook fails, it will be retried up to 3 times.
+If any account hook fails, it will be retried up to 3 times.
 
 The backoff coefficient is 2.0, with an initial interval of 1 second.
 

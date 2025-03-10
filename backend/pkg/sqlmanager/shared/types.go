@@ -84,6 +84,7 @@ const (
 	ForeignConstraintType
 	UniqueConstraintType
 	CheckConstraintType
+	ExclusionConstraintType
 )
 
 func ToConstraintType(constraintType string) (ConstraintType, error) {
@@ -96,6 +97,8 @@ func ToConstraintType(constraintType string) (ConstraintType, error) {
 		return ForeignConstraintType, nil
 	case "c":
 		return CheckConstraintType, nil
+	case "x":
+		return ExclusionConstraintType, nil
 	}
 	return -1, errors.ErrUnsupported
 }

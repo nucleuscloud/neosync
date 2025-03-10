@@ -9,25 +9,25 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_conns "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
 // BenthosConfigResponse represents a complete Benthos data pipeline configuration for a specific table,
 type BenthosConfigResponse struct {
 	Name      string
-	DependsOn []*tabledependency.DependsOn
+	DependsOn []*runconfigs.DependsOn
 
 	// TODO refactor these out
 	Config                  *neosync_benthos.BenthosConfig
 	TableSchema             string
 	TableName               string
 	Columns                 []string
-	RunType                 tabledependency.RunType
+	RunType                 runconfigs.RunType
 	ColumnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
 	RedisDependsOn          map[string][]string
 	BenthosDsns             []*bb_shared.BenthosDsn
@@ -297,7 +297,7 @@ type CliBenthosConfig struct {
 	SourceConnection      *mgmtv1alpha1.Connection
 	DestinationConnection *mgmtv1alpha1.Connection
 	SourceJobRunId        *string // for use when AWS S3 is the source
-	SyncConfigs           []*tabledependency.RunConfig
+	SyncConfigs           []*runconfigs.RunConfig
 	JobRunId              string
 	MetricLabelKeyVals    map[string]string
 	Logger                *slog.Logger

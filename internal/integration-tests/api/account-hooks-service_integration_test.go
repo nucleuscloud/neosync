@@ -402,6 +402,8 @@ func (s *IntegrationTestSuite) createAccountHook_Slack(
 	enabled bool,
 
 ) *mgmtv1alpha1.AccountHook {
+	// maybe due to it being called in a goroutine
+	s.Mocks.Slackclient.EXPECT().JoinChannel(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe().Once()
 	createResp, err := client.CreateAccountHook(ctx, connect.NewRequest(&mgmtv1alpha1.CreateAccountHookRequest{
 		AccountId: accountId,
 		Hook: &mgmtv1alpha1.NewAccountHook{

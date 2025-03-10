@@ -47,7 +47,7 @@ export function getListBoxColumns(props: ListBoxColumnProps): ColumnDef<Row>[] {
       header: ({ column }) => <ColumnHeader column={column} title={title} />,
       cell: ({ getValue }) => {
         return (
-          <label className="max-w-[500px] truncate font-medium cursor-pointer">
+          <label className="font-medium cursor-pointer break-all whitespace-normal">
             {getValue<string>()}
           </label>
         );

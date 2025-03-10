@@ -240,22 +240,22 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					schemaTableMap[schema] = append(schemaTableMap[schema], table)
 				}
 
-				resetSeqStmts := []string{}
 				for schema, tables := range schemaTableMap {
-					sequences, err := sourcedb.Db().GetSequencesByTables(ctx, schema, tables)
+					sequences, err := destdb.Db().GetSequencesByTables(ctx, schema, tables)
 					if err != nil {
 						return nil, err
 					}
+					resetSeqStmts := []string{}
 					for _, seq := range sequences {
-						resetSeqStmts = append(resetSeqStmts, sqlmanager_postgres.BuildPgResetSequenceSql(seq.Name))
+						resetSeqStmts = append(resetSeqStmts, sqlmanager_postgres.BuildPgResetSequenceSql(seq.Schema, seq.Name))
 					}
-				}
-				if len(resetSeqStmts) > 0 {
-					err = destdb.Db().BatchExec(ctx, 10, resetSeqStmts, &sqlmanager_shared.BatchExecOpts{})
-					if err != nil {
-						// handle not found errors
-						if !strings.Contains(err.Error(), `does not exist`) {
-							return nil, fmt.Errorf("unable to exec postgres sequence reset statements: %w", err)
+					if len(resetSeqStmts) > 0 {
+						err = destdb.Db().BatchExec(ctx, 10, resetSeqStmts, &sqlmanager_shared.BatchExecOpts{})
+						if err != nil {
+							// handle not found errors
+							if !strings.Contains(err.Error(), `does not exist`) {
+								return nil, fmt.Errorf("unable to exec postgres sequence reset statements: %w", err)
+							}
 						}
 					}
 				}

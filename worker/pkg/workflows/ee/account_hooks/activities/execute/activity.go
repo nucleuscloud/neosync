@@ -122,7 +122,7 @@ func executeSlackMessage(
 		Event:         bits,
 	}))
 	if err != nil {
-		return fmt.Errorf("unable to send slack message: %w", err)
+		return fmt.Errorf("unable to send slack message to api: %w", err)
 	}
 	return nil
 }
