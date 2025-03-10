@@ -22,16 +22,20 @@ import (
 	"go.temporal.io/sdk/activity"
 )
 
+type OpenAiCompletionsClient interface {
+	New(ctx context.Context, params openai.ChatCompletionNewParams) (openai.ChatCompletion, error)
+}
+
 type Activities struct {
 	connclient            mgmtv1alpha1connect.ConnectionServiceClient
-	openaiclient          *openai.Client
+	openaiclient          OpenAiCompletionsClient
 	connectiondatabuilder connectiondata.ConnectionDataBuilder
 	jobclient             mgmtv1alpha1connect.JobServiceClient
 }
 
 func New(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
-	openaiclient *openai.Client,
+	openaiclient OpenAiCompletionsClient,
 	connectiondatabuilder connectiondata.ConnectionDataBuilder,
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 ) *Activities {
@@ -475,7 +479,7 @@ func (a *Activities) DetectPiiLLM(ctx context.Context, req *DetectPiiLLMRequest)
 	}
 	logger.Debug("LLM PII detection prompt", "prompt", userMessage)
 
-	chatResp, err := a.openaiclient.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+	chatResp, err := a.openaiclient.New(ctx, openai.ChatCompletionNewParams{
 		Temperature:    openai.F(0.0),
 		Model:          openai.F(model),
 		ResponseFormat: openai.F[openai.ChatCompletionNewParamsResponseFormatUnion](openai.ResponseFormatJSONObjectParam{Type: openai.F(openai.ResponseFormatJSONObjectTypeJSONObject)}),

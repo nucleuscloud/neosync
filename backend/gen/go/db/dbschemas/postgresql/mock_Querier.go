@@ -559,9 +559,9 @@ func (_c *MockQuerier_GetIndicesBySchemasAndTables_Call) RunAndReturn(run func(c
 	return _c
 }
 
-// GetNonForeignKeyTableConstraintsBySchema provides a mock function with given fields: ctx, db, schema
-func (_m *MockQuerier) GetNonForeignKeyTableConstraintsBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error) {
-	ret := _m.Called(ctx, db, schema)
+// GetNonForeignKeyTableConstraintsBySchema provides a mock function with given fields: ctx, db, schemas
+func (_m *MockQuerier) GetNonForeignKeyTableConstraintsBySchema(ctx context.Context, db DBTX, schemas []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error) {
+	ret := _m.Called(ctx, db, schemas)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetNonForeignKeyTableConstraintsBySchema")
@@ -570,10 +570,10 @@ func (_m *MockQuerier) GetNonForeignKeyTableConstraintsBySchema(ctx context.Cont
 	var r0 []*GetNonForeignKeyTableConstraintsBySchemaRow
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error)); ok {
-		return rf(ctx, db, schema)
+		return rf(ctx, db, schemas)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) []*GetNonForeignKeyTableConstraintsBySchemaRow); ok {
-		r0 = rf(ctx, db, schema)
+		r0 = rf(ctx, db, schemas)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*GetNonForeignKeyTableConstraintsBySchemaRow)
@@ -581,7 +581,7 @@ func (_m *MockQuerier) GetNonForeignKeyTableConstraintsBySchema(ctx context.Cont
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, DBTX, []string) error); ok {
-		r1 = rf(ctx, db, schema)
+		r1 = rf(ctx, db, schemas)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -597,12 +597,12 @@ type MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call struct {
 // GetNonForeignKeyTableConstraintsBySchema is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-//   - schema []string
-func (_e *MockQuerier_Expecter) GetNonForeignKeyTableConstraintsBySchema(ctx interface{}, db interface{}, schema interface{}) *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call {
-	return &MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call{Call: _e.mock.On("GetNonForeignKeyTableConstraintsBySchema", ctx, db, schema)}
+//   - schemas []string
+func (_e *MockQuerier_Expecter) GetNonForeignKeyTableConstraintsBySchema(ctx interface{}, db interface{}, schemas interface{}) *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call {
+	return &MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call{Call: _e.mock.On("GetNonForeignKeyTableConstraintsBySchema", ctx, db, schemas)}
 }
 
-func (_c *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call) Run(run func(ctx context.Context, db DBTX, schema []string)) *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call {
+func (_c *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call) Run(run func(ctx context.Context, db DBTX, schemas []string)) *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(DBTX), args[2].([]string))
 	})
