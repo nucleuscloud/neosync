@@ -2,6 +2,7 @@ package v1alpha1_jobservice
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -97,7 +98,11 @@ func (s *Service) GetJobs(
 	// Use jobIds to retain original query order
 	for _, jobId := range jobIds {
 		dbJob := jobMap[jobId]
-		dtos = append(dtos, dtomaps.ToJobDto(dbJob, associationMap[dbJob.ID]))
+		jobDto, err := dtomaps.ToJobDto(dbJob, associationMap[dbJob.ID])
+		if err != nil {
+			return nil, err
+		}
+		dtos = append(dtos, jobDto)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{
@@ -150,8 +155,13 @@ func (s *Service) GetJob(
 		return nil, err
 	}
 
+	jobDto, err := dtomaps.ToJobDto(&dbJob, destConnections)
+	if err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-		Job: dtomaps.ToJobDto(&dbJob, destConnections),
+		Job: jobDto,
 	}), nil
 }
 
@@ -445,6 +455,11 @@ func (s *Service) CreateJob(
 		activitySyncOptions.FromDto(req.Msg.SyncOptions)
 	}
 
+	jobtypeBits, err := json.Marshal(req.Msg.JobType)
+	if err != nil {
+		return nil, err
+	}
+
 	cj, err := s.db.CreateJob(ctx, &db_queries.CreateJobParams{
 		Name:               req.Msg.JobName,
 		AccountID:          accountUuid,
@@ -457,6 +472,7 @@ func (s *Service) CreateJob(
 		UpdatedByID:        user.PgId(),
 		WorkflowOptions:    workflowOptions,
 		SyncOptions:        activitySyncOptions,
+		JobtypeConfig:      jobtypeBits,
 	}, connDestParams)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create job: %w", err)
@@ -526,8 +542,13 @@ func (s *Service) CreateJob(
 		logger.Error(fmt.Sprintf("unable to retrieve job destination connections: %s", err.Error()))
 	}
 
+	jobDto, err := dtomaps.ToJobDto(cj, destinationConnections)
+	if err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-		Job: dtomaps.ToJobDto(cj, destinationConnections),
+		Job: jobDto,
 	}), nil
 }
 
