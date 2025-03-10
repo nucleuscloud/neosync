@@ -28,7 +28,7 @@ func Register(
 	w.RegisterWorkflow(tablePiiDetectWorkflow.TablePiiDetect)
 	w.RegisterWorkflow(jobPiiDetectWorkflow.JobPiiDetect)
 
-	tablePiiDetectActivitites := piidetect_table_activities.New(connclient, openaiclient, connectiondatabuilder, jobclient)
+	tablePiiDetectActivitites := piidetect_table_activities.New(connclient, openaiclient.Chat.Completions, connectiondatabuilder, jobclient)
 	w.RegisterActivity(tablePiiDetectActivitites.GetColumnData)
 	w.RegisterActivity(tablePiiDetectActivitites.DetectPiiRegex)
 	w.RegisterActivity(tablePiiDetectActivitites.DetectPiiLLM)

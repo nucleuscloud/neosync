@@ -146,7 +146,7 @@ func Test_DetectPiiLLM_Success(t *testing.T) {
 		},
 	}), nil)
 
-	mockOpenAIClient.EXPECT().New(mock.Anything, mock.Anything).Return(openai.ChatCompletion{
+	mockOpenAIClient.EXPECT().New(mock.Anything, mock.Anything).Return(&openai.ChatCompletion{
 		Choices: []openai.ChatCompletionChoice{
 			{
 				Message: openai.ChatCompletionMessage{

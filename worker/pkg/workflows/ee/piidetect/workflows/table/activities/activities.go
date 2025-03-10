@@ -18,12 +18,13 @@ import (
 	"github.com/nucleuscloud/neosync/internal/connectiondata"
 	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	"github.com/openai/openai-go"
+	"github.com/openai/openai-go/option"
 	"github.com/tiktoken-go/tokenizer"
 	"go.temporal.io/sdk/activity"
 )
 
 type OpenAiCompletionsClient interface {
-	New(ctx context.Context, params openai.ChatCompletionNewParams) (openai.ChatCompletion, error)
+	New(ctx context.Context, body openai.ChatCompletionNewParams, opts ...option.RequestOption) (res *openai.ChatCompletion, err error)
 }
 
 type Activities struct {
