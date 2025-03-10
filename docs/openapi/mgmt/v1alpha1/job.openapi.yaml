@@ -2992,12 +2992,36 @@ components:
       description: Specifies the job type along with any specific configuration for that job type
     mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - userPrompt
+            - not:
+                anyOf:
+                  - required:
+                      - userPrompt
+      anyOf:
+        - required:
+            - userPrompt
+        - not:
+            anyOf:
+              - required:
+                  - userPrompt
       properties:
         dataSampling:
           allOf:
             - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling'
           title: data_sampling
           description: The configuration for data sampling
+        tableScanFilter:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableScanFilter'
+          title: table_scan_filter
+          description: The configuration for filtering tables to scan
+        userPrompt:
+          type: string
+          title: user_prompt
+          description: The user prompt to use for PII detection to help influence the LLM
       title: JobTypePiiDetect
       additionalProperties: false
     mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling:
@@ -3006,14 +3030,99 @@ components:
         isEnabled:
           type: boolean
           title: is_enabled
-          description: |-
-            // The percentage of data to sample
-             optional uint32 sample_percentage = 2 [
-               (buf.validate.field).uint32.gte = 1,
-               (buf.validate.field).uint32.lte = 20
-             ];
       title: DataSampling
       additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.IncludeAll:
+      type: object
+      title: IncludeAll
+      additionalProperties: false
+      description: Configuration to include all tables
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableIdentifier:
+      type: object
+      properties:
+        schema:
+          type: string
+          title: schema
+          minLength: 1
+          description: The schema name
+        table:
+          type: string
+          title: table
+          minLength: 1
+          description: The table name
+      title: TableIdentifier
+      additionalProperties: false
+      description: Identifier for a specific table
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          title: schemas
+          description: Match entire schemas
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableIdentifier'
+          title: tables
+          description: Match specific tables within schemas
+      title: TablePatterns
+      additionalProperties: false
+      description: Patterns for matching tables and schemas
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableScanFilter:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - exclude
+            - required:
+                - include
+            - required:
+                - includeAll
+            - not:
+                anyOf:
+                  - required:
+                      - exclude
+                  - required:
+                      - include
+                  - required:
+                      - includeAll
+      anyOf:
+        - required:
+            - exclude
+        - required:
+            - include
+        - required:
+            - includeAll
+        - not:
+            anyOf:
+              - required:
+                  - exclude
+              - required:
+                  - include
+              - required:
+                  - includeAll
+      properties:
+        includeAll:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.IncludeAll'
+          title: include_all
+          description: Include all tables (default behavior)
+        include:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns'
+          title: include
+          description: Only include specified tables/schemas
+        exclude:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns'
+          title: exclude
+          description: Include all except specified tables/schemas
+      title: TableScanFilter
+      additionalProperties: false
+      description: Filter configuration for table scanning
     mgmt.v1alpha1.JobTypeConfig.JobTypeSync:
       type: object
       title: JobTypeSync

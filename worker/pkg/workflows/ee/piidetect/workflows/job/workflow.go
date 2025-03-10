@@ -2,8 +2,11 @@ package piidetect_job_workflow
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	piidetect_job_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/job/activities"
 	piidetect_table_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table"
 	"go.temporal.io/sdk/log"
@@ -50,6 +53,12 @@ func (w *Workflow) JobPiiDetect(ctx workflow.Context, req *PiiDetectRequest) (*P
 		return nil, err
 	}
 
+	var filter *mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter
+	if jobDetailsResp != nil && jobDetailsResp.PiiDetectConfig != nil && jobDetailsResp.PiiDetectConfig.TableScanFilter != nil {
+		logger.Debug("using table scan filter", "filter", jobDetailsResp.PiiDetectConfig.TableScanFilter)
+		filter = jobDetailsResp.PiiDetectConfig.TableScanFilter
+	}
+
 	var tablesToScanResp *piidetect_job_activities.GetTablesToPiiScanResponse
 	err = workflow.ExecuteActivity(
 		workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
@@ -61,16 +70,29 @@ func (w *Workflow) JobPiiDetect(ctx workflow.Context, req *PiiDetectRequest) (*P
 		activities.GetTablesToPiiScan,
 		&piidetect_job_activities.GetTablesToPiiScanRequest{
 			SourceConnectionId: jobDetailsResp.SourceConnectionId,
-			Filter:             nil, // todo
+			Filter:             filter,
 		},
 	).Get(ctx, &tablesToScanResp)
 	if err != nil {
 		return nil, err
 	}
 
-	err = w.orchestrateTables(ctx, tablesToScanResp.Tables, req.JobId, jobDetailsResp.SourceConnectionId, logger)
+	piiDetectConfig := jobDetailsResp.PiiDetectConfig
+	if piiDetectConfig == nil {
+		piiDetectConfig = &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect{}
+	}
+
+	err = w.orchestrateTables(
+		ctx,
+		tablesToScanResp.Tables,
+		req.JobId,
+		jobDetailsResp.SourceConnectionId,
+		piiDetectConfig.GetDataSampling().GetIsEnabled(),
+		piiDetectConfig.GetUserPrompt(),
+		logger,
+	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to orchestrate tables: %w", err)
 	}
 
 	logger.Info("PII detection completed")
@@ -82,6 +104,8 @@ func (w *Workflow) orchestrateTables(
 	tables []piidetect_job_activities.TableIdentifier,
 	jobId string,
 	connectionId string,
+	shouldSampleData bool,
+	userPrompt string,
 	logger log.Logger,
 ) error {
 	workselector := workflow.NewNamedSelector(ctx, "job_pii_detect")
@@ -90,6 +114,7 @@ func (w *Workflow) orchestrateTables(
 	inFlightLimiter := workflow.NewSemaphore(ctx, int64(maxConcurrency))
 
 	tableWf := piidetect_table_workflow.New()
+	wfInfo := workflow.GetInfo(ctx)
 
 	processTable := func(table piidetect_job_activities.TableIdentifier) error {
 		if err := inFlightLimiter.Acquire(ctx, 1); err != nil {
@@ -100,7 +125,11 @@ func (w *Workflow) orchestrateTables(
 				workflow.WithChildOptions(
 					ctx,
 					workflow.ChildWorkflowOptions{
-						// WorkflowID: , // todo
+						WorkflowID: getTablePiiDetectChildWorkflowId(
+							wfInfo.WorkflowExecution.ID,
+							fmt.Sprintf("%s.%s", table.Schema, table.Table),
+							workflow.Now(ctx),
+						),
 						RetryPolicy: &temporal.RetryPolicy{
 							MaximumAttempts: 1,
 						},
@@ -108,10 +137,14 @@ func (w *Workflow) orchestrateTables(
 					}),
 				tableWf.TablePiiDetect,
 				&piidetect_table_workflow.TablePiiDetectRequest{
-					JobId:        jobId,
-					ConnectionId: connectionId,
-					TableSchema:  table.Schema,
-					TableName:    table.Table,
+					JobId:              jobId,
+					ConnectionId:       connectionId,
+					TableSchema:        table.Schema,
+					TableName:          table.Table,
+					ParentExecutionId:  &wfInfo.WorkflowExecution.ID,
+					ShouldSampleData:   shouldSampleData,
+					UserPrompt:         userPrompt,
+					PreviousResultsKey: nil,
 				},
 			),
 			func(f workflow.Future) {
@@ -140,4 +173,18 @@ func (w *Workflow) orchestrateTables(
 
 	logger.Debug("all tables processed")
 	return nil
+}
+
+func getTablePiiDetectChildWorkflowId(parentJobRunId, configName string, now time.Time) string {
+	id := fmt.Sprintf("%s-%s-%d", parentJobRunId, sanitizeWorkflowID(strings.ToLower(configName)), now.UnixNano())
+	if len(id) > 1000 {
+		id = id[:1000]
+	}
+	return id
+}
+
+var invalidWorkflowIDChars = regexp.MustCompile(`[^a-zA-Z0-9_\-]`)
+
+func sanitizeWorkflowID(id string) string {
+	return invalidWorkflowIDChars.ReplaceAllString(id, "_")
 }

@@ -14386,7 +14386,7 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
@@ -14399,6 +14399,30 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table_scan_filter",
+              "description": "The configuration for filtering tables to scan",
+              "label": "",
+              "type": "TableScanFilter",
+              "longType": "JobTypeConfig.JobTypePiiDetect.TableScanFilter",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableScanFilter",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "user_prompt",
+              "description": "The user prompt to use for PII detection to help influence the LLM",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_user_prompt",
               "defaultValue": ""
             }
           ]
@@ -14415,7 +14439,7 @@
           "fields": [
             {
               "name": "is_enabled",
-              "description": "The percentage of data to sample\noptional uint32 sample_percentage = 2 [\n  (buf.validate.field).uint32.gte = 1,\n  (buf.validate.field).uint32.lte = 20\n];",
+              "description": "",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -14423,6 +14447,137 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "IncludeAll",
+          "longName": "JobTypeConfig.JobTypePiiDetect.IncludeAll",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.IncludeAll",
+          "description": "Configuration to include all tables",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "TableIdentifier",
+          "longName": "JobTypeConfig.JobTypePiiDetect.TableIdentifier",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableIdentifier",
+          "description": "Identifier for a specific table",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "The schema name",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "The table name",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TablePatterns",
+          "longName": "JobTypeConfig.JobTypePiiDetect.TablePatterns",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns",
+          "description": "Patterns for matching tables and schemas",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schemas",
+              "description": "Match entire schemas",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "tables",
+              "description": "Match specific tables within schemas",
+              "label": "repeated",
+              "type": "TableIdentifier",
+              "longType": "JobTypeConfig.JobTypePiiDetect.TableIdentifier",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableIdentifier",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TableScanFilter",
+          "longName": "JobTypeConfig.JobTypePiiDetect.TableScanFilter",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableScanFilter",
+          "description": "Filter configuration for table scanning",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "include_all",
+              "description": "Include all tables (default behavior)",
+              "label": "",
+              "type": "IncludeAll",
+              "longType": "JobTypeConfig.JobTypePiiDetect.IncludeAll",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.IncludeAll",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "mode",
+              "defaultValue": ""
+            },
+            {
+              "name": "include",
+              "description": "Only include specified tables/schemas",
+              "label": "",
+              "type": "TablePatterns",
+              "longType": "JobTypeConfig.JobTypePiiDetect.TablePatterns",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "mode",
+              "defaultValue": ""
+            },
+            {
+              "name": "exclude",
+              "description": "Include all except specified tables/schemas",
+              "label": "",
+              "type": "TablePatterns",
+              "longType": "JobTypeConfig.JobTypePiiDetect.TablePatterns",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "mode",
               "defaultValue": ""
             }
           ]

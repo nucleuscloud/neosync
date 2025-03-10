@@ -593,15 +593,45 @@ class JobTypeConfig(_message.Message):
         __slots__ = ()
         def __init__(self) -> None: ...
     class JobTypePiiDetect(_message.Message):
-        __slots__ = ("data_sampling",)
+        __slots__ = ("data_sampling", "table_scan_filter", "user_prompt")
         class DataSampling(_message.Message):
             __slots__ = ("is_enabled",)
             IS_ENABLED_FIELD_NUMBER: _ClassVar[int]
             is_enabled: bool
             def __init__(self, is_enabled: bool = ...) -> None: ...
+        class TableScanFilter(_message.Message):
+            __slots__ = ("include_all", "include", "exclude")
+            INCLUDE_ALL_FIELD_NUMBER: _ClassVar[int]
+            INCLUDE_FIELD_NUMBER: _ClassVar[int]
+            EXCLUDE_FIELD_NUMBER: _ClassVar[int]
+            include_all: JobTypeConfig.JobTypePiiDetect.IncludeAll
+            include: JobTypeConfig.JobTypePiiDetect.TablePatterns
+            exclude: JobTypeConfig.JobTypePiiDetect.TablePatterns
+            def __init__(self, include_all: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.IncludeAll, _Mapping]] = ..., include: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.TablePatterns, _Mapping]] = ..., exclude: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.TablePatterns, _Mapping]] = ...) -> None: ...
+        class IncludeAll(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        class TablePatterns(_message.Message):
+            __slots__ = ("schemas", "tables")
+            SCHEMAS_FIELD_NUMBER: _ClassVar[int]
+            TABLES_FIELD_NUMBER: _ClassVar[int]
+            schemas: _containers.RepeatedScalarFieldContainer[str]
+            tables: _containers.RepeatedCompositeFieldContainer[JobTypeConfig.JobTypePiiDetect.TableIdentifier]
+            def __init__(self, schemas: _Optional[_Iterable[str]] = ..., tables: _Optional[_Iterable[_Union[JobTypeConfig.JobTypePiiDetect.TableIdentifier, _Mapping]]] = ...) -> None: ...
+        class TableIdentifier(_message.Message):
+            __slots__ = ("schema", "table")
+            SCHEMA_FIELD_NUMBER: _ClassVar[int]
+            TABLE_FIELD_NUMBER: _ClassVar[int]
+            schema: str
+            table: str
+            def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ...) -> None: ...
         DATA_SAMPLING_FIELD_NUMBER: _ClassVar[int]
+        TABLE_SCAN_FILTER_FIELD_NUMBER: _ClassVar[int]
+        USER_PROMPT_FIELD_NUMBER: _ClassVar[int]
         data_sampling: JobTypeConfig.JobTypePiiDetect.DataSampling
-        def __init__(self, data_sampling: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.DataSampling, _Mapping]] = ...) -> None: ...
+        table_scan_filter: JobTypeConfig.JobTypePiiDetect.TableScanFilter
+        user_prompt: str
+        def __init__(self, data_sampling: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.DataSampling, _Mapping]] = ..., table_scan_filter: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.TableScanFilter, _Mapping]] = ..., user_prompt: _Optional[str] = ...) -> None: ...
     SYNC_FIELD_NUMBER: _ClassVar[int]
     PII_DETECT_FIELD_NUMBER: _ClassVar[int]
     sync: JobTypeConfig.JobTypeSync

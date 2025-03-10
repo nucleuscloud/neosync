@@ -77,7 +77,7 @@ func (a *Activities) GetPiiDetectJobDetails(ctx context.Context, req *GetPiiDete
 
 type GetTablesToPiiScanRequest struct {
 	SourceConnectionId string
-	Filter             *TableScanFilter
+	Filter             *mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter
 }
 
 type TableScanFilter struct {
@@ -123,17 +123,21 @@ func (a *Activities) GetTablesToPiiScan(ctx context.Context, req *GetTablesToPii
 	return &GetTablesToPiiScanResponse{Tables: filteredTables}, nil
 }
 
-func (a *Activities) getFilteredTables(allTables []TableIdentifier, filter *TableScanFilter) []TableIdentifier {
+func (a *Activities) getFilteredTables(allTables []TableIdentifier, filter *mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter) []TableIdentifier {
 	if filter == nil {
 		return allTables
 	}
 
 	var filteredTables []TableIdentifier
-	switch filter.Mode {
-	case FilterModeExclude:
+
+	switch filter.GetMode().(type) {
+	case *mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter_IncludeAll:
+		return allTables
+	case *mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter_Exclude:
+		patterns := filter.GetExclude()
 		// Create lookup maps for quick checking
-		excludedSchemas := makeStringSet(filter.Excludes.Schemas)
-		excludedTables := makeTableSet(filter.Excludes.Tables)
+		excludedSchemas := makeStringSet(patterns.GetSchemas())
+		excludedTables := makeTableSet(convertProtoTablesToTableIdentifiers(patterns.GetTables()))
 
 		for _, table := range allTables {
 			// Skip if schema is excluded or specific table is excluded
@@ -142,9 +146,10 @@ func (a *Activities) getFilteredTables(allTables []TableIdentifier, filter *Tabl
 			}
 		}
 
-	case FilterModeInclude:
-		includedSchemas := makeStringSet(filter.Includes.Schemas)
-		includedTables := makeTableSet(filter.Includes.Tables)
+	case *mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter_Include:
+		patterns := filter.GetInclude()
+		includedSchemas := makeStringSet(patterns.GetSchemas())
+		includedTables := makeTableSet(convertProtoTablesToTableIdentifiers(patterns.GetTables()))
 
 		for _, table := range allTables {
 			// Include if schema is included or specific table is included
@@ -155,6 +160,18 @@ func (a *Activities) getFilteredTables(allTables []TableIdentifier, filter *Tabl
 	}
 
 	return filteredTables
+}
+
+// Helper function to convert proto TableIdentifier to our internal TableIdentifier
+func convertProtoTablesToTableIdentifiers(protoTables []*mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableIdentifier) []TableIdentifier {
+	tables := make([]TableIdentifier, len(protoTables))
+	for i, pt := range protoTables {
+		tables[i] = TableIdentifier{
+			Schema: pt.Schema,
+			Table:  pt.Table,
+		}
+	}
+	return tables
 }
 
 func (a *Activities) getAllTablesFromConnection(ctx context.Context, sourceConnectionId string, logger *slog.Logger) ([]TableIdentifier, error) {

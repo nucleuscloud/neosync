@@ -23,6 +23,7 @@ type TablePiiDetectRequest struct {
 	ShouldSampleData   bool
 	UserPrompt         string
 	PreviousResultsKey *string // incremental mode to only detect pii for new columns
+	ParentExecutionId  *string
 }
 
 type TablePiiDetectResponse struct {
