@@ -243,13 +243,13 @@ type DetectPiiLLMResponse struct {
 }
 
 type PiiDetectReport struct {
-	Category   PiiCategory
-	Confidence float64
+	Category   PiiCategory `json:"category"`
+	Confidence float64     `json:"confidence"`
 }
 
 type CombinedPiiDetectReport struct {
-	Regex *PiiCategory
-	LLM   *PiiDetectReport
+	Regex *PiiCategory     `json:"regex"`
+	LLM   *PiiDetectReport `json:"llm"`
 }
 
 type sampleDataStream struct {

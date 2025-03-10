@@ -28,12 +28,14 @@ func Register(
 	w.RegisterWorkflow(tablePiiDetectWorkflow.TablePiiDetect)
 	w.RegisterWorkflow(jobPiiDetectWorkflow.JobPiiDetect)
 
-	tablePiiDetectActivitites := piidetect_table_activities.New(connclient, openaiclient, connectiondatabuilder)
+	tablePiiDetectActivitites := piidetect_table_activities.New(connclient, openaiclient, connectiondatabuilder, jobclient)
 	w.RegisterActivity(tablePiiDetectActivitites.GetColumnData)
 	w.RegisterActivity(tablePiiDetectActivitites.DetectPiiRegex)
 	w.RegisterActivity(tablePiiDetectActivitites.DetectPiiLLM)
+	w.RegisterActivity(tablePiiDetectActivitites.SaveTablePiiDetectReport)
 
 	jobPiiDetectActivitites := piidetect_job_activities.New(jobclient, connclient, connectiondatabuilder)
 	w.RegisterActivity(jobPiiDetectActivitites.GetPiiDetectJobDetails)
 	w.RegisterActivity(jobPiiDetectActivitites.GetTablesToPiiScan)
+	w.RegisterActivity(jobPiiDetectActivitites.SaveJobPiiDetectReport)
 }
