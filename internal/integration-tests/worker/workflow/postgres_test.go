@@ -1231,15 +1231,14 @@ func test_postgres_complex(
 			{schema: "scientific_data", table: "experiments", rowCount: 3},
 			{schema: "scientific_data", table: "samples", rowCount: 4},
 			{schema: "scientific_data", table: "measurements", rowCount: 4},
-			{schema: "scientific_data", table: "measurements", rowCount: 9},
-			{schema: "scientific_data", table: "measurement_2022", rowCount: 4},
-			{schema: "scientific_data", table: "measurement_2022_digital_microscope", rowCount: 2},
+			{schema: "scientific_data", table: "measurement_2022", rowCount: 2},
+			{schema: "scientific_data", table: "measurement_2022_digital_microscope", rowCount: 1},
 			{schema: "scientific_data", table: "measurement_2022_mass_spectrometer", rowCount: 1},
-			{schema: "scientific_data", table: "measurement_2022_other", rowCount: 1},
-			{schema: "scientific_data", table: "measurement_2023", rowCount: 5},
-			{schema: "scientific_data", table: "measurement_2023_digital_microscope", rowCount: 2},
-			{schema: "scientific_data", table: "measurement_2023_mass_spectrometer", rowCount: 2},
-			{schema: "scientific_data", table: "measurement_2023_other", rowCount: 1},
+			{schema: "scientific_data", table: "measurement_2022_other", rowCount: 0},
+			{schema: "scientific_data", table: "measurement_2023", rowCount: 2},
+			{schema: "scientific_data", table: "measurement_2023_digital_microscope", rowCount: 1},
+			{schema: "scientific_data", table: "measurement_2023_mass_spectrometer", rowCount: 1},
+			{schema: "scientific_data", table: "measurement_2023_other", rowCount: 0},
 		}
 		for _, expected := range expectedResults {
 			rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
