@@ -496,6 +496,17 @@ message BatchConfig {
 }
 
 message CreateJobRequest {
+  option (buf.validate.message).cel = {
+    id: "mappings_required_for_sync"
+    message: "For sync jobs, at least one mapping is required"
+    expression: "!has(this.job_type) || has(this.job_type.sync) ? size(this.mappings) >= 1 : true"
+  };
+  option (buf.validate.message).cel = {
+    id: "destinations_required_for_sync"
+    message: "For sync jobs, at least one destination is required"
+    expression: "!has(this.job_type) || has(this.job_type.sync) ? size(this.destinations) >= 1 : true"
+  };
+
   // The unique account identifier that this job will be associated with
   string account_id = 1 [(buf.validate.field).string.uuid = true];
   // The unique, friendly name of the job. This is unique per account
@@ -503,11 +514,11 @@ message CreateJobRequest {
   // Optionally provide a cron schedule. Goes into effect if the job status is set to enabled
   optional string cron_schedule = 3;
   // The list of mappings that will be used to transform the data
-  repeated JobMapping mappings = 4 [(buf.validate.field).repeated.min_items = 1];
+  repeated JobMapping mappings = 4;
   // The source connection configuration
   JobSource source = 5;
   // The list of destinations that will be used to store the data
-  repeated CreateJobDestination destinations = 6 [(buf.validate.field).repeated.min_items = 1];
+  repeated CreateJobDestination destinations = 6;
   // Initially trigger a run of this job regardless of its status or cron schedule
   bool initiate_job_run = 7;
 

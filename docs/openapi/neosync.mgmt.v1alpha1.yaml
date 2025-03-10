@@ -10622,7 +10622,6 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.JobMapping'
           title: mappings
-          minItems: 1
           description: The list of mappings that will be used to transform the data
         source:
           allOf:
@@ -10634,7 +10633,6 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobDestination'
           title: destinations
-          minItems: 1
           description: The list of destinations that will be used to store the data
         initiateJobRun:
           type: boolean
@@ -10673,6 +10671,26 @@ components:
           description: The type of job to create
       title: CreateJobRequest
       additionalProperties: false
+      description: >+
+        For sync jobs, at least one mapping is required:
+
+        ```
+
+        !has(this.job_type) || has(this.job_type.sync) ? size(this.mappings) >=
+        1 : true
+
+        ```
+
+
+        For sync jobs, at least one destination is required:
+
+        ```
+
+        !has(this.job_type) || has(this.job_type.sync) ? size(this.destinations)
+        >= 1 : true
+
+        ```
+
     mgmt.v1alpha1.CreateJobResponse:
       type: object
       properties:

@@ -24,6 +24,7 @@ import (
 	job_util "github.com/nucleuscloud/neosync/internal/job"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
+	piidetect_job_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/job"
 
 	temporalclient "go.temporal.io/sdk/client"
 	"golang.org/x/sync/errgroup"
@@ -492,12 +493,24 @@ func (s *Service) CreateJob(
 			paused = false
 		}
 	}
-	wf := &datasync_workflow.Workflow{}
-	action := &temporalclient.ScheduleWorkflowAction{
-		Workflow:  wf.Workflow,
-		TaskQueue: taskQueue,
-		Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
-		ID:        neosyncdb.UUIDString(cj.ID),
+	var action *temporalclient.ScheduleWorkflowAction
+
+	if req.Msg.GetJobType() == nil || req.Msg.GetJobType().GetSync() != nil {
+		syncWf := &datasync_workflow.Workflow{}
+		action = &temporalclient.ScheduleWorkflowAction{
+			Workflow:  syncWf.Workflow,
+			TaskQueue: taskQueue,
+			Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
+			ID:        neosyncdb.UUIDString(cj.ID),
+		}
+	} else if req.Msg.GetJobType().GetPiiDetect() != nil {
+		piiWf := &piidetect_job_workflow.Workflow{}
+		action = &temporalclient.ScheduleWorkflowAction{
+			Workflow:  piiWf.JobPiiDetect,
+			TaskQueue: taskQueue,
+			Args:      []any{&piidetect_job_workflow.PiiDetectRequest{JobId: jobUuid}},
+			ID:        neosyncdb.UUIDString(cj.ID),
+		}
 	}
 	if cj.WorkflowOptions != nil && cj.WorkflowOptions.RunTimeout != nil {
 		action.WorkflowRunTimeout = time.Duration(*cj.WorkflowOptions.RunTimeout)

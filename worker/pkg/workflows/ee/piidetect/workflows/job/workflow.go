@@ -207,7 +207,7 @@ func (w *Workflow) orchestrateTables(
 		}
 	}
 
-	for workselector.HasPending() {
+	for range tables {
 		workselector.Select(ctx)
 	}
 

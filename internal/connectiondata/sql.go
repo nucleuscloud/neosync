@@ -46,7 +46,32 @@ func NewSQLConnectionDataService(
 }
 
 func (s *SQLConnectionDataService) GetAllTables(ctx context.Context) ([]TableIdentifier, error) {
-	return nil, errors.ErrUnsupported
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), s.connection, s.logger)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db().Close()
+
+	// todo: write a more optimized query that only returns schemas and tables instead of all columns
+	dbschema, err := db.Db().GetDatabaseSchema(ctx)
+	if err != nil {
+		return nil, err
+	}
+	uniqueTis := map[TableIdentifier]bool{}
+	for _, col := range dbschema {
+		col := col
+		ti := TableIdentifier{
+			Schema: col.TableSchema,
+			Table:  col.TableName,
+		}
+		uniqueTis[ti] = true
+	}
+
+	identifiers := make([]TableIdentifier, 0, len(uniqueTis))
+	for ti := range uniqueTis {
+		identifiers = append(identifiers, ti)
+	}
+	return identifiers, nil
 }
 
 func (s *SQLConnectionDataService) SampleData(

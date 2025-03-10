@@ -101,10 +101,14 @@ func (a *Activities) GetTablesToPiiScan(ctx context.Context, req *GetTablesToPii
 	logger := log.With(activity.GetLogger(ctx), "sourceConnectionId", req.SourceConnectionId)
 	slogger := temporallogger.NewSlogger(logger)
 
+	logger.Debug("getting all tables from connection")
+
 	allTables, err := a.getAllTablesFromConnection(ctx, req.SourceConnectionId, slogger)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get all tables from connection: %w", err)
 	}
+
+	logger.Debug("filtering tables")
 
 	filteredTables := a.getFilteredTables(allTables, req.Filter)
 
@@ -167,17 +171,17 @@ func (a *Activities) getAllTablesFromConnection(ctx context.Context, sourceConne
 		Id: sourceConnectionId,
 	}))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get connection: %w", err)
 	}
 	connection := connResp.Msg.GetConnection()
 
 	connectionData, err := a.connectiondatabuilder.NewDataConnection(logger, connection)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to build connection data: %w", err)
 	}
 	tables, err := connectionData.GetAllTables(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get all tables from connection: %w", err)
 	}
 
 	tableIdentifiers := make([]TableIdentifier, len(tables))
