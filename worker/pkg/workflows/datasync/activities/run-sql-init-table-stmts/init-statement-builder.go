@@ -249,11 +249,13 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					for _, seq := range sequences {
 						resetSeqStmts = append(resetSeqStmts, sqlmanager_postgres.BuildPgResetSequenceSql(seq.Schema, seq.Name))
 					}
-					err = destdb.Db().BatchExec(ctx, 10, resetSeqStmts, &sqlmanager_shared.BatchExecOpts{})
-					if err != nil {
-						// handle not found errors
-						if !strings.Contains(err.Error(), `does not exist`) {
-							return nil, fmt.Errorf("unable to exec postgres sequence reset statements: %w", err)
+					if len(resetSeqStmts) > 0 {
+						err = destdb.Db().BatchExec(ctx, 10, resetSeqStmts, &sqlmanager_shared.BatchExecOpts{})
+						if err != nil {
+							// handle not found errors
+							if !strings.Contains(err.Error(), `does not exist`) {
+								return nil, fmt.Errorf("unable to exec postgres sequence reset statements: %w", err)
+							}
 						}
 					}
 				}
