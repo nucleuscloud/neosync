@@ -69,7 +69,7 @@ func Test_JobPiiDetect(t *testing.T) {
 		}
 
 		env.OnWorkflow(tableWf.TablePiiDetect, mock.Anything, mock.Anything).Return(
-			func(ctx interface{}, req *piidetect_table_workflow.TablePiiDetectRequest) (*piidetect_table_workflow.TablePiiDetectResponse, error) {
+			func(ctx any, req *piidetect_table_workflow.TablePiiDetectRequest) (*piidetect_table_workflow.TablePiiDetectResponse, error) {
 				if req.TableName == "users" {
 					return &piidetect_table_workflow.TablePiiDetectResponse{ResultKey: usersKey}, nil
 				}
@@ -228,7 +228,7 @@ func Test_JobPiiDetect(t *testing.T) {
 			ExternalId: "public.users--pii-report",
 		}
 		env.OnWorkflow(tableWf.TablePiiDetect, mock.Anything, mock.Anything).Return(
-			func(ctx interface{}, req *piidetect_table_workflow.TablePiiDetectRequest) (*piidetect_table_workflow.TablePiiDetectResponse, error) {
+			func(ctx any, req *piidetect_table_workflow.TablePiiDetectRequest) (*piidetect_table_workflow.TablePiiDetectResponse, error) {
 				if req.TableName == "users" {
 					return &piidetect_table_workflow.TablePiiDetectResponse{ResultKey: usersKey}, nil
 				}
