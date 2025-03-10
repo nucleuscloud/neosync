@@ -513,7 +513,7 @@ column_defaults AS (
         AND a.attnum > 0
         AND NOT a.attisdropped
         AND c.relkind IN ('r', 'p')
-        -- exclude partitions
+        -- exclude child partitions
         AND c.relispartition = FALSE
 ),
 identity_columns AS (
@@ -713,7 +713,7 @@ column_defaults AS (
         AND a.attnum > 0
         AND NOT a.attisdropped
         AND c.relkind IN ('r', 'p')
-        -- exclude partitions
+        -- exclude child partitions
         AND c.relispartition = FALSE
 ),
 identity_columns AS (
@@ -836,7 +836,7 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 	return items, nil
 }
 
-const getExtensions = `-- name: GetExtensions :many
+const getExtensionsBySchemas = `-- name: GetExtensionsBySchemas :many
 SELECT
     e.extname AS extension_name,
     e.extversion AS installed_version,
@@ -844,26 +844,26 @@ SELECT
 FROM
     pg_catalog.pg_extension e
 LEFT JOIN pg_catalog.pg_namespace n ON e.extnamespace = n.oid
-WHERE extname != 'plpgsql'
+WHERE extname != 'plpgsql' AND (n.nspname = ANY($1::TEXT[]) OR n.nspname = 'public')
 ORDER BY
     extname
 `
 
-type GetExtensionsRow struct {
+type GetExtensionsBySchemasRow struct {
 	ExtensionName    string
 	InstalledVersion string
 	SchemaName       sql.NullString
 }
 
-func (q *Queries) GetExtensions(ctx context.Context, db DBTX) ([]*GetExtensionsRow, error) {
-	rows, err := db.QueryContext(ctx, getExtensions)
+func (q *Queries) GetExtensionsBySchemas(ctx context.Context, db DBTX, schema []string) ([]*GetExtensionsBySchemasRow, error) {
+	rows, err := db.QueryContext(ctx, getExtensionsBySchemas, pq.Array(schema))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetExtensionsRow
+	var items []*GetExtensionsBySchemasRow
 	for rows.Next() {
-		var i GetExtensionsRow
+		var i GetExtensionsBySchemasRow
 		if err := rows.Scan(&i.ExtensionName, &i.InstalledVersion, &i.SchemaName); err != nil {
 			return nil, err
 		}
@@ -1067,8 +1067,8 @@ FROM
 		AND c.relname = kcu.table_name
 WHERE
 	pn.nspname = ANY($1::TEXT[])
-	-- Exclude foreign keys
-	AND pgcon.contype != 'f'
+	-- Exclude foreign keys, and partition tables
+	AND pgcon.contype != 'f' AND c.relispartition = FALSE
 GROUP BY
 	pgcon.oid,
 	pgcon.conname,
@@ -1102,6 +1102,113 @@ func (q *Queries) GetNonForeignKeyTableConstraintsBySchema(ctx context.Context, 
 			&i.ConstraintType,
 			pq.Array(&i.ConstraintColumns),
 			&i.ConstraintDefinition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPartitionHierarchyByTable = `-- name: GetPartitionHierarchyByTable :many
+SELECT
+    child_ns.nspname          AS schema_name,
+    child_cls.relname         AS table_name,
+    parent_ns.nspname         AS parent_schema_name,
+    parent_cls.relname        AS parent_table_name,
+    COALESCE(
+        pg_get_expr(child_cls.relpartbound, child_cls.oid),
+        ''
+    )::TEXT AS partition_bound
+FROM pg_partition_tree($1::TEXT) AS t
+JOIN pg_catalog.pg_class child_cls
+    ON child_cls.oid = t.relid
+JOIN pg_catalog.pg_namespace child_ns
+    ON child_ns.oid = child_cls.relnamespace
+LEFT JOIN pg_catalog.pg_class parent_cls
+    ON parent_cls.oid = t.parentrelid
+LEFT JOIN pg_catalog.pg_namespace parent_ns
+    ON parent_ns.oid = parent_cls.relnamespace
+`
+
+type GetPartitionHierarchyByTableRow struct {
+	SchemaName       string
+	TableName        string
+	ParentSchemaName sql.NullString
+	ParentTableName  sql.NullString
+	PartitionBound   string
+}
+
+func (q *Queries) GetPartitionHierarchyByTable(ctx context.Context, db DBTX, table string) ([]*GetPartitionHierarchyByTableRow, error) {
+	rows, err := db.QueryContext(ctx, getPartitionHierarchyByTable, table)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetPartitionHierarchyByTableRow
+	for rows.Next() {
+		var i GetPartitionHierarchyByTableRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ParentSchemaName,
+			&i.ParentTableName,
+			&i.PartitionBound,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPartitionedTablesBySchema = `-- name: GetPartitionedTablesBySchema :many
+SELECT
+	n.nspname AS schema_name,
+	c.relname AS table_name,
+	c.relispartition AS is_partitioned, -- false for partitioned tables, true for child partitions
+	pg_get_partkeydef (c.oid) AS partition_key
+FROM
+	pg_catalog.pg_class c
+	JOIN pg_catalog.pg_namespace n ON c.relnamespace = n.oid
+WHERE
+	c.relkind = 'p' -- 'p' indicates a partitioned table
+	AND n.nspname = ANY($1::TEXT[])
+`
+
+type GetPartitionedTablesBySchemaRow struct {
+	SchemaName    string
+	TableName     string
+	IsPartitioned bool
+	PartitionKey  string
+}
+
+func (q *Queries) GetPartitionedTablesBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetPartitionedTablesBySchemaRow, error) {
+	rows, err := db.QueryContext(ctx, getPartitionedTablesBySchema, pq.Array(schema))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetPartitionedTablesBySchemaRow
+	for rows.Next() {
+		var i GetPartitionedTablesBySchemaRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.IsPartitioned,
+			&i.PartitionKey,
 		); err != nil {
 			return nil, err
 		}

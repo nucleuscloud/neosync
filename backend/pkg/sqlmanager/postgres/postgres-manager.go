@@ -336,8 +336,8 @@ func (p *PostgresManager) GetSequencesByTables(ctx context.Context, schema strin
 	return output, nil
 }
 
-func (p *PostgresManager) getExtensions(ctx context.Context) ([]*sqlmanager_shared.ExtensionDataType, error) {
-	rows, err := p.querier.GetExtensions(ctx, p.db)
+func (p *PostgresManager) getExtensionsBySchemas(ctx context.Context, schemas []string) ([]*sqlmanager_shared.ExtensionDataType, error) {
+	rows, err := p.querier.GetExtensionsBySchemas(ctx, p.db, schemas)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && neosyncdb.IsNoRows(err) {
@@ -494,6 +494,36 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 		return nil
 	})
 
+	mu := sync.Mutex{}
+	partitionTables := map[string]*pg_queries.GetPartitionedTablesBySchemaRow{}
+	partitionHierarchy := map[string][]*pg_queries.GetPartitionHierarchyByTableRow{}
+	errgrp.Go(func() error {
+		partitiontables, err := p.querier.GetPartitionedTablesBySchema(errctx, p.db, schemas)
+		if err != nil {
+			return err
+		}
+		for _, record := range partitiontables {
+			key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
+			mu.Lock()
+			partitionTables[key.String()] = record
+			mu.Unlock()
+			if !record.IsPartitioned {
+				ks := key.String()
+				errgrp.Go(func() error {
+					partitionhierarchy, err := p.querier.GetPartitionHierarchyByTable(errctx, p.db, ks)
+					if err != nil {
+						return err
+					}
+					mu.Lock()
+					partitionHierarchy[ks] = partitionhierarchy
+					mu.Unlock()
+					return nil
+				})
+			}
+		}
+		return nil
+	})
+
 	if err := errgrp.Wait(); err != nil {
 		return nil, err
 	}
@@ -533,10 +563,16 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 			}))
 		}
 
+		partition, ok := partitionTables[key]
+		partitionKey := ""
+		if ok && !partition.IsPartitioned && partition.PartitionKey != "" {
+			partitionKey = fmt.Sprintf(" PARTITION BY %s", partition.PartitionKey)
+		}
 		info := &sqlmanager_shared.TableInitStatement{
-			CreateTableStatement: fmt.Sprintf("CREATE TABLE IF NOT EXISTS %q.%q (%s);", tableData[0].SchemaName, tableData[0].TableName, strings.Join(columns, ", ")),
+			CreateTableStatement: fmt.Sprintf("CREATE TABLE IF NOT EXISTS %q.%q (%s)%s;", tableData[0].SchemaName, tableData[0].TableName, strings.Join(columns, ", "), partitionKey),
 			AlterTableStatements: []*sqlmanager_shared.AlterTableStatement{},
 			IndexStatements:      indexmap[key],
+			PartitionStatements:  []string{},
 		}
 		for _, constraint := range constraintmap[key] {
 			stmt, err := buildAlterStatementByConstraint(constraint)
@@ -562,7 +598,18 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 				ConstraintType: sqlmanager_shared.ForeignConstraintType,
 			})
 		}
-
+		for _, partition := range partitionHierarchy[key] {
+			if !partition.ParentSchemaName.Valid || !partition.ParentTableName.Valid {
+				// skip root table
+				continue
+			}
+			p, ok := partitionTables[partition.SchemaName+"."+partition.TableName]
+			partitionKey := ""
+			if ok && p.IsPartitioned && p.PartitionKey != "" {
+				partitionKey = fmt.Sprintf(" PARTITION BY %s", p.PartitionKey)
+			}
+			info.PartitionStatements = append(info.PartitionStatements, fmt.Sprintf("CREATE TABLE IF NOT EXISTS %q.%q PARTITION OF %q.%q %s %s;", partition.SchemaName, partition.TableName, partition.ParentSchemaName.String, partition.ParentTableName.String, partition.PartitionBound, partitionKey))
+		}
 		output = append(output, info)
 	}
 	return output, nil
@@ -572,14 +619,18 @@ func (p *PostgresManager) GetSchemaInitStatements(
 	ctx context.Context,
 	tables []*sqlmanager_shared.SchemaTable,
 ) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+	uniqueSchemas := map[string]struct{}{}
+	for _, table := range tables {
+		uniqueSchemas[table.Schema] = struct{}{}
+	}
+	schemas := []string{}
+	for schema := range uniqueSchemas {
+		schemas = append(schemas, schema)
+	}
 	errgrp, errctx := errgroup.WithContext(ctx)
 
 	schemaStmts := []string{}
 	errgrp.Go(func() error {
-		uniqueSchemas := map[string]struct{}{}
-		for _, table := range tables {
-			uniqueSchemas[table.Schema] = struct{}{}
-		}
 		for schema := range uniqueSchemas {
 			schemaStmts = append(schemaStmts, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %q;", schema))
 		}
@@ -612,7 +663,7 @@ func (p *PostgresManager) GetSchemaInitStatements(
 
 	extensionStmts := []string{}
 	errgrp.Go(func() error {
-		extensions, err := p.getExtensions(errctx)
+		extensions, err := p.getExtensionsBySchemas(errctx, schemas)
 		if err != nil {
 			return fmt.Errorf("unable to get postgres extensions: %w", err)
 		}
@@ -633,6 +684,7 @@ func (p *PostgresManager) GetSchemaInitStatements(
 		}
 		for _, stmtCfg := range initStatementCfgs {
 			createTables = append(createTables, stmtCfg.CreateTableStatement)
+			createTables = append(createTables, stmtCfg.PartitionStatements...)
 			for _, alter := range stmtCfg.AlterTableStatements {
 				if alter.ConstraintType == sqlmanager_shared.ForeignConstraintType {
 					fkAlterStmts = append(fkAlterStmts, alter.Statement)
@@ -708,7 +760,7 @@ BEGIN
 		SELECT 1
 		FROM pg_class c
 		JOIN pg_namespace n ON n.oid = c.relnamespace
-		WHERE c.relkind = 'i'
+		WHERE c.relkind in ('i', 'I')
 		AND c.relname = '%s'
 		AND n.nspname = '%s'
 	) THEN

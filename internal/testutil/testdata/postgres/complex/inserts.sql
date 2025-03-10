@@ -282,11 +282,11 @@ VALUES
 
 INSERT INTO space_mission.telemetry (timestamp, spacecraft_id, sensor_type, reading, unit, coordinates, is_anomaly) VALUES
 ('2023-05-15 00:00:01', 1, 'Temperature', 22.5, 'Celsius', '(45.2, 22.1)', false),
-('2023-05-15 00:01:01', 1, 'Pressure', 101.3, 'kPa', '(45.2, 22.1)', false),
-('2023-05-15 00:02:01', 1, 'Radiation', 0.05, 'mSv', '(45.2, 22.1)', false),
+('2024-05-15 00:01:01', 1, 'Pressure', 101.3, 'kPa', '(45.2, 22.1)', false),
+('2025-05-15 00:02:01', 1, 'Radiation', 0.05, 'mSv', '(45.2, 22.1)', false),
 ('2023-05-16 12:30:01', 2, 'Temperature', 23.1, 'Celsius', '(46.3, 23.5)', false),
-('2023-05-16 12:31:01', 2, 'Pressure', 98.7, 'kPa', '(46.3, 23.5)', true),
-('2023-05-16 12:32:01', 2, 'Radiation', 0.12, 'mSv', '(46.3, 23.5)', false);
+('2024-05-16 12:31:01', 2, 'Pressure', 98.7, 'kPa', '(46.3, 23.5)', true),
+('2025-05-16 12:32:01', 2, 'Radiation', 0.12, 'mSv', '(46.3, 23.5)', false);
 
 INSERT INTO space_mission.comments (reference_type, reference_id, author_astronaut_id, content, metadata) VALUES
 ('missions', 1, 1, 'Launch conditions look optimal', '{"visibility": "public", "priority": "normal"}'),
@@ -329,15 +329,15 @@ INSERT INTO scientific_data.samples (experiment_id, collection_date, location, c
 (2, '2023-04-10 14:45:00', 'External Platform', 4, 'Radiation Dosimeter', 'Ambient', 5, 2);
 
 INSERT INTO scientific_data.measurements (sample_id, parameter, value, unit, measured_at, measured_by_astronaut_id, instrument, confidence_level, is_verified) VALUES
-(1, 'Crystal Size', 2.45, 'mm', '2023-04-20 10:30:00', 6, 'Digital Microscope', 95.5, true),
-(8, 'Density', 1.23, 'g/cm³', '2023-04-20 10:45:00', 2, 'Mass Spectrometer', 92.0, true),
-(2, 'Crystal Size', 3.12, 'mm', '2023-04-25 09:15:00', 9, 'Digital Microscope', 94.0, false),
-(1, 'Crystal Size', 2.45, 'mm', '2023-04-20 10:30:00', 6, 'Digital Microscope', 95.5, true),
-(3, 'Density', 1.23, 'g/cm³', '2023-04-20 10:45:00', 6, 'Mass Spectrometer', 92.0, true),
-(2, 'Crystal Size', 3.12, 'mm', '2023-04-25 09:15:00', 9, 'Digital Microscope', 94.0, false),
-(9, 'Crystal Size', 2.45, 'mm', '2023-04-20 10:30:00', 1, 'Digital Microscope', 95.5, true),
-(7, 'Density', 1.23, 'g/cm³', '2023-04-20 10:45:00', 4, 'Mass Spectrometer', 92.0, true),
-(6, 'Crystal Size', 3.12, 'mm', '2023-04-25 09:15:00', 3, 'Digital Microscope', 94.0, false);
+(1, 'Crystal Size', 2.45, 'mm', '2022-04-20', 6, 'Digital Microscope', 95.5, true),
+(8, 'Density', 1.23, 'g/cm³', '2023-04-20', 2, 'Mass Spectrometer', 92.0, true),
+(2, 'Crystal Size', 3.12, 'mm', '2023-04-25', 9, 'Digital Microscope', 94.0, false),
+(1, 'Crystal Size', 2.45, 'mm', '2022-04-20', 6, 'Electron Microscope', 95.5, true),
+(3, 'Density', 1.23, 'g/cm³', '2023-04-20', 6, 'Mass Spectrometer', 92.0, true),
+(2, 'Crystal Size', 3.12, 'mm', '2023-04-25', 9, 'Electron Microscope', 94.0, false),
+(9, 'Crystal Size', 2.45, 'mm', '2022-04-20', 1, 'Digital Microscope', 95.5, true),
+(7, 'Density', 1.23, 'g/cm³', '2022-04-20', 4, 'Mass Spectrometer', 92.0, true),
+(6, 'Crystal Size', 3.12, 'mm', '2023-04-25', 3, 'Digital Microscope', 94.0, false);
 
 INSERT INTO space_mission.mission_experiments (mission_id, experiment_id, priority, time_allocation_hours, resources_allocated, notes) VALUES
 (4, 1, 1, 120, '{"equipment": ["Microscope", "Centrifuge"], "supplies": ["Protein Samples", "Buffer Solution"]}', 'Primary mission objective'),

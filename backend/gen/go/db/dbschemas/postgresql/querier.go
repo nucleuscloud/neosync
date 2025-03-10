@@ -15,10 +15,12 @@ type Querier interface {
 	GetDataTypesBySchemaAndTables(ctx context.Context, db DBTX, arg *GetDataTypesBySchemaAndTablesParams) ([]*GetDataTypesBySchemaAndTablesRow, error)
 	GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error)
 	GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error)
-	GetExtensions(ctx context.Context, db DBTX) ([]*GetExtensionsRow, error)
+	GetExtensionsBySchemas(ctx context.Context, db DBTX, schema []string) ([]*GetExtensionsBySchemasRow, error)
 	GetForeignKeyConstraintsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetForeignKeyConstraintsBySchemasRow, error)
 	GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetIndicesBySchemasAndTablesRow, error)
 	GetNonForeignKeyTableConstraintsBySchema(ctx context.Context, db DBTX, schemas []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error)
+	GetPartitionHierarchyByTable(ctx context.Context, db DBTX, table string) ([]*GetPartitionHierarchyByTableRow, error)
+	GetPartitionedTablesBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetPartitionedTablesBySchemaRow, error)
 	GetPostgresRolePermissions(ctx context.Context, db DBTX) ([]*GetPostgresRolePermissionsRow, error)
 	GetUniqueIndexesBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetUniqueIndexesBySchemaRow, error)
 }
