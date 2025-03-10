@@ -69,6 +69,7 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.35.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.35.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.35.0
+	github.com/tiktoken-go/tokenizer v0.6.0
 	github.com/toqueteos/webbrowser v1.2.0
 	github.com/veqryn/slog-dedup v0.5.0
 	github.com/xwb1989/sqlparser v0.0.0-20180606152119-120387863bf2
@@ -373,7 +374,6 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
-	github.com/tiktoken-go/tokenizer v0.6.0 // indirect
 	github.com/tilinna/z85 v1.0.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.13 // indirect
 	github.com/tklauser/numcpus v0.7.0 // indirect
