@@ -9,6 +9,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	piidetect_job_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/job/activities"
 	piidetect_table_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table"
+	"github.com/spf13/viper"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -139,7 +140,7 @@ func (w *Workflow) orchestrateTables(
 
 	workselector := workflow.NewNamedSelector(ctx, "job_pii_detect")
 
-	maxConcurrency := 3
+	maxConcurrency := getTablePiiDetectMaxConcurrency()
 	inFlightLimiter := workflow.NewSemaphore(ctx, int64(maxConcurrency))
 
 	tableWf := piidetect_table_workflow.New()
@@ -229,4 +230,12 @@ var invalidWorkflowIDChars = regexp.MustCompile(`[^a-zA-Z0-9_\-]`)
 
 func sanitizeWorkflowID(id string) string {
 	return invalidWorkflowIDChars.ReplaceAllString(id, "_")
+}
+
+func getTablePiiDetectMaxConcurrency() int {
+	maxConcurrency := viper.GetInt("TABLE_PII_DETECT_MAX_CONCURRENCY")
+	if maxConcurrency <= 0 {
+		return 3 // default max concurrency
+	}
+	return maxConcurrency
 }
