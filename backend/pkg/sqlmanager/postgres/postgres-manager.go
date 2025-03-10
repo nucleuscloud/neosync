@@ -1063,8 +1063,8 @@ func BuildPgInsertIdentityAlwaysSql(
 	return sqlSplit[0] + ") OVERRIDING SYSTEM VALUE VALUES(" + sqlSplit[1]
 }
 
-func BuildPgResetSequenceSql(sequenceName string) string {
-	return fmt.Sprintf("ALTER SEQUENCE %q RESTART;", sequenceName)
+func BuildPgResetSequenceSql(schema, sequenceName string) string {
+	return fmt.Sprintf("ALTER SEQUENCE %q.%q RESTART;", schema, sequenceName)
 }
 
 func GetPostgresColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool) {
