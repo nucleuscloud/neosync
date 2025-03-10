@@ -2,6 +2,7 @@ package piidetect_job_activities
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 
@@ -80,12 +81,6 @@ type GetTablesToPiiScanRequest struct {
 	Filter             *mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter
 }
 
-type TableScanFilter struct {
-	Mode     FilterMode
-	Includes TablePatterns
-	Excludes TablePatterns
-}
-
 type TablePatterns struct {
 	// Match entire schemas
 	Schemas []string
@@ -97,13 +92,6 @@ type TableIdentifier struct {
 	Schema string
 	Table  string
 }
-
-type FilterMode string
-
-const (
-	FilterModeExclude FilterMode = "exclude"
-	FilterModeInclude FilterMode = "include"
-)
 
 type GetTablesToPiiScanResponse struct {
 	Tables []TableIdentifier
@@ -222,4 +210,43 @@ func makeTableSet(tables []TableIdentifier) map[TableIdentifier]bool {
 // Make TableIdentifier comparable
 func (t TableIdentifier) Equals(other TableIdentifier) bool {
 	return t.Schema == other.Schema && t.Table == other.Table
+}
+
+type SaveJobPiiDetectReportRequest struct {
+	AccountId string
+	JobId     string
+	Report    *JobPiiDetectReport
+}
+
+type SaveJobPiiDetectReportResponse struct {
+	Key *mgmtv1alpha1.RunContextKey
+}
+
+type JobPiiDetectReport struct {
+	SuccessfulTableKeys []*mgmtv1alpha1.RunContextKey `json:"successfulTableKeys"`
+}
+
+func (a *Activities) SaveJobPiiDetectReport(ctx context.Context, req *SaveJobPiiDetectReportRequest) (*SaveJobPiiDetectReportResponse, error) {
+	info := activity.GetInfo(ctx)
+	jobRunId := info.WorkflowExecution.ID
+
+	key := &mgmtv1alpha1.RunContextKey{
+		AccountId:  req.AccountId,
+		JobRunId:   jobRunId,
+		ExternalId: fmt.Sprintf("%s--pii-report", req.JobId),
+	}
+
+	reportBytes, err := json.Marshal(req.Report)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshal report: %w", err)
+	}
+
+	_, err = a.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
+		Id:    key,
+		Value: reportBytes,
+	}))
+	if err != nil {
+		return nil, err
+	}
+	return &SaveJobPiiDetectReportResponse{Key: key}, nil
 }

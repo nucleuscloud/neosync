@@ -26,17 +26,20 @@ type Activities struct {
 	connclient            mgmtv1alpha1connect.ConnectionServiceClient
 	openaiclient          *openai.Client
 	connectiondatabuilder connectiondata.ConnectionDataBuilder
+	jobclient             mgmtv1alpha1connect.JobServiceClient
 }
 
 func New(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	openaiclient *openai.Client,
 	connectiondatabuilder connectiondata.ConnectionDataBuilder,
+	jobclient mgmtv1alpha1connect.JobServiceClient,
 ) *Activities {
 	return &Activities{
 		connclient:            connclient,
 		openaiclient:          openaiclient,
 		connectiondatabuilder: connectiondatabuilder,
+		jobclient:             jobclient,
 	}
 }
 
@@ -242,6 +245,11 @@ type DetectPiiLLMResponse struct {
 type PiiDetectReport struct {
 	Category   PiiCategory
 	Confidence float64
+}
+
+type CombinedPiiDetectReport struct {
+	Regex *PiiCategory
+	LLM   *PiiDetectReport
 }
 
 type sampleDataStream struct {
@@ -497,6 +505,52 @@ func (a *Activities) DetectPiiLLM(ctx context.Context, req *DetectPiiLLMRequest)
 
 	return &DetectPiiLLMResponse{
 		PiiColumns: piiColumns,
+	}, nil
+}
+
+type SaveTablePiiDetectReportRequest struct {
+	ParentRunId *string
+	AccountId   string
+	TableSchema string
+	TableName   string
+	Report      map[string]CombinedPiiDetectReport
+}
+
+type SaveTablePiiDetectReportResponse struct {
+	Key *mgmtv1alpha1.RunContextKey
+}
+
+func (a *Activities) SaveTablePiiDetectReport(
+	ctx context.Context,
+	req *SaveTablePiiDetectReportRequest,
+	logger *slog.Logger,
+) (*SaveTablePiiDetectReportResponse, error) {
+	info := activity.GetInfo(ctx)
+	jobRunId := info.WorkflowExecution.ID
+	if req.ParentRunId != nil {
+		jobRunId = *req.ParentRunId
+	}
+
+	reportBytes, err := json.Marshal(req.Report)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshal report: %w", err)
+	}
+
+	key := &mgmtv1alpha1.RunContextKey{
+		AccountId:  req.AccountId,
+		JobRunId:   jobRunId,
+		ExternalId: fmt.Sprintf("%s.%s--pii-report", req.TableSchema, req.TableName),
+	}
+
+	_, err = a.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
+		Id:    key,
+		Value: reportBytes,
+	}))
+	if err != nil {
+		return nil, fmt.Errorf("unable to set run context: %w", err)
+	}
+	return &SaveTablePiiDetectReportResponse{
+		Key: key,
 	}, nil
 }
 

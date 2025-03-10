@@ -24,7 +24,9 @@ type PiiDetectRequest struct {
 	JobId string
 }
 
-type PiiDetectResponse struct{}
+type PiiDetectResponse struct {
+	ReportKey *mgmtv1alpha1.RunContextKey
+}
 
 func (w *Workflow) JobPiiDetect(ctx workflow.Context, req *PiiDetectRequest) (*PiiDetectResponse, error) {
 	logger := log.With(
@@ -82,8 +84,9 @@ func (w *Workflow) JobPiiDetect(ctx workflow.Context, req *PiiDetectRequest) (*P
 		piiDetectConfig = &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect{}
 	}
 
-	err = w.orchestrateTables(
+	report, err := w.orchestrateTables(
 		ctx,
+		jobDetailsResp.AccountId,
 		tablesToScanResp.Tables,
 		req.JobId,
 		jobDetailsResp.SourceConnectionId,
@@ -95,19 +98,45 @@ func (w *Workflow) JobPiiDetect(ctx workflow.Context, req *PiiDetectRequest) (*P
 		return nil, fmt.Errorf("unable to orchestrate tables: %w", err)
 	}
 
+	logger.Debug("saving job pii detect report")
+
+	var saveResp *piidetect_job_activities.SaveJobPiiDetectReportResponse
+	err = workflow.ExecuteActivity(
+		workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+			StartToCloseTimeout: 1 * time.Minute,
+			RetryPolicy: &temporal.RetryPolicy{
+				MaximumAttempts: 3,
+			},
+		}),
+		activities.SaveJobPiiDetectReport,
+		&piidetect_job_activities.SaveJobPiiDetectReportRequest{
+			AccountId: jobDetailsResp.AccountId,
+			JobId:     req.JobId,
+			Report:    report,
+		},
+	).Get(ctx, &saveResp)
+	if err != nil {
+		return nil, fmt.Errorf("unable to save job pii detect report: %w", err)
+	}
+
 	logger.Info("PII detection completed")
-	return &PiiDetectResponse{}, nil
+	return &PiiDetectResponse{
+		ReportKey: saveResp.Key,
+	}, nil
 }
 
 func (w *Workflow) orchestrateTables(
 	ctx workflow.Context,
+	accountId string,
 	tables []piidetect_job_activities.TableIdentifier,
 	jobId string,
 	connectionId string,
 	shouldSampleData bool,
 	userPrompt string,
 	logger log.Logger,
-) error {
+) (*piidetect_job_activities.JobPiiDetectReport, error) {
+	// todo: retrieve previous report
+
 	workselector := workflow.NewNamedSelector(ctx, "job_pii_detect")
 
 	maxConcurrency := 3
@@ -115,6 +144,9 @@ func (w *Workflow) orchestrateTables(
 
 	tableWf := piidetect_table_workflow.New()
 	wfInfo := workflow.GetInfo(ctx)
+
+	tableResultKeys := []*mgmtv1alpha1.RunContextKey{}
+	mu := workflow.NewMutex(ctx)
 
 	processTable := func(table piidetect_job_activities.TableIdentifier) error {
 		if err := inFlightLimiter.Acquire(ctx, 1); err != nil {
@@ -137,6 +169,7 @@ func (w *Workflow) orchestrateTables(
 					}),
 				tableWf.TablePiiDetect,
 				&piidetect_table_workflow.TablePiiDetectRequest{
+					AccountId:          accountId,
 					JobId:              jobId,
 					ConnectionId:       connectionId,
 					TableSchema:        table.Schema,
@@ -144,7 +177,7 @@ func (w *Workflow) orchestrateTables(
 					ParentExecutionId:  &wfInfo.WorkflowExecution.ID,
 					ShouldSampleData:   shouldSampleData,
 					UserPrompt:         userPrompt,
-					PreviousResultsKey: nil,
+					PreviousResultsKey: nil, // todo: retrieve previous report
 				},
 			),
 			func(f workflow.Future) {
@@ -153,9 +186,16 @@ func (w *Workflow) orchestrateTables(
 				inFlightLimiter.Release(1)
 				if err != nil {
 					logger.Error("activity did not complete", "err", err)
+					return
 				}
 				logger.Debug("table pii detect completed", "table", table.Table, "schema", table.Schema)
-				// todo: handle result, good or bad
+				err = mu.Lock(ctx)
+				if err != nil {
+					logger.Error("unable to lock mutex after table pii detect completed", "err", err)
+					return
+				}
+				defer mu.Unlock()
+				tableResultKeys = append(tableResultKeys, wfResult.ResultKey)
 			},
 		)
 		return nil
@@ -163,7 +203,7 @@ func (w *Workflow) orchestrateTables(
 
 	for _, table := range tables {
 		if err := processTable(table); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -172,7 +212,9 @@ func (w *Workflow) orchestrateTables(
 	}
 
 	logger.Debug("all tables processed")
-	return nil
+	return &piidetect_job_activities.JobPiiDetectReport{
+		SuccessfulTableKeys: tableResultKeys,
+	}, nil
 }
 
 func getTablePiiDetectChildWorkflowId(parentJobRunId, configName string, now time.Time) string {
