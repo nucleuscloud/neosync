@@ -457,20 +457,9 @@ func (a *Activities) DetectPiiLLM(ctx context.Context, req *DetectPiiLLMRequest)
 	logger := activity.GetLogger(ctx)
 	slogger := temporallogger.NewSlogger(logger)
 
-	var records Records
-	if req.ShouldSample && req.ConnectionId != "" {
-		sampleRecords, err := a.getSampleData(ctx, req, slogger)
-		if err != nil {
-			return nil, err
-		}
-		records = sampleRecords
-	} else {
-		records = Records{}
-		for _, col := range req.ColumnData {
-			records = append(records, map[string]any{
-				col.Column: map[string]any{},
-			})
-		}
+	records, err := a.getDataRecordsForLLM(ctx, req, slogger)
+	if err != nil {
+		return nil, err
 	}
 
 	userMessage, err := getPrompt(records, req.TableName, req.UserPrompt, maxDataSamples)
@@ -510,6 +499,28 @@ func (a *Activities) DetectPiiLLM(ctx context.Context, req *DetectPiiLLMRequest)
 	return &DetectPiiLLMResponse{
 		PiiColumns: piiColumns,
 	}, nil
+}
+
+// Returns the data record for use with the LLM prompt.
+// If shouldSample is true and connectionId is not empty, it will sample data from the database.
+// Otherwise, it will return an empty record for each column.
+// In other words, at a minimum, it will return a record that contains just the column names, but no data.
+func (a *Activities) getDataRecordsForLLM(
+	ctx context.Context,
+	req *DetectPiiLLMRequest,
+	slogger *slog.Logger,
+) (Records, error) {
+	if req.ShouldSample && req.ConnectionId != "" {
+		return a.getSampleData(ctx, req, slogger)
+	}
+
+	records := Records{}
+	for _, col := range req.ColumnData {
+		records = append(records, map[string]any{
+			col.Column: map[string]any{},
+		})
+	}
+	return records, nil
 }
 
 type SaveTablePiiDetectReportRequest struct {

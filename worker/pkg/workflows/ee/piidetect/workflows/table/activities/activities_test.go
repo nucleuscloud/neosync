@@ -1,6 +1,8 @@
 package piidetect_table_activities
 
 import (
+	"bytes"
+	"encoding/gob"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -225,4 +227,162 @@ func Test_SaveTablePiiDetectReport_Success(t *testing.T) {
 
 	assert.NotNil(t, res)
 	assert.NotNil(t, res.Key)
+}
+
+func TestRecords_ToAssociativeArray(t *testing.T) {
+	t.Run("empty records", func(t *testing.T) {
+		records := Records{}
+		maxRecords := uint(5)
+		result := records.toAssociativeArray(maxRecords)
+		assert.Nil(t, result)
+	})
+
+	t.Run("single record", func(t *testing.T) {
+		records := Records{
+			{"name": "John", "email": "john@example.com"},
+		}
+		maxRecords := uint(5)
+		result := records.toAssociativeArray(maxRecords)
+		expected := map[string][]any{
+			"name":  {"John"},
+			"email": {"john@example.com"},
+		}
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("multiple records", func(t *testing.T) {
+		records := Records{
+			{"name": "John", "email": "john@example.com"},
+			{"name": "Jane", "email": "jane@example.com"},
+			{"name": "Bob", "email": "bob@example.com"},
+		}
+		maxRecords := uint(5)
+		result := records.toAssociativeArray(maxRecords)
+		expected := map[string][]any{
+			"name":  {"John", "Jane", "Bob"},
+			"email": {"john@example.com", "jane@example.com", "bob@example.com"},
+		}
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("limit records", func(t *testing.T) {
+		records := Records{
+			{"name": "John", "email": "john@example.com"},
+			{"name": "Jane", "email": "jane@example.com"},
+			{"name": "Bob", "email": "bob@example.com"},
+			{"name": "Alice", "email": "alice@example.com"},
+			{"name": "Tom", "email": "tom@example.com"},
+		}
+		maxRecords := uint(2)
+		result := records.toAssociativeArray(maxRecords)
+		expected := map[string][]any{
+			"name":  {"John", "Jane"},
+			"email": {"john@example.com", "jane@example.com"},
+		}
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("skip empty maps", func(t *testing.T) {
+		records := Records{
+			{"name": "John", "email": map[string]any{}},
+			{"name": "Jane", "email": "jane@example.com"},
+		}
+		maxRecords := uint(5)
+		result := records.toAssociativeArray(maxRecords)
+		expected := map[string][]any{
+			"name":  {"John", "Jane"},
+			"email": {"jane@example.com"},
+		}
+		assert.Equal(t, expected, result)
+	})
+}
+
+func TestRecords_ToPromptString(t *testing.T) {
+	t.Run("empty records", func(t *testing.T) {
+		records := Records{}
+		maxRecords := uint(5)
+		result, err := records.ToPromptString(maxRecords)
+		assert.NoError(t, err)
+		assert.Equal(t, "{}", result)
+	})
+
+	t.Run("valid records", func(t *testing.T) {
+		records := Records{
+			{"name": "John", "email": "john@example.com"},
+			{"name": "Jane", "email": "jane@example.com"},
+		}
+		maxRecords := uint(5)
+		result, err := records.ToPromptString(maxRecords)
+		assert.NoError(t, err)
+		assert.Equal(t, `{"email":["john@example.com","jane@example.com"],"name":["John","Jane"]}`, result)
+	})
+
+	t.Run("limit records", func(t *testing.T) {
+		records := Records{
+			{"name": "John", "email": "john@example.com"},
+			{"name": "Jane", "email": "jane@example.com"},
+			{"name": "Bob", "email": "bob@example.com"},
+		}
+		maxRecords := uint(1)
+		result, err := records.ToPromptString(maxRecords)
+		assert.NoError(t, err)
+		assert.Equal(t, `{"email":["john@example.com"],"name":["John"]}`, result)
+	})
+}
+
+func Test_sampleDataStream(t *testing.T) {
+	t.Run("Send and GetRecords", func(t *testing.T) {
+		stream := sampleDataCollector()
+
+		// Create test data
+		record1 := map[string]any{"name": "John", "email": "john@example.com"}
+		record2 := map[string]any{"name": "Jane", "email": "jane@example.com"}
+
+		// Encode records
+		var buf1, buf2 bytes.Buffer
+		encoder1 := gob.NewEncoder(&buf1)
+		encoder2 := gob.NewEncoder(&buf2)
+
+		err := encoder1.Encode(record1)
+		require.NoError(t, err)
+
+		err = encoder2.Encode(record2)
+		require.NoError(t, err)
+
+		// Send records to stream
+		err = stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{
+			RowBytes: buf1.Bytes(),
+		})
+		require.NoError(t, err)
+
+		err = stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{
+			RowBytes: buf2.Bytes(),
+		})
+		require.NoError(t, err)
+
+		// Get records from stream
+		records := stream.GetRecords()
+
+		// Verify records
+		assert.Len(t, records, 2)
+		assert.Equal(t, record1["name"], records[0]["name"])
+		assert.Equal(t, record1["email"], records[0]["email"])
+		assert.Equal(t, record2["name"], records[1]["name"])
+		assert.Equal(t, record2["email"], records[1]["email"])
+
+		// Verify deep copy
+		records[0]["name"] = "Modified"
+		assert.NotEqual(t, "Modified", stream.records[0]["name"])
+	})
+
+	t.Run("Send with invalid data", func(t *testing.T) {
+		stream := sampleDataCollector()
+
+		// Send invalid data
+		err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{
+			RowBytes: []byte("invalid gob data"),
+		})
+
+		assert.Error(t, err)
+	})
 }
