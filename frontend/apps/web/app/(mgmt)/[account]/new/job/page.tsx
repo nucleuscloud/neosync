@@ -52,6 +52,12 @@ export default function NewJob(props: PageProps): ReactElement {
     aiDataGenParams.set('sessionId', sessionToken);
   }
 
+  const piiDetectionParams = new URLSearchParams(searchParams);
+  piiDetectionParams.set('jobType', 'pii-detection');
+  if (!piiDetectionParams.has('sessionId')) {
+    piiDetectionParams.set('sessionId', sessionToken);
+  }
+
   const jobData = [
     {
       name: 'Data Synchronization',
@@ -90,6 +96,18 @@ export default function NewJob(props: PageProps): ReactElement {
       darkModeImage:
         'https://assets.nucleuscloud.com/neosync/app/aigen-dark.svg',
     },
+    {
+      name: 'PII Detection',
+      description:
+        'Scan your database for PII and sensitive data to identify security risks.',
+      href: `/${account?.name}/new/job/define?${piiDetectionParams.toString()}`,
+      icon: <MagicWandIcon />,
+      type: 'pii-detection',
+      experimental: true,
+      lightModeimage: 'https://assets.nucleuscloud.com/neosync/app/aigen.svg',
+      darkModeImage:
+        'https://assets.nucleuscloud.com/neosync/app/aigen-dark.svg',
+    },
   ] as const;
 
   const [selectedJobType, setSelectedJobType] =
@@ -115,7 +133,7 @@ export default function NewJob(props: PageProps): ReactElement {
       <OverviewContainer Header={<PageHeader header="Select a Job type" />}>
         <RadioGroup
           value={selectedJobType}
-          className="flex flex-col lg:flex-row justify-center items-center gap-6 pt-8"
+          className="flex flex-col lg:flex-row flex-wrap justify-center items-center gap-6 pt-8"
         >
           {jobData.map((jd) => (
             <Card
@@ -128,7 +146,7 @@ export default function NewJob(props: PageProps): ReactElement {
               )}
               onClick={() => handleJobSelection(jd.type, jd.href)}
             >
-              <CardHeader className=" w-[300px] relative">
+              <CardHeader className="w-[300px] relative">
                 <div className="flex flex-col items-center text-left">
                   <div className="relative">
                     <Image
