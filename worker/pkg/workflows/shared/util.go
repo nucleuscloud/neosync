@@ -97,7 +97,12 @@ func ensureChildSpawned(ctx workflow.Context, future workflow.ChildWorkflowFutur
 }
 
 func getAccountHookChildWorkflowId(parentJobRunId, eventName string, now time.Time) string {
-	id := fmt.Sprintf("%s-hook-%s-%d", parentJobRunId, SanitizeWorkflowID(strings.ToLower(eventName)), now.UnixNano())
+	return BuildChildWorkflowId(parentJobRunId, "hook-"+eventName, now)
+}
+
+// Builds a child workflow id that is unique for the given parent execution. Sanitizes the name and cuts to the max allowed limit
+func BuildChildWorkflowId(parentExecutionId, name string, ts time.Time) string {
+	id := fmt.Sprintf("%s-%s-%d", parentExecutionId, SanitizeWorkflowID(strings.ToLower(name)), ts.UnixNano())
 	if len(id) > 1000 {
 		id = id[:1000]
 	}

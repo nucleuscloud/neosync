@@ -2,7 +2,6 @@ package piidetect_job_workflow
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -190,7 +189,7 @@ func orchestrateTables(
 				workflow.WithChildOptions(
 					ctx,
 					workflow.ChildWorkflowOptions{
-						WorkflowID: getTablePiiDetectChildWorkflowId(
+						WorkflowID: workflow_shared.BuildChildWorkflowId(
 							wfInfo.WorkflowExecution.ID,
 							fmt.Sprintf("%s.%s", table.Schema, table.Table),
 							workflow.Now(ctx),
@@ -248,14 +247,6 @@ func orchestrateTables(
 	return &piidetect_job_activities.JobPiiDetectReport{
 		SuccessfulTableKeys: tableResultKeys,
 	}, nil
-}
-
-func getTablePiiDetectChildWorkflowId(parentJobRunId, configName string, now time.Time) string {
-	id := fmt.Sprintf("%s-%s-%d", parentJobRunId, workflow_shared.SanitizeWorkflowID(strings.ToLower(configName)), now.UnixNano())
-	if len(id) > 1000 {
-		id = id[:1000]
-	}
-	return id
 }
 
 func getTablePiiDetectMaxConcurrency() int {

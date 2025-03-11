@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"strings"
 	"sync"
 	"time"
 
@@ -570,7 +569,7 @@ func invokeSync(
 		var wfResult tablesync_workflow.TableSyncResponse
 
 		err := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-			WorkflowID:    getTableSyncChildWorkflowId(info.WorkflowExecution.ID, config.Name, workflow.Now(ctx)),
+			WorkflowID:    workflow_shared.BuildChildWorkflowId(info.WorkflowExecution.ID, config.Name, workflow.Now(ctx)),
 			StaticSummary: fmt.Sprintf("Syncing %s.%s", config.TableSchema, config.TableName),
 			RetryPolicy: &temporal.RetryPolicy{
 				MaximumAttempts: 1,
@@ -594,14 +593,6 @@ func invokeSync(
 		settable.Set(wfResult, err)
 	})
 	return future
-}
-
-func getTableSyncChildWorkflowId(parentJobRunId, configName string, now time.Time) string {
-	id := fmt.Sprintf("%s-%s-%d", parentJobRunId, workflow_shared.SanitizeWorkflowID(strings.ToLower(configName)), now.UnixNano())
-	if len(id) > 1000 {
-		id = id[:1000]
-	}
-	return id
 }
 
 func updateCompletedMap(tableName string, completed *sync.Map, columns []string) error {
