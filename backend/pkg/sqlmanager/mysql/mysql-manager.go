@@ -374,12 +374,11 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			for _, record := range idxrecords {
 				key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
 				if _, exists := indexmap[key.String()]; !exists {
-					indexmap[key.String()] = make(map[string]*indexInfo) // Adjusted to map to *indexInfo
+					indexmap[key.String()] = make(map[string]*indexInfo)
 				}
-				// Group columns/expressions by index name
 				if record.ColumnName.Valid {
 					if _, exists := indexmap[key.String()][record.IndexName]; !exists {
-						indexmap[key.String()][record.IndexName] = &indexInfo{ // Initialize indexInfo
+						indexmap[key.String()][record.IndexName] = &indexInfo{
 							indexName: record.IndexName,
 							indexType: record.IndexType,
 							columns:   []string{},
@@ -391,7 +390,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 					)
 				} else if record.Expression.Valid {
 					if _, exists := indexmap[key.String()][record.IndexName]; !exists {
-						indexmap[key.String()][record.IndexName] = &indexInfo{ // Initialize indexInfo
+						indexmap[key.String()][record.IndexName] = &indexInfo{
 							indexName: record.IndexName,
 							indexType: record.IndexType,
 							columns:   []string{},
