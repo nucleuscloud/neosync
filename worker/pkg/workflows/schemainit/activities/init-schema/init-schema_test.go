@@ -1,4 +1,4 @@
-package runsqlinittablestmts_activity
+package initschema_activity
 
 import (
 	"context"
@@ -237,7 +237,14 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 				},
 				Destinations: []*mgmtv1alpha1.JobDestination{
 					{
-						ConnectionId: "456",
+						ConnectionId: "123",
+						Options: &mgmtv1alpha1.JobDestinationOptions{
+							Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+								PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+									InitTableSchema: false,
+								},
+							},
+						},
 					},
 				},
 			},
@@ -252,6 +259,28 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: &mgmtv1alpha1.Connection{
 			Id:   "456",
+			Name: "prod",
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+							Url: "fake-prod-url",
+						},
+					},
+				},
+			},
+		},
+	}), nil)
+
+	mockConnectionClient.On(
+		"GetConnection",
+		mock.Anything,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: "123",
+		}),
+	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id:   "123",
 			Name: "stage",
 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
@@ -264,7 +293,7 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sqlmanager.NewPostgresSqlConnection(mockSqlDb), nil)
+	mockSqlManager.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sqlmanager.NewPostgresSqlConnection(mockSqlDb), nil).Twice()
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, fakeEELicense, workflowId)
@@ -627,7 +656,7 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 				},
 				Destinations: []*mgmtv1alpha1.JobDestination{
 					{
-						ConnectionId: "456",
+						ConnectionId: "123",
 						Options: &mgmtv1alpha1.JobDestinationOptions{
 							Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
 								PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
@@ -654,6 +683,28 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 		Connection: &mgmtv1alpha1.Connection{
 			Id:   "456",
 			Name: "stage",
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+							Url: "postgresql://postgres:foofar@localhost:5435/nucleus",
+						},
+					},
+				},
+			},
+		},
+	}), nil)
+
+	mockConnectionClient.On(
+		"GetConnection",
+		mock.Anything,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: "123",
+		}),
+	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id:   "123",
+			Name: "prod",
 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
@@ -755,7 +806,7 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 				},
 				Destinations: []*mgmtv1alpha1.JobDestination{
 					{
-						ConnectionId: "456",
+						ConnectionId: "123",
 						Options: &mgmtv1alpha1.JobDestinationOptions{
 							Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
 								MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{
@@ -780,7 +831,7 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: &mgmtv1alpha1.Connection{
 			Id:   "456",
-			Name: "stage",
+			Name: "prod",
 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
 					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
@@ -792,7 +843,29 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sqlmanager.NewMysqlSqlConnection(mockSqlDb), nil)
+
+	mockConnectionClient.On(
+		"GetConnection",
+		mock.Anything,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: "123",
+		}),
+	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id:   "123",
+			Name: "stage",
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+							Url: "fake-stage-url",
+						},
+					},
+				},
+			},
+		},
+	}), nil)
+	mockSqlManager.On("NewSqlConnection", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sqlmanager.NewMysqlSqlConnection(mockSqlDb), nil).Twice()
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient, fakeEELicense, workflowId)
@@ -803,90 +876,6 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 		testutil.GetTestLogger(t),
 	)
 	assert.Nil(t, err)
-}
-
-func Test_getFilteredForeignToPrimaryTableMap(t *testing.T) {
-	t.Parallel()
-	tables := map[string]struct{}{
-		"public.regions":     {},
-		"public.jobs":        {},
-		"public.countries":   {},
-		"public.locations":   {},
-		"public.dependents":  {},
-		"public.departments": {},
-		"public.employees":   {},
-	}
-	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
-		"public.countries": {
-			{Columns: []string{"region_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.regions", Columns: []string{"region_id"}}},
-		},
-		"public.departments": {
-			{Columns: []string{"location_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.locations", Columns: []string{"location_id"}}},
-		},
-		"public.dependents": {
-			{Columns: []string{"dependent_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employees_id"}}},
-		},
-		"public.locations": {
-			{Columns: []string{"country_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.countries", Columns: []string{"country_id"}}},
-		},
-		"public.employees": {
-			{Columns: []string{"department_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.departments", Columns: []string{"department_id"}}},
-			{Columns: []string{"job_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.jobs", Columns: []string{"job_id"}}},
-			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
-		},
-	}
-
-	expected := map[string][]string{
-		"public.regions":     {},
-		"public.jobs":        {},
-		"public.countries":   {"public.regions"},
-		"public.departments": {"public.locations"},
-		"public.dependents":  {"public.employees"},
-		"public.employees":   {"public.departments", "public.jobs", "public.employees"},
-		"public.locations":   {"public.countries"},
-	}
-	actual := getFilteredForeignToPrimaryTableMap(dependencies, tables)
-	assert.Len(t, actual, len(expected))
-	for table, deps := range actual {
-		assert.Len(t, deps, len(expected[table]))
-		assert.ElementsMatch(t, expected[table], deps)
-	}
-}
-
-func Test_getFilteredForeignToPrimaryTableMap_filtered(t *testing.T) {
-	t.Parallel()
-	tables := map[string]struct{}{
-		"public.countries": {},
-	}
-	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
-		"public.countries": {
-			{Columns: []string{"region_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.regions", Columns: []string{"region_id"}}}},
-
-		"public.departments": {
-			{Columns: []string{"location_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.locations", Columns: []string{"location_id"}}},
-		},
-		"public.dependents": {
-			{Columns: []string{"dependent_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employees_id"}}},
-		},
-		"public.locations": {
-			{Columns: []string{"country_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.countries", Columns: []string{"country_id"}}},
-		},
-		"public.employees": {
-			{Columns: []string{"department_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.departments", Columns: []string{"department_id"}}},
-			{Columns: []string{"job_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.jobs", Columns: []string{"job_id"}}},
-			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
-		},
-	}
-
-	expected := map[string][]string{
-		"public.countries": {},
-	}
-	actual := getFilteredForeignToPrimaryTableMap(dependencies, tables)
-	assert.Len(t, actual, len(expected))
-	for table, deps := range actual {
-		assert.Len(t, deps, len(expected[table]))
-		assert.ElementsMatch(t, expected[table], deps)
-	}
 }
 
 func compareSlices(slice1, slice2 []string) bool {

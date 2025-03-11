@@ -23,7 +23,7 @@ type SchemaManagerService interface {
 }
 
 type SchemaManager interface {
-	NewSchemaManager(
+	New(
 		ctx context.Context,
 		sourceConnection *mgmtv1alpha1.Connection,
 		destinationConnection *mgmtv1alpha1.Connection,
@@ -47,7 +47,7 @@ func NewSchemaManager(
 	return &DefaultSchemaManager{sqlmanagerclient: sqlmanagerclient, session: session, logger: logger, eelicense: eelicense}
 }
 
-func (d *DefaultSchemaManager) NewSchemaManager(
+func (d *DefaultSchemaManager) New(
 	ctx context.Context,
 	sourceConnection *mgmtv1alpha1.Connection,
 	destinationConnection *mgmtv1alpha1.Connection,

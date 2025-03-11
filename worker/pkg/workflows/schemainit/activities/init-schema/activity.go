@@ -1,4 +1,4 @@
-package runsqlinittablestmts_activity
+package initschema_activity
 
 import (
 	"context"

@@ -20,10 +20,10 @@ import (
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
 	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
-	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	accounthook_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow"
+	schemainit_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/schemainit/workflow"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/activities/sync"
 	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
 	"github.com/spf13/viper"
@@ -254,20 +254,33 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 		return nil, err
 	}
 
-	logger.Info("scheduling RunSqlInitTableStatements for execution.")
-	var resp *runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse
-	var runSqlInitTableStatements *runsqlinittablestmts_activity.Activity
-	err = workflow.ExecuteActivity(
-		workflow.WithActivityOptions(ctx, *actOptResp.SyncActivityOptions),
-		runSqlInitTableStatements.RunSqlInitTableStatements,
-		&runsqlinittablestmts_activity.RunSqlInitTableStatementsRequest{
-			JobId: req.JobId,
-		}).
-		Get(ctx, &resp)
+	logger.Info("scheduling Schema Initialization workflow for execution.")
+	siWf := &schemainit_workflow.Workflow{}
+	var wfResult schemainit_workflow.SchemaInitResponse
+	initSchemaActivityOptions := &workflow.ActivityOptions{
+		StartToCloseTimeout: 5 * time.Minute,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 1,
+		},
+		HeartbeatTimeout: 1 * time.Minute,
+	}
+
+	err = workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
+		WorkflowID:    getSchemaInitChildWorkflowId(info.WorkflowExecution.ID, workflow.Now(ctx)),
+		StaticSummary: "Initializing Schema",
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 1,
+		},
+	}), siWf.SchemaInit, &schemainit_workflow.SchemaInitRequest{
+		AccountId:                 actOptResp.AccountId,
+		JobId:                     req.JobId,
+		SchemaInitActivityOptions: initSchemaActivityOptions,
+		JobRunId:                  info.WorkflowExecution.ID,
+	}).Get(ctx, &wfResult)
 	if err != nil {
 		return nil, err
 	}
-	logger.Info("completed RunSqlInitTableStatements.")
+	logger.Info("completed Schema Initialization workflow.")
 
 	redisDependsOn := map[string]map[string][]string{} // schema.table -> dependson
 	redisConfigs := map[string]*benthosbuilder_shared.BenthosRedisConfig{}
@@ -688,6 +701,14 @@ func getAccountHookChildWorkflowId(parentJobRunId, eventName string, now time.Ti
 
 func getTableSyncChildWorkflowId(parentJobRunId, configName string, now time.Time) string {
 	id := fmt.Sprintf("%s-%s-%d", parentJobRunId, sanitizeWorkflowID(strings.ToLower(configName)), now.UnixNano())
+	if len(id) > 1000 {
+		id = id[:1000]
+	}
+	return id
+}
+
+func getSchemaInitChildWorkflowId(parentJobRunId string, now time.Time) string {
+	id := fmt.Sprintf("%s-initschema-%d", parentJobRunId, now.UnixNano())
 	if len(id) > 1000 {
 		id = id[:1000]
 	}
