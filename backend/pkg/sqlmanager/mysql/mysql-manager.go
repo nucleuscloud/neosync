@@ -357,43 +357,6 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 		})
 	}
 
-	// indexmap := map[string]map[string][]string{}
-	// var indexMapMu sync.Mutex
-	// for schema, tables := range schemaset {
-	// 	errgrp.Go(func() error {
-	// 		idxrecords, err := m.querier.GetIndicesBySchemasAndTables(errctx, m.pool, &mysql_queries.GetIndicesBySchemasAndTablesParams{
-	// 			Schema: schema,
-	// 			Tables: tables,
-	// 		})
-	// 		if err != nil {
-	// 			return fmt.Errorf("failed to build mysql indices by schemas and tables: %w", err)
-	// 		}
-
-	// 		indexMapMu.Lock()
-	// 		defer indexMapMu.Unlock()
-	// 		for _, record := range idxrecords {
-	// 			key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
-	// 			if _, exists := indexmap[key.String()]; !exists {
-	// 				indexmap[key.String()] = make(map[string][]string)
-	// 			}
-	// 			// Group columns/expressions by index name
-	// 			if record.ColumnName.Valid {
-	// 				indexmap[key.String()][record.IndexName] = append(
-	// 					indexmap[key.String()][record.IndexName],
-	// 					record.ColumnName.String,
-	// 				)
-	// 			} else if record.Expression.Valid {
-	// 				indexmap[key.String()][record.IndexName] = append(
-	// 					indexmap[key.String()][record.IndexName],
-	// 					// expressions must be wrapped in parentheses on creation, but don't come out of the DB in that format /shrug
-	// 					fmt.Sprintf("(%s)", record.Expression.String),
-	// 				)
-	// 			}
-	// 		}
-	// 		return nil
-	// 	})
-	// }
-
 	indexmap := map[string]map[string]*indexInfo{}
 	var indexMapMu sync.Mutex
 	for schema, tables := range schemaset {
