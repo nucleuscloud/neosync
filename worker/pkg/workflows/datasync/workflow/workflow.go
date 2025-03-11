@@ -4,16 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"regexp"
 	"slices"
-	"strings"
 	"sync"
 	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
-	accounthook_events "github.com/nucleuscloud/neosync/internal/ee/events"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
@@ -22,12 +19,11 @@ import (
 	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
-	accounthook_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow"
 	schemainit_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/schemainit/workflow"
+	workflow_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/activities/sync"
 	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
 	"github.com/spf13/viper"
-	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 
@@ -97,7 +93,7 @@ func (w *Workflow) Workflow(ctx workflow.Context, req *WorkflowRequest) (*Workfl
 		return executeWorkflow(ctx, req)
 	}
 	wfinfo := workflow.GetInfo(ctx)
-	return w.handleEventLifecycle(
+	return workflow_shared.HandleWorkflowEventLifecycle(
 		ctx,
 		w.eelicense,
 		req.JobId,
@@ -106,85 +102,6 @@ func (w *Workflow) Workflow(ctx workflow.Context, req *WorkflowRequest) (*Workfl
 		getAccountId,
 		runWorkflow,
 	)
-}
-
-func (w *Workflow) handleEventLifecycle(
-	ctx workflow.Context,
-	eelicense license.EEInterface,
-	jobId, runId string,
-	logger log.Logger,
-	getAccountId func() (string, error),
-	fn func(ctx workflow.Context, logger log.Logger) (*WorkflowResponse, error),
-) (*WorkflowResponse, error) {
-	if !eelicense.IsValid() {
-		logger.Debug("ee license is not valid, skipping event lifecycle")
-		return fn(ctx, logger)
-	}
-
-	accountId, err := getAccountId()
-	if err != nil {
-		return nil, err
-	}
-
-	createdFuture := workflow.ExecuteChildWorkflow(
-		workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
-			WorkflowID:        getAccountHookChildWorkflowId(runId, "job-run-created", workflow.Now(ctx)),
-			StaticSummary:     "Account Hook: Job Run Created",
-		}),
-		accounthook_workflow.ProcessAccountHook,
-		&accounthook_workflow.ProcessAccountHookRequest{
-			Event: accounthook_events.NewEvent_JobRunCreated(accountId, jobId, runId),
-		},
-	)
-	if err := ensureChildSpawned(ctx, createdFuture, logger); err != nil {
-		return nil, err
-	}
-
-	resp, err := fn(ctx, logger)
-	if err != nil {
-		failedFuture := workflow.ExecuteChildWorkflow(
-			workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
-				WorkflowID:        getAccountHookChildWorkflowId(runId, "job-run-failed", workflow.Now(ctx)),
-				StaticSummary:     "Account Hook: Job Run Failed",
-			}),
-			accounthook_workflow.ProcessAccountHook,
-			&accounthook_workflow.ProcessAccountHookRequest{
-				Event: accounthook_events.NewEvent_JobRunFailed(accountId, jobId, runId),
-			},
-		)
-		if err := ensureChildSpawned(ctx, failedFuture, logger); err != nil {
-			return nil, err
-		}
-		return nil, err
-	}
-
-	completedFuture := workflow.ExecuteChildWorkflow(
-		workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
-			WorkflowID:        getAccountHookChildWorkflowId(runId, "job-run-succeeded", workflow.Now(ctx)),
-			StaticSummary:     "Account Hook: Job Run Succeeded",
-		}),
-		accounthook_workflow.ProcessAccountHook,
-		&accounthook_workflow.ProcessAccountHookRequest{
-			Event: accounthook_events.NewEvent_JobRunSucceeded(accountId, jobId, runId),
-		},
-	)
-	if err := ensureChildSpawned(ctx, completedFuture, logger); err != nil {
-		return nil, err
-	}
-
-	return resp, nil
-}
-
-func ensureChildSpawned(ctx workflow.Context, future workflow.ChildWorkflowFuture, logger log.Logger) error {
-	var childWE workflow.Execution
-	if waitErr := future.GetChildWorkflowExecution().Get(ctx, &childWE); waitErr != nil {
-		return waitErr
-	}
-	logger.Debug(fmt.Sprintf("child wf event spawned: %s", childWE.ID))
-	return nil
 }
 
 func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
@@ -266,7 +183,7 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 	}
 
 	err = workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		WorkflowID:    getSchemaInitChildWorkflowId(info.WorkflowExecution.ID, workflow.Now(ctx)),
+		WorkflowID:    workflow_shared.BuildChildWorkflowId(info.WorkflowExecution.ID, "init-schema", workflow.Now(ctx)),
 		StaticSummary: "Initializing Schema",
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 1,
@@ -665,7 +582,7 @@ func invokeSync(
 		var wfResult tablesync_workflow.TableSyncResponse
 
 		err := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-			WorkflowID:    getTableSyncChildWorkflowId(info.WorkflowExecution.ID, config.Name, workflow.Now(ctx)),
+			WorkflowID:    workflow_shared.BuildChildWorkflowId(info.WorkflowExecution.ID, config.Name, workflow.Now(ctx)),
 			StaticSummary: fmt.Sprintf("Syncing %s.%s", config.TableSchema, config.TableName),
 			RetryPolicy: &temporal.RetryPolicy{
 				MaximumAttempts: 1,
@@ -689,36 +606,6 @@ func invokeSync(
 		settable.Set(wfResult, err)
 	})
 	return future
-}
-
-func getAccountHookChildWorkflowId(parentJobRunId, eventName string, now time.Time) string {
-	id := fmt.Sprintf("%s-hook-%s-%d", parentJobRunId, sanitizeWorkflowID(strings.ToLower(eventName)), now.UnixNano())
-	if len(id) > 1000 {
-		id = id[:1000]
-	}
-	return id
-}
-
-func getTableSyncChildWorkflowId(parentJobRunId, configName string, now time.Time) string {
-	id := fmt.Sprintf("%s-%s-%d", parentJobRunId, sanitizeWorkflowID(strings.ToLower(configName)), now.UnixNano())
-	if len(id) > 1000 {
-		id = id[:1000]
-	}
-	return id
-}
-
-func getSchemaInitChildWorkflowId(parentJobRunId string, now time.Time) string {
-	id := fmt.Sprintf("%s-initschema-%d", parentJobRunId, now.UnixNano())
-	if len(id) > 1000 {
-		id = id[:1000]
-	}
-	return id
-}
-
-var invalidWorkflowIDChars = regexp.MustCompile(`[^a-zA-Z0-9_\-]`)
-
-func sanitizeWorkflowID(id string) string {
-	return invalidWorkflowIDChars.ReplaceAllString(id, "_")
 }
 
 func updateCompletedMap(tableName string, completed *sync.Map, columns []string) error {

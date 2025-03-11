@@ -2,23 +2,27 @@ package piidetect_job_workflow
 
 import (
 	"fmt"
-	"regexp"
-	"strings"
 	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/internal/ee/license"
 	piidetect_job_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/job/activities"
 	piidetect_table_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table"
+	workflow_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/shared"
 	"github.com/spf13/viper"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
-type Workflow struct{}
+type Workflow struct {
+	eelicense license.EEInterface
+}
 
-func New() *Workflow {
-	return &Workflow{}
+func New(eelicense license.EEInterface) *Workflow {
+	return &Workflow{
+		eelicense: eelicense,
+	}
 }
 
 type PiiDetectRequest struct {
@@ -35,7 +39,12 @@ func (w *Workflow) JobPiiDetect(ctx workflow.Context, req *PiiDetectRequest) (*P
 		"jobId", req.JobId,
 	)
 
-	logger.Info("starting PII detection")
+	if !w.eelicense.IsValid() {
+		logger.Debug("ee license is not valid, skipping pii detect")
+		return nil, fmt.Errorf("ee license is not valid, unable to run pii detect")
+	}
+
+	logger.Debug("starting PII detection")
 
 	var activities *piidetect_job_activities.Activities
 
@@ -56,6 +65,28 @@ func (w *Workflow) JobPiiDetect(ctx workflow.Context, req *PiiDetectRequest) (*P
 		return nil, err
 	}
 
+	return workflow_shared.HandleWorkflowEventLifecycle(
+		ctx,
+		w.eelicense,
+		req.JobId,
+		workflow.GetInfo(ctx).WorkflowExecution.ID,
+		logger,
+		func() (string, error) {
+			return jobDetailsResp.AccountId, nil
+		},
+		func(ctx workflow.Context, logger log.Logger) (*PiiDetectResponse, error) {
+			return executeWorkflow(ctx, req, jobDetailsResp, logger, activities)
+		},
+	)
+}
+
+func executeWorkflow(
+	ctx workflow.Context,
+	req *PiiDetectRequest,
+	jobDetailsResp *piidetect_job_activities.GetPiiDetectJobDetailsResponse,
+	logger log.Logger,
+	activities *piidetect_job_activities.Activities,
+) (*PiiDetectResponse, error) {
 	var filter *mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter
 	if jobDetailsResp != nil && jobDetailsResp.PiiDetectConfig != nil && jobDetailsResp.PiiDetectConfig.TableScanFilter != nil {
 		logger.Debug("using table scan filter", "filter", jobDetailsResp.PiiDetectConfig.TableScanFilter)
@@ -63,7 +94,7 @@ func (w *Workflow) JobPiiDetect(ctx workflow.Context, req *PiiDetectRequest) (*P
 	}
 
 	var tablesToScanResp *piidetect_job_activities.GetTablesToPiiScanResponse
-	err = workflow.ExecuteActivity(
+	err := workflow.ExecuteActivity(
 		workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 			StartToCloseTimeout: 1 * time.Minute,
 			RetryPolicy: &temporal.RetryPolicy{
@@ -85,7 +116,7 @@ func (w *Workflow) JobPiiDetect(ctx workflow.Context, req *PiiDetectRequest) (*P
 		piiDetectConfig = &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect{}
 	}
 
-	report, err := w.orchestrateTables(
+	report, err := orchestrateTables(
 		ctx,
 		jobDetailsResp.AccountId,
 		tablesToScanResp.Tables,
@@ -126,7 +157,7 @@ func (w *Workflow) JobPiiDetect(ctx workflow.Context, req *PiiDetectRequest) (*P
 	}, nil
 }
 
-func (w *Workflow) orchestrateTables(
+func orchestrateTables(
 	ctx workflow.Context,
 	accountId string,
 	tables []piidetect_job_activities.TableIdentifier,
@@ -158,7 +189,7 @@ func (w *Workflow) orchestrateTables(
 				workflow.WithChildOptions(
 					ctx,
 					workflow.ChildWorkflowOptions{
-						WorkflowID: getTablePiiDetectChildWorkflowId(
+						WorkflowID: workflow_shared.BuildChildWorkflowId(
 							wfInfo.WorkflowExecution.ID,
 							fmt.Sprintf("%s.%s", table.Schema, table.Table),
 							workflow.Now(ctx),
@@ -208,6 +239,8 @@ func (w *Workflow) orchestrateTables(
 		}
 	}
 
+	logger.Debug("waiting for all table pii detect workflows to complete")
+
 	for range tables {
 		workselector.Select(ctx)
 	}
@@ -216,20 +249,6 @@ func (w *Workflow) orchestrateTables(
 	return &piidetect_job_activities.JobPiiDetectReport{
 		SuccessfulTableKeys: tableResultKeys,
 	}, nil
-}
-
-func getTablePiiDetectChildWorkflowId(parentJobRunId, configName string, now time.Time) string {
-	id := fmt.Sprintf("%s-%s-%d", parentJobRunId, sanitizeWorkflowID(strings.ToLower(configName)), now.UnixNano())
-	if len(id) > 1000 {
-		id = id[:1000]
-	}
-	return id
-}
-
-var invalidWorkflowIDChars = regexp.MustCompile(`[^a-zA-Z0-9_\-]`)
-
-func sanitizeWorkflowID(id string) string {
-	return invalidWorkflowIDChars.ReplaceAllString(id, "_")
 }
 
 func getTablePiiDetectMaxConcurrency() int {

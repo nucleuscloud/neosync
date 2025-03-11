@@ -2,6 +2,7 @@ package clientmanager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -261,14 +262,13 @@ func (m *ClientManager) DeleteSchedule(
 		return fmt.Errorf("unable to delete all workflows when removing schedule: %w", err)
 	}
 
-	svc := clients.WorkflowClient().WorkflowService()
 	logger.Debug(fmt.Sprintf("removing schedule %q", id))
-	_, err = svc.DeleteSchedule(ctx, &workflowservice.DeleteScheduleRequest{Namespace: clients.config.Namespace, ScheduleId: id})
-	if err != nil && isGrpcNotFoundError(err) {
-		logger.Debug("schedule was not found when issuing delete")
-		return nil
+	handle := clients.client.scheduleClient.GetHandle(ctx, id)
+	err = handle.Delete(ctx)
+	if err != nil && !isNotFoundError(err) {
+		return fmt.Errorf("unable to delete schedule: %w", err)
 	}
-	return err
+	return nil
 }
 
 func (m *ClientManager) GetWorkflowExecutionsByScheduleIds(
@@ -526,17 +526,23 @@ func (m *ClientManager) createScheduleClient(
 	return scheduleClient, release, nil
 }
 
-func isGrpcNotFoundError(err error) bool {
+func isNotFoundError(err error) bool {
 	if err == nil {
 		return false
 	}
 
-	// Convert error to gRPC status
-	st, ok := status.FromError(err)
-	if !ok {
-		return false
+	if errors.Is(err, &serviceerror.NotFound{}) {
+		return true
 	}
 
-	// Check if the error code is NotFound
-	return st.Code() == codes.NotFound
+	// Convert error to gRPC status
+	if st, ok := status.FromError(err); ok {
+		return st.Code() == codes.NotFound
+	}
+
+	// When deleting temporal schedules, the error message is for some reason not classified as a grpc error, even though it comes out of the grpc client.
+	// The error looks something like this: "workflow not found for ID: temporal-sys-scheduler:<schedule_id>"
+	// Therefore as a last ditch, we just check for the error message since we can't cast it as a well formed Go error.
+	msg := err.Error()
+	return strings.Contains(msg, "not found")
 }
