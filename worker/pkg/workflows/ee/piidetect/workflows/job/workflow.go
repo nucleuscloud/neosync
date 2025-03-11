@@ -44,7 +44,7 @@ func (w *Workflow) JobPiiDetect(ctx workflow.Context, req *PiiDetectRequest) (*P
 		return nil, fmt.Errorf("ee license is not valid, unable to run pii detect")
 	}
 
-	logger.Info("starting PII detection")
+	logger.Debug("starting PII detection")
 
 	var activities *piidetect_job_activities.Activities
 
@@ -238,6 +238,8 @@ func orchestrateTables(
 			return nil, err
 		}
 	}
+
+	logger.Debug("waiting for all table pii detect workflows to complete")
 
 	for range tables {
 		workselector.Select(ctx)
