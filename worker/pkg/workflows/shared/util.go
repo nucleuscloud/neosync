@@ -14,7 +14,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-// Utilify function that handles spawning job run lifecycle hooks: created, success, failed
+// Utility function that handles spawning job run lifecycle hooks: created, success, failed
 // Should only be used by root workflows that are responsible for handling the lifecycle of a job run
 func HandleWorkflowEventLifecycle[T any](
 	ctx workflow.Context,
