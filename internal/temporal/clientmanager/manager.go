@@ -540,6 +540,9 @@ func isNotFoundError(err error) bool {
 		return st.Code() == codes.NotFound
 	}
 
+	// When deleting temporal schedules, the error message is for some reason not classified as a grpc error, even though it comes out of the grpc client.
+	// The error looks something like this: "workflow not found for ID: temporal-sys-scheduler:<schedule_id>"
+	// Therefore as a last ditch, we just check for the error message since we can't cast it as a well formed Go error.
 	msg := err.Error()
 	return strings.Contains(msg, "not found")
 }
