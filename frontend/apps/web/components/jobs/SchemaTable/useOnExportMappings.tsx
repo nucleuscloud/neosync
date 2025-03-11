@@ -44,7 +44,10 @@ export function useOnExportMappings<T>(
               convertJobMappingTransformerFormToJobMappingTransformer(
                 d.transformer
               ),
-          })
+          }),
+          {
+            useProtoFieldName: true,
+          }
         );
       });
       await downloadFile({
