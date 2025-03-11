@@ -18,6 +18,7 @@ import (
 	mysql_composite_keys "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/composite-keys"
 	mysql_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/edgecases"
 	mysql_human_resources "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/humanresources"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 )
@@ -426,7 +427,7 @@ func test_mysql_complex(
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "complex"
 
-	err := mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"complex/create-tables.sql"}, schema)
+	err := mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"complex/create-tables.sql", "complex/inserts.sql"}, schema)
 	require.NoError(t, err)
 
 	neosyncApi.MockTemporalForCreateJob("test-mysql-sync")
@@ -446,7 +447,7 @@ func test_mysql_complex(
 		},
 	})
 
-	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(10), WithPageLimit(100))
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mysql_complex")
@@ -458,32 +459,32 @@ func test_mysql_complex(
 		table    string
 		rowCount int
 	}{
-		{schema, "agency", 0},
-		{schema, "astronaut", 0},
-		{schema, "spacecraft", 0},
-		{schema, "celestial_body", 0},
-		{schema, "launch_site", 0},
-		{schema, "mission", 0},
-		{schema, "mission_crew", 0},
-		{schema, "research_project", 0},
-		{schema, "project_mission", 0},
-		{schema, "mission_log", 0},
-		{schema, "observatory", 0},
-		{schema, "telescope", 0},
-		{schema, "instrument", 0},
-		{schema, "observation_session", 0},
-		{schema, "data_set", 0},
-		{schema, "research_paper", 0},
-		{schema, "paper_citation", 0},
-		{schema, "grant", 0},
-		{schema, "grant_research_project", 0},
-		{schema, "instrument_usage", 0},
+		{schema, "agency", 20},
+		{schema, "astronaut", 20},
+		{schema, "spacecraft", 20},
+		{schema, "celestial_body", 20},
+		{schema, "launch_site", 20},
+		{schema, "mission", 20},
+		{schema, "mission_crew", 20},
+		{schema, "research_project", 20},
+		{schema, "project_mission", 20},
+		{schema, "mission_log", 20},
+		{schema, "observatory", 20},
+		{schema, "telescope", 21},
+		{schema, "instrument", 20},
+		{schema, "observation_session", 20},
+		{schema, "data_set", 20},
+		{schema, "research_paper", 20},
+		{schema, "paper_citation", 20},
+		{schema, "grant", 20},
+		{schema, "grant_research_project", 20},
+		{schema, "instrument_usage", 20},
 	}
 
 	for _, expected := range expectedResults {
 		rowCount, err := mysql.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)
-		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mysql_complex Table: %s", expected.table))
+		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mysql_complex Table: %s", expected.table))
 	}
 
 	// tear down

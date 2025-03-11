@@ -318,7 +318,7 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 }
 
 const getIndicesBySchemasAndTables = `-- name: GetIndicesBySchemasAndTables :many
-SELECT
+SELECT 
     s.TABLE_SCHEMA as schema_name,
     s.TABLE_NAME as table_name,
     s.COLUMN_NAME as column_name,
@@ -327,18 +327,16 @@ SELECT
     s.INDEX_TYPE as index_type,
     s.SEQ_IN_INDEX as seq_in_index,
     s.NULLABLE as nullable
-FROM
-    INFORMATION_SCHEMA.STATISTICS s
-LEFT JOIN
-    INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-    ON s.TABLE_SCHEMA = kcu.CONSTRAINT_SCHEMA
-    AND s.TABLE_NAME = kcu.TABLE_NAME
-    AND s.COLUMN_NAME = kcu.COLUMN_NAME
-WHERE
-    s.TABLE_SCHEMA = ? AND s.TABLE_NAME in (/*SLICE:tables*/?)
-    AND s.INDEX_NAME != 'PRIMARY'
-    AND kcu.CONSTRAINT_NAME IS NULL
-ORDER BY
+FROM information_schema.statistics s
+LEFT JOIN information_schema.table_constraints tc
+       ON  s.TABLE_SCHEMA = tc.TABLE_SCHEMA
+       AND s.TABLE_NAME   = tc.TABLE_NAME
+       AND s.INDEX_NAME   = tc.CONSTRAINT_NAME
+WHERE 
+      s.TABLE_SCHEMA = ?
+  AND s.TABLE_NAME in (/*SLICE:tables*/?)
+  AND tc.CONSTRAINT_NAME IS NULL -- filters out other constraints (foreign keys, unique, primary keys, etc)
+ORDER BY 
     s.TABLE_NAME,
     s.INDEX_NAME,
     s.SEQ_IN_INDEX

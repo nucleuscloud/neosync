@@ -2077,6 +2077,97 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 					},
 			},
 		},
+		{
+			Schema: schema,
+			Table:  "grant",
+			Column: "id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "grant",
+			Column: "grant_number",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "grant",
+			Column: "agency_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "grant",
+			Column: "funding_amount",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "grant",
+			Column: "start_date",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "grant",
+			Column: "end_date",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "grant",
+			Column: "status",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
 	}
 }
 

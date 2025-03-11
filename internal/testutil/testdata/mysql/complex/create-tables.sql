@@ -574,24 +574,6 @@ BEGIN
     RETURN IFNULL(m_count, 0);
 END;
 
--- DELIMITER ;
--- Now, create a BEFORE INSERT trigger to enforce commander logic
--- DELIMITER $$
-CREATE TRIGGER trg_mission_commander_check
-BEFORE INSERT ON mission
-FOR EACH ROW
-BEGIN
-    IF NEW.mission_type = 'Unmanned' AND NEW.commander_id IS NOT NULL THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Unmanned missions must not have a commander.';
-    ELSEIF NEW.mission_type = 'Manned' AND NEW.commander_id IS NULL THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Manned missions must have a commander.';
-    END IF;
-END;
--- DELIMITER ;
--- 4. Triggers
-
 CREATE TRIGGER trg_before_mission_crew_insert
 BEFORE INSERT ON mission_crew
 FOR EACH ROW
@@ -642,21 +624,6 @@ BEGIN
     IF NEW.mission_type = 'Unmanned' AND NEW.commander_id IS NOT NULL THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Unmanned missions cannot have a commander';
-    END IF;
-END;
-
--- Trigger: After inserting a mission, log creation and auto-add commander to crew if provided
-CREATE TRIGGER trg_after_mission_insert
-AFTER INSERT ON mission
-FOR EACH ROW
-BEGIN
-    -- Log mission creation
-    INSERT INTO mission_log(mission_id, event)
-    VALUES (NEW.id, CONCAT('Mission "', NEW.name, '" created'));
-    -- If a commander was specified, automatically add them to mission_crew
-    IF NEW.commander_id IS NOT NULL THEN
-        INSERT IGNORE INTO mission_crew(mission_id, astronaut_id, role)
-        VALUES (NEW.id, NEW.commander_id, 'Commander');
     END IF;
 END;
 
