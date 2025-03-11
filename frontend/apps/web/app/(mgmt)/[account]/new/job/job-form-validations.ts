@@ -312,6 +312,13 @@ export type SingleTableAiConnectFormValues = Yup.InferType<
   typeof SingleTableAiConnectFormValues
 >;
 
+export const PiiDetectionConnectFormValues = Yup.object().shape({
+  sourceId: Yup.string().required('Connection is required').uuid(),
+});
+export type PiiDetectionConnectFormValues = Yup.InferType<
+  typeof PiiDetectionConnectFormValues
+>;
+
 export const SingleTableAiSchemaFormValues = Yup.object({
   numRows: Yup.number()
     .required('Must provide a number of rows to generate')

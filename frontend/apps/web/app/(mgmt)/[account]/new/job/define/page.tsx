@@ -107,6 +107,10 @@ export default function Page(props: PageProps): ReactElement {
       router.push(
         `/${account?.name}/new/job/aigenerate/single/connect?sessionId=${sessionPrefix}`
       );
+    } else if (newJobType === 'pii-detection') {
+      router.push(
+        `/${account?.name}/new/job/piidetect/connect?sessionId=${sessionPrefix}`
+      );
     } else {
       router.push(
         `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}`
@@ -364,6 +368,7 @@ function getNewJobType(jobtype?: string): NewJobType {
     case 'generate-table':
     case 'ai-generate-table':
     case 'data-sync':
+    case 'pii-detection':
       return jobtype as NewJobType;
     default:
       return 'data-sync';
