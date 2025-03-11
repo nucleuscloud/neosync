@@ -138,3 +138,11 @@ packages:
   github.com/nucleuscloud/neosync/internal/ee/slack:
     interfaces:
       Interface:
+  github.com/nucleuscloud/neosync/internal/connectiondata:
+    interfaces:
+      ConnectionDataBuilder:
+      ConnectionDataService:
+      SampleDataStream:
+  github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table/activities:
+    interfaces:
+      OpenAiCompletionsClient:

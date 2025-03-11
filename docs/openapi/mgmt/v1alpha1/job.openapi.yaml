@@ -684,13 +684,13 @@ components:
                 anyOf:
                   - required:
                       - cronSchedule
-      anyOf:
-        - required:
-            - cronSchedule
-        - not:
-            anyOf:
-              - required:
-                  - cronSchedule
+        - anyOf:
+            - required:
+                - jobType
+            - not:
+                anyOf:
+                  - required:
+                      - jobType
       properties:
         accountId:
           type: string
@@ -711,7 +711,6 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.JobMapping'
           title: mappings
-          minItems: 1
           description: The list of mappings that will be used to transform the data
         source:
           allOf:
@@ -723,7 +722,6 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobDestination'
           title: destinations
-          minItems: 1
           description: The list of destinations that will be used to store the data
         initiateJobRun:
           type: boolean
@@ -748,8 +746,24 @@ components:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
           description: The list of virtual foreign keys that will be used to further constrain the data ontop of the database defined constraints
+        jobType:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig'
+          title: job_type
+          description: The type of job to create
       title: CreateJobRequest
       additionalProperties: false
+      description: |+
+        For sync jobs, at least one mapping is required:
+        ```
+        !has(this.job_type) || has(this.job_type.sync) ? size(this.mappings) >= 1 : true
+        ```
+
+        For sync jobs, at least one destination is required:
+        ```
+        !has(this.job_type) || has(this.job_type.sync) ? size(this.destinations) >= 1 : true
+        ```
+
     mgmt.v1alpha1.CreateJobResponse:
       type: object
       properties:
@@ -2239,6 +2253,11 @@ components:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
           description: Any virtual foreign keys that are configured as a part of this job
+        jobType:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig'
+          title: job_type
+          description: The type of job
       title: Job
       additionalProperties: false
     mgmt.v1alpha1.JobDestination:
@@ -2942,6 +2961,182 @@ components:
           description: The status of the job
       title: JobStatusRecord
       additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - piiDetect
+            - required:
+                - sync
+            - not:
+                anyOf:
+                  - required:
+                      - piiDetect
+                  - required:
+                      - sync
+      anyOf:
+        - required:
+            - piiDetect
+        - required:
+            - sync
+        - not:
+            anyOf:
+              - required:
+                  - piiDetect
+              - required:
+                  - sync
+      properties:
+        sync:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync'
+          title: sync
+          description: This is the default if no job type is specified
+        piiDetect:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect'
+          title: pii_detect
+      title: JobTypeConfig
+      additionalProperties: false
+      description: Specifies the job type along with any specific configuration for that job type
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - userPrompt
+            - not:
+                anyOf:
+                  - required:
+                      - userPrompt
+      anyOf:
+        - required:
+            - userPrompt
+        - not:
+            anyOf:
+              - required:
+                  - userPrompt
+      properties:
+        dataSampling:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling'
+          title: data_sampling
+          description: The configuration for data sampling
+        tableScanFilter:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableScanFilter'
+          title: table_scan_filter
+          description: The configuration for filtering tables to scan
+        userPrompt:
+          type: string
+          title: user_prompt
+          description: The user prompt to use for PII detection to help influence the LLM
+      title: JobTypePiiDetect
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling:
+      type: object
+      properties:
+        isEnabled:
+          type: boolean
+          title: is_enabled
+      title: DataSampling
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.IncludeAll:
+      type: object
+      title: IncludeAll
+      additionalProperties: false
+      description: Configuration to include all tables
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableIdentifier:
+      type: object
+      properties:
+        schema:
+          type: string
+          title: schema
+          minLength: 1
+          description: The schema name
+        table:
+          type: string
+          title: table
+          minLength: 1
+          description: The table name
+      title: TableIdentifier
+      additionalProperties: false
+      description: Identifier for a specific table
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          title: schemas
+          description: Match entire schemas
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableIdentifier'
+          title: tables
+          description: Match specific tables within schemas
+      title: TablePatterns
+      additionalProperties: false
+      description: Patterns for matching tables and schemas
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableScanFilter:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - exclude
+            - required:
+                - include
+            - required:
+                - includeAll
+            - not:
+                anyOf:
+                  - required:
+                      - exclude
+                  - required:
+                      - include
+                  - required:
+                      - includeAll
+      anyOf:
+        - required:
+            - exclude
+        - required:
+            - include
+        - required:
+            - includeAll
+        - not:
+            anyOf:
+              - required:
+                  - exclude
+              - required:
+                  - include
+              - required:
+                  - includeAll
+      properties:
+        includeAll:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.IncludeAll'
+          title: include_all
+          description: Include all tables (default behavior)
+        include:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns'
+          title: include
+          description: Only include specified tables/schemas
+        exclude:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns'
+          title: exclude
+          description: Include all except specified tables/schemas
+      title: TableScanFilter
+      additionalProperties: false
+      description: Filter configuration for table scanning
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync:
+      type: object
+      title: JobTypeSync
+      additionalProperties: false
+      description: The configuration for a data sync job
     mgmt.v1alpha1.MongoDBDestinationConnectionOptions:
       type: object
       title: MongoDBDestinationConnectionOptions

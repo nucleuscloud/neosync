@@ -11213,6 +11213,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "job_type",
+              "description": "The type of job to create",
+              "label": "optional",
+              "type": "JobTypeConfig",
+              "longType": "JobTypeConfig",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_job_type",
+              "defaultValue": ""
             }
           ]
         },
@@ -13190,6 +13202,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "job_type",
+              "description": "The type of job",
+              "label": "",
+              "type": "JobTypeConfig",
+              "longType": "JobTypeConfig",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -14318,6 +14342,256 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "JobTypeConfig",
+          "longName": "JobTypeConfig",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig",
+          "description": "Specifies the job type along with any specific configuration for that job type",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "sync",
+              "description": "This is the default if no job type is specified",
+              "label": "",
+              "type": "JobTypeSync",
+              "longType": "JobTypeConfig.JobTypeSync",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "job_type",
+              "defaultValue": ""
+            },
+            {
+              "name": "pii_detect",
+              "description": "",
+              "label": "",
+              "type": "JobTypePiiDetect",
+              "longType": "JobTypeConfig.JobTypePiiDetect",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "job_type",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "JobTypePiiDetect",
+          "longName": "JobTypeConfig.JobTypePiiDetect",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "data_sampling",
+              "description": "The configuration for data sampling",
+              "label": "",
+              "type": "DataSampling",
+              "longType": "JobTypeConfig.JobTypePiiDetect.DataSampling",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table_scan_filter",
+              "description": "The configuration for filtering tables to scan",
+              "label": "",
+              "type": "TableScanFilter",
+              "longType": "JobTypeConfig.JobTypePiiDetect.TableScanFilter",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableScanFilter",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "user_prompt",
+              "description": "The user prompt to use for PII detection to help influence the LLM",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_user_prompt",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "DataSampling",
+          "longName": "JobTypeConfig.JobTypePiiDetect.DataSampling",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_enabled",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "IncludeAll",
+          "longName": "JobTypeConfig.JobTypePiiDetect.IncludeAll",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.IncludeAll",
+          "description": "Configuration to include all tables",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "TableIdentifier",
+          "longName": "JobTypeConfig.JobTypePiiDetect.TableIdentifier",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableIdentifier",
+          "description": "Identifier for a specific table",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "The schema name",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "The table name",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TablePatterns",
+          "longName": "JobTypeConfig.JobTypePiiDetect.TablePatterns",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns",
+          "description": "Patterns for matching tables and schemas",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schemas",
+              "description": "Match entire schemas",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "tables",
+              "description": "Match specific tables within schemas",
+              "label": "repeated",
+              "type": "TableIdentifier",
+              "longType": "JobTypeConfig.JobTypePiiDetect.TableIdentifier",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableIdentifier",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TableScanFilter",
+          "longName": "JobTypeConfig.JobTypePiiDetect.TableScanFilter",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableScanFilter",
+          "description": "Filter configuration for table scanning",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "include_all",
+              "description": "Include all tables (default behavior)",
+              "label": "",
+              "type": "IncludeAll",
+              "longType": "JobTypeConfig.JobTypePiiDetect.IncludeAll",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.IncludeAll",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "mode",
+              "defaultValue": ""
+            },
+            {
+              "name": "include",
+              "description": "Only include specified tables/schemas",
+              "label": "",
+              "type": "TablePatterns",
+              "longType": "JobTypeConfig.JobTypePiiDetect.TablePatterns",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "mode",
+              "defaultValue": ""
+            },
+            {
+              "name": "exclude",
+              "description": "Include all except specified tables/schemas",
+              "label": "",
+              "type": "TablePatterns",
+              "longType": "JobTypeConfig.JobTypePiiDetect.TablePatterns",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "mode",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "JobTypeSync",
+          "longName": "JobTypeConfig.JobTypeSync",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync",
+          "description": "The configuration for a data sync job",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "MongoDBDestinationConnectionOptions",

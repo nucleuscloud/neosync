@@ -45,6 +45,94 @@ func NewSQLConnectionDataService(
 	}
 }
 
+func (s *SQLConnectionDataService) GetAllTables(ctx context.Context) ([]TableIdentifier, error) {
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), s.connection, s.logger)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db().Close()
+
+	// todo: write a more optimized query that only returns schemas and tables instead of all columns
+	dbschema, err := db.Db().GetDatabaseSchema(ctx)
+	if err != nil {
+		return nil, err
+	}
+	uniqueTis := map[TableIdentifier]bool{}
+	for _, col := range dbschema {
+		col := col
+		ti := TableIdentifier{
+			Schema: col.TableSchema,
+			Table:  col.TableName,
+		}
+		uniqueTis[ti] = true
+	}
+
+	identifiers := make([]TableIdentifier, 0, len(uniqueTis))
+	for ti := range uniqueTis {
+		identifiers = append(identifiers, ti)
+	}
+	return identifiers, nil
+}
+
+func (s *SQLConnectionDataService) SampleData(
+	ctx context.Context,
+	stream SampleDataStream,
+	schema, table string,
+	numRows uint,
+) error {
+	err := s.areSchemaAndTableValid(ctx, schema, table)
+	if err != nil {
+		return fmt.Errorf("invalid schema or table: %w", err)
+	}
+
+	conn, err := s.sqlconnector.NewDbFromConnectionConfig(s.connconfig, s.logger, sqlconnect.WithConnectionTimeout(uint32(5)))
+	if err != nil {
+		return fmt.Errorf("error creating connection: %w", err)
+	}
+	defer conn.Close()
+	db, err := conn.Open()
+	if err != nil {
+		return fmt.Errorf("error opening connection: %w", err)
+	}
+
+	mapper, err := database_record_mapper.NewDatabaseRecordMapperFromConnection(s.connection)
+	if err != nil {
+		return err
+	}
+	goquDriver, err := querybuilder.GetGoquDriverFromConnection(s.connection)
+	if err != nil {
+		return err
+	}
+
+	schemaTable := sqlmanager_shared.BuildTable(schema, table)
+
+	query, err := querybuilder.BuildSampledSelectLimitQuery(goquDriver, schemaTable, numRows)
+	if err != nil {
+		return err
+	}
+	rows, err := db.QueryContext(ctx, query)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return fmt.Errorf("error querying table %s with database type %s: %w", schemaTable, goquDriver, err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		r, err := mapper.MapRecord(rows)
+		if err != nil {
+			return fmt.Errorf("unable to convert row to map for table %s with database type %s: %w", schemaTable, goquDriver, err)
+		}
+		var rowbytes bytes.Buffer
+		enc := gob.NewEncoder(&rowbytes)
+		if err := enc.Encode(r); err != nil {
+			return fmt.Errorf("unable to encode row for table %s with database type %s: %w", schemaTable, goquDriver, err)
+		}
+		if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *SQLConnectionDataService) StreamData(
 	ctx context.Context,
 	stream *connect.ServerStream[mgmtv1alpha1.GetConnectionDataStreamResponse],
@@ -101,6 +189,7 @@ func (s *SQLConnectionDataService) StreamData(
 		return fmt.Errorf("error querying table %s with goqu driver %s: %w", schemaTable, goquDriver, err)
 	}
 
+	// todo: rows.Close needs to be called here?
 	for rows.Next() {
 		r, err := mapper.MapRecord(rows)
 		if err != nil {
@@ -345,7 +434,7 @@ func (s *SQLConnectionDataService) GetTableRowCount(ctx context.Context, schema,
 }
 
 func (s *SQLConnectionDataService) areSchemaAndTableValid(ctx context.Context, schema, table string) error {
-	schemas, err := s.GetSchema(ctx, nil)
+	schemas, err := s.GetTableSchema(ctx, schema, table)
 	if err != nil {
 		return err
 	}

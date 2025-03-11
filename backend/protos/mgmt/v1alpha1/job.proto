@@ -496,6 +496,17 @@ message BatchConfig {
 }
 
 message CreateJobRequest {
+  option (buf.validate.message).cel = {
+    id: "mappings_required_for_sync"
+    message: "For sync jobs, at least one mapping is required"
+    expression: "!has(this.job_type) || has(this.job_type.sync) ? size(this.mappings) >= 1 : true"
+  };
+  option (buf.validate.message).cel = {
+    id: "destinations_required_for_sync"
+    message: "For sync jobs, at least one destination is required"
+    expression: "!has(this.job_type) || has(this.job_type.sync) ? size(this.destinations) >= 1 : true"
+  };
+
   // The unique account identifier that this job will be associated with
   string account_id = 1 [(buf.validate.field).string.uuid = true];
   // The unique, friendly name of the job. This is unique per account
@@ -503,11 +514,11 @@ message CreateJobRequest {
   // Optionally provide a cron schedule. Goes into effect if the job status is set to enabled
   optional string cron_schedule = 3;
   // The list of mappings that will be used to transform the data
-  repeated JobMapping mappings = 4 [(buf.validate.field).repeated.min_items = 1];
+  repeated JobMapping mappings = 4;
   // The source connection configuration
   JobSource source = 5;
   // The list of destinations that will be used to store the data
-  repeated CreateJobDestination destinations = 6 [(buf.validate.field).repeated.min_items = 1];
+  repeated CreateJobDestination destinations = 6;
   // Initially trigger a run of this job regardless of its status or cron schedule
   bool initiate_job_run = 7;
 
@@ -521,8 +532,70 @@ message CreateJobRequest {
   // The list of virtual foreign keys that will be used to further constrain the data ontop of the database defined constraints
   repeated VirtualForeignConstraint virtual_foreign_keys = 10;
 
+  // The type of job to create
+  optional JobTypeConfig job_type = 11;
+
   // Specify and job hooks that should be created
   // repeated NewJobHook hooks = 11;
+}
+
+// Specifies the job type along with any specific configuration for that job type
+message JobTypeConfig {
+  oneof job_type {
+    option (buf.validate.oneof).required = false; // false for backwards compatibility
+    JobTypeSync sync = 1; // This is the default if no job type is specified
+    JobTypePiiDetect pii_detect = 2;
+  }
+
+  // The configuration for a data sync job
+  message JobTypeSync {}
+
+  message JobTypePiiDetect {
+    // The configuration for data sampling
+    DataSampling data_sampling = 1;
+
+    // The configuration for filtering tables to scan
+    TableScanFilter table_scan_filter = 2;
+
+    // The user prompt to use for PII detection to help influence the LLM
+    optional string user_prompt = 3;
+
+    message DataSampling {
+      bool is_enabled = 1;
+    }
+
+    // Filter configuration for table scanning
+    message TableScanFilter {
+      oneof mode {
+        option (buf.validate.oneof).required = true;
+        // Include all tables (default behavior)
+        IncludeAll include_all = 1;
+        // Only include specified tables/schemas
+        TablePatterns include = 2;
+        // Include all except specified tables/schemas
+        TablePatterns exclude = 3;
+      }
+    }
+
+    // Configuration to include all tables
+    message IncludeAll {}
+
+    // Patterns for matching tables and schemas
+    message TablePatterns {
+      // Match entire schemas
+      repeated string schemas = 1;
+      // Match specific tables within schemas
+      repeated TableIdentifier tables = 2;
+    }
+
+    // Identifier for a specific table
+    message TableIdentifier {
+      // The schema name
+      string schema = 1 [(buf.validate.field).string.min_len = 1];
+      // The table name
+      string table = 2 [(buf.validate.field).string.min_len = 1];
+    }
+  }
 }
 
 // Config that contains various timeouts that are configured in the underlying temporal workflow
@@ -808,6 +881,9 @@ message Job {
 
   // Any virtual foreign keys that are configured as a part of this job
   repeated VirtualForeignConstraint virtual_foreign_keys = 14;
+
+  // The type of job
+  JobTypeConfig job_type = 15;
 }
 
 message JobRecentRun {

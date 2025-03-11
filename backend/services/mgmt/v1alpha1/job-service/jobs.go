@@ -2,6 +2,7 @@ package v1alpha1_jobservice
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -23,6 +24,7 @@ import (
 	job_util "github.com/nucleuscloud/neosync/internal/job"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
+	piidetect_job_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/job"
 
 	temporalclient "go.temporal.io/sdk/client"
 	"golang.org/x/sync/errgroup"
@@ -97,7 +99,11 @@ func (s *Service) GetJobs(
 	// Use jobIds to retain original query order
 	for _, jobId := range jobIds {
 		dbJob := jobMap[jobId]
-		dtos = append(dtos, dtomaps.ToJobDto(dbJob, associationMap[dbJob.ID]))
+		jobDto, err := dtomaps.ToJobDto(dbJob, associationMap[dbJob.ID])
+		if err != nil {
+			return nil, fmt.Errorf("unable to convert job to dto: %w", err)
+		}
+		dtos = append(dtos, jobDto)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{
@@ -150,8 +156,13 @@ func (s *Service) GetJob(
 		return nil, err
 	}
 
+	jobDto, err := dtomaps.ToJobDto(&dbJob, destConnections)
+	if err != nil {
+		return nil, fmt.Errorf("unable to convert job to dto: %w", err)
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-		Job: dtomaps.ToJobDto(&dbJob, destConnections),
+		Job: jobDto,
 	}), nil
 }
 
@@ -445,6 +456,16 @@ func (s *Service) CreateJob(
 		activitySyncOptions.FromDto(req.Msg.SyncOptions)
 	}
 
+	var jobtypeBits []byte
+	if req.Msg.GetJobType() != nil {
+		jobtypeBits, err = json.Marshal(req.Msg.GetJobType())
+		if err != nil {
+			return nil, fmt.Errorf("unable to marshal job type: %w", err)
+		}
+	} else {
+		jobtypeBits = []byte("{}")
+	}
+
 	cj, err := s.db.CreateJob(ctx, &db_queries.CreateJobParams{
 		Name:               req.Msg.JobName,
 		AccountID:          accountUuid,
@@ -457,6 +478,7 @@ func (s *Service) CreateJob(
 		UpdatedByID:        user.PgId(),
 		WorkflowOptions:    workflowOptions,
 		SyncOptions:        activitySyncOptions,
+		JobtypeConfig:      jobtypeBits,
 	}, connDestParams)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create job: %w", err)
@@ -476,12 +498,24 @@ func (s *Service) CreateJob(
 			paused = false
 		}
 	}
-	wf := &datasync_workflow.Workflow{}
-	action := &temporalclient.ScheduleWorkflowAction{
-		Workflow:  wf.Workflow,
-		TaskQueue: taskQueue,
-		Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
-		ID:        neosyncdb.UUIDString(cj.ID),
+	var action *temporalclient.ScheduleWorkflowAction
+
+	if req.Msg.GetJobType() == nil || req.Msg.GetJobType().GetSync() != nil {
+		syncWf := &datasync_workflow.Workflow{}
+		action = &temporalclient.ScheduleWorkflowAction{
+			Workflow:  syncWf.Workflow,
+			TaskQueue: taskQueue,
+			Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
+			ID:        neosyncdb.UUIDString(cj.ID),
+		}
+	} else if req.Msg.GetJobType().GetPiiDetect() != nil {
+		piiWf := &piidetect_job_workflow.Workflow{}
+		action = &temporalclient.ScheduleWorkflowAction{
+			Workflow:  piiWf.JobPiiDetect,
+			TaskQueue: taskQueue,
+			Args:      []any{&piidetect_job_workflow.PiiDetectRequest{JobId: jobUuid}},
+			ID:        neosyncdb.UUIDString(cj.ID),
+		}
 	}
 	if cj.WorkflowOptions != nil && cj.WorkflowOptions.RunTimeout != nil {
 		action.WorkflowRunTimeout = time.Duration(*cj.WorkflowOptions.RunTimeout)
@@ -526,8 +560,13 @@ func (s *Service) CreateJob(
 		logger.Error(fmt.Sprintf("unable to retrieve job destination connections: %s", err.Error()))
 	}
 
+	jobDto, err := dtomaps.ToJobDto(cj, destinationConnections)
+	if err != nil {
+		return nil, fmt.Errorf("unable to convert job to dto: %w", err)
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-		Job: dtomaps.ToJobDto(cj, destinationConnections),
+		Job: jobDto,
 	}), nil
 }
 

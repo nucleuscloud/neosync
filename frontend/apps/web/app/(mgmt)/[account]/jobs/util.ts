@@ -371,6 +371,12 @@ export function getCreateNewSyncJobRequest(
     ),
     workflowOptions: toWorkflowOptions(values.define.workflowSettings),
     syncOptions: toSyncOptions(values),
+    jobType: {
+      jobType: {
+        case: 'sync',
+        value: {},
+      },
+    },
   });
 }
 
