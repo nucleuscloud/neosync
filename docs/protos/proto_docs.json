@@ -11217,13 +11217,13 @@
             {
               "name": "job_type",
               "description": "The type of job to create",
-              "label": "",
+              "label": "optional",
               "type": "JobTypeConfig",
               "longType": "JobTypeConfig",
               "fullType": "mgmt.v1alpha1.JobTypeConfig",
               "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
+              "isoneof": true,
+              "oneofdecl": "_job_type",
               "defaultValue": ""
             }
           ]

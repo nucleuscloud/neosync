@@ -533,7 +533,7 @@ message CreateJobRequest {
   repeated VirtualForeignConstraint virtual_foreign_keys = 10;
 
   // The type of job to create
-  JobTypeConfig job_type = 11;
+  optional JobTypeConfig job_type = 11;
 
   // Specify and job hooks that should be created
   // repeated NewJobHook hooks = 11;

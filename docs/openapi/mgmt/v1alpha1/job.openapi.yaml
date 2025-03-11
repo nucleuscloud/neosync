@@ -684,13 +684,13 @@ components:
                 anyOf:
                   - required:
                       - cronSchedule
-      anyOf:
-        - required:
-            - cronSchedule
-        - not:
-            anyOf:
-              - required:
-                  - cronSchedule
+        - anyOf:
+            - required:
+                - jobType
+            - not:
+                anyOf:
+                  - required:
+                      - jobType
       properties:
         accountId:
           type: string

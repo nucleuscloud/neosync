@@ -456,9 +456,14 @@ func (s *Service) CreateJob(
 		activitySyncOptions.FromDto(req.Msg.SyncOptions)
 	}
 
-	jobtypeBits, err := json.Marshal(req.Msg.JobType)
-	if err != nil {
-		return nil, err
+	var jobtypeBits []byte
+	if req.Msg.GetJobType() != nil {
+		jobtypeBits, err = json.Marshal(req.Msg.GetJobType())
+		if err != nil {
+			return nil, fmt.Errorf("unable to marshal job type: %w", err)
+		}
+	} else {
+		jobtypeBits = []byte("{}")
 	}
 
 	cj, err := s.db.CreateJob(ctx, &db_queries.CreateJobParams{
@@ -557,7 +562,7 @@ func (s *Service) CreateJob(
 
 	jobDto, err := dtomaps.ToJobDto(cj, destinationConnections)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to convert job to dto: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{

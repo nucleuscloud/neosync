@@ -2,6 +2,7 @@ package dtomaps
 
 import (
 	"encoding/json"
+	"fmt"
 
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -41,10 +42,10 @@ func ToJobDto(
 	}
 
 	jobTypeConfig := &mgmtv1alpha1.JobTypeConfig{}
-	if inputJob.JobtypeConfig != nil {
+	if inputJob.JobtypeConfig != nil && string(inputJob.JobtypeConfig) != "{}" && string(inputJob.JobtypeConfig) != "null" {
 		err := json.Unmarshal(inputJob.JobtypeConfig, jobTypeConfig)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to unmarshal job type config: %w", err)
 		}
 	}
 
