@@ -1,6 +1,7 @@
 package workflow_shared
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -63,8 +64,8 @@ func HandleWorkflowEventLifecycle[T any](
 				Event: accounthook_events.NewEvent_JobRunFailed(accountId, jobId, runId),
 			},
 		)
-		if err := ensureChildSpawned(ctx, failedFuture, logger); err != nil {
-			return nil, err
+		if spawnErr := ensureChildSpawned(ctx, failedFuture, logger); spawnErr != nil {
+			return nil, errors.Join(err, spawnErr)
 		}
 		return nil, err
 	}
