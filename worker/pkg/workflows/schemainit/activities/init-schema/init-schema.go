@@ -73,12 +73,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		return &RunSqlInitTableStatementsResponse{}, nil
 	}
 
-	// sourcedb, err := b.sqlmanager.NewSqlConnection(ctx, session, sourceConnection, slogger)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("unable to create new sql db: %w", err)
-	// }
-	// defer sourcedb.Db().Close()
-
 	uniqueTables := shared.GetUniqueTablesMapFromJob(job)
 	uniqueSchemas := shared.GetUniqueSchemasFromJob(job)
 
