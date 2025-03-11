@@ -358,7 +358,7 @@ func serve(ctx context.Context) error {
 			neosynctyperegistry,
 		)
 
-		piidetect_workflow_register.Register(w, connclient, jobclient, openaiclient, conndatabuilder)
+		piidetect_workflow_register.Register(w, connclient, jobclient, openaiclient, conndatabuilder, cascadelicense)
 	}
 
 	if err := w.Start(); err != nil {

@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/internal/testutil"
+	accounthook_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow"
 	piidetect_job_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/job/activities"
 	piidetect_table_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table"
 	"github.com/stretchr/testify/assert"
@@ -24,14 +26,16 @@ func Test_JobPiiDetect(t *testing.T) {
 		env := ts.NewTestWorkflowEnvironment()
 
 		// Register workflow
-		wf := New()
+		wf := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 		env.RegisterWorkflow(wf.JobPiiDetect)
 
 		// Register child workflow
 		tableWf := piidetect_table_workflow.New()
 		env.RegisterWorkflow(tableWf.TablePiiDetect)
 
-		// Mock activities
+		env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+			Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil).Twice()
+
 		var activities *piidetect_job_activities.Activities
 
 		// Setup GetPiiDetectJobDetails activity expectations
@@ -106,10 +110,13 @@ func Test_JobPiiDetect(t *testing.T) {
 		var ts testsuite.WorkflowTestSuite
 		env := ts.NewTestWorkflowEnvironment()
 
-		wf := New()
+		wf := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 		env.RegisterWorkflow(wf.JobPiiDetect)
 		tableWf := piidetect_table_workflow.New()
 		env.RegisterWorkflow(tableWf.TablePiiDetect)
+
+		env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+			Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil).Twice()
 
 		var activities *piidetect_job_activities.Activities
 
@@ -176,8 +183,11 @@ func Test_JobPiiDetect(t *testing.T) {
 		var ts testsuite.WorkflowTestSuite
 		env := ts.NewTestWorkflowEnvironment()
 
-		wf := New()
+		wf := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 		env.RegisterWorkflow(wf.JobPiiDetect)
+
+		env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+			Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil).Never()
 
 		var activities *piidetect_job_activities.Activities
 
@@ -200,10 +210,13 @@ func Test_JobPiiDetect(t *testing.T) {
 		var ts testsuite.WorkflowTestSuite
 		env := ts.NewTestWorkflowEnvironment()
 
-		wf := New()
+		wf := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
 		env.RegisterWorkflow(wf.JobPiiDetect)
 		tableWf := piidetect_table_workflow.New()
 		env.RegisterWorkflow(tableWf.TablePiiDetect)
+
+		env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+			Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil).Twice()
 
 		var activities *piidetect_job_activities.Activities
 
@@ -259,35 +272,4 @@ func Test_JobPiiDetect(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Equal(t, expectedJobKey, result.ReportKey)
 	})
-}
-
-func Test_sanitizeWorkflowID(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected string
-	}{
-		{
-			name:     "replaces special characters",
-			input:    "public.users@123",
-			expected: "public_users_123",
-		},
-		{
-			name:     "keeps valid characters",
-			input:    "public-users-123",
-			expected: "public-users-123",
-		},
-		{
-			name:     "handles empty string",
-			input:    "",
-			expected: "",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := sanitizeWorkflowID(tt.input)
-			assert.Equal(t, tt.expected, result)
-		})
-	}
 }
