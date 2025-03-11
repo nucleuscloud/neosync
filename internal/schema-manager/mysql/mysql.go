@@ -36,7 +36,6 @@ func NewMysqlSchemaManager(
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-	defer sourcedb.Db().Close()
 
 	destdb, err := sqlmanagerclient.NewSqlConnection(ctx, session, destinationConnection, logger)
 	if err != nil {
@@ -120,5 +119,6 @@ func (d *MysqlSchemaManager) TruncateData(ctx context.Context, uniqueTables map[
 }
 
 func (d *MysqlSchemaManager) CloseConnections() {
+	d.sourcedb.Db().Close()
 	d.destdb.Db().Close()
 }
