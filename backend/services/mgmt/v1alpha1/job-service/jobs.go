@@ -101,7 +101,7 @@ func (s *Service) GetJobs(
 		dbJob := jobMap[jobId]
 		jobDto, err := dtomaps.ToJobDto(dbJob, associationMap[dbJob.ID])
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to convert job to dto: %w", err)
 		}
 		dtos = append(dtos, jobDto)
 	}
@@ -158,7 +158,7 @@ func (s *Service) GetJob(
 
 	jobDto, err := dtomaps.ToJobDto(&dbJob, destConnections)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to convert job to dto: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
