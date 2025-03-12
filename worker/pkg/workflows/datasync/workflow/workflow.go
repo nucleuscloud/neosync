@@ -426,9 +426,10 @@ func runSchemaInitWorkflowByDestination(
 		logger.Info("scheduling Schema Initialization workflow for execution.", "destinationId", destinationId)
 		siWf := &schemainit_workflow.Workflow{}
 		var wfResult schemainit_workflow.SchemaInitResponse
+		id := fmt.Sprintf("init-schema-%s", destinationId)
 		err := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-			WorkflowID:    workflow_shared.BuildChildWorkflowId(jobRunId, "init-schema", workflow.Now(ctx)),
-			StaticSummary: "Initializing Schema",
+			WorkflowID:    workflow_shared.BuildChildWorkflowId(jobRunId, id, workflow.Now(ctx)),
+			StaticSummary: fmt.Sprintf("Initializing Schema for %s", destinationId),
 			RetryPolicy: &temporal.RetryPolicy{
 				MaximumAttempts: 1,
 			},
