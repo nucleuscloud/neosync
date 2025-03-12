@@ -233,7 +233,7 @@ export default function Page(props: PageProps): ReactElement {
                     name="workflowSettings.runTimeout"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel> Job Run Timeout</FormLabel>
+                        <FormLabel>Job Run Timeout</FormLabel>
                         <FormDescription>
                           The maximum length of time (in minutes) that a single
                           job run is allowed to span before it times out.{' '}
