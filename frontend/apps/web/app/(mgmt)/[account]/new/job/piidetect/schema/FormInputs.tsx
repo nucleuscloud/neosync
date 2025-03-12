@@ -37,13 +37,12 @@ interface SourceConnectionIdProps {
   error?: string;
   value: string;
   onChange(value: string): void;
-  isDisabled?: boolean;
 }
 
 export function SourceConnectionId(
   props: SourceConnectionIdProps
 ): ReactElement {
-  const { error, value, onChange, isDisabled } = props;
+  const { error, value, onChange } = props;
 
   const { account } = useAccount();
   const {
@@ -81,7 +80,6 @@ export function SourceConnectionId(
           }
           onChange(value);
         }}
-        disabled={isDisabled}
       >
         <SelectTrigger>
           <SelectValue placeholder="Select a source connection" />

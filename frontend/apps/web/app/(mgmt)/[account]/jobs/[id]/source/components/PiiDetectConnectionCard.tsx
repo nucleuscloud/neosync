@@ -170,9 +170,20 @@ export default function PiiDetectConnectionCard({
     <form onSubmit={onSubmit} className="space-y-6">
       <SourceConnectionId
         value={formData.sourceId}
-        onChange={(value) => setFormData({ ...formData, sourceId: value })}
+        onChange={(value) =>
+          setFormData({
+            ...formData,
+            sourceId: value,
+            tableScanFilter: {
+              ...formData.tableScanFilter,
+              patterns: {
+                schemas: [],
+                tables: [],
+              },
+            },
+          })
+        }
         error={errors['sourceId']}
-        isDisabled={true}
       />
       <UserPrompt
         value={formData.userPrompt ?? ''}
