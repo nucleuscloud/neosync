@@ -12,108 +12,33 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { cn } from '@/libs/utils';
 import { MagicWandIcon, SymbolIcon } from '@radix-ui/react-icons';
 import { nanoid } from 'nanoid';
 import { useTheme } from 'next-themes';
 import Image from 'next/image';
-import { useRouter, useSearchParams } from 'next/navigation';
+import {
+  ReadonlyURLSearchParams,
+  useRouter,
+  useSearchParams,
+} from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, use, useEffect, useState } from 'react';
+import { ReactElement, ReactNode, use, useEffect, useState } from 'react';
 import { AiOutlineExperiment } from 'react-icons/ai';
 import { NewJobType } from './job-form-validations';
 
 export default function NewJob(props: PageProps): ReactElement {
   const params = use(props.params);
-  const [sessionToken, setSessionToken] = useState<string>('');
   const searchParams = useSearchParams();
   const { account } = useAccount();
 
-  useEffect(() => {
-    // Generate the session token only on the client side
-    setSessionToken(params?.sessionId ?? nanoid());
-  }, []);
-
-  const dataSyncParams = new URLSearchParams(searchParams);
-  dataSyncParams.set('jobType', 'data-sync');
-  if (!dataSyncParams.has('sessionId')) {
-    dataSyncParams.set('sessionId', sessionToken);
-  }
-
-  const dataGenParams = new URLSearchParams(searchParams);
-  dataGenParams.set('jobType', 'generate-table');
-  if (!dataGenParams.has('sessionId')) {
-    dataGenParams.set('sessionId', sessionToken);
-  }
-
-  const aiDataGenParams = new URLSearchParams(searchParams);
-  aiDataGenParams.set('jobType', 'ai-generate-table');
-  if (!aiDataGenParams.has('sessionId')) {
-    aiDataGenParams.set('sessionId', sessionToken);
-  }
-
-  const piiDetectionParams = new URLSearchParams(searchParams);
-  piiDetectionParams.set('jobType', 'pii-detection');
-  if (!piiDetectionParams.has('sessionId')) {
-    piiDetectionParams.set('sessionId', sessionToken);
-  }
-
-  const jobData = [
-    {
-      name: 'Data Synchronization',
-      description:
-        'Synchronize and anonymize data between a source and destination. ',
-      href: `/${account?.name}/new/job/define?${dataSyncParams.toString()}`,
-      icon: <SymbolIcon />,
-      type: 'data-sync',
-      experimental: false,
-      lightModeimage:
-        'https://assets.nucleuscloud.com/neosync/app/jobsynclight.svg',
-      darkModeImage:
-        'https://assets.nucleuscloud.com/neosync/app/prodsync-dark.svg',
-    },
-    {
-      name: 'Data Generation',
-      description:
-        'Generate synthetic data from scratch for a chosen destination.',
-      href: `/${account?.name}/new/job/define?${dataGenParams.toString()}`,
-      icon: <AiOutlineExperiment />,
-      type: 'generate-table',
-      experimental: false,
-      lightModeimage:
-        'https://assets.nucleuscloud.com/neosync/app/gen-light.svg',
-      darkModeImage:
-        'https://assets.nucleuscloud.com/neosync/app/datagen-dark.svg',
-    },
-    {
-      name: 'AI Data Generation',
-      description: 'Generate synthetic data from scratch with AI.',
-      href: `/${account?.name}/new/job/define?${aiDataGenParams.toString()}`,
-      icon: <MagicWandIcon />,
-      type: 'ai-generate-table',
-      experimental: true,
-      lightModeimage: 'https://assets.nucleuscloud.com/neosync/app/aigen.svg',
-      darkModeImage:
-        'https://assets.nucleuscloud.com/neosync/app/aigen-dark.svg',
-    },
-    {
-      name: 'PII Detection',
-      description:
-        'Scan your database for PII and sensitive data to identify security risks.',
-      href: `/${account?.name}/new/job/define?${piiDetectionParams.toString()}`,
-      icon: <MagicWandIcon />,
-      type: 'pii-detection',
-      experimental: true,
-      lightModeimage: 'https://assets.nucleuscloud.com/neosync/app/aigen.svg',
-      darkModeImage:
-        'https://assets.nucleuscloud.com/neosync/app/aigen-dark.svg',
-    },
-  ] as const;
+  const jobData = useGetJobData(params, searchParams);
 
   const [selectedJobType, setSelectedJobType] =
     useState<NewJobType>('data-sync');
 
-  const [href, setHref] = useState<string>();
+  const [href, setHref] = useState<string | undefined>();
 
   const handleJobSelection = (jobType: NewJobType, href: string) => {
     setSelectedJobType(jobType);
@@ -122,7 +47,6 @@ export default function NewJob(props: PageProps): ReactElement {
 
   const router = useRouter();
   const posthog = usePostHog();
-
   const theme = useTheme();
 
   return (
@@ -150,11 +74,7 @@ export default function NewJob(props: PageProps): ReactElement {
                 <div className="flex flex-col items-center text-left">
                   <div className="relative">
                     <Image
-                      src={
-                        theme.resolvedTheme == 'light'
-                          ? jd.lightModeimage
-                          : jd.darkModeImage
-                      }
+                      src={jd.image}
                       alt="image"
                       width="200"
                       height="200"
@@ -205,12 +125,12 @@ export default function NewJob(props: PageProps): ReactElement {
         </Button>
         <Button
           type="submit"
-          disabled={!selectedJobType}
+          disabled={!selectedJobType || !href}
           onClick={() => {
-            router.push(
-              href ??
-                `/${account?.name}/new/job/define?${dataSyncParams.toString()}`
-            );
+            if (!href) {
+              return;
+            }
+            router.push(href);
             posthog.capture('New Job Flow Started', {
               jobType: selectedJobType,
             });
@@ -221,4 +141,111 @@ export default function NewJob(props: PageProps): ReactElement {
       </div>
     </div>
   );
+}
+
+interface JobData {
+  name: string;
+  description: string;
+  href: string;
+  icon: ReactNode;
+  type: NewJobType;
+  experimental: boolean;
+  image: string;
+}
+
+function useGetJobData(
+  params: Record<string, string>,
+  searchParams: ReadonlyURLSearchParams
+): JobData[] {
+  const [sessionToken, setSessionToken] = useState<string>('');
+  const { account } = useAccount();
+  const { data: systemAppConfig } = useGetSystemAppConfig();
+  const { resolvedTheme } = useTheme();
+
+  useEffect(() => {
+    // Generate the session token only on the client side
+    setSessionToken(params?.sessionId ?? nanoid());
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const dataSyncParams = new URLSearchParams(searchParams);
+  dataSyncParams.set('jobType', 'data-sync');
+  if (!dataSyncParams.has('sessionId')) {
+    dataSyncParams.set('sessionId', sessionToken);
+  }
+
+  const dataGenParams = new URLSearchParams(searchParams);
+  dataGenParams.set('jobType', 'generate-table');
+  if (!dataGenParams.has('sessionId')) {
+    dataGenParams.set('sessionId', sessionToken);
+  }
+
+  const aiDataGenParams = new URLSearchParams(searchParams);
+  aiDataGenParams.set('jobType', 'ai-generate-table');
+  if (!aiDataGenParams.has('sessionId')) {
+    aiDataGenParams.set('sessionId', sessionToken);
+  }
+
+  const piiDetectionParams = new URLSearchParams(searchParams);
+  piiDetectionParams.set('jobType', 'pii-detection');
+  if (!piiDetectionParams.has('sessionId')) {
+    piiDetectionParams.set('sessionId', sessionToken);
+  }
+  const jobData: JobData[] = [
+    {
+      name: 'Data Synchronization',
+      description:
+        'Synchronize and anonymize data between a source and destination. ',
+      href: `/${account?.name}/new/job/define?${dataSyncParams.toString()}`,
+      icon: <SymbolIcon />,
+      type: 'data-sync',
+      experimental: false,
+      image:
+        resolvedTheme === 'light'
+          ? 'https://assets.nucleuscloud.com/neosync/app/jobsynclight.svg'
+          : 'https://assets.nucleuscloud.com/neosync/app/prodsync-dark.svg',
+    },
+    {
+      name: 'Data Generation',
+      description:
+        'Generate synthetic data from scratch for a chosen destination.',
+      href: `/${account?.name}/new/job/define?${dataGenParams.toString()}`,
+      icon: <AiOutlineExperiment />,
+      type: 'generate-table',
+      experimental: false,
+      image:
+        resolvedTheme === 'light'
+          ? 'https://assets.nucleuscloud.com/neosync/app/gen-light.svg'
+          : 'https://assets.nucleuscloud.com/neosync/app/datagen-dark.svg',
+    },
+    {
+      name: 'AI Data Generation',
+      description: 'Generate synthetic data from scratch with AI.',
+      href: `/${account?.name}/new/job/define?${aiDataGenParams.toString()}`,
+      icon: <MagicWandIcon />,
+      type: 'ai-generate-table',
+      experimental: true,
+      image:
+        resolvedTheme === 'light'
+          ? 'https://assets.nucleuscloud.com/neosync/app/aigen.svg'
+          : 'https://assets.nucleuscloud.com/neosync/app/aigen-dark.svg',
+    },
+  ];
+
+  if (systemAppConfig?.isPiiDetectionJobEnabled) {
+    jobData.push({
+      name: 'PII Detection',
+      description:
+        'Scan your database for PII and sensitive data to identify security risks.',
+      href: `/${account?.name}/new/job/define?${piiDetectionParams.toString()}`,
+      icon: <MagicWandIcon />,
+      type: 'pii-detection',
+      experimental: true,
+      image:
+        resolvedTheme === 'light'
+          ? 'https://assets.nucleuscloud.com/neosync/app/aigen.svg'
+          : 'https://assets.nucleuscloud.com/neosync/app/aigen-dark.svg',
+    });
+  }
+
+  return jobData;
 }
