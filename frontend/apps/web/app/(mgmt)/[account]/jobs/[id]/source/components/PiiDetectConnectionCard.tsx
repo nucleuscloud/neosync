@@ -1,24 +1,36 @@
 import {
+  EditPiiDetectionJobFormValues,
   FilterPatternTableIdentifier,
-  PiiDetectionSchemaFormValues,
 } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import {
   DataSampling,
+  SourceConnectionId,
   TableScanFilterMode,
   TableScanFilterPatterns,
   UserPrompt,
 } from '@/app/(mgmt)/[account]/new/job/piidetect/schema/FormInputs';
-import { usePiiDetectionSchemaStore } from '@/app/(mgmt)/[account]/new/job/piidetect/schema/stores';
+import { useEditPiiDetectionSchemaStore } from '@/app/(mgmt)/[account]/new/job/piidetect/schema/stores';
 import ButtonText from '@/components/ButtonText';
+import { useAccount } from '@/components/providers/account-provider';
 import Spinner from '@/components/Spinner';
 import { Button } from '@/components/ui/button';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { ConnectionDataService, JobService } from '@neosync/sdk';
-import { FormEvent, ReactElement, useEffect, useMemo } from 'react';
+import {
+  Connection,
+  ConnectionDataService,
+  ConnectionService,
+  JobService,
+} from '@neosync/sdk';
+import {
+  FormEvent,
+  ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+} from 'react';
 import { toast } from 'sonner';
 import { ValidationError } from 'yup';
-import { toPiiDetectJobTypeConfig } from '../../../util';
-import { getConnectionIdFromSource } from './util';
+import { toJobSource, toPiiDetectJobTypeConfig } from '../../../util';
 
 interface Props {
   jobId: string;
@@ -32,11 +44,21 @@ export default function PiiDetectConnectionCard({
     refetch: mutate,
     isLoading: isJobDataLoading,
   } = useQuery(JobService.method.getJob, { id: jobId }, { enabled: !!jobId });
-  const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
 
   const { mutateAsync: updateJobSourceConnection } = useMutation(
     JobService.method.updateJobSourceConnection
   );
+
+  const {
+    formData,
+    setFormData,
+    errors,
+    setErrors,
+    isSubmitting,
+    setSubmitting,
+    sourcedFromRemote,
+    setFromRemoteJob: setFromRemote,
+  } = useEditPiiDetectionSchemaStore();
 
   const {
     data: connectionSchemaDataResp,
@@ -44,8 +66,8 @@ export default function PiiDetectConnectionCard({
     isFetching,
   } = useQuery(
     ConnectionDataService.method.getConnectionSchema,
-    { connectionId: sourceConnectionId },
-    { enabled: !!sourceConnectionId }
+    { connectionId: formData.sourceId },
+    { enabled: !!formData.sourceId }
   );
 
   const availableSchemas = useMemo(() => {
@@ -76,23 +98,14 @@ export default function PiiDetectConnectionCard({
     return Array.from(uniqueTableIdentifiers.values());
   }, [connectionSchemaDataResp, isPending, isFetching]);
 
-  const {
-    formData,
-    setFormData,
-    errors,
-    setErrors,
-    isSubmitting,
-    setSubmitting,
-    sourcedFromRemote,
-    setFromRemoteJob: setFromRemote,
-  } = usePiiDetectionSchemaStore();
-
   useEffect(() => {
     if (sourcedFromRemote || isJobDataLoading || !data?.job) {
       return;
     }
     setFromRemote(data.job);
   }, [sourcedFromRemote, isJobDataLoading, data?.job, setFromRemote]);
+
+  const getConnectionById = useGetConnectionById();
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -105,7 +118,7 @@ export default function PiiDetectConnectionCard({
       setSubmitting(true);
       setErrors({});
 
-      const validatedData = await PiiDetectionSchemaFormValues.validate(
+      const validatedData = await EditPiiDetectionJobFormValues.validate(
         formData,
         {
           abortEarly: false,
@@ -116,7 +129,16 @@ export default function PiiDetectConnectionCard({
         id: job.id,
         mappings: [],
         virtualForeignKeys: [],
-        source: job.source,
+        source: toJobSource(
+          {
+            connect: {
+              destinations: [],
+              sourceId: validatedData.sourceId,
+              sourceOptions: {},
+            },
+          },
+          getConnectionById
+        ),
         jobType: {
           jobType: {
             case: 'piiDetect',
@@ -146,6 +168,12 @@ export default function PiiDetectConnectionCard({
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
+      <SourceConnectionId
+        value={formData.sourceId}
+        onChange={(value) => setFormData({ ...formData, sourceId: value })}
+        error={errors['sourceId']}
+        isDisabled={true}
+      />
       <UserPrompt
         value={formData.userPrompt ?? ''}
         onChange={(value) => setFormData({ ...formData, userPrompt: value })}
@@ -197,4 +225,38 @@ export default function PiiDetectConnectionCard({
       </div>
     </form>
   );
+}
+
+function useGetConnectionById(): (id: string) => Connection | undefined {
+  const connectionsRecord = useGetConnectionsRecord();
+  return useCallback(
+    (id: string) => connectionsRecord[id],
+    [connectionsRecord]
+  );
+}
+
+function useGetConnectionsRecord(): Record<string, Connection | undefined> {
+  const { account } = useAccount();
+  const {
+    data: connectionsData,
+    isLoading,
+    isPending,
+  } = useQuery(
+    ConnectionService.method.getConnections,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
+  return useMemo(() => {
+    if (isLoading || isPending || !connectionsData) {
+      return {};
+    }
+    const connections = connectionsData?.connections ?? [];
+    return connections.reduce(
+      (record, conn) => {
+        record[conn.id] = conn;
+        return record;
+      },
+      {} as Record<string, Connection | undefined>
+    );
+  }, [connectionsData, isLoading, isPending]);
 }

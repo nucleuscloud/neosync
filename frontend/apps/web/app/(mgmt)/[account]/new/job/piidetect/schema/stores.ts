@@ -1,7 +1,9 @@
+import { getConnectionIdFromSource } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
 import { BaseHookStore } from '@/util/zustand.stores.util';
 import { Job } from '@neosync/sdk';
 import { create } from 'zustand';
 import {
+  EditPiiDetectionJobFormValues,
   PiiDetectionSchemaFormValues,
   TableScanFilterFormValue,
 } from '../../job-form-validations';
@@ -19,6 +21,13 @@ function getInitialFormState(): PiiDetectionSchemaFormValues {
       },
     },
     userPrompt: '',
+  };
+}
+
+function getInitialEditFormState(): EditPiiDetectionJobFormValues {
+  return {
+    ...getInitialFormState(),
+    sourceId: '',
   };
 }
 
@@ -54,6 +63,45 @@ export const usePiiDetectionSchemaStore = create<PiiDetectionSchemaStore>(
       }),
   })
 );
+
+interface EditPiiDetectionSchemaStore
+  extends BaseHookStore<EditPiiDetectionJobFormValues> {
+  sourcedFromRemote: boolean;
+  setFromRemoteJob(job: Job): void;
+}
+
+export const useEditPiiDetectionSchemaStore =
+  create<EditPiiDetectionSchemaStore>((set) => ({
+    formData: getInitialEditFormState(),
+    errors: {},
+    isSubmitting: false,
+    sourcedFromRemote: false,
+    setFromRemoteJob: (job) =>
+      set({
+        formData: getEditFormStateFromJob(job),
+        sourcedFromRemote: true,
+        isSubmitting: false,
+        errors: {},
+      }),
+    setFormData: (data) =>
+      set((state) => ({ formData: { ...state.formData, ...data } })),
+    setErrors: (errors) => set({ errors }),
+    setSubmitting: (isSubmitting) => set({ isSubmitting }),
+    resetForm: () =>
+      set({
+        formData: getInitialEditFormState(),
+        errors: {},
+        isSubmitting: false,
+        sourcedFromRemote: false,
+      }),
+  }));
+
+function getEditFormStateFromJob(job: Job): EditPiiDetectionJobFormValues {
+  return {
+    ...getFormStateFromJob(job),
+    sourceId: getConnectionIdFromSource(job.source) ?? '',
+  };
+}
 
 function getFormStateFromJob(job: Job): PiiDetectionSchemaFormValues {
   if (!job || job.jobType?.jobType.case !== 'piiDetect') {

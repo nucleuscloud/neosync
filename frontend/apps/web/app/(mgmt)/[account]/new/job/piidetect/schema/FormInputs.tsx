@@ -4,6 +4,7 @@ import DualListBox, {
 } from '@/components/DualListBox/DualListBox';
 import FormErrorMessage from '@/components/FormErrorMessage';
 import FormHeader from '@/components/forms/FormHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import {
   Card,
   CardContent,
@@ -11,16 +12,92 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { splitConnections } from '@/libs/utils';
+import { useQuery } from '@connectrpc/connect-query';
+import { ConnectionService } from '@neosync/sdk';
 import { TableIcon } from '@radix-ui/react-icons';
 import { ReactElement, useCallback, useMemo } from 'react';
+import ConnectionSelectContent from '../../connect/ConnectionSelectContent';
 import {
   DataSamplingFormValue,
   FilterPatternTableIdentifier,
   TableScanFilterModeFormValue,
   TableScanFilterPatternsFormValue,
 } from '../../job-form-validations';
+
+interface SourceConnectionIdProps {
+  error?: string;
+  value: string;
+  onChange(value: string): void;
+  isDisabled?: boolean;
+}
+
+export function SourceConnectionId(
+  props: SourceConnectionIdProps
+): ReactElement {
+  const { error, value, onChange, isDisabled } = props;
+
+  const { account } = useAccount();
+  const {
+    data: connectionsResp,
+    isLoading,
+    isPending,
+  } = useQuery(
+    ConnectionService.method.getConnections,
+    {
+      accountId: account?.id,
+    },
+    { enabled: !!account?.id }
+  );
+
+  const connections = useMemo(() => {
+    if (isLoading || isPending || !connectionsResp) {
+      return { postgres: [], mysql: [], mssql: [] };
+    }
+    return splitConnections(connectionsResp.connections);
+  }, [connectionsResp, isLoading, isPending]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <FormHeader
+        title="Connection"
+        description="The connection to use for the PII detection job."
+        isErrored={!!error}
+        labelClassName="text-lg"
+      />
+      <Select
+        value={value}
+        onValueChange={(value) => {
+          if (!value) {
+            return;
+          }
+          onChange(value);
+        }}
+        disabled={isDisabled}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select a source connection" />
+        </SelectTrigger>
+        <SelectContent>
+          <ConnectionSelectContent
+            postgres={connections.postgres}
+            mysql={connections.mysql}
+            mssql={connections.mssql}
+          />
+        </SelectContent>
+      </Select>
+      <FormErrorMessage message={error} />
+    </div>
+  );
+}
 
 interface UserPromptProps {
   error?: string;
