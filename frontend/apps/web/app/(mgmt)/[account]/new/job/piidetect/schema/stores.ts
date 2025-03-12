@@ -35,7 +35,12 @@ export const usePiiDetectionSchemaStore = create<PiiDetectionSchemaStore>(
     isSubmitting: false,
     sourcedFromRemote: false,
     setFromRemoteJob: (job) =>
-      set({ formData: getFormStateFromJob(job), sourcedFromRemote: true }),
+      set({
+        formData: getFormStateFromJob(job),
+        sourcedFromRemote: true,
+        isSubmitting: false,
+        errors: {},
+      }),
     setFormData: (data) =>
       set((state) => ({ formData: { ...state.formData, ...data } })),
     setErrors: (errors) => set({ errors }),

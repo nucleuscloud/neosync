@@ -5591,6 +5591,11 @@ components:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
           description: The new list of virtual foreign keys that will be used to further constrain the data ontop of the database defined constraints
+        jobType:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig'
+          title: job_type
+          description: The new job type configuration
       title: UpdateJobSourceConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.UpdateJobSourceConnectionResponse:

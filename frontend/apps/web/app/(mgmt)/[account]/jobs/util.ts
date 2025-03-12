@@ -423,7 +423,7 @@ export function getCreateNewPiiDetectJobRequest(
   });
 }
 
-function toPiiDetectJobTypeConfig(
+export function toPiiDetectJobTypeConfig(
   values: PiiDetectionSchemaFormValues
 ): JobTypeConfig_JobTypePiiDetect {
   return create(JobTypeConfig_JobTypePiiDetectSchema, {

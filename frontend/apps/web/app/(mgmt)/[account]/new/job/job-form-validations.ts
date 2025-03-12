@@ -353,10 +353,13 @@ export type TableScanFilterFormValue = Yup.InferType<
   typeof TableScanFilterFormValue
 >;
 
+const DataSamplingFormValue = Yup.object().shape({
+  isEnabled: Yup.boolean().required().default(true),
+});
+export type DataSamplingFormValue = Yup.InferType<typeof DataSamplingFormValue>;
+
 export const PiiDetectionSchemaFormValues = Yup.object().shape({
-  dataSampling: Yup.object().shape({
-    isEnabled: Yup.boolean().required().default(true),
-  }),
+  dataSampling: DataSamplingFormValue,
   tableScanFilter: TableScanFilterFormValue,
   userPrompt: Yup.string(),
 });

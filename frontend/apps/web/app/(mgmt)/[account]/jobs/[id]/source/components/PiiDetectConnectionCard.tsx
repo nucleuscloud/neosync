@@ -1,4 +1,7 @@
-import { FilterPatternTableIdentifier } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
+import {
+  FilterPatternTableIdentifier,
+  PiiDetectionSchemaFormValues,
+} from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import {
   DataSampling,
   TableScanFilterMode,
@@ -7,17 +10,14 @@ import {
 } from '@/app/(mgmt)/[account]/new/job/piidetect/schema/FormInputs';
 import { usePiiDetectionSchemaStore } from '@/app/(mgmt)/[account]/new/job/piidetect/schema/stores';
 import ButtonText from '@/components/ButtonText';
-import { useAccount } from '@/components/providers/account-provider';
 import Spinner from '@/components/Spinner';
 import { Button } from '@/components/ui/button';
-import { useQuery } from '@connectrpc/connect-query';
-import {
-  Connection,
-  ConnectionDataService,
-  ConnectionService,
-  JobService,
-} from '@neosync/sdk';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { ConnectionDataService, JobService } from '@neosync/sdk';
 import { FormEvent, ReactElement, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
+import { ValidationError } from 'yup';
+import { toPiiDetectJobTypeConfig } from '../../../util';
 import { getConnectionIdFromSource } from './util';
 
 interface Props {
@@ -27,7 +27,6 @@ interface Props {
 export default function PiiDetectConnectionCard({
   jobId,
 }: Props): ReactElement {
-  const { account } = useAccount();
   const {
     data,
     refetch: mutate,
@@ -35,18 +34,8 @@ export default function PiiDetectConnectionCard({
   } = useQuery(JobService.method.getJob, { id: jobId }, { enabled: !!jobId });
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
 
-  const { data: connectionsData } = useQuery(
-    ConnectionService.method.getConnections,
-    { accountId: account?.id },
-    { enabled: !!account?.id }
-  );
-  const connections = connectionsData?.connections ?? [];
-  const connectionsRecord = connections.reduce(
-    (record, conn) => {
-      record[conn.id] = conn;
-      return record;
-    },
-    {} as Record<string, Connection | undefined>
+  const { mutateAsync: updateJobSourceConnection } = useMutation(
+    JobService.method.updateJobSourceConnection
   );
 
   const {
@@ -107,11 +96,52 @@ export default function PiiDetectConnectionCard({
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (isSubmitting) {
+    const job = data?.job;
+    if (isSubmitting || !job) {
       return;
     }
 
-    // todo
+    try {
+      setSubmitting(true);
+      setErrors({});
+
+      const validatedData = await PiiDetectionSchemaFormValues.validate(
+        formData,
+        {
+          abortEarly: false,
+        }
+      );
+
+      await updateJobSourceConnection({
+        id: job.id,
+        mappings: [],
+        virtualForeignKeys: [],
+        source: job.source,
+        jobType: {
+          jobType: {
+            case: 'piiDetect',
+            value: toPiiDetectJobTypeConfig(validatedData),
+          },
+        },
+      });
+      toast.success('Successfully updated source connection!');
+      const updatedJobResp = await mutate();
+      if (updatedJobResp.data?.job) {
+        setFromRemote(updatedJobResp.data?.job);
+      }
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        const validationErrors: Record<string, string> = {};
+        err.inner.forEach((error) => {
+          if (error.path) {
+            validationErrors[error.path] = error.message;
+          }
+        });
+        setErrors(validationErrors);
+      }
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (

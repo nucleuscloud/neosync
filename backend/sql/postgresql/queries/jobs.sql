@@ -70,6 +70,13 @@ updated_by_id = $2
 WHERE id = $3
 RETURNING *;
 
+-- name: UpdateJobTypeConfig :one
+UPDATE neosync_api.jobs
+SET jobtype_config = $1,
+updated_by_id = $2
+WHERE id = $3
+RETURNING *;
+
 -- name: IsJobNameAvailable :one
 SELECT count(j.id) from neosync_api.jobs j
 INNER JOIN neosync_api.accounts a ON a.id = j.account_id
