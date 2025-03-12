@@ -40,6 +40,7 @@ func (w *Workflow) SchemaInit(ctx workflow.Context, req *SchemaInitRequest) (*Sc
 		initSchema.RunSqlInitTableStatements,
 		&initschema_activity.RunSqlInitTableStatementsRequest{
 			JobId:         req.JobId,
+			JobRunId:      req.JobRunId,
 			DestinationId: req.DestinationId,
 		}).
 		Get(ctx, &resp)

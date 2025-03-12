@@ -38,6 +38,7 @@ func New(
 
 type RunSqlInitTableStatementsRequest struct {
 	JobId         string
+	JobRunId      string
 	DestinationId string
 }
 
@@ -72,7 +73,7 @@ func (a *Activity) RunSqlInitTableStatements(
 		a.jobclient,
 		a.connclient,
 		a.eelicense,
-		info.WorkflowExecution.ID,
+		req.JobRunId,
 	)
 	slogger := temporallogger.NewSlogger(logger)
 	return builder.RunSqlInitTableStatements(

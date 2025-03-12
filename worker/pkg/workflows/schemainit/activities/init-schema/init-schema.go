@@ -22,7 +22,7 @@ type initStatementBuilder struct {
 	jobclient  mgmtv1alpha1connect.JobServiceClient
 	connclient mgmtv1alpha1connect.ConnectionServiceClient
 	eelicense  license.EEInterface
-	workflowId string
+	jobRunId   string
 }
 
 func newInitStatementBuilder(
@@ -30,14 +30,14 @@ func newInitStatementBuilder(
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	eelicense license.EEInterface,
-	workflowId string,
+	jobRunId string,
 ) *initStatementBuilder {
 	return &initStatementBuilder{
 		sqlmanager: sqlmanagerclient,
 		jobclient:  jobclient,
 		connclient: connclient,
 		eelicense:  eelicense,
-		workflowId: workflowId,
+		jobRunId:   jobRunId,
 	}
 }
 
@@ -127,14 +127,16 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			return nil, fmt.Errorf("unable to initialize schema: %w", err)
 		}
 
-		initSchemaRunContext = append(initSchemaRunContext, &InitSchemaRunContext{
-			ConnectionId: destination.GetConnectionId(),
-			Errors:       initSchemaErrors,
-		})
+		if len(initSchemaErrors) > 0 {
+			initSchemaRunContext = append(initSchemaRunContext, &InitSchemaRunContext{
+				ConnectionId: destination.GetConnectionId(),
+				Errors:       initSchemaErrors,
+			})
 
-		err = b.setInitSchemaRunCtx(ctx, initSchemaRunContext, job.AccountId)
-		if err != nil {
-			return nil, err
+			err = b.setInitSchemaRunCtx(ctx, initSchemaRunContext, job.AccountId, destination.Id)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -157,6 +159,7 @@ func (b *initStatementBuilder) setInitSchemaRunCtx(
 	ctx context.Context,
 	initschemaRunContexts []*InitSchemaRunContext,
 	accountId string,
+	destinationId string,
 ) error {
 	bits, err := json.Marshal(initschemaRunContexts)
 	if err != nil {
@@ -164,8 +167,8 @@ func (b *initStatementBuilder) setInitSchemaRunCtx(
 	}
 	_, err = b.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
 		Id: &mgmtv1alpha1.RunContextKey{
-			JobRunId:   b.workflowId,
-			ExternalId: "init-schema-report",
+			JobRunId:   b.jobRunId,
+			ExternalId: fmt.Sprintf("init-schema-report-%s", destinationId),
 			AccountId:  accountId,
 		},
 		Value: bits,
