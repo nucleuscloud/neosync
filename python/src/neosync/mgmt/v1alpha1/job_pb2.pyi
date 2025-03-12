@@ -727,16 +727,18 @@ class PauseJobResponse(_message.Message):
     def __init__(self, job: _Optional[_Union[Job, _Mapping]] = ...) -> None: ...
 
 class UpdateJobSourceConnectionRequest(_message.Message):
-    __slots__ = ("id", "source", "mappings", "virtual_foreign_keys")
+    __slots__ = ("id", "source", "mappings", "virtual_foreign_keys", "job_type")
     ID_FIELD_NUMBER: _ClassVar[int]
     SOURCE_FIELD_NUMBER: _ClassVar[int]
     MAPPINGS_FIELD_NUMBER: _ClassVar[int]
     VIRTUAL_FOREIGN_KEYS_FIELD_NUMBER: _ClassVar[int]
+    JOB_TYPE_FIELD_NUMBER: _ClassVar[int]
     id: str
     source: JobSource
     mappings: _containers.RepeatedCompositeFieldContainer[JobMapping]
     virtual_foreign_keys: _containers.RepeatedCompositeFieldContainer[VirtualForeignConstraint]
-    def __init__(self, id: _Optional[str] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ...) -> None: ...
+    job_type: JobTypeConfig
+    def __init__(self, id: _Optional[str] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ..., job_type: _Optional[_Union[JobTypeConfig, _Mapping]] = ...) -> None: ...
 
 class UpdateJobSourceConnectionResponse(_message.Message):
     __slots__ = ("job",)

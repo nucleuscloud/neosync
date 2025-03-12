@@ -1000,6 +1000,14 @@ func (s *Service) UpdateJobSourceConnection(
 		return nil, err
 	}
 
+	var jobTypeConfigBits []byte
+	if req.Msg.GetJobType() != nil {
+		jobTypeConfigBits, err = json.Marshal(req.Msg.GetJobType())
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if err := s.db.WithTx(ctx, nil, func(dbtx neosyncdb.BaseDBTX) error {
 		_, err = s.db.Q.UpdateJobSource(ctx, dbtx, db_queries.UpdateJobSourceParams{
 			ID:                jobUuid,
@@ -1028,6 +1036,17 @@ func (s *Service) UpdateJobSourceConnection(
 		_, err = s.db.Q.UpdateJobVirtualForeignKeys(ctx, dbtx, args)
 		if err != nil {
 			return fmt.Errorf("unable to update virtual foreign key: %w", err)
+		}
+
+		if req.Msg.GetJobType() != nil {
+			_, err = s.db.Q.UpdateJobTypeConfig(ctx, dbtx, db_queries.UpdateJobTypeConfigParams{
+				ID:            jobUuid,
+				JobtypeConfig: jobTypeConfigBits,
+				UpdatedByID:   user.PgId(),
+			})
+			if err != nil {
+				return fmt.Errorf("unable to update job type config: %w", err)
+			}
 		}
 
 		return nil

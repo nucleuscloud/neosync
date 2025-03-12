@@ -707,6 +707,9 @@ message UpdateJobSourceConnectionRequest {
   repeated JobMapping mappings = 3;
   // The new list of virtual foreign keys that will be used to further constrain the data ontop of the database defined constraints
   repeated VirtualForeignConstraint virtual_foreign_keys = 4;
+
+  // The new job type configuration
+  JobTypeConfig job_type = 5;
 }
 message UpdateJobSourceConnectionResponse {
   Job job = 1;

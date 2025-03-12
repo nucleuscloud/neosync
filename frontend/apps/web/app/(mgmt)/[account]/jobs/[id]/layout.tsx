@@ -1,5 +1,4 @@
 'use client';
-import { use } from 'react';
 import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import ResourceId from '@/components/ResourceId';
@@ -14,9 +13,16 @@ import { Button } from '@/components/ui/button';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { Job, JobService, JobSourceOptions, JobStatus } from '@neosync/sdk';
+import {
+  Job,
+  JobService,
+  JobSourceOptions,
+  JobStatus,
+  JobTypeConfig,
+} from '@neosync/sdk';
 import { LightningBoltIcon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
+import { use } from 'react';
 import { toast } from 'sonner';
 import JobIdSkeletonForm from './JobIdSkeletonForm';
 import JobCloneButton from './components/JobCloneButton';
@@ -30,7 +36,7 @@ export default function JobIdLayout(props: LayoutProps) {
   const id = params?.id ?? '';
   const router = useRouter();
   const { account } = useAccount();
-  const { data, isLoading } = useQuery(
+  const { data, isLoading, isPending } = useQuery(
     JobService.method.getJob,
     { id },
     { enabled: !!id }
@@ -50,8 +56,7 @@ export default function JobIdLayout(props: LayoutProps) {
     { id: { case: 'jobId', value: id } },
     { enabled: !!id }
   );
-  const { data: systemAppConfigData, isLoading: isSystemConfigLoading } =
-    useGetSystemAppConfig();
+
   const { mutateAsync: removeJob } = useMutation(JobService.method.deleteJob);
   const { mutateAsync: triggerJobRun } = useMutation(
     JobService.method.createJobRun
@@ -93,7 +98,9 @@ export default function JobIdLayout(props: LayoutProps) {
     mutateJobStatus();
   }
 
-  if (isLoading) {
+  const sidebarNavItems = useGetSidebarNavItems(data?.job);
+
+  if (isLoading || isPending) {
     return (
       <div>
         <JobIdSkeletonForm />
@@ -111,14 +118,7 @@ export default function JobIdLayout(props: LayoutProps) {
     );
   }
 
-  const sidebarNavItems = getSidebarNavItems(
-    account?.name ?? '',
-    data?.job,
-    !isSystemConfigLoading && systemAppConfigData?.isMetricsServiceEnabled,
-    !isSystemConfigLoading && systemAppConfigData?.isJobHooksEnabled
-  );
-
-  const badgeValue = getBadgeText(data.job.source?.options);
+  const badgeValue = getBadgeText(data.job.jobType, data.job.source?.options);
 
   return (
     <div>
@@ -178,66 +178,133 @@ export default function JobIdLayout(props: LayoutProps) {
   );
 }
 
-function getBadgeText(
+function getLabeledJobType(
+  jobTypeConfig?: JobTypeConfig,
   options?: JobSourceOptions
-): 'Sync Job' | 'Generate Job' | 'AI Generate Job' {
+): 'Sync Job' | 'Generate Job' | 'AI Generate Job' | 'PII Detect Job' {
   switch (options?.config.case) {
     case 'generate':
       return 'Generate Job';
     case 'aiGenerate':
       return 'AI Generate Job';
     default:
-      return 'Sync Job';
+      switch (jobTypeConfig?.jobType.case) {
+        case 'sync':
+          return 'Sync Job';
+        case 'piiDetect':
+          return 'PII Detect Job';
+        default:
+          return 'Sync Job';
+      }
   }
 }
+
+const getBadgeText = getLabeledJobType;
 
 interface SidebarNav {
   title: string;
   href: string;
 }
-function getSidebarNavItems(
-  accountName: string,
-  job?: Job,
-  isMetricsServiceEnabled?: boolean,
-  isJobHooksEnabled?: boolean
-): SidebarNav[] {
-  if (!job) {
+function useGetSidebarNavItems(job?: Job): SidebarNav[] {
+  const { account } = useAccount();
+  const { data: systemAppConfigData, isLoading: isSystemConfigLoading } =
+    useGetSystemAppConfig();
+
+  if (!account || !job) {
     return [{ title: 'Overview', href: `` }];
   }
-  const basePath = `/${accountName}/jobs/${job.id}`;
+  const badgeText = getLabeledJobType(job.jobType, job.source?.options);
+  const basePath = `/${account.name}/jobs/${job.id}`;
+  const isMetricsServiceEnabled =
+    !isSystemConfigLoading && systemAppConfigData?.isMetricsServiceEnabled;
+  const isJobHooksEnabled =
+    !isSystemConfigLoading && systemAppConfigData?.isJobHooksEnabled;
 
-  const nav = [
-    {
-      title: 'Overview',
-      href: `${basePath}`,
-    },
-    {
-      title: 'Source',
-      href: `${basePath}/source`,
-    },
-    {
-      title: 'Destinations',
-      href: `${basePath}/destinations`,
-    },
-  ];
+  switch (badgeText) {
+    case 'Sync Job': {
+      const nav = [
+        { title: 'Overview', href: basePath },
+        { title: 'Source', href: `${basePath}/source` },
+        { title: 'Destinations', href: `${basePath}/destinations` },
+      ];
+      if (isJobSubsettable(job)) {
+        nav.push({
+          title: 'Subsets',
+          href: `${basePath}/subsets`,
+        });
+      }
+      if (isMetricsServiceEnabled) {
+        nav.push({
+          title: 'Usage',
+          href: `${basePath}/usage`,
+        });
+      }
+      if (isJobHooksEnabled) {
+        nav.push({
+          title: 'Hooks',
+          href: `${basePath}/hooks`,
+        });
+      }
 
-  if (isJobSubsettable(job)) {
-    nav.push({
-      title: 'Subsets',
-      href: `${basePath}/subsets`,
-    });
+      return nav;
+    }
+
+    case 'Generate Job': {
+      const nav = [
+        { title: 'Overview', href: basePath },
+        { title: 'Source', href: `${basePath}/source` },
+        { title: 'Destinations', href: `${basePath}/destinations` },
+      ];
+      if (isMetricsServiceEnabled) {
+        nav.push({
+          title: 'Usage',
+          href: `${basePath}/usage`,
+        });
+      }
+      if (isJobHooksEnabled) {
+        nav.push({
+          title: 'Hooks',
+          href: `${basePath}/hooks`,
+        });
+      }
+
+      return nav;
+    }
+    case 'AI Generate Job': {
+      const nav = [
+        { title: 'Overview', href: basePath },
+        { title: 'Source', href: `${basePath}/source` },
+        { title: 'Destinations', href: `${basePath}/destinations` },
+      ];
+      if (isMetricsServiceEnabled) {
+        nav.push({
+          title: 'Usage',
+          href: `${basePath}/usage`,
+        });
+      }
+      if (isJobHooksEnabled) {
+        nav.push({
+          title: 'Hooks',
+          href: `${basePath}/hooks`,
+        });
+      }
+      return nav;
+    }
+    case 'PII Detect Job': {
+      const nav = [
+        { title: 'Overview', href: basePath },
+        { title: 'Source', href: `${basePath}/source` },
+      ];
+      if (isMetricsServiceEnabled) {
+        nav.push({
+          title: 'Usage',
+          href: `${basePath}/usage`,
+        });
+      }
+      return nav;
+    }
+    default: {
+      return [{ title: 'Overview', href: basePath }];
+    }
   }
-
-  if (isMetricsServiceEnabled) {
-    nav.push({
-      title: 'Usage',
-      href: `${basePath}/usage`,
-    });
-  }
-
-  if (isJobHooksEnabled) {
-    nav.push({ title: 'Hooks', href: `${basePath}/hooks` });
-  }
-
-  return nav;
 }

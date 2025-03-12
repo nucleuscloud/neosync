@@ -639,6 +639,43 @@ func (q *Queries) UpdateJobSource(ctx context.Context, db DBTX, arg UpdateJobSou
 	return i, err
 }
 
+const updateJobTypeConfig = `-- name: UpdateJobTypeConfig :one
+UPDATE neosync_api.jobs
+SET jobtype_config = $1,
+updated_by_id = $2
+WHERE id = $3
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options, virtual_foreign_keys, jobtype_config
+`
+
+type UpdateJobTypeConfigParams struct {
+	JobtypeConfig []byte
+	UpdatedByID   pgtype.UUID
+	ID            pgtype.UUID
+}
+
+func (q *Queries) UpdateJobTypeConfig(ctx context.Context, db DBTX, arg UpdateJobTypeConfigParams) (NeosyncApiJob, error) {
+	row := db.QueryRow(ctx, updateJobTypeConfig, arg.JobtypeConfig, arg.UpdatedByID, arg.ID)
+	var i NeosyncApiJob
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.AccountID,
+		&i.Status,
+		&i.ConnectionOptions,
+		&i.Mappings,
+		&i.CronSchedule,
+		&i.CreatedByID,
+		&i.UpdatedByID,
+		&i.WorkflowOptions,
+		&i.SyncOptions,
+		&i.VirtualForeignKeys,
+		&i.JobtypeConfig,
+	)
+	return i, err
+}
+
 const updateJobVirtualForeignKeys = `-- name: UpdateJobVirtualForeignKeys :one
 UPDATE neosync_api.jobs
 SET virtual_foreign_keys = $1,
