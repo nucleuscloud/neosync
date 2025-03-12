@@ -1,5 +1,3 @@
-import { ToggleGroupItem } from '@/components/ui/toggle-group';
-
 import DualListBox, {
   EmptyStateMessage,
   Option,
@@ -14,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { ToggleGroup } from '@/components/ui/toggle-group';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { TableIcon } from '@radix-ui/react-icons';
 import { ReactElement, useCallback, useMemo } from 'react';
 import {
@@ -64,7 +62,7 @@ export function DataSampling(props: DataSamplingProps): ReactElement {
     <div className="flex flex-col gap-4">
       <FormHeader
         title="Data Sampling"
-        description="Allow the job to sample data from the source."
+        description="Allow the job to sample data from the source. If disabled, only the table DDLs will be used to detect PII. For more accurate results, enable data sampling."
         isErrored={!!errors?.['isEnabled']}
         labelClassName="text-lg"
       />
@@ -99,7 +97,7 @@ export function TableScanFilterMode(
     <div className="flex flex-col gap-4">
       <FormHeader
         title="Table Scan Mode"
-        description="The mode to use for the table scan filter"
+        description="The mode to use for the table scan filter. This will determine what schemas and tables will be scanned for PII."
         isErrored={!!error}
         labelClassName="text-lg"
       />
@@ -151,7 +149,7 @@ export function TableScanFilterPatterns(
     <div className="flex flex-col gap-4">
       <FormHeader
         title="Patterns"
-        description="The patterns to use for the table scan filter"
+        description="The patterns to use for the table scan filter based on the mode selected. A combination of schemas and tables will be scanned based on the mode and selection."
         isErrored={
           !!errors?.['patterns.schemas'] || !!errors?.['patterns.tables']
         }
