@@ -127,16 +127,14 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			return nil, fmt.Errorf("unable to initialize schema: %w", err)
 		}
 
-		if len(initSchemaErrors) > 0 {
-			initSchemaRunContext = append(initSchemaRunContext, &InitSchemaRunContext{
-				ConnectionId: destination.GetConnectionId(),
-				Errors:       initSchemaErrors,
-			})
+		initSchemaRunContext = append(initSchemaRunContext, &InitSchemaRunContext{
+			ConnectionId: destination.GetConnectionId(),
+			Errors:       initSchemaErrors,
+		})
 
-			err = b.setInitSchemaRunCtx(ctx, initSchemaRunContext, job.AccountId, destination.Id)
-			if err != nil {
-				return nil, err
-			}
+		err = b.setInitSchemaRunCtx(ctx, initSchemaRunContext, job.AccountId, destination.Id)
+		if err != nil {
+			return nil, err
 		}
 	}
 
