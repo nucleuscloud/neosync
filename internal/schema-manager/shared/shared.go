@@ -16,43 +16,13 @@ type Missing struct {
 	Columns []*sqlmanager_shared.DatabaseSchemaRow
 }
 
-type ColumnDiff struct {
-	SourceDefinition      *sqlmanager_shared.DatabaseSchemaRow
-	DestinationDefinition *sqlmanager_shared.DatabaseSchemaRow
-}
-
-type Different struct {
-	Columns []*ColumnDiff
+type ExistsInBoth struct {
+	Tables []*sqlmanager_shared.SchemaTable
 }
 
 type SchemaDifferences struct {
-	Missing   *Missing
-	Different *Different
-	/*
-		Missing:
-			tables
-			columns
-			indexes
-			triggers
-			functions
-			sequences
-
-		Extra:
-			tables
-			columns
-			indexes
-			triggers
-			functions
-			sequences
-
-		Changed:
-			columns
-			indexes
-			triggers
-			functions
-			sequences
-
-	*/
+	Missing      *Missing
+	ExistsInBoth *ExistsInBoth
 }
 
 // filtered by tables found in job mappings

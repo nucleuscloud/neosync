@@ -24,6 +24,7 @@ type SchemaManagerService interface {
 	CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*schema_shared.SchemaDifferences, error)
 	BuildSchemaDiffStatements(ctx context.Context, diff *schema_shared.SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error)
 	ReconcileDestinationSchema(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable, schemaStatements []*sqlmanager_shared.InitSchemaStatements) ([]*schema_shared.InitSchemaError, error)
+	TruncateTables(ctx context.Context, schemaDiff *schema_shared.SchemaDifferences) error
 
 	CloseConnections()
 }

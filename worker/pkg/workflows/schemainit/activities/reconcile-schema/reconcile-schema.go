@@ -127,13 +127,12 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 		return nil, fmt.Errorf("unable to calculate schema diff: %w", err)
 	}
 
-	err = schemaManager.TruncateData(ctx, uniqueTables, uniqueSchemas)
+	err = schemaManager.TruncateTables(ctx, schemaDiff)
 	if err != nil {
 		return nil, fmt.Errorf("unable to truncate data: %w", err)
 	}
 
 	if shouldInitSchema {
-
 		schemaStatements, err := schemaManager.BuildSchemaDiffStatements(ctx, schemaDiff)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build schema diff statements: %w", err)
@@ -144,16 +143,14 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 			return nil, fmt.Errorf("unable to reconcile schema: %w", err)
 		}
 
-		if len(reconcileSchemaErrors) > 0 {
-			reconcileSchemaRunContext = &ReconcileSchemaRunContext{
-				ConnectionId: destination.GetConnectionId(),
-				Errors:       reconcileSchemaErrors,
-			}
+		reconcileSchemaRunContext = &ReconcileSchemaRunContext{
+			ConnectionId: destination.GetConnectionId(),
+			Errors:       reconcileSchemaErrors,
+		}
 
-			err = b.setReconcileSchemaRunCtx(ctx, reconcileSchemaRunContext, job.AccountId, destination.Id)
-			if err != nil {
-				return nil, err
-			}
+		err = b.setReconcileSchemaRunCtx(ctx, reconcileSchemaRunContext, job.AccountId, destination.Id)
+		if err != nil {
+			return nil, err
 		}
 	}
 

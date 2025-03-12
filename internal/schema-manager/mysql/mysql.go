@@ -73,8 +73,10 @@ func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTabl
 	for _, table := range tables {
 		sourceTable := sourceColMap[table.String()]
 		destTable := destColMap[table.String()]
-		if sourceTable != nil && destTable == nil {
+		if len(sourceTable) > 0 && len(destTable) == 0 {
 			diff.Missing.Tables = append(diff.Missing.Tables, table)
+		} else if len(sourceTable) > 0 && len(destTable) > 0 {
+			diff.ExistsInBoth.Tables = append(diff.ExistsInBoth.Tables, table)
 		}
 		for _, column := range sourceTable {
 			_, ok := destTable[column.ColumnName]
@@ -164,6 +166,28 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 		}
 	}
 	return initErrors, nil
+}
+
+func (d *MysqlSchemaManager) TruncateTables(ctx context.Context, schemaDiff *shared.SchemaDifferences) error {
+	if !d.destOpts.GetTruncateTable().GetTruncateBeforeInsert() {
+		d.logger.Info("skipping truncate as it is not enabled")
+		return nil
+	}
+	tableTruncate := []string{}
+	for _, schemaTable := range schemaDiff.ExistsInBoth.Tables {
+		stmt, err := sqlmanager_mysql.BuildMysqlTruncateStatement(schemaTable.Schema, schemaTable.Table)
+		if err != nil {
+			return err
+		}
+		tableTruncate = append(tableTruncate, stmt)
+	}
+	d.logger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(tableTruncate)))
+	disableFkChecks := sqlmanager_shared.DisableForeignKeyChecks
+	err := d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, tableTruncate, &sqlmanager_shared.BatchExecOpts{Prefix: &disableFkChecks})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (d *MysqlSchemaManager) InitializeSchema(ctx context.Context, uniqueTables map[string]struct{}) ([]*shared.InitSchemaError, error) {

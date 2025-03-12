@@ -34,5 +34,9 @@ func (d *NotSupportedSchemaManager) ReconcileDestinationSchema(ctx context.Conte
 	return []*shared.InitSchemaError{}, nil
 }
 
+func (d *NotSupportedSchemaManager) TruncateTables(ctx context.Context, schemaDiff *shared.SchemaDifferences) error {
+	return nil
+}
+
 func (d *NotSupportedSchemaManager) CloseConnections() {
 }
