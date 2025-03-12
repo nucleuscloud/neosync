@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { HTMLProps, useEffect, useRef } from 'react';
+import IndeterminateCheckbox from '../jobs/JobMappingTable/IndeterminateCheckbox';
 import ColumnHeader from './ColumnHeader';
 
 export type Mode = 'single' | 'many';
@@ -54,27 +54,4 @@ export function getListBoxColumns(props: ListBoxColumnProps): ColumnDef<Row>[] {
       },
     },
   ];
-}
-
-function IndeterminateCheckbox({
-  indeterminate,
-  className = 'flex w-4 h-4',
-  ...rest
-}: { indeterminate?: boolean } & HTMLProps<HTMLInputElement>) {
-  const ref = useRef<HTMLInputElement>(null!);
-
-  useEffect(() => {
-    if (typeof indeterminate === 'boolean') {
-      ref.current.indeterminate = !rest.checked && indeterminate;
-    }
-  }, [ref, indeterminate, rest.checked]);
-
-  return (
-    <input
-      type="checkbox"
-      ref={ref}
-      className={className + ' cursor-pointer '}
-      {...rest}
-    />
-  );
 }

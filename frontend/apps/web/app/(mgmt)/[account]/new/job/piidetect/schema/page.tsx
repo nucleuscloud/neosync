@@ -15,6 +15,7 @@ import { FormEvent, ReactElement, use, useEffect, useMemo } from 'react';
 import { useSessionStorage } from 'usehooks-ts';
 import { ValidationError } from 'yup';
 import {
+  FilterPatternTableIdentifier,
   PiiDetectionConnectFormValues,
   PiiDetectionSchemaFormValues,
 } from '../../job-form-validations';
@@ -116,6 +117,23 @@ export default function Page(props: PageProps): ReactElement {
     return Array.from(uniqueSchemas);
   }, [connectionSchemaDataResp, isPending, isFetching]);
 
+  const availableTableIdentifiers = useMemo(() => {
+    if (isPending || !connectionSchemaDataResp) {
+      return [];
+    }
+    const uniqueTableIdentifiers = new Map<
+      string,
+      FilterPatternTableIdentifier
+    >();
+    connectionSchemaDataResp?.schemas?.forEach((schema) => {
+      uniqueTableIdentifiers.set(`${schema.schema}.${schema.table}`, {
+        schema: schema.schema,
+        table: schema.table,
+      });
+    });
+    return Array.from(uniqueTableIdentifiers.values());
+  }, [connectionSchemaDataResp, isPending, isFetching]);
+
   const {
     formData,
     setFormData,
@@ -197,6 +215,7 @@ export default function Page(props: PageProps): ReactElement {
               })
             }
             availableSchemas={availableSchemas}
+            availableTableIdentifiers={availableTableIdentifiers}
             errors={errors}
           />
           <div className="flex flex-row gap-1 justify-between">

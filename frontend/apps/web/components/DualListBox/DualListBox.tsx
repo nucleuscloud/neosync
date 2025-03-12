@@ -23,7 +23,7 @@ import { Mode, Row, getListBoxColumns } from './columns';
 
 export interface Option {
   value: string;
-  // label: string;
+  // label?: string;
 }
 export type Action = 'add' | 'remove';
 interface Props {

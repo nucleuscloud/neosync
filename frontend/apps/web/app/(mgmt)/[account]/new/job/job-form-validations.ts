@@ -326,17 +326,18 @@ export type TableScanFilterModeFormValue = Yup.InferType<
   typeof TableScanFilterModeFormValue
 >;
 
+const FilterPatternTableIdentifier = Yup.object().shape({
+  schema: Yup.string().required(),
+  table: Yup.string().required(),
+});
+export type FilterPatternTableIdentifier = Yup.InferType<
+  typeof FilterPatternTableIdentifier
+>;
+
 const TableScanFilterPatternsFormValue = Yup.object().shape({
   schemas: Yup.array().of(Yup.string().required()).required().default([]),
   tables: Yup.array()
-    .of(
-      Yup.object()
-        .shape({
-          schema: Yup.string().required(),
-          table: Yup.string().required(),
-        })
-        .required()
-    )
+    .of(FilterPatternTableIdentifier.required())
     .required()
     .default([]),
 });
