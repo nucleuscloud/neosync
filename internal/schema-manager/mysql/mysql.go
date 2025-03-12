@@ -53,6 +53,23 @@ func NewMysqlSchemaManager(
 	}, nil
 }
 
+func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) ([]*shared.InitSchemaError, error) {
+	tables := []*sqlmanager_shared.SchemaTable{}
+	for _, schematable := range uniqueTables {
+		tables = append(tables, schematable)
+	}
+	sourceColumns, err := d.sourcedb.Db().GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve source database table schemas: %w", err)
+	}
+	destColumns, err := d.destdb.Db().GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve destination database table schemas: %w", err)
+	}
+
+	return nil, nil
+}
+
 func (d *MysqlSchemaManager) InitializeSchema(ctx context.Context, uniqueTables map[string]struct{}) ([]*shared.InitSchemaError, error) {
 	initErrors := []*shared.InitSchemaError{}
 	if !d.destOpts.GetInitTableSchema() {
