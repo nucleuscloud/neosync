@@ -20,7 +20,6 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	accounthook_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow"
-	schemainit_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/schemainit/workflow"
 	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
 	"go.uber.org/atomic"
 
@@ -134,9 +133,6 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 				Config:    &neosync_benthos.BenthosConfig{},
 			},
 		}}, nil)
-	var initSchemaActivity *schemainit_workflow.Workflow
-	env.OnWorkflow(initSchemaActivity.SchemaInit, mock.Anything, mock.Anything).
-		Return(&schemainit_workflow.SchemaInitResponse{}, nil)
 
 	var jobHookTimingActivity *jobhooks_by_timing_activity.Activity
 	env.OnActivity(jobHookTimingActivity.RunJobHooksByTiming, mock.Anything, mock.Anything).
@@ -219,9 +215,6 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 				StartToCloseTimeout: time.Minute,
 			},
 		}, nil)
-	var initSchemaActivity *schemainit_workflow.Workflow
-	env.OnWorkflow(initSchemaActivity.SchemaInit, mock.Anything, mock.Anything).
-		Return(&schemainit_workflow.SchemaInitResponse{}, nil)
 
 	var jobHookTimingActivity *jobhooks_by_timing_activity.Activity
 	env.OnActivity(jobHookTimingActivity.RunJobHooksByTiming, mock.Anything, mock.Anything).
@@ -335,9 +328,6 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 				StartToCloseTimeout: time.Minute,
 			},
 		}, nil)
-	var initSchemaActivity *schemainit_workflow.Workflow
-	env.OnWorkflow(initSchemaActivity.SchemaInit, mock.Anything, mock.Anything).
-		Return(&schemainit_workflow.SchemaInitResponse{}, nil)
 
 	var jobHookTimingActivity *jobhooks_by_timing_activity.Activity
 	env.OnActivity(jobHookTimingActivity.RunJobHooksByTiming, mock.Anything, mock.Anything).
@@ -466,9 +456,6 @@ func Test_Workflow_Follows_Multiple_Dependent_Redis_Cleanup(t *testing.T) {
 				StartToCloseTimeout: time.Minute,
 			},
 		}, nil)
-	var initSchemaActivity *schemainit_workflow.Workflow
-	env.OnWorkflow(initSchemaActivity.SchemaInit, mock.Anything, mock.Anything).
-		Return(&schemainit_workflow.SchemaInitResponse{}, nil)
 
 	var jobHookTimingActivity *jobhooks_by_timing_activity.Activity
 	env.OnActivity(jobHookTimingActivity.RunJobHooksByTiming, mock.Anything, mock.Anything).
@@ -580,9 +567,6 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 				},
 			},
 		}}, nil)
-	var initSchemaActivity *schemainit_workflow.Workflow
-	env.OnWorkflow(initSchemaActivity.SchemaInit, mock.Anything, mock.Anything).
-		Return(&schemainit_workflow.SchemaInitResponse{}, nil)
 	var activityOpts *syncactivityopts_activity.Activity
 	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything).
 		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
@@ -685,9 +669,6 @@ func Test_Workflow_Halts_Activities_On_InvalidAccountStatus(t *testing.T) {
 				},
 			},
 		}}, nil)
-	var initSchemaActivity *schemainit_workflow.Workflow
-	env.OnWorkflow(initSchemaActivity.SchemaInit, mock.Anything, mock.Anything).
-		Return(&schemainit_workflow.SchemaInitResponse{}, nil)
 	var activityOpts *syncactivityopts_activity.Activity
 	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything).
 		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
@@ -799,9 +780,6 @@ func Test_Workflow_Cleans_Up_Redis_OnError(t *testing.T) {
 				},
 			},
 		}}, nil)
-	var initSchemaActivity *schemainit_workflow.Workflow
-	env.OnWorkflow(initSchemaActivity.SchemaInit, mock.Anything, mock.Anything).
-		Return(&schemainit_workflow.SchemaInitResponse{}, nil)
 	var activityOpts *syncactivityopts_activity.Activity
 	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything).
 		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
@@ -894,10 +872,6 @@ func Test_Workflow_Max_InFlight(t *testing.T) {
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{
 			BenthosConfigs: configs,
 		}, nil)
-
-	var initSchemaActivity *schemainit_workflow.Workflow
-	env.OnWorkflow(initSchemaActivity.SchemaInit, mock.Anything, mock.Anything).
-		Return(&schemainit_workflow.SchemaInitResponse{}, nil)
 
 	var jobHookTimingActivity *jobhooks_by_timing_activity.Activity
 	env.OnActivity(jobHookTimingActivity.RunJobHooksByTiming, mock.Anything, mock.Anything).
