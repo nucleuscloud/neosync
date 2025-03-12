@@ -503,6 +503,16 @@ export type CreateSingleTableAiGenerateJobFormValues = Yup.InferType<
   typeof CreateSingleTableAiGenerateJobFormValues
 >;
 
+export const CreatePiiDetectionJobFormValues = Yup.object()
+  .shape({
+    define: DefineFormValues,
+    connect: PiiDetectionConnectFormValues,
+    schema: PiiDetectionSchemaFormValues,
+  })
+  .required('PII Detection form values are required.');
+export type CreatePiiDetectionJobFormValues = Yup.InferType<
+  typeof CreatePiiDetectionJobFormValues
+>;
 export interface DefineFormValuesContext {
   accountId: string;
   isJobNameAvailable: UseMutateAsyncFunction<

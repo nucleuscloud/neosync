@@ -1,0 +1,11 @@
+---
+description: Best practices for react and typescript development
+globs: frontend/**/*.tsx, frontend/**/*.ts
+alwaysApply: false
+---
+
+# useQuery and useMutation Imports
+
+- When importing `useQuery` and `useMutation`, always import from `@connectrpc/connect-query`, _not_ `@tanstack/react-query`.
+  - This is because we use the connect wrapper library that coincides with our API's types for a better user experience.
+  - This library uses `@tanstack/react-query` under the hood.

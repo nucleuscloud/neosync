@@ -71,6 +71,12 @@ import {
   JobSourceSchema,
   JobSourceSqlSubetSchemas,
   JobSourceSqlSubetSchemasSchema,
+  JobTypeConfig_JobTypePiiDetect,
+  JobTypeConfig_JobTypePiiDetect_IncludeAllSchema,
+  JobTypeConfig_JobTypePiiDetect_TablePatternsSchema,
+  JobTypeConfig_JobTypePiiDetect_TableScanFilter,
+  JobTypeConfig_JobTypePiiDetect_TableScanFilterSchema,
+  JobTypeConfig_JobTypePiiDetectSchema,
   MongoDBDestinationConnectionOptionsSchema,
   MongoDBSourceConnectionOptionsSchema,
   MssqlDestinationConnectionOptionsSchema,
@@ -118,9 +124,11 @@ import {
   ActivityOptionsFormValues,
   ConnectFormValues,
   CreateJobFormValues,
+  CreatePiiDetectionJobFormValues,
   CreateSingleTableAiGenerateJobFormValues,
   CreateSingleTableGenerateJobFormValues,
   DefineFormValues,
+  PiiDetectionSchemaFormValues,
   SingleTableAiConnectFormValues,
   SingleTableAiSchemaFormValues,
   SingleTableConnectFormValues,
@@ -128,6 +136,7 @@ import {
   SingleTableEditSourceFormValues,
   SingleTableSchemaFormValues,
   SubsetFormValues,
+  TableScanFilterFormValue,
   WorkflowSettingsSchema,
 } from '../new/job/job-form-validations';
 import { getConnectionIdFromSource } from './[id]/source/components/util';
@@ -380,6 +389,85 @@ export function getCreateNewSyncJobRequest(
   });
 }
 
+export function getCreateNewPiiDetectJobRequest(
+  values: CreatePiiDetectionJobFormValues,
+  accountId: string,
+  getConnectionById: GetConnectionById
+): CreateJobRequest {
+  return create(CreateJobRequestSchema, {
+    accountId,
+    jobName: values.define.jobName,
+    cronSchedule: values.define.cronSchedule,
+    initiateJobRun: values.define.initiateJobRun,
+    mappings: [],
+    source: toJobSource(
+      {
+        connect: {
+          sourceId: values.connect.sourceId,
+          destinations: [],
+          sourceOptions: {},
+        },
+        subset: undefined,
+      },
+      getConnectionById
+    ),
+    destinations: [],
+    syncOptions: toSyncOptions(values),
+    workflowOptions: toWorkflowOptions(values.define.workflowSettings),
+    jobType: {
+      jobType: {
+        case: 'piiDetect',
+        value: toPiiDetectJobTypeConfig(values.schema),
+      },
+    },
+  });
+}
+
+function toPiiDetectJobTypeConfig(
+  values: PiiDetectionSchemaFormValues
+): JobTypeConfig_JobTypePiiDetect {
+  return create(JobTypeConfig_JobTypePiiDetectSchema, {
+    dataSampling: values.dataSampling,
+    userPrompt: values.userPrompt,
+    tableScanFilter: toPiiDetectTableScanFilter(values.tableScanFilter),
+  });
+}
+
+function toPiiDetectTableScanFilter(
+  values: TableScanFilterFormValue
+): JobTypeConfig_JobTypePiiDetect_TableScanFilter | undefined {
+  if (values.mode === 'include_all') {
+    return create(JobTypeConfig_JobTypePiiDetect_TableScanFilterSchema, {
+      mode: {
+        case: 'includeAll',
+        value: create(JobTypeConfig_JobTypePiiDetect_IncludeAllSchema, {}),
+      },
+    });
+  }
+  if (values.mode === 'include') {
+    return create(JobTypeConfig_JobTypePiiDetect_TableScanFilterSchema, {
+      mode: {
+        case: 'include',
+        value: create(JobTypeConfig_JobTypePiiDetect_TablePatternsSchema, {
+          schemas: values.patterns.schemas,
+          tables: values.patterns.tables,
+        }),
+      },
+    });
+  }
+  if (values.mode === 'exclude') {
+    return create(JobTypeConfig_JobTypePiiDetect_TableScanFilterSchema, {
+      mode: {
+        case: 'exclude',
+        value: create(JobTypeConfig_JobTypePiiDetect_TablePatternsSchema, {
+          schemas: values.patterns.schemas,
+          tables: values.patterns.tables,
+        }),
+      },
+    });
+  }
+  return undefined;
+}
 export function toWorkflowOptions(
   values?: WorkflowSettingsSchema
 ): WorkflowOptions | undefined {

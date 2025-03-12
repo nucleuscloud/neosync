@@ -1,5 +1,9 @@
 'use client';
-import { getNewJobSessionKeys } from '@/app/(mgmt)/[account]/jobs/util';
+import {
+  clearNewJobSession,
+  getCreateNewPiiDetectJobRequest,
+  getNewJobSessionKeys,
+} from '@/app/(mgmt)/[account]/jobs/util';
 import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
@@ -8,13 +12,21 @@ import Spinner from '@/components/Spinner';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { getSingleOrUndefined } from '@/libs/utils';
-import { useQuery } from '@connectrpc/connect-query';
-import { ConnectionDataService } from '@neosync/sdk';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
+import {
+  Connection,
+  ConnectionDataService,
+  ConnectionService,
+  JobService,
+} from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import { FormEvent, ReactElement, use, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
 import { ValidationError } from 'yup';
 import {
+  DefineFormValues,
   FilterPatternTableIdentifier,
   PiiDetectionConnectFormValues,
   PiiDetectionSchemaFormValues,
@@ -29,7 +41,7 @@ export default function Page(props: PageProps): ReactElement {
   const searchParams = use(props.searchParams);
   const { account } = useAccount();
   const router = useRouter();
-  // const posthog = usePostHog();
+  const posthog = usePostHog();
 
   useEffect(() => {
     if (!searchParams?.sessionId) {
@@ -41,11 +53,11 @@ export default function Page(props: PageProps): ReactElement {
   const sessionKeys = getNewJobSessionKeys(sessionPrefix);
 
   // Used to complete the whole form
-  // const defineFormKey = sessionKeys.global.define;
-  // const [defineFormValues] = useSessionStorage<DefineFormValues>(
-  //   defineFormKey,
-  //   { jobName: '' }
-  // );
+  const defineFormKey = sessionKeys.global.define;
+  const [defineFormValues] = useSessionStorage<DefineFormValues>(
+    defineFormKey,
+    { jobName: '' }
+  );
 
   const connectFormKey = sessionKeys.piidetect.connect;
   const [connectFormValues] = useSessionStorage<PiiDetectionConnectFormValues>(
@@ -73,11 +85,19 @@ export default function Page(props: PageProps): ReactElement {
   //   }
   // );
 
-  // const { data: connectionData, isLoading: isConnectionLoading } = useQuery(
-  //   ConnectionService.method.getConnection,
-  //   { id: connectFormValues.sourceId },
-  //   { enabled: !!connectFormValues.sourceId }
-  // );
+  const { data: connectionsData } = useQuery(
+    ConnectionService.method.getConnections,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
+  const connections = connectionsData?.connections ?? [];
+  const connectionsRecord = connections.reduce(
+    (record, conn) => {
+      record[conn.id] = conn;
+      return record;
+    },
+    {} as Record<string, Connection | undefined>
+  );
 
   const {
     data: connectionSchemaDataResp,
@@ -88,23 +108,8 @@ export default function Page(props: PageProps): ReactElement {
     { connectionId: connectFormValues.sourceId },
     { enabled: !!connectFormValues.sourceId }
   );
-  // const { data: connectionsData } = useQuery(
-  //   ConnectionService.method.getConnections,
-  //   { accountId: account?.id },
-  //   { enabled: !!account?.id }
-  // );
-  // const connections = connectionsData?.connections ?? [];
-  // const connectionsRecord = connections.reduce(
-  //   (record, conn) => {
-  //     record[conn.id] = conn;
-  //     return record;
-  //   },
-  //   {} as Record<string, Connection>
-  // );
 
-  // const { mutateAsync: createNewSyncJob } = useMutation(
-  //   JobService.method.createJob
-  // );
+  const { mutateAsync: createJob } = useMutation(JobService.method.createJob);
 
   const availableSchemas = useMemo(() => {
     if (isPending || !connectionSchemaDataResp) {
@@ -159,7 +164,30 @@ export default function Page(props: PageProps): ReactElement {
           abortEarly: false,
         }
       );
-      console.log('TODO', validatedData);
+
+      const job = await createJob(
+        getCreateNewPiiDetectJobRequest(
+          {
+            define: defineFormValues,
+            connect: connectFormValues,
+            schema: validatedData,
+          },
+          account?.id ?? '',
+          (id) => connectionsRecord[id]
+        )
+      );
+      posthog.capture('New Job Flow Complete', {
+        jobType: 'pii-detection',
+      });
+      toast.success('Successfully created job!');
+
+      clearNewJobSession(window.sessionStorage, sessionPrefix);
+
+      if (job.job?.id) {
+        router.push(`/${account?.name}/jobs/${job.job.id}`);
+      } else {
+        router.push(`/${account?.name}/jobs`);
+      }
     } catch (err) {
       if (err instanceof ValidationError) {
         const validationErrors: Record<string, string> = {};
