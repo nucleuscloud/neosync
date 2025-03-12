@@ -34,7 +34,12 @@ import {
 import JobsProgressSteps, {
   getJobProgressSteps,
 } from '../../JobsProgressSteps';
-import { TableScanFilterMode, TableScanFilterPatterns } from './FormInputs';
+import {
+  DataSampling,
+  TableScanFilterMode,
+  TableScanFilterPatterns,
+  UserPrompt,
+} from './FormInputs';
 import { usePiiDetectionSchemaStore } from './stores';
 
 export default function Page(props: PageProps): ReactElement {
@@ -220,6 +225,20 @@ export default function Page(props: PageProps): ReactElement {
         containerClassName="connect-page"
       >
         <form onSubmit={onSubmit} className="space-y-6">
+          <UserPrompt
+            value={formData.userPrompt ?? ''}
+            onChange={(value) =>
+              setFormData({ ...formData, userPrompt: value })
+            }
+            error={errors['userPrompt']}
+          />
+          <DataSampling
+            value={formData.dataSampling}
+            onChange={(value) =>
+              setFormData({ ...formData, dataSampling: value })
+            }
+            errors={errors}
+          />
           <TableScanFilterMode
             value={formData.tableScanFilter.mode}
             onChange={(value) =>
@@ -245,6 +264,7 @@ export default function Page(props: PageProps): ReactElement {
             availableSchemas={availableSchemas}
             availableTableIdentifiers={availableTableIdentifiers}
             errors={errors}
+            mode={formData.tableScanFilter.mode}
           />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>

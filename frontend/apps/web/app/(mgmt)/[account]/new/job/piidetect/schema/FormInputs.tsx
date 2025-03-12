@@ -10,14 +10,76 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup } from '@/components/ui/toggle-group';
 import { TableIcon } from '@radix-ui/react-icons';
 import { ReactElement, useCallback, useMemo } from 'react';
 import {
+  DataSamplingFormValue,
   FilterPatternTableIdentifier,
   TableScanFilterModeFormValue,
   TableScanFilterPatternsFormValue,
 } from '../../job-form-validations';
+
+interface UserPromptProps {
+  error?: string;
+  value: string;
+  onChange(value: string): void;
+}
+
+export function UserPrompt(props: UserPromptProps): ReactElement {
+  const { error, value, onChange } = props;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <FormHeader
+        title="User Prompt"
+        description="Optionally input a prompt to guide the LLM part of the PII detection job."
+        isErrored={!!error}
+        labelClassName="text-lg"
+      />
+      <Textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Example: Non-PII columns: created_at, updated_at"
+      />
+      <FormErrorMessage message={error} />
+    </div>
+  );
+}
+
+interface DataSamplingProps {
+  errors?: Record<string, string>;
+  value: DataSamplingFormValue;
+  onChange(value: DataSamplingFormValue): void;
+}
+
+export function DataSampling(props: DataSamplingProps): ReactElement {
+  const { errors, value, onChange } = props;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <FormHeader
+        title="Data Sampling"
+        description="Allow the job to sample data from the source."
+        isErrored={!!errors?.['isEnabled']}
+        labelClassName="text-lg"
+      />
+      <ToggleGroup
+        className="flex justify-start"
+        type="single"
+        onValueChange={(value) => {
+          onChange({ isEnabled: value === 'enabled' });
+        }}
+        value={value.isEnabled ? 'enabled' : 'disabled'}
+      >
+        <ToggleGroupItem value="enabled">Enabled</ToggleGroupItem>
+        <ToggleGroupItem value="disabled">Disabled</ToggleGroupItem>
+      </ToggleGroup>
+      <FormErrorMessage message={errors?.['isEnabled']} />
+    </div>
+  );
+}
 
 interface TableScanFilterModeProps {
   error?: string;
@@ -33,9 +95,10 @@ export function TableScanFilterMode(
   return (
     <div className="flex flex-col gap-4">
       <FormHeader
-        title="Mode"
+        title="Table Scan Mode"
         description="The mode to use for the table scan filter"
         isErrored={!!error}
+        labelClassName="text-lg"
       />
       <ToggleGroup
         className="flex justify-start"
@@ -62,18 +125,25 @@ interface TableScanFilterPatternsProps {
   onChange(value: TableScanFilterPatternsFormValue): void;
   availableSchemas: string[];
   availableTableIdentifiers: FilterPatternTableIdentifier[];
+  mode: TableScanFilterModeFormValue;
 }
 
 export function TableScanFilterPatterns(
   props: TableScanFilterPatternsProps
-): ReactElement {
+): ReactElement | null {
   const {
     errors,
     value,
     onChange,
     availableSchemas,
     availableTableIdentifiers,
+    mode,
   } = props;
+
+  if (mode === 'include_all') {
+    return null;
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <FormHeader
@@ -82,6 +152,7 @@ export function TableScanFilterPatterns(
         isErrored={
           !!errors?.['patterns.schemas'] || !!errors?.['patterns.tables']
         }
+        labelClassName="text-lg"
       />
       <TableScanFilterPatternSchemas
         error={errors?.['patterns.schemas']}
