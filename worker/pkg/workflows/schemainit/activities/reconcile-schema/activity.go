@@ -38,6 +38,7 @@ func New(
 
 type RunReconcileSchemaRequest struct {
 	JobId         string
+	JobRunId      string
 	DestinationId string
 }
 
@@ -52,6 +53,7 @@ func (a *Activity) RunReconcileSchema(
 	logger := log.With(
 		activity.GetLogger(ctx),
 		"jobId", req.JobId,
+		"jobRunId", req.JobRunId,
 		"WorkflowID", info.WorkflowExecution.ID,
 		"RunID", info.WorkflowExecution.RunID,
 		"destinationId", req.DestinationId,
@@ -72,7 +74,7 @@ func (a *Activity) RunReconcileSchema(
 		a.jobclient,
 		a.connclient,
 		a.eelicense,
-		info.WorkflowExecution.ID,
+		req.JobRunId,
 	)
 	slogger := temporallogger.NewSlogger(logger)
 	return builder.RunReconcileSchema(

@@ -53,52 +53,8 @@ func NewMysqlSchemaManager(
 	}, nil
 }
 
-type Missing struct {
-	Tables  []*sqlmanager_shared.SchemaTable
-	Columns []*sqlmanager_shared.DatabaseSchemaRow
-}
-
-type ColumnDiff struct {
-	SourceDefinition      *sqlmanager_shared.DatabaseSchemaRow
-	DestinationDefinition *sqlmanager_shared.DatabaseSchemaRow
-}
-
-type Different struct {
-	Columns []*ColumnDiff
-}
-
-type SchemaDifferences struct {
-	Missing   *Missing
-	Different *Different
-	/*
-		Missing:
-			tables
-			columns
-			indexes
-			triggers
-			functions
-			sequences
-
-		Extra:
-			tables
-			columns
-			indexes
-			triggers
-			functions
-			sequences
-
-		Changed:
-			columns
-			indexes
-			triggers
-			functions
-			sequences
-
-	*/
-}
-
-func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*SchemaDifferences, error) {
-	diff := &SchemaDifferences{}
+func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*shared.SchemaDifferences, error) {
+	diff := &shared.SchemaDifferences{}
 	tables := []*sqlmanager_shared.SchemaTable{}
 	for _, schematable := range uniqueTables {
 		tables = append(tables, schematable)
@@ -131,7 +87,7 @@ func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTabl
 	return diff, nil
 }
 
-func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *shared.SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error) {
 	if !d.destOpts.GetInitTableSchema() {
 		d.logger.Info("skipping schema init as it is not enabled")
 		return nil, nil

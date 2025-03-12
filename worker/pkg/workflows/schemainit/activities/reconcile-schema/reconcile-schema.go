@@ -1,8 +1,5 @@
 package reconcileschema_activity
 
-
-package initschema_activity
-
 import (
 	"context"
 	"encoding/json"
@@ -13,6 +10,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	schemamanager "github.com/nucleuscloud/neosync/internal/schema-manager"
@@ -25,7 +23,7 @@ type reconcileSchemaBuilder struct {
 	jobclient  mgmtv1alpha1connect.JobServiceClient
 	connclient mgmtv1alpha1connect.ConnectionServiceClient
 	eelicense  license.EEInterface
-	workflowId string
+	jobRunId   string
 }
 
 func newReconcileSchemaBuilder(
@@ -33,14 +31,14 @@ func newReconcileSchemaBuilder(
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	eelicense license.EEInterface,
-	workflowId string,
+	jobRunId string,
 ) *reconcileSchemaBuilder {
 	return &reconcileSchemaBuilder{
 		sqlmanager: sqlmanagerclient,
 		jobclient:  jobclient,
 		connclient: connclient,
 		eelicense:  eelicense,
-		workflowId: workflowId,
+		jobRunId:   jobRunId,
 	}
 }
 
@@ -73,7 +71,7 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 	}
 
 	if sourceConnection.GetConnectionConfig().GetMongoConfig() != nil || sourceConnection.GetConnectionConfig().GetDynamodbConfig() != nil {
-		return &RunSqlInitTableStatementsResponse{}, nil
+		return &RunReconcileSchemaResponse{}, nil
 	}
 
 	var destination *mgmtv1alpha1.JobDestination
@@ -87,10 +85,10 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 		return nil, fmt.Errorf("unable to find destination by id (%s)", req.DestinationId)
 	}
 
-	uniqueTables := shared.GetUniqueTablesMapFromJob(job)
-	uniqueSchemas := shared.GetUniqueSchemasFromJob(job)
+	uniqueTables := getUniqueTablesMapFromJob(job)
+	uniqueSchemas := getUniqueSchemasFromTables(uniqueTables)
 
-	reconcileSchemaRunContext := []*ReconcileSchemaRunContext{}
+	reconcileSchemaRunContext := &ReconcileSchemaRunContext{}
 
 	destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
 	if err != nil {
@@ -124,21 +122,9 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 		return nil, fmt.Errorf("unable to create new schema manager: %w", err)
 	}
 
-	if shouldInitSchema {
-		reconcileSchemaErrors, err := schemaManager.ReconcileDestinationSchema(ctx, uniqueTables, schemaStatements)
-		if err != nil {
-			return nil, fmt.Errorf("unable to reconcile schema: %w", err)
-		}
-
-		reconcileSchemaRunContext = append(reconcileSchemaRunContext, &ReconcileSchemaRunContext{
-			ConnectionId: destination.GetConnectionId(),
-			Errors:       reconcileSchemaErrors,
-		})
-
-		err = b.setReconcileSchemaRunCtx(ctx, reconcileSchemaRunContext, job.AccountId)
-		if err != nil {
-			return nil, err
-		}
+	schemaDiff, err := schemaManager.CalculateSchemaDiff(ctx, uniqueTables)
+	if err != nil {
+		return nil, fmt.Errorf("unable to calculate schema diff: %w", err)
 	}
 
 	err = schemaManager.TruncateData(ctx, uniqueTables, uniqueSchemas)
@@ -146,9 +132,34 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 		return nil, fmt.Errorf("unable to truncate data: %w", err)
 	}
 
+	if shouldInitSchema {
+
+		schemaStatements, err := schemaManager.BuildSchemaDiffStatements(ctx, schemaDiff)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build schema diff statements: %w", err)
+		}
+
+		reconcileSchemaErrors, err := schemaManager.ReconcileDestinationSchema(ctx, uniqueTables, schemaStatements)
+		if err != nil {
+			return nil, fmt.Errorf("unable to reconcile schema: %w", err)
+		}
+
+		if len(reconcileSchemaErrors) > 0 {
+			reconcileSchemaRunContext = &ReconcileSchemaRunContext{
+				ConnectionId: destination.GetConnectionId(),
+				Errors:       reconcileSchemaErrors,
+			}
+
+			err = b.setReconcileSchemaRunCtx(ctx, reconcileSchemaRunContext, job.AccountId, destination.Id)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	schemaManager.CloseConnections()
 
-	return &RunSqlInitTableStatementsResponse{}, nil
+	return &RunReconcileSchemaResponse{}, nil
 }
 
 type ReconcileSchemaRunContext struct {
@@ -158,17 +169,18 @@ type ReconcileSchemaRunContext struct {
 
 func (b *reconcileSchemaBuilder) setReconcileSchemaRunCtx(
 	ctx context.Context,
-	reconcileSchemaRunContexts []*ReconcileSchemaRunContext,
+	reconcileSchemaRunContext *ReconcileSchemaRunContext,
 	accountId string,
+	destinationId string,
 ) error {
-	bits, err := json.Marshal(reconcileSchemaRunContexts)
+	bits, err := json.Marshal(reconcileSchemaRunContext)
 	if err != nil {
 		return fmt.Errorf("failed to marshal reconcile schema run context: %w", err)
 	}
 	_, err = b.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
 		Id: &mgmtv1alpha1.RunContextKey{
-			JobRunId:   b.workflowId,
-			ExternalId: "init-schema-report",
+			JobRunId:   b.jobRunId,
+			ExternalId: fmt.Sprintf("reconcile-schema-report-%s", destinationId),
 			AccountId:  accountId,
 		},
 		Value: bits,
@@ -190,4 +202,53 @@ func (b *reconcileSchemaBuilder) getJobById(
 		return nil, err
 	}
 	return getjobResp.Msg.Job, nil
+}
+
+// Parses the job and returns the unique set of tables.
+func getUniqueTablesMapFromJob(job *mgmtv1alpha1.Job) map[string]*sqlmanager_shared.SchemaTable {
+	switch jobSourceConfig := job.Source.GetOptions().GetConfig().(type) {
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		uniqueTables := map[string]*sqlmanager_shared.SchemaTable{}
+		for _, schema := range jobSourceConfig.AiGenerate.Schemas {
+			for _, table := range schema.Tables {
+				schematable := &sqlmanager_shared.SchemaTable{
+					Schema: schema.Schema,
+					Table:  table.Table,
+				}
+				uniqueTables[schematable.String()] = schematable
+			}
+		}
+		return uniqueTables
+	default:
+		return getUniqueTablesFromMappings(job.GetMappings())
+	}
+}
+
+// Parses the job mappings and returns the unique set of tables.
+func getUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string]*sqlmanager_shared.SchemaTable {
+	uniqueTables := map[string]*sqlmanager_shared.SchemaTable{}
+	for _, mapping := range mappings {
+		schematable := &sqlmanager_shared.SchemaTable{
+			Schema: mapping.Schema,
+			Table:  mapping.Table,
+		}
+		_, ok := uniqueTables[schematable.String()]
+		if !ok {
+			uniqueTables[schematable.String()] = schematable
+		}
+	}
+
+	return uniqueTables
+}
+
+func getUniqueSchemasFromTables(tables map[string]*sqlmanager_shared.SchemaTable) []string {
+	uniqueSchemas := map[string]struct{}{}
+	for _, table := range tables {
+		uniqueSchemas[table.Schema] = struct{}{}
+	}
+	schemas := []string{}
+	for s := range uniqueSchemas {
+		schemas = append(schemas, s)
+	}
+	return schemas
 }
