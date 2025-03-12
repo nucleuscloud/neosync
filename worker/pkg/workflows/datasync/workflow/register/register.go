@@ -9,7 +9,6 @@ import (
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
 	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
-	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
@@ -45,7 +44,6 @@ func Register(
 	)
 
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
-	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager, eelicense)
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	runPostTableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
 	jobhookByTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, eelicense)
@@ -55,7 +53,6 @@ func Register(
 
 	w.RegisterWorkflow(wf.Workflow)
 	w.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
-	w.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
 	w.RegisterActivity(redisCleanUpActivity.DeleteRedisHash)
 	w.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 	w.RegisterActivity(accountStatusActivity.CheckAccountStatus)

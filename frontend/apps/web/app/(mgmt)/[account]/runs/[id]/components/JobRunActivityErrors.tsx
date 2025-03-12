@@ -38,20 +38,51 @@ function parseUint8ArrayToInitSchemaReport(
 export default function JobRunActivityErrors(
   props: JobRunActivityErrorsProps
 ): ReactElement {
+  const { data: jobData } = useQuery(
+    JobService.method.getJob,
+    { id: props.jobId },
+    { enabled: !!props.jobId }
+  );
+
+  const job = jobData?.job;
   return (
     <TanstackQueryProviderIgnore404Errors>
-      <JobRunErrorViewer {...props} />
+      <JobRunInitSchemaErrorViewer
+        jobRunId={props.jobRunId}
+        accountId={props.accountId}
+        externalId="init-schema-report"
+      />
+      {job?.destinations?.map((destination) => (
+        <JobRunInitSchemaErrorViewer
+          key={destination.id}
+          jobRunId={props.jobRunId}
+          accountId={props.accountId}
+          externalId={`init-schema-report-${destination.id}`}
+        />
+      ))}
     </TanstackQueryProviderIgnore404Errors>
   );
 }
 
-function JobRunErrorViewer(props: JobRunActivityErrorsProps): ReactElement {
-  const { jobRunId, accountId } = props;
+interface JobRunInitSchemaErrorViewerProps {
+  jobRunId: string;
+  accountId: string;
+  externalId: string;
+}
+
+function JobRunInitSchemaErrorViewer(
+  props: JobRunInitSchemaErrorViewerProps
+): ReactElement {
+  const { jobRunId, accountId, externalId } = props;
 
   const { data: runContextData, error: runContextError } = useQuery(
     JobService.method.getRunContext,
     {
-      id: { jobRunId, externalId: 'init-schema-report', accountId: accountId },
+      id: {
+        jobRunId,
+        externalId,
+        accountId: accountId,
+      },
     },
     { enabled: !!jobRunId && !!accountId, retry: false }
   );

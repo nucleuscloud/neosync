@@ -17,9 +17,9 @@ import (
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
 	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
-	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
+	schemainit_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/schemainit/workflow"
 	workflow_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/activities/sync"
 	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
@@ -171,20 +171,10 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 		return nil, err
 	}
 
-	logger.Info("scheduling RunSqlInitTableStatements for execution.")
-	var resp *runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse
-	var runSqlInitTableStatements *runsqlinittablestmts_activity.Activity
-	err = workflow.ExecuteActivity(
-		workflow.WithActivityOptions(ctx, *actOptResp.SyncActivityOptions),
-		runSqlInitTableStatements.RunSqlInitTableStatements,
-		&runsqlinittablestmts_activity.RunSqlInitTableStatementsRequest{
-			JobId: req.JobId,
-		}).
-		Get(ctx, &resp)
+	err = runSchemaInitWorkflowByDestination(ctx, logger, actOptResp.AccountId, req.JobId, info.WorkflowExecution.ID, actOptResp.DestinationIds)
 	if err != nil {
 		return nil, err
 	}
-	logger.Info("completed RunSqlInitTableStatements.")
 
 	redisDependsOn := map[string]map[string][]string{} // schema.table -> dependson
 	redisConfigs := map[string]*benthosbuilder_shared.BenthosRedisConfig{}
@@ -416,6 +406,45 @@ func execRunJobHooksByTiming(ctx workflow.Context, req *jobhooks_by_timing_activ
 		return err
 	}
 	logger.Info(fmt.Sprintf("completed %d %q RunJobHooksByTiming", resp.ExecCount, req.Timing))
+	return nil
+}
+
+func runSchemaInitWorkflowByDestination(
+	ctx workflow.Context,
+	logger log.Logger,
+	accountId, jobId, jobRunId string,
+	destinationIds []string,
+) error {
+	initSchemaActivityOptions := &workflow.ActivityOptions{
+		StartToCloseTimeout: 5 * time.Minute,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 1,
+		},
+		HeartbeatTimeout: 1 * time.Minute,
+	}
+	for _, destinationId := range destinationIds {
+		logger.Info("scheduling Schema Initialization workflow for execution.", "destinationId", destinationId)
+		siWf := &schemainit_workflow.Workflow{}
+		var wfResult schemainit_workflow.SchemaInitResponse
+		id := fmt.Sprintf("init-schema-%s", destinationId)
+		err := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
+			WorkflowID:    workflow_shared.BuildChildWorkflowId(jobRunId, id, workflow.Now(ctx)),
+			StaticSummary: fmt.Sprintf("Initializing Schema for %s", destinationId),
+			RetryPolicy: &temporal.RetryPolicy{
+				MaximumAttempts: 1,
+			},
+		}), siWf.SchemaInit, &schemainit_workflow.SchemaInitRequest{
+			AccountId:                 accountId,
+			JobId:                     jobId,
+			SchemaInitActivityOptions: initSchemaActivityOptions,
+			JobRunId:                  jobRunId,
+			DestinationId:             destinationId,
+		}).Get(ctx, &wfResult)
+		if err != nil {
+			return err
+		}
+		logger.Info("completed Schema Initialization workflow.", "destinationId", destinationId)
+	}
 	return nil
 }
 

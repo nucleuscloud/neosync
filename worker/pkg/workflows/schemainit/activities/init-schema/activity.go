@@ -1,4 +1,4 @@
-package runsqlinittablestmts_activity
+package initschema_activity
 
 import (
 	"context"
@@ -37,7 +37,9 @@ func New(
 }
 
 type RunSqlInitTableStatementsRequest struct {
-	JobId string
+	JobId         string
+	JobRunId      string
+	DestinationId string
 }
 
 type RunSqlInitTableStatementsResponse struct {
@@ -53,6 +55,7 @@ func (a *Activity) RunSqlInitTableStatements(
 		"jobId", req.JobId,
 		"WorkflowID", info.WorkflowExecution.ID,
 		"RunID", info.WorkflowExecution.RunID,
+		"destinationId", req.DestinationId,
 	)
 	go func() {
 		for {
@@ -70,7 +73,7 @@ func (a *Activity) RunSqlInitTableStatements(
 		a.jobclient,
 		a.connclient,
 		a.eelicense,
-		info.WorkflowExecution.ID,
+		req.JobRunId,
 	)
 	slogger := temporallogger.NewSlogger(logger)
 	return builder.RunSqlInitTableStatements(

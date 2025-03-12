@@ -20,6 +20,7 @@ import (
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 	datasync_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/register"
 	accounthook_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/account_hooks/workflow/register"
+	schemainit_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/schemainit/workflow/register"
 	tablesync_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow/register"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
@@ -125,6 +126,14 @@ func NewTestDataSyncWorkflowEnv(
 		workflowEnv.Redisclient,
 		false,
 		workflowEnv.pageLimit,
+	)
+
+	schemainit_workflow_register.Register(
+		env,
+		jobclient,
+		connclient,
+		dbManagers.SqlManager,
+		workflowEnv.fakeEELicense,
 	)
 
 	tablesync_workflow_register.Register(

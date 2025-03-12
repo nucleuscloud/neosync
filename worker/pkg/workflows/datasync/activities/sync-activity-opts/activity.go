@@ -33,6 +33,7 @@ type RetrieveActivityOptionsResponse struct {
 	SyncActivityOptions  *workflow.ActivityOptions
 	AccountId            string
 	RequestedRecordCount *uint64
+	DestinationIds       []string
 }
 
 func (a *Activity) RetrieveActivityOptions(
@@ -53,10 +54,15 @@ func (a *Activity) RetrieveActivityOptions(
 		return nil, fmt.Errorf("unable to get job by id: %w", err)
 	}
 	job := jobResp.Msg.GetJob()
+	destinationIds := make([]string, 0)
+	for _, destination := range job.GetDestinations() {
+		destinationIds = append(destinationIds, destination.GetId())
+	}
 	return &RetrieveActivityOptionsResponse{
 		SyncActivityOptions:  getSyncActivityOptionsFromJob(job),
 		AccountId:            job.GetAccountId(),
 		RequestedRecordCount: getRequestedRecordCount(job),
+		DestinationIds:       destinationIds,
 	}, nil
 }
 

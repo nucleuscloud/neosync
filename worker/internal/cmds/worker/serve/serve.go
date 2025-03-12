@@ -38,6 +38,7 @@ import (
 	pyroscope_env "github.com/nucleuscloud/neosync/internal/pyroscope"
 	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	schemainit_workflow_register "github.com/nucleuscloud/neosync/worker/pkg/workflows/schemainit/workflow/register"
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 
@@ -330,6 +331,14 @@ func serve(ctx context.Context) error {
 		syncActivityMeter,
 		streamManager,
 		maxIterations,
+	)
+
+	schemainit_workflow_register.Register(
+		w,
+		jobclient,
+		connclient,
+		sqlmanager,
+		cascadelicense,
 	)
 
 	datasync_workflow_register.Register(
