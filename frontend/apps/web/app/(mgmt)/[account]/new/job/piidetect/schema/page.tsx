@@ -40,7 +40,10 @@ import {
   TableScanFilterPatterns,
   UserPrompt,
 } from './FormInputs';
-import { usePiiDetectionSchemaStore } from './stores';
+import {
+  setPiiDetectionSchemaStorePersistenceKey,
+  usePiiDetectionSchemaStore,
+} from './stores';
 
 export default function Page(props: PageProps): ReactElement {
   const searchParams = use(props.searchParams);
@@ -71,24 +74,6 @@ export default function Page(props: PageProps): ReactElement {
       sourceId: '',
     }
   );
-
-  // const schemaFormKey = sessionKeys.piidetect.schema;
-  // const [schemaFormData] = useSessionStorage<PiiDetectionSchemaFormValues>(
-  //   schemaFormKey,
-  //   {
-  //     dataSampling: {
-  //       isEnabled: true,
-  //     },
-  //     tableScanFilter: {
-  //       mode: 'include_all',
-  //       patterns: {
-  //         schemas: [],
-  //         tables: [],
-  //       },
-  //     },
-  //     userPrompt: '',
-  //   }
-  // );
 
   const { data: connectionsData } = useQuery(
     ConnectionService.method.getConnections,
@@ -152,6 +137,10 @@ export default function Page(props: PageProps): ReactElement {
     isSubmitting,
     setSubmitting,
   } = usePiiDetectionSchemaStore();
+
+  useEffect(() => {
+    setPiiDetectionSchemaStorePersistenceKey(sessionKeys.piidetect.schema);
+  }, [sessionKeys.piidetect.schema]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();

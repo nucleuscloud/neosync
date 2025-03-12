@@ -2,6 +2,7 @@ import { getConnectionIdFromSource } from '@/app/(mgmt)/[account]/jobs/[id]/sour
 import { BaseHookStore } from '@/util/zustand.stores.util';
 import { Job } from '@neosync/sdk';
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import {
   EditPiiDetectionJobFormValues,
   PiiDetectionSchemaFormValues,
@@ -37,32 +38,55 @@ interface PiiDetectionSchemaStore
   setFromRemoteJob(job: Job): void;
 }
 
-export const usePiiDetectionSchemaStore = create<PiiDetectionSchemaStore>(
-  (set) => ({
-    formData: getInitialFormState(),
-    errors: {},
-    isSubmitting: false,
-    sourcedFromRemote: false,
-    setFromRemoteJob: (job) =>
-      set({
-        formData: getFormStateFromJob(job),
-        sourcedFromRemote: true,
-        isSubmitting: false,
-        errors: {},
+const PLACEHOLDER_STORE_PERSIST_KEY = 'pii-detect-schema';
+
+export const usePiiDetectionSchemaStore = create<PiiDetectionSchemaStore>()(
+  persist(
+    (set, get) => ({
+      formData:
+        (get()?.formData as PiiDetectionSchemaFormValues) ??
+        getInitialFormState(),
+      errors: {},
+      isSubmitting: false,
+      sourcedFromRemote: false,
+      setFromRemoteJob: (job) =>
+        set({
+          formData: getFormStateFromJob(job),
+          sourcedFromRemote: true,
+          isSubmitting: false,
+          errors: {},
+        }),
+      setFormData: (data) =>
+        set((state) => ({ formData: { ...state.formData, ...data } })),
+      setErrors: (errors) => set({ errors }),
+      setSubmitting: (isSubmitting) => set({ isSubmitting }),
+      resetForm: () =>
+        set({
+          formData: getInitialFormState(),
+          errors: {},
+          isSubmitting: false,
+          sourcedFromRemote: false,
+        }),
+    }),
+    {
+      name: PLACEHOLDER_STORE_PERSIST_KEY,
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({
+        formData: state.formData,
       }),
-    setFormData: (data) =>
-      set((state) => ({ formData: { ...state.formData, ...data } })),
-    setErrors: (errors) => set({ errors }),
-    setSubmitting: (isSubmitting) => set({ isSubmitting }),
-    resetForm: () =>
-      set({
-        formData: getInitialFormState(),
-        errors: {},
-        isSubmitting: false,
-        sourcedFromRemote: false,
-      }),
-  })
+    }
+  )
 );
+
+// Hack to allow dynamic zustand store persistence keys
+// https://github.com/pmndrs/zustand/issues/513
+export function setPiiDetectionSchemaStorePersistenceKey(sessionKey: string) {
+  usePiiDetectionSchemaStore.persist.setOptions({
+    name: sessionKey,
+  });
+  usePiiDetectionSchemaStore.persist.rehydrate();
+  sessionStorage.removeItem(PLACEHOLDER_STORE_PERSIST_KEY);
+}
 
 interface EditPiiDetectionSchemaStore
   extends BaseHookStore<EditPiiDetectionJobFormValues> {
