@@ -131,9 +131,83 @@ func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTabl
 	return diff, nil
 }
 
-func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *SchemaDifferences) error {
+func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+	if !d.destOpts.GetInitTableSchema() {
+		d.logger.Info("skipping schema init as it is not enabled")
+		return nil, nil
+	}
+	addColumnStatements := []string{}
+	for _, column := range diff.Missing.Columns {
+		stmt, err := sqlmanager_mysql.BuildAddColumnStatement(column)
+		if err != nil {
+			return nil, fmt.Errorf("failed to build add column statement: %w", err)
+		}
+		addColumnStatements = append(addColumnStatements, stmt)
+	}
 
-	return nil
+	return []*sqlmanager_shared.InitSchemaStatements{
+		{
+			Label:      sqlmanager_mysql.AddColumnsLabel,
+			Statements: addColumnStatements,
+		},
+	}, nil
+}
+
+func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable, schemaStatements []*sqlmanager_shared.InitSchemaStatements) ([]*shared.InitSchemaError, error) {
+	initErrors := []*shared.InitSchemaError{}
+	if !d.destOpts.GetInitTableSchema() {
+		d.logger.Info("skipping schema init as it is not enabled")
+		return initErrors, nil
+	}
+	tables := []*sqlmanager_shared.SchemaTable{}
+	for _, tableschema := range uniqueTables {
+		tables = append(tables, tableschema)
+	}
+
+	initblocks, err := d.sourcedb.Db().GetSchemaInitStatements(ctx, tables)
+	if err != nil {
+		return nil, err
+	}
+
+	schemaStatementsByLabel := map[string][]*sqlmanager_shared.InitSchemaStatements{}
+	for _, statement := range schemaStatements {
+		schemaStatementsByLabel[statement.Label] = append(schemaStatementsByLabel[statement.Label], statement)
+	}
+
+	// insert add columns statements after create table statements
+	// initblocks will eventually be replaced by schemastatements
+	// this is a weird intermitten state for now
+	statementBlocks := []*sqlmanager_shared.InitSchemaStatements{}
+	for _, statement := range initblocks {
+		statementBlocks = append(statementBlocks, statement)
+		if statement.Label == sqlmanager_mysql.CreateTablesLabel {
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.AddColumnsLabel]...)
+		}
+	}
+
+	for _, block := range statementBlocks {
+		d.logger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
+		if len(block.Statements) == 0 {
+			continue
+		}
+		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
+		if err != nil {
+			d.logger.Error(fmt.Sprintf("unable to exec mysql %s statements: %s", block.Label, err.Error()))
+			if block.Label != sqlmanager_mysql.SchemasLabel {
+				return nil, fmt.Errorf("unable to exec mysql %s statements: %w", block.Label, err)
+			}
+			for _, stmt := range block.Statements {
+				err = d.destdb.Db().BatchExec(ctx, 1, []string{stmt}, &sqlmanager_shared.BatchExecOpts{})
+				if err != nil {
+					initErrors = append(initErrors, &shared.InitSchemaError{
+						Statement: stmt,
+						Error:     err.Error(),
+					})
+				}
+			}
+		}
+	}
+	return initErrors, nil
 }
 
 func (d *MysqlSchemaManager) InitializeSchema(ctx context.Context, uniqueTables map[string]struct{}) ([]*shared.InitSchemaError, error) {

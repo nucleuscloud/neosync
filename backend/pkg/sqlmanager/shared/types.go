@@ -21,6 +21,7 @@ type DatabaseSchemaRow struct {
 	NumericScale           int
 	OrdinalPosition        int
 	GeneratedType          *string
+	GeneratedExpression    *string
 	IdentityGeneration     *string
 	IdentitySeed           *int
 	IdentityIncrement      *int
