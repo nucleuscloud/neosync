@@ -73,68 +73,77 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		return &RunSqlInitTableStatementsResponse{}, nil
 	}
 
+	var destination *mgmtv1alpha1.JobDestination
+	for _, d := range job.Destinations {
+		if d.Id == req.DestinationId {
+			destination = d
+			break
+		}
+	}
+	if destination == nil {
+		return nil, fmt.Errorf("unable to find destination by id (%s)", req.DestinationId)
+	}
+
 	uniqueTables := shared.GetUniqueTablesMapFromJob(job)
 	uniqueSchemas := shared.GetUniqueSchemasFromJob(job)
 
 	initSchemaRunContext := []*InitSchemaRunContext{}
 
-	for _, destination := range job.Destinations {
-		destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get destination connection by id (%s): %w", destination.ConnectionId, err)
-		}
-		destinationConnectionType := shared.GetConnectionType(destinationConnection)
-		slogger = slogger.With(
-			"destinationConnectionType", destinationConnectionType,
-		)
-
-		shouldInitSchema := true
-		if job.GetSource().GetOptions().GetAiGenerate() != nil {
-			fkSrcConnId := job.GetSource().GetOptions().GetAiGenerate().GetFkSourceConnectionId()
-			if fkSrcConnId == destination.GetConnectionId() {
-				slogger.Warn("cannot init schema when destination connection is the same as the foreign key source connection")
-				shouldInitSchema = false
-			}
-		}
-
-		if job.GetSource().GetOptions().GetGenerate() != nil {
-			fkSrcConnId := job.GetSource().GetOptions().GetGenerate().GetFkSourceConnectionId()
-			if fkSrcConnId == destination.GetConnectionId() {
-				slogger.Warn("cannot init schema when destination connection is the same as the foreign key source connection")
-				shouldInitSchema = false
-			}
-		}
-
-		manager := schemamanager.NewSchemaManager(b.sqlmanager, session, slogger, b.eelicense)
-		schemaManager, err := manager.New(ctx, sourceConnection, destinationConnection, destination)
-		if err != nil {
-			return nil, fmt.Errorf("unable to create new schema manager: %w", err)
-		}
-
-		if shouldInitSchema {
-			initSchemaErrors, err := schemaManager.InitializeSchema(ctx, uniqueTables)
-			if err != nil {
-				return nil, fmt.Errorf("unable to initialize schema: %w", err)
-			}
-
-			initSchemaRunContext = append(initSchemaRunContext, &InitSchemaRunContext{
-				ConnectionId: destination.GetConnectionId(),
-				Errors:       initSchemaErrors,
-			})
-
-			err = b.setInitSchemaRunCtx(ctx, initSchemaRunContext, job.AccountId)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		err = schemaManager.TruncateData(ctx, uniqueTables, uniqueSchemas)
-		if err != nil {
-			return nil, fmt.Errorf("unable to truncate data: %w", err)
-		}
-
-		schemaManager.CloseConnections()
+	destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get destination connection by id (%s): %w", destination.ConnectionId, err)
 	}
+	destinationConnectionType := shared.GetConnectionType(destinationConnection)
+	slogger = slogger.With(
+		"destinationConnectionType", destinationConnectionType,
+	)
+
+	shouldInitSchema := true
+	if job.GetSource().GetOptions().GetAiGenerate() != nil {
+		fkSrcConnId := job.GetSource().GetOptions().GetAiGenerate().GetFkSourceConnectionId()
+		if fkSrcConnId == destination.GetConnectionId() {
+			slogger.Warn("cannot init schema when destination connection is the same as the foreign key source connection")
+			shouldInitSchema = false
+		}
+	}
+
+	if job.GetSource().GetOptions().GetGenerate() != nil {
+		fkSrcConnId := job.GetSource().GetOptions().GetGenerate().GetFkSourceConnectionId()
+		if fkSrcConnId == destination.GetConnectionId() {
+			slogger.Warn("cannot init schema when destination connection is the same as the foreign key source connection")
+			shouldInitSchema = false
+		}
+	}
+
+	manager := schemamanager.NewSchemaManager(b.sqlmanager, session, slogger, b.eelicense)
+	schemaManager, err := manager.New(ctx, sourceConnection, destinationConnection, destination)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new schema manager: %w", err)
+	}
+
+	if shouldInitSchema {
+		initSchemaErrors, err := schemaManager.InitializeSchema(ctx, uniqueTables)
+		if err != nil {
+			return nil, fmt.Errorf("unable to initialize schema: %w", err)
+		}
+
+		initSchemaRunContext = append(initSchemaRunContext, &InitSchemaRunContext{
+			ConnectionId: destination.GetConnectionId(),
+			Errors:       initSchemaErrors,
+		})
+
+		err = b.setInitSchemaRunCtx(ctx, initSchemaRunContext, job.AccountId)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = schemaManager.TruncateData(ctx, uniqueTables, uniqueSchemas)
+	if err != nil {
+		return nil, fmt.Errorf("unable to truncate data: %w", err)
+	}
+
+	schemaManager.CloseConnections()
 
 	return &RunSqlInitTableStatementsResponse{}, nil
 }

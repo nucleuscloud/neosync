@@ -7,9 +7,10 @@ import (
 )
 
 type SchemaInitRequest struct {
-	AccountId string
-	JobId     string
-	JobRunId  string
+	AccountId     string
+	JobId         string
+	JobRunId      string
+	DestinationId string
 
 	SchemaInitActivityOptions *workflow.ActivityOptions
 }
@@ -28,6 +29,7 @@ func (w *Workflow) SchemaInit(ctx workflow.Context, req *SchemaInitRequest) (*Sc
 		"accountId", req.AccountId,
 		"jobId", req.JobId,
 		"jobRunId", req.JobRunId,
+		"destinationId", req.DestinationId,
 	)
 
 	logger.Info("scheduling InitSchema activityfor execution.")
@@ -37,7 +39,8 @@ func (w *Workflow) SchemaInit(ctx workflow.Context, req *SchemaInitRequest) (*Sc
 		workflow.WithActivityOptions(ctx, *req.SchemaInitActivityOptions),
 		initSchema.RunSqlInitTableStatements,
 		&initschema_activity.RunSqlInitTableStatementsRequest{
-			JobId: req.JobId,
+			JobId:         req.JobId,
+			DestinationId: req.DestinationId,
 		}).
 		Get(ctx, &resp)
 	if err != nil {

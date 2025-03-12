@@ -37,7 +37,8 @@ func New(
 }
 
 type RunSqlInitTableStatementsRequest struct {
-	JobId string
+	JobId         string
+	DestinationId string
 }
 
 type RunSqlInitTableStatementsResponse struct {
@@ -53,6 +54,7 @@ func (a *Activity) RunSqlInitTableStatements(
 		"jobId", req.JobId,
 		"WorkflowID", info.WorkflowExecution.ID,
 		"RunID", info.WorkflowExecution.RunID,
+		"destinationId", req.DestinationId,
 	)
 	go func() {
 		for {
