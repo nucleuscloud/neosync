@@ -242,8 +242,8 @@ function useGetJobData(
       experimental: true,
       image:
         resolvedTheme === 'light'
-          ? 'https://assets.nucleuscloud.com/neosync/app/aigen.svg'
-          : 'https://assets.nucleuscloud.com/neosync/app/aigen-dark.svg',
+          ? 'https://assets.nucleuscloud.com/neosync/app/jobsynclight.svg'
+          : 'https://assets.nucleuscloud.com/neosync/app/prodsync-dark.svg',
     });
   }
 
