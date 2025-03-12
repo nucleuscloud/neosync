@@ -53,7 +53,52 @@ func NewMysqlSchemaManager(
 	}, nil
 }
 
-func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) ([]*shared.InitSchemaError, error) {
+type Missing struct {
+	Tables  []*sqlmanager_shared.SchemaTable
+	Columns []*sqlmanager_shared.DatabaseSchemaRow
+}
+
+type ColumnDiff struct {
+	SourceDefinition      *sqlmanager_shared.DatabaseSchemaRow
+	DestinationDefinition *sqlmanager_shared.DatabaseSchemaRow
+}
+
+type Different struct {
+	Columns []*ColumnDiff
+}
+
+type SchemaDifferences struct {
+	Missing   *Missing
+	Different *Different
+	/*
+		Missing:
+			tables
+			columns
+			indexes
+			triggers
+			functions
+			sequences
+
+		Extra:
+			tables
+			columns
+			indexes
+			triggers
+			functions
+			sequences
+
+		Changed:
+			columns
+			indexes
+			triggers
+			functions
+			sequences
+
+	*/
+}
+
+func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*SchemaDifferences, error) {
+	diff := &SchemaDifferences{}
 	tables := []*sqlmanager_shared.SchemaTable{}
 	for _, schematable := range uniqueTables {
 		tables = append(tables, schematable)
@@ -66,8 +111,29 @@ func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTabl
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve destination database table schemas: %w", err)
 	}
+	sourceColMap := sqlmanager_shared.GetUniqueSchemaColMappings(sourceColumns)
+	destColMap := sqlmanager_shared.GetUniqueSchemaColMappings(destColumns)
 
-	return nil, nil
+	for _, table := range tables {
+		sourceTable := sourceColMap[table.String()]
+		destTable := destColMap[table.String()]
+		if sourceTable != nil && destTable == nil {
+			diff.Missing.Tables = append(diff.Missing.Tables, table)
+		}
+		for _, column := range sourceTable {
+			_, ok := destTable[column.ColumnName]
+			if !ok {
+				diff.Missing.Columns = append(diff.Missing.Columns, column)
+			}
+		}
+	}
+
+	return diff, nil
+}
+
+func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *SchemaDifferences) error {
+
+	return nil
 }
 
 func (d *MysqlSchemaManager) InitializeSchema(ctx context.Context, uniqueTables map[string]struct{}) ([]*shared.InitSchemaError, error) {
