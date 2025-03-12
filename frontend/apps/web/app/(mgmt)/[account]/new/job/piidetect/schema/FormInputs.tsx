@@ -260,7 +260,7 @@ interface TableScanFilterPatternSchemasProps {
   mode: TableScanFilterModeFormValue;
 }
 
-export function TableScanFilterPatternSchemas(
+function TableScanFilterPatternSchemas(
   props: TableScanFilterPatternSchemasProps
 ): ReactElement {
   const { error, value, onChange, availableSchemas, mode } = props;
@@ -383,7 +383,7 @@ interface TableScanFilterPatternTablesProps {
   mode: TableScanFilterModeFormValue;
 }
 
-export function TableScanFilterPatternTables(
+function TableScanFilterPatternTables(
   props: TableScanFilterPatternTablesProps
 ): ReactElement {
   const { error, value, onChange, availableTableIdentifiers, mode } = props;
