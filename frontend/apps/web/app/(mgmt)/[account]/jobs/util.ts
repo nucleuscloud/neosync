@@ -1715,6 +1715,7 @@ interface NewJobSessionKeys {
   dataSync: { connect: string; schema: string; subset: string };
   generate: { connect: string; schema: string };
   aigenerate: { connect: string; schema: string };
+  piidetect: { connect: string; schema: string };
 }
 
 export function getNewJobSessionKeys(sessionId: string): NewJobSessionKeys {
@@ -1734,6 +1735,10 @@ export function getNewJobSessionKeys(sessionId: string): NewJobSessionKeys {
     aigenerate: {
       connect: `${sessionId}-new-job-single-table-ai-connect`,
       schema: `${sessionId}-new-job-single-table-ai-schema`,
+    },
+    piidetect: {
+      connect: `${sessionId}-new-job-pii-detect-connect`,
+      schema: `${sessionId}-new-job-pii-detect-schema`,
     },
   };
 }

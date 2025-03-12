@@ -50,7 +50,7 @@ export default function Page(props: PageProps): ReactElement {
   const posthog = usePostHog();
 
   const sessionPrefix = getSingleOrUndefined(searchParams?.sessionId) ?? '';
-  const formKey = getNewJobSessionKeys(sessionPrefix).aigenerate.connect;
+  const formKey = getNewJobSessionKeys(sessionPrefix).piidetect.connect;
   const [defaultValues] = useSessionStorage<PiiDetectionConnectFormValues>(
     formKey,
     {

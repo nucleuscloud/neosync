@@ -319,6 +319,51 @@ export type PiiDetectionConnectFormValues = Yup.InferType<
   typeof PiiDetectionConnectFormValues
 >;
 
+const TableScanFilterModeFormValue = Yup.string()
+  .required()
+  .oneOf(['include_all', 'include', 'exclude']);
+export type TableScanFilterModeFormValue = Yup.InferType<
+  typeof TableScanFilterModeFormValue
+>;
+
+const TableScanFilterPatternsFormValue = Yup.object().shape({
+  schemas: Yup.array().of(Yup.string().required()).required().default([]),
+  tables: Yup.array()
+    .of(
+      Yup.object()
+        .shape({
+          schema: Yup.string().required(),
+          table: Yup.string().required(),
+        })
+        .required()
+    )
+    .required()
+    .default([]),
+});
+export type TableScanFilterPatternsFormValue = Yup.InferType<
+  typeof TableScanFilterPatternsFormValue
+>;
+
+const TableScanFilterFormValue = Yup.object().shape({
+  mode: TableScanFilterModeFormValue,
+  patterns: TableScanFilterPatternsFormValue,
+});
+export type TableScanFilterFormValue = Yup.InferType<
+  typeof TableScanFilterFormValue
+>;
+
+export const PiiDetectionSchemaFormValues = Yup.object().shape({
+  dataSampling: Yup.object().shape({
+    isEnabled: Yup.boolean().required().default(true),
+  }),
+  tableScanFilter: TableScanFilterFormValue,
+  userPrompt: Yup.string(),
+});
+
+export type PiiDetectionSchemaFormValues = Yup.InferType<
+  typeof PiiDetectionSchemaFormValues
+>;
+
 export const SingleTableAiSchemaFormValues = Yup.object({
   numRows: Yup.number()
     .required('Must provide a number of rows to generate')
