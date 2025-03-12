@@ -1,6 +1,9 @@
 import { ToggleGroupItem } from '@/components/ui/toggle-group';
 
-import DualListBox, { Option } from '@/components/DualListBox/DualListBox';
+import DualListBox, {
+  EmptyStateMessage,
+  Option,
+} from '@/components/DualListBox/DualListBox';
 import FormErrorMessage from '@/components/FormErrorMessage';
 import FormHeader from '@/components/forms/FormHeader';
 import {
@@ -161,6 +164,7 @@ export function TableScanFilterPatterns(
           onChange({ ...value, schemas: newSchemas });
         }}
         availableSchemas={availableSchemas}
+        mode={mode}
       />
       <TableScanFilterPatternTables
         error={errors?.['patterns.tables']}
@@ -169,6 +173,7 @@ export function TableScanFilterPatterns(
           onChange({ ...value, tables: newTables });
         }}
         availableTableIdentifiers={availableTableIdentifiers}
+        mode={mode}
       />
     </div>
   );
@@ -179,12 +184,13 @@ interface TableScanFilterPatternSchemasProps {
   value: string[];
   onChange(value: string[]): void;
   availableSchemas: string[];
+  mode: TableScanFilterModeFormValue;
 }
 
 export function TableScanFilterPatternSchemas(
   props: TableScanFilterPatternSchemasProps
 ): ReactElement {
-  const { error, value, onChange, availableSchemas } = props;
+  const { error, value, onChange, availableSchemas, mode } = props;
 
   const dualListBoxOpts = useMemo((): Option[] => {
     return availableSchemas.map((schema) => ({
@@ -203,6 +209,10 @@ export function TableScanFilterPatternSchemas(
     [onChange]
   );
 
+  const leftEmptyStates = useGetSchemaLeftEmptyStates(mode);
+  const rightEmptyStates = useGetSchemaRightEmptyStates(mode);
+  const cardDescription = useSchemaCardDescription(mode);
+
   return (
     <div className="flex flex-col md:flex-row gap-3">
       <Card className="w-full">
@@ -213,7 +223,7 @@ export function TableScanFilterPatternSchemas(
             </div>
             <CardTitle>Schema Selection</CardTitle>
           </div>
-          <CardDescription>Select schemas to scan for PII.</CardDescription>
+          <CardDescription>{cardDescription}</CardDescription>
         </CardHeader>
         <CardContent>
           <DualListBox
@@ -221,14 +231,8 @@ export function TableScanFilterPatternSchemas(
             selected={selectedSchemas}
             onChange={onSelectedChange}
             mode={'many'}
-            leftEmptyState={{
-              noOptions: 'Unable to load schemas or found none',
-              noSelected: 'All schemas have been added!',
-            }}
-            rightEmptyState={{
-              noOptions: 'Unable to load schemas or found none',
-              noSelected: 'Add schemas to scan for PII!',
-            }}
+            leftEmptyState={leftEmptyStates}
+            rightEmptyState={rightEmptyStates}
           />
         </CardContent>
       </Card>
@@ -237,18 +241,79 @@ export function TableScanFilterPatternSchemas(
   );
 }
 
+function useGetSchemaLeftEmptyStates(
+  mode: TableScanFilterModeFormValue
+): EmptyStateMessage {
+  return useMemo(() => {
+    switch (mode) {
+      case 'include_all':
+        return {
+          noOptions: 'Unable to load schemas or found none',
+          noSelected: 'All schemas have been added!',
+        };
+      case 'include':
+        return {
+          noOptions: 'Unable to load schemas or found none',
+          noSelected: 'All schemas available have been included!',
+        };
+      case 'exclude':
+        return {
+          noOptions: 'Unable to load schemas or found none',
+          noSelected: 'All schemas available have been excluded!',
+        };
+    }
+  }, [mode]);
+}
+
+function useGetSchemaRightEmptyStates(
+  mode: TableScanFilterModeFormValue
+): EmptyStateMessage {
+  return useMemo(() => {
+    switch (mode) {
+      case 'include_all':
+        return {
+          noOptions: 'Unable to load schemas or found none',
+          noSelected: 'All schemas have been added!',
+        };
+      case 'include':
+        return {
+          noOptions: 'Unable to load schemas or found none',
+          noSelected: 'Add schemas to scan for PII!',
+        };
+      case 'exclude':
+        return {
+          noOptions: 'Unable to load schemas or found none',
+          noSelected: 'Add schemas to exclude from PII scanning!',
+        };
+    }
+  }, [mode]);
+}
+function useSchemaCardDescription(mode: TableScanFilterModeFormValue): string {
+  return useMemo(() => {
+    switch (mode) {
+      case 'include_all':
+        return 'Select all schemas to scan for PII.';
+      case 'include':
+        return 'Select schemas to scan for PII.';
+      case 'exclude':
+        return 'Select schemas to exclude from PII scanning.';
+    }
+  }, [mode]);
+}
+
 interface TableScanFilterPatternTablesProps {
   error?: string;
   value: FilterPatternTableIdentifier[];
   onChange(value: FilterPatternTableIdentifier[]): void;
 
   availableTableIdentifiers: FilterPatternTableIdentifier[];
+  mode: TableScanFilterModeFormValue;
 }
 
 export function TableScanFilterPatternTables(
   props: TableScanFilterPatternTablesProps
 ): ReactElement {
-  const { error, value, onChange, availableTableIdentifiers } = props;
+  const { error, value, onChange, availableTableIdentifiers, mode } = props;
 
   const dualListBoxOpts = useMemo((): Option[] => {
     return availableTableIdentifiers.map((tableIdentifier) => ({
@@ -277,6 +342,9 @@ export function TableScanFilterPatternTables(
     [onChange]
   );
 
+  const leftEmptyStates = useGetTableLeftEmptyStates(mode);
+  const rightEmptyStates = useGetTableRightEmptyStates(mode);
+  const cardDescription = useTableCardDescription(mode);
   return (
     <div className="flex flex-col md:flex-row gap-3">
       <Card className="w-full">
@@ -287,7 +355,7 @@ export function TableScanFilterPatternTables(
             </div>
             <CardTitle>Table Selection</CardTitle>
           </div>
-          <CardDescription>Select tables to scan for PII.</CardDescription>
+          <CardDescription>{cardDescription}</CardDescription>
         </CardHeader>
         <CardContent>
           <DualListBox
@@ -295,18 +363,73 @@ export function TableScanFilterPatternTables(
             selected={selectedSchemas}
             onChange={onSelectedChange}
             mode={'many'}
-            leftEmptyState={{
-              noOptions: 'Unable to load tables or found none',
-              noSelected: 'All tables have been added!',
-            }}
-            rightEmptyState={{
-              noOptions: 'Unable to load tables or found none',
-              noSelected: 'Add tables to scan for PII!',
-            }}
+            leftEmptyState={leftEmptyStates}
+            rightEmptyState={rightEmptyStates}
           />
         </CardContent>
       </Card>
       <FormErrorMessage message={error} />
     </div>
   );
+}
+
+function useTableCardDescription(mode: TableScanFilterModeFormValue): string {
+  return useMemo(() => {
+    switch (mode) {
+      case 'include_all':
+        return 'Select all tables to scan for PII.';
+      case 'include':
+        return 'Select tables to scan for PII.';
+      case 'exclude':
+        return 'Select tables to exclude from PII scanning.';
+    }
+  }, [mode]);
+}
+
+function useGetTableLeftEmptyStates(
+  mode: TableScanFilterModeFormValue
+): EmptyStateMessage {
+  return useMemo(() => {
+    switch (mode) {
+      case 'include_all':
+        return {
+          noOptions: 'Unable to load tables or found none',
+          noSelected: 'All tables have been added!',
+        };
+      case 'include':
+        return {
+          noOptions: 'Unable to load tables or found none',
+          noSelected: 'All tables available have been included!',
+        };
+      case 'exclude':
+        return {
+          noOptions: 'Unable to load tables or found none',
+          noSelected: 'All tables available have been excluded!',
+        };
+    }
+  }, [mode]);
+}
+
+function useGetTableRightEmptyStates(
+  mode: TableScanFilterModeFormValue
+): EmptyStateMessage {
+  return useMemo(() => {
+    switch (mode) {
+      case 'include_all':
+        return {
+          noOptions: 'Unable to load tables or found none',
+          noSelected: 'All tables have been added!',
+        };
+      case 'include':
+        return {
+          noOptions: 'Unable to load tables or found none',
+          noSelected: 'Add tables to scan for PII!',
+        };
+      case 'exclude':
+        return {
+          noOptions: 'Unable to load tables or found none',
+          noSelected: 'Add tables to exclude from PII scanning!',
+        };
+    }
+  }, [mode]);
 }

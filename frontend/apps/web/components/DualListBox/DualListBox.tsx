@@ -35,7 +35,7 @@ interface Props {
   rightEmptyState?: EmptyStateMessage;
 }
 
-interface EmptyStateMessage {
+export interface EmptyStateMessage {
   noOptions?: string;
   noSelected?: string;
 }
