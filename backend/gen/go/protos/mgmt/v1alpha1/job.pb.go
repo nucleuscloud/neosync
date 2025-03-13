@@ -11795,7 +11795,7 @@ type PiiDetectionReport_TableReport struct {
 	Schema string `protobuf:"bytes,1,opt,name=schema,proto3" json:"schema,omitempty"`
 	// The name of the table
 	Table string `protobuf:"bytes,2,opt,name=table,proto3" json:"table,omitempty"`
-	// The report
+	// The report for each column
 	Columns []*PiiDetectionReport_TableReport_ColumnReport `protobuf:"bytes,3,rep,name=columns,proto3" json:"columns,omitempty"`
 }
 
@@ -11858,9 +11858,9 @@ type PiiDetectionReport_TableReport_ColumnReport struct {
 
 	// The name of the column
 	Column string `protobuf:"bytes,1,opt,name=column,proto3" json:"column,omitempty"`
-	// The regex report
+	// The regex report. Will be empty if no regex matched the column name.
 	RegexReport *PiiDetectionReport_TableReport_ColumnReport_Regex `protobuf:"bytes,2,opt,name=regex_report,json=regexReport,proto3,oneof" json:"regex_report,omitempty"`
-	// The LLM report
+	// The LLM report. Will be empty if the LLM determined the column name (and optionally the data) was not PII.
 	LlmReport *PiiDetectionReport_TableReport_ColumnReport_LLM `protobuf:"bytes,3,opt,name=llm_report,json=llmReport,proto3,oneof" json:"llm_report,omitempty"`
 }
 
@@ -11970,7 +11970,7 @@ type PiiDetectionReport_TableReport_ColumnReport_LLM struct {
 
 	// The category of the column
 	Category string `protobuf:"bytes,1,opt,name=category,proto3" json:"category,omitempty"`
-	// The confidence of the column
+	// The confidence of the column from 0.0-1.0
 	Confidence float32 `protobuf:"fixed32,2,opt,name=confidence,proto3" json:"confidence,omitempty"`
 }
 

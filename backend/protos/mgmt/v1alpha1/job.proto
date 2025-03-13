@@ -1640,7 +1640,7 @@ message PiiDetectionReport {
     string schema = 1;
     // The name of the table
     string table = 2;
-    // The report
+    // The report for each column
     repeated ColumnReport columns = 3;
 
     // The report for a column
@@ -1648,9 +1648,9 @@ message PiiDetectionReport {
       // The name of the column
       string column = 1;
 
-      // The regex report
+      // The regex report. Will be empty if no regex matched the column name.
       optional Regex regex_report = 2;
-      // The LLM report
+      // The LLM report. Will be empty if the LLM determined the column name (and optionally the data) was not PII.
       optional LLM llm_report = 3;
 
       // The regex report
@@ -1663,7 +1663,7 @@ message PiiDetectionReport {
       message LLM {
         // The category of the column
         string category = 1;
-        // The confidence of the column
+        // The confidence of the column from 0.0-1.0
         float confidence = 2;
       }
     }

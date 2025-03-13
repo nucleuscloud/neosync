@@ -5627,7 +5627,7 @@ export type PiiDetectionReport_TableReport = Message<"mgmt.v1alpha1.PiiDetection
   table: string;
 
   /**
-   * The report
+   * The report for each column
    *
    * @generated from field: repeated mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport columns = 3;
    */
@@ -5655,14 +5655,14 @@ export type PiiDetectionReport_TableReport_ColumnReport = Message<"mgmt.v1alpha1
   column: string;
 
   /**
-   * The regex report
+   * The regex report. Will be empty if no regex matched the column name.
    *
    * @generated from field: optional mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.Regex regex_report = 2;
    */
   regexReport?: PiiDetectionReport_TableReport_ColumnReport_Regex;
 
   /**
-   * The LLM report
+   * The LLM report. Will be empty if the LLM determined the column name (and optionally the data) was not PII.
    *
    * @generated from field: optional mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.LLM llm_report = 3;
    */
@@ -5711,7 +5711,7 @@ export type PiiDetectionReport_TableReport_ColumnReport_LLM = Message<"mgmt.v1al
   category: string;
 
   /**
-   * The confidence of the column
+   * The confidence of the column from 0.0-1.0
    *
    * @generated from field: float confidence = 2;
    */

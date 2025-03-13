@@ -15702,7 +15702,7 @@
             },
             {
               "name": "columns",
-              "description": "The report",
+              "description": "The report for each column",
               "label": "repeated",
               "type": "ColumnReport",
               "longType": "PiiDetectionReport.TableReport.ColumnReport",
@@ -15738,7 +15738,7 @@
             },
             {
               "name": "regex_report",
-              "description": "The regex report",
+              "description": "The regex report. Will be empty if no regex matched the column name.",
               "label": "optional",
               "type": "Regex",
               "longType": "PiiDetectionReport.TableReport.ColumnReport.Regex",
@@ -15750,7 +15750,7 @@
             },
             {
               "name": "llm_report",
-              "description": "The LLM report",
+              "description": "The LLM report. Will be empty if the LLM determined the column name (and optionally the data) was not PII.",
               "label": "optional",
               "type": "LLM",
               "longType": "PiiDetectionReport.TableReport.ColumnReport.LLM",
@@ -15786,7 +15786,7 @@
             },
             {
               "name": "confidence",
-              "description": "The confidence of the column",
+              "description": "The confidence of the column from 0.0-1.0",
               "label": "",
               "type": "float",
               "longType": "float",

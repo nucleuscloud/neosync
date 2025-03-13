@@ -13304,7 +13304,7 @@ components:
             $ref: >-
               #/components/schemas/mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport
           title: columns
-          description: The report
+          description: The report for each column
       title: TableReport
       additionalProperties: false
       description: The report for a table
@@ -13335,13 +13335,15 @@ components:
             - $ref: >-
                 #/components/schemas/mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.Regex
           title: regex_report
-          description: The regex report
+          description: The regex report. Will be empty if no regex matched the column name.
         llmReport:
           allOf:
             - $ref: >-
                 #/components/schemas/mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.LLM
           title: llm_report
-          description: The LLM report
+          description: >-
+            The LLM report. Will be empty if the LLM determined the column name
+            (and optionally the data) was not PII.
       title: ColumnReport
       additionalProperties: false
       description: The report for a column
@@ -13356,7 +13358,7 @@ components:
           type: number
           title: confidence
           format: float
-          description: The confidence of the column
+          description: The confidence of the column from 0.0-1.0
       title: LLM
       additionalProperties: false
       description: The LLM report
