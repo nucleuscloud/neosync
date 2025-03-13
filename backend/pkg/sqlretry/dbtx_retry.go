@@ -3,6 +3,7 @@ package sqlretry
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"io"
@@ -186,6 +187,10 @@ var (
 func isNetworkError(err error) bool {
 	if err == nil {
 		return false
+	}
+
+	if errors.Is(err, driver.ErrBadConn) {
+		return true
 	}
 
 	errMsg := strings.ToLower(err.Error())
