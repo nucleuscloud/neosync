@@ -190,6 +190,8 @@ var (
 		"connection marked bad",                         // Another form of bad connection
 		"unexpected packet in response to channel open", // SSH tunnel specific error
 		"ssh: unexpected packet",                        // More general form of SSH packet errors
+		"database is closed",                            // Adding the new error
+		"sql: database is closed",                       // Adding both forms to be thorough
 	}
 )
 
