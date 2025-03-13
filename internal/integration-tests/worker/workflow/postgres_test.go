@@ -201,11 +201,11 @@ func test_postgres_types(
 	require.NoError(t, err)
 	defer target.Close()
 
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "all_data_types", "postgres", "id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "json_data", "postgres", "id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "array_types", "postgres", "id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "generated_table", "postgres", "id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "time_time", "postgres", "id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "all_data_types", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "json_data", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "array_types", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "generated_table", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "time_time", "postgres", []string{"id"})
 
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{alltypesSchema})
@@ -1031,17 +1031,17 @@ func test_postgres_small_batch_size(
 	require.NoError(t, err)
 	defer target.Close()
 
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "employees", sqlmanager_shared.PostgresDriver, "employee_id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "jobs", sqlmanager_shared.PostgresDriver, "job_id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "departments", sqlmanager_shared.PostgresDriver, "department_id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "dependents", sqlmanager_shared.PostgresDriver, "dependent_id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "countries", sqlmanager_shared.PostgresDriver, "country_id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "locations", sqlmanager_shared.PostgresDriver, "location_id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "regions", sqlmanager_shared.PostgresDriver, "region_id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "referral_codes", sqlmanager_shared.PostgresDriver, "id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "store_customers", sqlmanager_shared.PostgresDriver, "id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "store_notifications", sqlmanager_shared.PostgresDriver, "id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "stores", sqlmanager_shared.PostgresDriver, "id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "employees", sqlmanager_shared.PostgresDriver, []string{"employee_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "jobs", sqlmanager_shared.PostgresDriver, []string{"job_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "departments", sqlmanager_shared.PostgresDriver, []string{"department_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "dependents", sqlmanager_shared.PostgresDriver, []string{"dependent_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "countries", sqlmanager_shared.PostgresDriver, []string{"country_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "locations", sqlmanager_shared.PostgresDriver, []string{"location_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "regions", sqlmanager_shared.PostgresDriver, []string{"region_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "referral_codes", sqlmanager_shared.PostgresDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "store_customers", sqlmanager_shared.PostgresDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "store_notifications", sqlmanager_shared.PostgresDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "stores", sqlmanager_shared.PostgresDriver, []string{"id"})
 
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
@@ -1089,77 +1089,90 @@ func test_postgres_complex(
 		require.NoError(t, err, "Received Temporal Workflow Error: space-mission")
 
 		expectedResults := []struct {
-			schema   string
-			table    string
-			rowCount int
+			schema    string
+			table     string
+			rowCount  int
+			idColumns []string
 		}{
-			{schema: "space_mission", table: "astronauts", rowCount: 10},
-			{schema: "space_mission", table: "missions", rowCount: 10},
-			{schema: "space_mission", table: "objectives", rowCount: 10},
-			{schema: "space_mission", table: "capabilities", rowCount: 10},
-			{schema: "space_mission", table: "astronaut_capabilities", rowCount: 10},
-			{schema: "space_mission", table: "transmissions", rowCount: 20},
-			{schema: "space_mission", table: "payloads", rowCount: 10},
-			{schema: "space_mission", table: "crew_assignments", rowCount: 10},
-			{schema: "space_mission", table: "mission_logs", rowCount: 6},
-			{schema: "space_mission", table: "crews", rowCount: 5},
-			{schema: "space_mission", table: "crew_missions", rowCount: 4},
-			{schema: "space_mission", table: "supplies", rowCount: 10},
-			{schema: "space_mission", table: "supply_items", rowCount: 5},
-			{schema: "space_mission", table: "spacecraft_class", rowCount: 3},
-			{schema: "space_mission", table: "spacecraft", rowCount: 3},
-			{schema: "space_mission", table: "spacecraft_module", rowCount: 3},
-			{schema: "space_mission", table: "module_component", rowCount: 3},
-			{schema: "space_mission", table: "equipment", rowCount: 3},
-			{schema: "space_mission", table: "mission_equipment", rowCount: 3},
-			{schema: "space_mission", table: "equipment_maintenance", rowCount: 3},
-			{schema: "space_mission", table: "training_courses", rowCount: 3},
-			{schema: "space_mission", table: "course_prerequisites", rowCount: 3},
-			{schema: "space_mission", table: "certifications", rowCount: 3},
-			{schema: "space_mission", table: "astronaut_certifications", rowCount: 4},
-			{schema: "space_mission", table: "certification_requirements", rowCount: 3},
-			{schema: "space_mission", table: "mission_logs_extended", rowCount: 3},
-			{schema: "space_mission", table: "communication_channels", rowCount: 3},
-			{schema: "space_mission", table: "mission_communications", rowCount: 3},
-			{schema: "space_mission", table: "message_logs", rowCount: 3},
-			{schema: "space_mission", table: "events", rowCount: 9},
+			{schema: "space_mission", table: "astronauts", rowCount: 10, idColumns: []string{"astronaut_id"}},
+			{schema: "space_mission", table: "missions", rowCount: 10, idColumns: []string{"mission_id"}},
+			{schema: "space_mission", table: "objectives", rowCount: 10, idColumns: []string{"objective_id"}},
+			{schema: "space_mission", table: "capabilities", rowCount: 10, idColumns: []string{"capability_id"}},
+			{schema: "space_mission", table: "astronaut_capabilities", rowCount: 10, idColumns: []string{"astronaut_capability_id"}},
+			{schema: "space_mission", table: "transmissions", rowCount: 20, idColumns: []string{"transmission_id"}},
+			{schema: "space_mission", table: "payloads", rowCount: 10, idColumns: []string{"payload_id"}},
+			{schema: "space_mission", table: "crew_assignments", rowCount: 10, idColumns: []string{"crew_assignment_id"}},
+			{schema: "space_mission", table: "mission_logs", rowCount: 6, idColumns: []string{"log_id"}},
+			{schema: "space_mission", table: "crews", rowCount: 5, idColumns: []string{"crew_id"}},
+			{schema: "space_mission", table: "crew_missions", rowCount: 4, idColumns: []string{"crew_mission_id"}},
+			{schema: "space_mission", table: "supplies", rowCount: 10, idColumns: []string{"supply_id"}},
+			{schema: "space_mission", table: "supply_items", rowCount: 5, idColumns: []string{"supply_item_id"}},
+			{schema: "space_mission", table: "spacecraft_class", rowCount: 3, idColumns: []string{"class_id"}},
+			{schema: "space_mission", table: "spacecraft", rowCount: 3, idColumns: []string{"spacecraft_id"}},
+			{schema: "space_mission", table: "spacecraft_module", rowCount: 3, idColumns: []string{"module_id"}},
+			{schema: "space_mission", table: "module_component", rowCount: 3, idColumns: []string{"component_id"}},
+			{schema: "space_mission", table: "equipment", rowCount: 3, idColumns: []string{"equipment_id"}},
+			{schema: "space_mission", table: "mission_equipment", rowCount: 3, idColumns: []string{"mission_id", "equipment_id"}},
+			{schema: "space_mission", table: "equipment_maintenance", rowCount: 3, idColumns: []string{"maintenance_id"}},
+			{schema: "space_mission", table: "training_courses", rowCount: 3, idColumns: []string{"course_id"}},
+			{schema: "space_mission", table: "course_prerequisites", rowCount: 3, idColumns: []string{"prerequisite_id"}},
+			{schema: "space_mission", table: "certifications", rowCount: 3, idColumns: []string{"certification_id"}},
+			{schema: "space_mission", table: "astronaut_certifications", rowCount: 4, idColumns: []string{"astronaut_id", "certification_id"}},
+			{schema: "space_mission", table: "certification_requirements", rowCount: 3, idColumns: []string{"requirement_id"}},
+			{schema: "space_mission", table: "mission_logs_extended", rowCount: 3, idColumns: []string{"log_id"}},
+			{schema: "space_mission", table: "communication_channels", rowCount: 3, idColumns: []string{"channel_id"}},
+			{schema: "space_mission", table: "mission_communications", rowCount: 3, idColumns: []string{"mission_id", "channel_id"}},
+			{schema: "space_mission", table: "message_logs", rowCount: 3, idColumns: []string{"log_id"}},
+			{schema: "space_mission", table: "events", rowCount: 9, idColumns: []string{"event_id"}},
 			// {schema: "space_mission", table: "system_events", rowCount: 3},
 			// {schema: "space_mission", table: "astronaut_events", rowCount: 3},
 			// {schema: "space_mission", table: "mission_events", rowCount: 3},
-			{schema: "space_mission", table: "telemetry", rowCount: 6},
-			{schema: "space_mission", table: "telemetry_2023", rowCount: 2},
-			{schema: "space_mission", table: "telemetry_2024", rowCount: 2},
-			{schema: "space_mission", table: "telemetry_2025", rowCount: 2},
-			{schema: "space_mission", table: "comments", rowCount: 4},
-			{schema: "space_mission", table: "tags", rowCount: 4},
-			{schema: "space_mission", table: "taggables", rowCount: 4},
-			{schema: "space_mission", table: "mission_experiments", rowCount: 9},
-			{schema: "space_mission", table: "mission_parameters", rowCount: 3},
-			{schema: "space_mission", table: "skill_groups", rowCount: 6},
-			{schema: "space_mission", table: "capability_skill_groups", rowCount: 8},
-			{schema: "space_mission", table: "mission_required_skill_groups", rowCount: 7},
-			{schema: "space_mission", table: "equipment_compatibility", rowCount: 5},
-			{schema: "space_mission", table: "mission_status_history", rowCount: 8},
-			{schema: "space_mission", table: "equipment_status_history", rowCount: 8},
-			{schema: "space_mission", table: "astronaut_role_history", rowCount: 5},
-			{schema: "space_mission", table: "astronaut_vitals", rowCount: 4},
-			{schema: "scientific_data", table: "experiments", rowCount: 9},
-			{schema: "scientific_data", table: "samples", rowCount: 9},
-			{schema: "scientific_data", table: "measurements", rowCount: 9},
-			{schema: "scientific_data", table: "measurement_2022", rowCount: 4},
-			{schema: "scientific_data", table: "measurement_2022_digital_microscope", rowCount: 2},
-			{schema: "scientific_data", table: "measurement_2022_mass_spectrometer", rowCount: 1},
-			{schema: "scientific_data", table: "measurement_2022_other", rowCount: 1},
-			{schema: "scientific_data", table: "measurement_2023", rowCount: 5},
-			{schema: "scientific_data", table: "measurement_2023_digital_microscope", rowCount: 2},
-			{schema: "scientific_data", table: "measurement_2023_mass_spectrometer", rowCount: 2},
-			{schema: "scientific_data", table: "measurement_2023_other", rowCount: 1},
+			{schema: "space_mission", table: "telemetry", rowCount: 6, idColumns: []string{"telemetry_id"}},
+			{schema: "space_mission", table: "telemetry_2023", rowCount: 2, idColumns: []string{"telemetry_id"}},
+			{schema: "space_mission", table: "telemetry_2024", rowCount: 2, idColumns: []string{"telemetry_id"}},
+			{schema: "space_mission", table: "telemetry_2025", rowCount: 2, idColumns: []string{"telemetry_id"}},
+			{schema: "space_mission", table: "comments", rowCount: 4, idColumns: []string{"comment_id"}},
+			{schema: "space_mission", table: "tags", rowCount: 4, idColumns: []string{"tag_id"}},
+			{schema: "space_mission", table: "taggables", rowCount: 4, idColumns: []string{"tag_id"}},
+			{schema: "space_mission", table: "mission_experiments", rowCount: 9, idColumns: []string{"mission_id", "experiment_id"}},
+			{schema: "space_mission", table: "mission_parameters", rowCount: 3, idColumns: []string{"parameter_id"}},
+			{schema: "space_mission", table: "skill_groups", rowCount: 6, idColumns: []string{"group_id"}},
+			{schema: "space_mission", table: "capability_skill_groups", rowCount: 8, idColumns: []string{"capability_id", "group_id"}},
+			{schema: "space_mission", table: "mission_required_skill_groups", rowCount: 7, idColumns: []string{"mission_id", "group_id", "role"}},
+			{schema: "space_mission", table: "equipment_compatibility", rowCount: 5, idColumns: []string{"primary_equipment_id", "compatible_equipment_id"}},
+			{schema: "space_mission", table: "mission_status_history", rowCount: 8, idColumns: []string{"history_id"}},
+			{schema: "space_mission", table: "equipment_status_history", rowCount: 8, idColumns: []string{"history_id"}},
+			{schema: "space_mission", table: "astronaut_role_history", rowCount: 5, idColumns: []string{"history_id"}},
+			{schema: "space_mission", table: "astronaut_vitals", rowCount: 4, idColumns: []string{"vital_id"}},
+			{schema: "scientific_data", table: "experiments", rowCount: 9, idColumns: []string{"experiment_id"}},
+			{schema: "scientific_data", table: "samples", rowCount: 9, idColumns: []string{"sample_id"}},
+			{schema: "scientific_data", table: "measurements", rowCount: 9, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2022", rowCount: 4, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2022_digital_microscope", rowCount: 2, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2022_mass_spectrometer", rowCount: 1, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2022_other", rowCount: 1, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2023", rowCount: 5, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2023_digital_microscope", rowCount: 2, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2023_mass_spectrometer", rowCount: 2, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2023_other", rowCount: 1, idColumns: []string{"measurement_id"}},
 		}
 
 		for _, expected := range expectedResults {
 			rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 			require.NoError(t, err)
-			assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: space-mission Table: %s", expected.table))
+			assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: %s Table: %s", "space-mission", expected.table))
+		}
+
+		source, err := sql.Open("postgres", postgres.Source.URL)
+		require.NoError(t, err)
+		defer source.Close()
+
+		target, err := sql.Open("postgres", postgres.Target.URL)
+		require.NoError(t, err)
+		defer target.Close()
+
+		for _, e := range expectedResults {
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, e.schema, e.table, "postgres", e.idColumns)
 		}
 	})
 
@@ -1192,7 +1205,6 @@ func test_postgres_complex(
 		require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: space-mission-subset")
 		err = testworkflow.TestEnv.GetWorkflowError()
 		require.NoError(t, err, "Received Temporal Workflow Error: space-mission-subset")
-
 		expectedResults := []struct {
 			schema   string
 			table    string
