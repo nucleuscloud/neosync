@@ -14,9 +14,11 @@ import (
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	testutil_testdata "github.com/nucleuscloud/neosync/internal/testutil/testdata"
 	mysql_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/alltypes"
+	mysql_complex "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/complex"
 	mysql_composite_keys "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/composite-keys"
 	mysql_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/edgecases"
 	mysql_human_resources "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/humanresources"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 )
@@ -407,6 +409,83 @@ func test_mysql_on_conflict_do_update(
 	}
 
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "regions", sqlmanager_shared.MysqlDriver, "region_id")
+
+	// tear down
+	err = cleanupMysqlDatabases(ctx, mysql, []string{schema})
+	require.NoError(t, err)
+}
+
+func test_mysql_complex(
+	t *testing.T,
+	ctx context.Context,
+	mysql *tcmysql.MysqlTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	schema := "complex"
+
+	err := mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"complex/create-tables.sql", "complex/inserts.sql"}, schema)
+	require.NoError(t, err)
+
+	neosyncApi.MockTemporalForCreateJob("test-mysql-sync")
+
+	mappings := mysql_complex.GetDefaultSyncJobMappings(schema)
+
+	job := createMysqlSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     "mysql_complex",
+		JobMappings: mappings,
+		JobOptions: &TestJobOptions{
+			Truncate:           false,
+			InitSchema:         true,
+			OnConflictDoUpdate: false,
+		},
+	})
+
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(10), WithPageLimit(100))
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mysql_complex")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: mysql_complex")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema, "agency", 20},
+		{schema, "astronaut", 20},
+		{schema, "spacecraft", 20},
+		{schema, "celestial_body", 20},
+		{schema, "launch_site", 20},
+		{schema, "mission", 20},
+		{schema, "mission_crew", 20},
+		{schema, "research_project", 20},
+		{schema, "project_mission", 20},
+		{schema, "mission_log", 20},
+		{schema, "observatory", 20},
+		{schema, "telescope", 21},
+		{schema, "instrument", 20},
+		{schema, "observation_session", 20},
+		{schema, "data_set", 20},
+		{schema, "research_paper", 20},
+		{schema, "paper_citation", 20},
+		{schema, "grant", 20},
+		{schema, "grant_research_project", 20},
+		{schema, "instrument_usage", 20},
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := mysql.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mysql_complex Table: %s", expected.table))
+	}
 
 	// tear down
 	err = cleanupMysqlDatabases(ctx, mysql, []string{schema})
