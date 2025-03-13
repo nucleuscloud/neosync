@@ -181,6 +181,15 @@ var (
 		"i/o timeout",
 		"no connection",
 		"connection closed",
+		"invalid connection", // should be caught be driver.ErrBadConn but being extra paranoid here
+		"lost connection",    // Common MySQL error
+		"connection terminated",
+		"server closed the connection",
+		"connection timed out",
+		"write: broken pipe",                            // Specific form of broken pipe error
+		"connection marked bad",                         // Another form of bad connection
+		"unexpected packet in response to channel open", // SSH tunnel specific error
+		"ssh: unexpected packet",                        // More general form of SSH packet errors
 	}
 )
 
