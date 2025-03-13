@@ -2,10 +2,7 @@ package schemamanager_postgres
 
 import (
 	"context"
-<<<<<<< HEAD
 	"errors"
-=======
->>>>>>> main
 	"fmt"
 	"log/slog"
 	"strings"

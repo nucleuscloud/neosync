@@ -149,6 +149,11 @@ func Test_Workflow(t *testing.T) {
 			test_mysql_on_conflict_do_update(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
 
+		t.Run("schema_reconciliation", func(t *testing.T) {
+			t.Parallel()
+			test_mysql_schema_reconciliation(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
 		t.Cleanup(func() {
 			err := mysql.TearDown(ctx)
 			if err != nil {

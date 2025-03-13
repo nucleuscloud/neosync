@@ -2,6 +2,7 @@ package schemainit_workflow
 
 import (
 	initschema_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/schemainit/activities/init-schema"
+	reconcileschema_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/schemainit/activities/reconcile-schema"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/workflow"
 )
@@ -11,6 +12,7 @@ type SchemaInitRequest struct {
 	JobId         string
 	JobRunId      string
 	DestinationId string
+	IsMysql       bool // hack for now to only use reconcile schema for mysql
 
 	SchemaInitActivityOptions *workflow.ActivityOptions
 }
@@ -31,6 +33,25 @@ func (w *Workflow) SchemaInit(ctx workflow.Context, req *SchemaInitRequest) (*Sc
 		"jobRunId", req.JobRunId,
 		"destinationId", req.DestinationId,
 	)
+	if req.IsMysql {
+		logger.Info("scheduling ReconcileSchema activityfor execution.")
+		var resp *reconcileschema_activity.RunReconcileSchemaResponse
+		var reconcileSchema *reconcileschema_activity.Activity
+		err := workflow.ExecuteActivity(
+			workflow.WithActivityOptions(ctx, *req.SchemaInitActivityOptions),
+			reconcileSchema.RunReconcileSchema,
+			&reconcileschema_activity.RunReconcileSchemaRequest{
+				JobId:         req.JobId,
+				JobRunId:      req.JobRunId,
+				DestinationId: req.DestinationId,
+			}).
+			Get(ctx, &resp)
+		if err != nil {
+			return nil, err
+		}
+		logger.Info("completed ReconcileSchema activity.")
+		return &SchemaInitResponse{}, nil
+	}
 
 	logger.Info("scheduling InitSchema activityfor execution.")
 	var resp *initschema_activity.RunSqlInitTableStatementsResponse

@@ -86,9 +86,6 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 	}
 
 	uniqueTables := getUniqueTablesMapFromJob(job)
-	uniqueSchemas := getUniqueSchemasFromTables(uniqueTables)
-
-	reconcileSchemaRunContext := &ReconcileSchemaRunContext{}
 
 	destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
 	if err != nil {
@@ -127,6 +124,9 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 		return nil, fmt.Errorf("unable to calculate schema diff: %w", err)
 	}
 
+	jsonF, _ := json.MarshalIndent(schemaDiff, "", " ")
+	fmt.Printf("\n\n %s \n\n", string(jsonF))
+
 	err = schemaManager.TruncateTables(ctx, schemaDiff)
 	if err != nil {
 		return nil, fmt.Errorf("unable to truncate data: %w", err)
@@ -138,12 +138,15 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 			return nil, fmt.Errorf("unable to build schema diff statements: %w", err)
 		}
 
+		jsonF, _ = json.MarshalIndent(schemaStatements, "", " ")
+		fmt.Printf("\n\n %s \n\n", string(jsonF))
+
 		reconcileSchemaErrors, err := schemaManager.ReconcileDestinationSchema(ctx, uniqueTables, schemaStatements)
 		if err != nil {
 			return nil, fmt.Errorf("unable to reconcile schema: %w", err)
 		}
 
-		reconcileSchemaRunContext = &ReconcileSchemaRunContext{
+		reconcileSchemaRunContext := &ReconcileSchemaRunContext{
 			ConnectionId: destination.GetConnectionId(),
 			Errors:       reconcileSchemaErrors,
 		}
@@ -236,16 +239,4 @@ func getUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string
 	}
 
 	return uniqueTables
-}
-
-func getUniqueSchemasFromTables(tables map[string]*sqlmanager_shared.SchemaTable) []string {
-	uniqueSchemas := map[string]struct{}{}
-	for _, table := range tables {
-		uniqueSchemas[table.Schema] = struct{}{}
-	}
-	schemas := []string{}
-	for s := range uniqueSchemas {
-		schemas = append(schemas, s)
-	}
-	return schemas
 }

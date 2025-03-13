@@ -5,6 +5,7 @@ import (
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	initschema_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/schemainit/activities/init-schema"
+	reconcileschema_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/schemainit/activities/reconcile-schema"
 	schemainit_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/schemainit/workflow"
 )
 
@@ -21,7 +22,9 @@ func Register(
 	eelicense license.EEInterface,
 ) {
 	runSqlInitTableStatements := initschema_activity.New(jobclient, connclient, sqlmanager, eelicense)
+	runReconcileSchema := reconcileschema_activity.New(jobclient, connclient, sqlmanager, eelicense)
 	siWf := schemainit_workflow.New()
 	w.RegisterWorkflow(siWf.SchemaInit)
 	w.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
+	w.RegisterActivity(runReconcileSchema.RunReconcileSchema)
 }

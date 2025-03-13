@@ -32,11 +32,13 @@ func NewMysqlSchemaManager(
 	destinationConnection *mgmtv1alpha1.Connection,
 	destOpts *mgmtv1alpha1.MysqlDestinationConnectionOptions,
 ) (*MysqlSchemaManager, error) {
+	logger.Debug("creating mysql schema manager")
+	logger.Debug("connecting to source database")
 	sourcedb, err := sqlmanagerclient.NewSqlConnection(ctx, session, sourceConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-
+	logger.Debug("connecting to destination database")
 	destdb, err := sqlmanagerclient.NewSqlConnection(ctx, session, destinationConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
@@ -54,7 +56,16 @@ func NewMysqlSchemaManager(
 }
 
 func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*shared.SchemaDifferences, error) {
-	diff := &shared.SchemaDifferences{}
+	d.logger.Debug("calculating schema diff")
+	diff := &shared.SchemaDifferences{
+		Missing: &shared.Missing{
+			Tables:  []*sqlmanager_shared.SchemaTable{},
+			Columns: []*sqlmanager_shared.DatabaseSchemaRow{},
+		},
+		ExistsInBoth: &shared.ExistsInBoth{
+			Tables: []*sqlmanager_shared.SchemaTable{},
+		},
+	}
 	tables := []*sqlmanager_shared.SchemaTable{}
 	for _, schematable := range uniqueTables {
 		tables = append(tables, schematable)
@@ -77,11 +88,11 @@ func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTabl
 			diff.Missing.Tables = append(diff.Missing.Tables, table)
 		} else if len(sourceTable) > 0 && len(destTable) > 0 {
 			diff.ExistsInBoth.Tables = append(diff.ExistsInBoth.Tables, table)
-		}
-		for _, column := range sourceTable {
-			_, ok := destTable[column.ColumnName]
-			if !ok {
-				diff.Missing.Columns = append(diff.Missing.Columns, column)
+			for _, column := range sourceTable {
+				_, ok := destTable[column.ColumnName]
+				if !ok {
+					diff.Missing.Columns = append(diff.Missing.Columns, column)
+				}
 			}
 		}
 	}
@@ -90,6 +101,7 @@ func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTabl
 }
 
 func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *shared.SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+	d.logger.Debug("building schema diff statements")
 	if !d.destOpts.GetInitTableSchema() {
 		d.logger.Info("skipping schema init as it is not enabled")
 		return nil, nil
@@ -112,6 +124,7 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 }
 
 func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable, schemaStatements []*sqlmanager_shared.InitSchemaStatements) ([]*shared.InitSchemaError, error) {
+	d.logger.Debug("reconciling destination schema")
 	initErrors := []*shared.InitSchemaError{}
 	if !d.destOpts.GetInitTableSchema() {
 		d.logger.Info("skipping schema init as it is not enabled")

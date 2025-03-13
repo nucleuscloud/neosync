@@ -171,7 +171,7 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 		return nil, err
 	}
 
-	err = runSchemaInitWorkflowByDestination(ctx, logger, actOptResp.AccountId, req.JobId, info.WorkflowExecution.ID, actOptResp.DestinationIds)
+	err = runSchemaInitWorkflowByDestination(ctx, logger, actOptResp.AccountId, req.JobId, info.WorkflowExecution.ID, actOptResp.Destinations)
 	if err != nil {
 		return nil, err
 	}
@@ -413,7 +413,7 @@ func runSchemaInitWorkflowByDestination(
 	ctx workflow.Context,
 	logger log.Logger,
 	accountId, jobId, jobRunId string,
-	destinationIds []string,
+	destinations []*mgmtv1alpha1.JobDestination,
 ) error {
 	initSchemaActivityOptions := &workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
@@ -422,14 +422,15 @@ func runSchemaInitWorkflowByDestination(
 		},
 		HeartbeatTimeout: 1 * time.Minute,
 	}
-	for _, destinationId := range destinationIds {
-		logger.Info("scheduling Schema Initialization workflow for execution.", "destinationId", destinationId)
+	for _, destination := range destinations {
+		isMysql := destination.GetOptions().GetMysqlOptions() != nil
+		logger.Info("scheduling Schema Initialization workflow for execution.", "destinationId", destination.GetId())
 		siWf := &schemainit_workflow.Workflow{}
 		var wfResult schemainit_workflow.SchemaInitResponse
-		id := fmt.Sprintf("init-schema-%s", destinationId)
+		id := fmt.Sprintf("init-schema-%s", destination.GetId())
 		err := workflow.ExecuteChildWorkflow(workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
 			WorkflowID:    workflow_shared.BuildChildWorkflowId(jobRunId, id, workflow.Now(ctx)),
-			StaticSummary: fmt.Sprintf("Initializing Schema for %s", destinationId),
+			StaticSummary: fmt.Sprintf("Initializing Schema for %s", destination.GetId()),
 			RetryPolicy: &temporal.RetryPolicy{
 				MaximumAttempts: 1,
 			},
@@ -438,12 +439,13 @@ func runSchemaInitWorkflowByDestination(
 			JobId:                     jobId,
 			SchemaInitActivityOptions: initSchemaActivityOptions,
 			JobRunId:                  jobRunId,
-			DestinationId:             destinationId,
+			DestinationId:             destination.GetId(),
+			IsMysql:                   isMysql,
 		}).Get(ctx, &wfResult)
 		if err != nil {
 			return err
 		}
-		logger.Info("completed Schema Initialization workflow.", "destinationId", destinationId)
+		logger.Info("completed Schema Initialization workflow.", "destinationId", destination.GetId())
 	}
 	return nil
 }

@@ -489,10 +489,7 @@ func BuildAddColumnStatement(column *sqlmanager_shared.DatabaseSchemaRow) (strin
 		identityType = column.IdentityGeneration
 	}
 
-	columnDefaultStr, err := convertUInt8ToString(column.ColumnDefault)
-	if err != nil {
-		return "", fmt.Errorf("failed to convert column default to string: %w", err)
-	}
+	columnDefaultStr := column.ColumnDefault
 	var columnDefaultType *string
 	if identityType != nil && columnDefaultStr != "" && *identityType == "" {
 		val := columnDefaultString // With this type columnDefaultStr will be surrounded by quotes when translated to SQL
@@ -501,7 +498,7 @@ func BuildAddColumnStatement(column *sqlmanager_shared.DatabaseSchemaRow) (strin
 		val := columnDefaultDefault // With this type columnDefaultStr will be surrounded by parentheses when translated to SQL
 		columnDefaultType = &val
 	}
-	columnDefaultStr, err = EscapeMysqlDefaultColumn(columnDefaultStr, columnDefaultType)
+	columnDefaultStr, err := EscapeMysqlDefaultColumn(columnDefaultStr, columnDefaultType)
 	if err != nil {
 		return "", fmt.Errorf("failed to escape column default: %w", err)
 	}
