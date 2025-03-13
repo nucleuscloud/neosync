@@ -67,8 +67,10 @@ func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTabl
 		},
 	}
 	tables := []*sqlmanager_shared.SchemaTable{}
+	schemaMap := map[string][]*sqlmanager_shared.SchemaTable{}
 	for _, schematable := range uniqueTables {
 		tables = append(tables, schematable)
+		schemaMap[schematable.Schema] = append(schemaMap[schematable.Schema], schematable)
 	}
 	sourceColumns, err := d.sourcedb.Db().GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
 	if err != nil {
@@ -94,6 +96,19 @@ func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTabl
 					diff.Missing.Columns = append(diff.Missing.Columns, column)
 				}
 			}
+		}
+	}
+	// diff constraints
+	sourceConstraints := map[string]*sqlmanager_shared.TableConstraints{}
+	destConstraints := map[string]*sqlmanager_shared.TableConstraints{}
+	for schema, tables := range schemaMap {
+		sourceConstraints[schema], err = d.sourcedb.Db().GetTableConstraintsByTables(ctx, schema, tables)
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve source database table constraints: %w", err)
+		}
+		destConstraints[schema], err = d.destdb.Db().GetTableConstraintsByTables(ctx, schema, tables)
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve destination database table constraints: %w", err)
 		}
 	}
 

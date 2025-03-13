@@ -502,6 +502,17 @@ func convertUInt8ToString(value any) (string, error) {
 	return string(convertedType), nil
 }
 
+func (m *MysqlManager) GetTableConstraintsByTables(ctx context.Context, schema string, tables []string) ([]*mysql_queries.GetTableConstraintsRow, error) {
+	constraints, err := m.querier.GetTableConstraints(ctx, m.pool, &mysql_queries.GetTableConstraintsParams{
+		Schema: schema,
+		Tables: tables,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get table constraints by schemas: %w", err)
+	}
+	return constraints, nil
+}
+
 func BuildAddColumnStatement(column *sqlmanager_shared.DatabaseSchemaRow) (string, error) {
 	columnDefaultStr, err := EscapeMysqlDefaultColumn(column.ColumnDefault, column.ColumnDefaultType)
 	if err != nil {
@@ -517,6 +528,17 @@ func BuildAddColumnStatement(column *sqlmanager_shared.DatabaseSchemaRow) (strin
 		GeneratedExpression: *column.GeneratedExpression,
 	})
 	return fmt.Sprintf("ALTER TABLE %s.%s ADD COLUMN %s;", EscapeMysqlColumn(column.TableSchema), EscapeMysqlColumn(column.TableName), col), nil
+}
+
+func BuildDropConstraintStatement(schema, table string, constraint *mysql_queries.GetTableConstraintsRow) string {
+	if strings.EqualFold(constraint.ConstraintType, "PRIMARY KEY") {
+		return fmt.Sprintf("ALTER TABLE %s.%s DROP PRIMARY KEY;", EscapeMysqlColumn(schema), EscapeMysqlColumn(table))
+	}
+	constraintType := constraint.ConstraintType
+	if strings.EqualFold(constraintType, "UNIQUE") {
+		constraintType = "INDEX"
+	}
+	return fmt.Sprintf("ALTER TABLE %s.%s DROP %s %s;", EscapeMysqlColumn(schema), EscapeMysqlColumn(table), constraintType, EscapeMysqlColumn(constraint.ConstraintName))
 }
 
 type buildTableColRequest struct {
