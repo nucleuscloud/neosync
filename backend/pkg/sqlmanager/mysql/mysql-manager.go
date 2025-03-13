@@ -304,6 +304,12 @@ func (m *MysqlManager) GetRolePermissionsMap(ctx context.Context) (map[string][]
 	return schemaTablePrivsMap, err
 }
 
+type indexInfo struct {
+	indexName string
+	indexType string
+	columns   []string
+}
+
 func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error) {
 	if len(tables) == 0 {
 		return []*sqlmanager_shared.TableInitStatement{}, nil
@@ -359,7 +365,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 		})
 	}
 
-	indexmap := map[string]map[string][]string{}
+	indexmap := map[string]map[string]*indexInfo{}
 	var indexMapMu sync.Mutex
 	for schema, tables := range schemaset {
 		errgrp.Go(func() error {
@@ -376,17 +382,30 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			for _, record := range idxrecords {
 				key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
 				if _, exists := indexmap[key.String()]; !exists {
-					indexmap[key.String()] = make(map[string][]string)
+					indexmap[key.String()] = make(map[string]*indexInfo)
 				}
-				// Group columns/expressions by index name
 				if record.ColumnName.Valid {
-					indexmap[key.String()][record.IndexName] = append(
-						indexmap[key.String()][record.IndexName],
+					if _, exists := indexmap[key.String()][record.IndexName]; !exists {
+						indexmap[key.String()][record.IndexName] = &indexInfo{
+							indexName: record.IndexName,
+							indexType: record.IndexType,
+							columns:   []string{},
+						}
+					}
+					indexmap[key.String()][record.IndexName].columns = append(
+						indexmap[key.String()][record.IndexName].columns,
 						record.ColumnName.String,
 					)
 				} else if record.Expression.Valid {
-					indexmap[key.String()][record.IndexName] = append(
-						indexmap[key.String()][record.IndexName],
+					if _, exists := indexmap[key.String()][record.IndexName]; !exists {
+						indexmap[key.String()][record.IndexName] = &indexInfo{
+							indexName: record.IndexName,
+							indexType: record.IndexType,
+							columns:   []string{},
+						}
+					}
+					indexmap[key.String()][record.IndexName].columns = append(
+						indexmap[key.String()][record.IndexName].columns,
 						// expressions must be wrapped in parentheses on creation, but don't come out of the DB in that format /shrug
 						fmt.Sprintf("(%s)", record.Expression.String),
 					)
@@ -459,10 +478,10 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			info.AlterTableStatements = append(info.AlterTableStatements, stmt)
 		}
 		if tableIndices, ok := indexmap[key]; ok {
-			for idxName, cols := range tableIndices {
+			for _, idxInfo := range tableIndices {
 				info.IndexStatements = append(
 					info.IndexStatements,
-					wrapIdempotentIndex(schematable.Schema, schematable.Table, idxName, cols),
+					wrapIdempotentIndex(schematable.Schema, schematable.Table, idxInfo),
 				)
 			}
 		}
@@ -802,17 +821,23 @@ func hashInput(input ...string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
+func createIndexStmt(schema, table string, idxInfo *indexInfo, columnInput []string) string {
+	if strings.EqualFold(idxInfo.indexType, "spatial") || strings.EqualFold(idxInfo.indexType, "fulltext") {
+		return fmt.Sprintf("ALTER TABLE %s.%s ADD %s INDEX %s (%s);", EscapeMysqlColumn(schema), EscapeMysqlColumn(table), idxInfo.indexType, EscapeMysqlColumn(idxInfo.indexName), strings.Join(columnInput, ", "))
+	}
+	return fmt.Sprintf("ALTER TABLE %s.%s ADD INDEX %s (%s) USING %s;", EscapeMysqlColumn(schema), EscapeMysqlColumn(table), EscapeMysqlColumn(idxInfo.indexName), strings.Join(columnInput, ", "), idxInfo.indexType)
+}
+
 func wrapIdempotentIndex(
 	schema,
-	table,
-	constraintname string,
-	cols []string,
+	table string,
+	idxInfo *indexInfo,
 ) string {
-	hashParams := []string{schema, table, constraintname}
-	hashParams = append(hashParams, cols...)
+	hashParams := []string{schema, table, idxInfo.indexName}
+	hashParams = append(hashParams, idxInfo.columns...)
 
 	columnInput := []string{}
-	for _, col := range cols {
+	for _, col := range idxInfo.columns {
 		if strings.HasPrefix(col, "(") {
 			columnInput = append(columnInput, col)
 		} else {
@@ -820,6 +845,7 @@ func wrapIdempotentIndex(
 		}
 	}
 	procedureName := fmt.Sprintf("NeosyncAddIndex_%s", hashInput(hashParams...))[:64]
+	indexStmt := createIndexStmt(schema, table, idxInfo, columnInput)
 	stmt := fmt.Sprintf(`
 CREATE PROCEDURE %[1]s()
 BEGIN
@@ -832,13 +858,13 @@ BEGIN
     AND index_name = '%[4]s';
 
     IF index_exists = 0 THEN
-        CREATE INDEX %[5]s ON %[6]s.%[7]s(%[8]s);
+        %s
     END IF;
 END;
 
 CALL %[1]s();
 DROP PROCEDURE %[1]s;
-`, procedureName, schema, table, constraintname, EscapeMysqlColumn(constraintname), EscapeMysqlColumn(schema), EscapeMysqlColumn(table), strings.Join(columnInput, ", "))
+`, procedureName, schema, table, idxInfo.indexName, indexStmt)
 	return strings.TrimSpace(stmt)
 }
 

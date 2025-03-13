@@ -161,6 +161,11 @@ func Test_Workflow(t *testing.T) {
 			})
 		})
 
+		t.Run("complex", func(t *testing.T) {
+			t.Parallel()
+			test_mysql_complex(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
 		t.Cleanup(func() {
 			err := mysql.TearDown(ctx)
 			if err != nil {
