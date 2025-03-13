@@ -5,11 +5,6 @@ import CategoryCell from './CategoryCell';
 import ConfidenceCell from './ConfidenceCell';
 import ReporterTypeCell from './ReporterTypeCell';
 
-// interface Reporter {
-//   name: string;
-//   confidence?: number;
-//   category: string;
-// }
 export interface PiiDetectionRow {
   schema: string;
   table: string;
