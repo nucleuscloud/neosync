@@ -951,7 +951,7 @@ func (s *Service) GetPiiDetectionReport(
 
 	tableRunContexts, err := s.db.Q.GetRunContextsByExternalIdSuffix(ctx, s.db.Db, db_queries.GetRunContextsByExternalIdSuffixParams{
 		WorkflowId:       jobRun.GetId(),
-		ExternalIdSuffix: "-table-pii-report",
+		ExternalIdSuffix: piidetect_table_activities.PiiTableReportSuffix,
 		AccountId:        accountUuid,
 	})
 	if err != nil && !neosyncdb.IsNoRows(err) {

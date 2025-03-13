@@ -590,7 +590,7 @@ func (a *Activities) SaveTablePiiDetectReport(
 	key := &mgmtv1alpha1.RunContextKey{
 		AccountId:  req.AccountId,
 		JobRunId:   jobRunId,
-		ExternalId: fmt.Sprintf("%s.%s--table-pii-report", req.TableSchema, req.TableName),
+		ExternalId: fmt.Sprintf("%s.%s%s", req.TableSchema, req.TableName, PiiTableReportSuffix),
 	}
 
 	_, err = a.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
@@ -604,6 +604,10 @@ func (a *Activities) SaveTablePiiDetectReport(
 		Key: key,
 	}, nil
 }
+
+const (
+	PiiTableReportSuffix = "--table-pii-report"
+)
 
 type openAiResponse struct {
 	Output []openAiColumnResponse `json:"output"`
