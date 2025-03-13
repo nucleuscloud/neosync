@@ -151,7 +151,14 @@ func Test_Workflow(t *testing.T) {
 
 		t.Run("schema_reconciliation", func(t *testing.T) {
 			t.Parallel()
-			test_mysql_schema_reconciliation(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+			t.Run("truncate", func(t *testing.T) {
+				t.Parallel()
+				test_mysql_schema_reconciliation(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn, true)
+			})
+			t.Run("no_truncate", func(t *testing.T) {
+				t.Parallel()
+				test_mysql_schema_reconciliation(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn, false)
+			})
 		})
 
 		t.Cleanup(func() {

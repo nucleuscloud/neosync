@@ -63,6 +63,8 @@ func createMysqlSyncJob(
 		onConflict := &mgmtv1alpha1.MysqlOnConflictConfig{}
 		if config.JobOptions.OnConflictDoUpdate {
 			onConflict.Strategy = &mgmtv1alpha1.MysqlOnConflictConfig_Update{}
+		} else if config.JobOptions.OnConflictDoNothing {
+			onConflict.Strategy = &mgmtv1alpha1.MysqlOnConflictConfig_Nothing{}
 		}
 		destinationOptions = &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
@@ -100,6 +102,25 @@ func createMysqlSyncJob(
 		},
 		Mappings:           config.JobMappings,
 		VirtualForeignKeys: config.VirtualForeignKeys,
+	}))
+	require.NoError(t, err)
+
+	return job.Msg.GetJob()
+}
+
+func updateJobMappings(
+	t *testing.T,
+	ctx context.Context,
+	jobclient mgmtv1alpha1connect.JobServiceClient,
+	jobId string,
+	mappings []*mgmtv1alpha1.JobMapping,
+	jobsource *mgmtv1alpha1.JobSource,
+) *mgmtv1alpha1.Job {
+
+	job, err := jobclient.UpdateJobSourceConnection(ctx, connect.NewRequest(&mgmtv1alpha1.UpdateJobSourceConnectionRequest{
+		Id:       jobId,
+		Mappings: mappings,
+		Source:   jobsource,
 	}))
 	require.NoError(t, err)
 
@@ -423,9 +444,10 @@ func test_mysql_schema_reconciliation(
 	dbManagers *TestDatabaseManagers,
 	accountId string,
 	sourceConn, destConn *mgmtv1alpha1.Connection,
+	shouldTruncate bool,
 ) {
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
-	schema := "reconcile"
+	schema := fmt.Sprintf("reconcile-%v", shouldTruncate)
 
 	err := mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"schema-init/create-tables.sql"}, schema)
 	require.NoError(t, err)
@@ -438,12 +460,12 @@ func test_mysql_schema_reconciliation(
 		AccountId:   accountId,
 		SourceConn:  sourceConn,
 		DestConn:    destConn,
-		JobName:     "mysql-schema-reconciliation",
+		JobName:     schema,
 		JobMappings: mappings,
 		JobOptions: &TestJobOptions{
-			Truncate:           true,
+			Truncate:           shouldTruncate,
 			InitSchema:         true,
-			OnConflictDoUpdate: false,
+			OnConflictDoUpdate: !shouldTruncate,
 		},
 	})
 
@@ -485,6 +507,10 @@ func test_mysql_schema_reconciliation(
 
 	err = mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"schema-init/alter-statements.sql"}, schema)
 	require.NoError(t, err)
+
+	updatedMappings := job.GetMappings()
+	updatedMappings = append(updatedMappings, mysql_schemainit.GetAlterSyncJobMappings(schema)...)
+	job = updateJobMappings(t, ctx, jobclient, job.GetId(), updatedMappings, job.GetSource())
 
 	testworkflow = NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(100), WithPageLimit(1000))
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)

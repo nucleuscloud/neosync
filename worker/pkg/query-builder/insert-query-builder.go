@@ -1,9 +1,11 @@
 package querybuilder
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
+	"reflect"
 	"slices"
 	"strings"
 
@@ -239,6 +241,11 @@ func (d *MysqlDriver) buildMysqlInsertOnConflictDoUpdateQuery(
 	builder := getGoquDialect(sqlmanager_shared.MysqlDriver)
 	sqltable := goqu.S(d.schema).Table(d.table)
 	insert := builder.Insert(sqltable).As("new").Prepared(true).Rows(records)
+	if d.table == "departments" {
+		jsonF, _ := json.MarshalIndent(records, "", " ")
+		fmt.Printf("\n\n %s \n\n", string(jsonF))
+		fmt.Println(records[0]["dept_label"], reflect.TypeOf(records[0]["dept_label"]))
+	}
 
 	updateRecord := goqu.Record{}
 	for _, col := range updateColumns {

@@ -226,6 +226,12 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	if err != nil {
 		return fmt.Errorf("failed to build insert query: %w", err)
 	}
+	if s.table == "departments" {
+		fmt.Println()
+		fmt.Println(insertQuery)
+		fmt.Println(args)
+		fmt.Println()
+	}
 	if _, err := db.ExecContext(ctx, insertQuery, args...); err != nil {
 		shouldRetry := neosync_benthos.ShouldRetryInsert(err.Error(), s.skipForeignKeyViolations)
 		if !shouldRetry {
