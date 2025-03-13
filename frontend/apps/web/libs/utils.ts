@@ -84,6 +84,10 @@ export function refreshJobRunWhenJobRunning(data: GetJobRunResponse): number {
   return shouldRefreshJobRun(jobRun.status) ? TEN_SECONDS : 0;
 }
 
+export function refreshWhenJobRunning(isRunning: boolean): number {
+  return isRunning ? TEN_SECONDS : 0;
+}
+
 function shouldRefreshJobRun(status?: JobRunStatus): boolean {
   return (
     status === JobRunStatus.RUNNING ||

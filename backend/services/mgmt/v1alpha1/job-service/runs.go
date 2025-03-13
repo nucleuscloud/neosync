@@ -996,21 +996,21 @@ func getTableReportDtos(reports []*piidetect_table_activities.TableReport) []*mg
 		reportDtos[i] = &mgmtv1alpha1.PiiDetectionReport_TableReport{
 			Schema:  report.TableSchema,
 			Table:   report.TableName,
-			Columns: make([]*mgmtv1alpha1.PiiDetectionReport_TableReport_ColumnReport, 0, len(report.Report)),
+			Columns: make([]*mgmtv1alpha1.PiiDetectionReport_TableReport_ColumnReport, 0, len(report.ColumnReports)),
 		}
-		for columnName, columnReport := range report.Report {
+		for _, columnReport := range report.ColumnReports {
 			columnReportDto := &mgmtv1alpha1.PiiDetectionReport_TableReport_ColumnReport{
-				Column: columnName,
+				Column: columnReport.ColumnName,
 			}
-			if columnReport.Regex != nil {
+			if columnReport.Report.Regex != nil {
 				columnReportDto.RegexReport = &mgmtv1alpha1.PiiDetectionReport_TableReport_ColumnReport_Regex{
-					Category: columnReport.Regex.Category.String(),
+					Category: columnReport.Report.Regex.Category.String(),
 				}
 			}
-			if columnReport.LLM != nil {
+			if columnReport.Report.LLM != nil {
 				columnReportDto.LlmReport = &mgmtv1alpha1.PiiDetectionReport_TableReport_ColumnReport_LLM{
-					Category:   string(columnReport.LLM.Category),
-					Confidence: columnReport.LLM.Confidence,
+					Category:   string(columnReport.Report.LLM.Category),
+					Confidence: columnReport.Report.LLM.Confidence,
 				}
 			}
 			reportDtos[i].Columns = append(reportDtos[i].Columns, columnReportDto)

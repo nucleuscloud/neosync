@@ -546,10 +546,15 @@ type SaveTablePiiDetectReportResponse struct {
 	Key *mgmtv1alpha1.RunContextKey
 }
 
+type ColumnReport struct {
+	ColumnName string                  `json:"column_name"`
+	Report     CombinedPiiDetectReport `json:"report"`
+}
+
 type TableReport struct {
-	TableSchema string                             `json:"table_schema"`
-	TableName   string                             `json:"table_name"`
-	Report      map[string]CombinedPiiDetectReport `json:"report"`
+	TableSchema   string         `json:"table_schema"`
+	TableName     string         `json:"table_name"`
+	ColumnReports []ColumnReport `json:"column_reports"`
 }
 
 func (a *Activities) SaveTablePiiDetectReport(
@@ -563,10 +568,18 @@ func (a *Activities) SaveTablePiiDetectReport(
 		jobRunId = *req.ParentRunId
 	}
 
+	columnReports := make([]ColumnReport, 0, len(req.Report))
+	for columnName, report := range req.Report {
+		columnReports = append(columnReports, ColumnReport{
+			ColumnName: columnName,
+			Report:     report,
+		})
+	}
+
 	finalReport := &TableReport{
-		TableSchema: req.TableSchema,
-		TableName:   req.TableName,
-		Report:      req.Report,
+		TableSchema:   req.TableSchema,
+		TableName:     req.TableName,
+		ColumnReports: columnReports,
 	}
 
 	reportBytes, err := json.Marshal(finalReport)

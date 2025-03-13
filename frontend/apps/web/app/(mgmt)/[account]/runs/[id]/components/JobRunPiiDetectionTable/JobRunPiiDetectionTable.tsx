@@ -1,7 +1,10 @@
 import FastTable from '@/components/FastTable/FastTable';
 import { useAccount } from '@/components/providers/account-provider';
+import { Button } from '@/components/ui/button';
+import { refreshWhenJobRunning } from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
 import { JobService, PiiDetectionReport_TableReport } from '@neosync/sdk';
+import { ReloadIcon } from '@radix-ui/react-icons';
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -13,16 +16,19 @@ import { PII_DETECTION_COLUMNS, PiiDetectionRow } from './columns';
 
 interface Props {
   jobRunId: string;
+  isRunning: boolean;
 }
 
 export default function JobRunPiiDetectionTable(props: Props): ReactElement {
-  const { jobRunId } = props;
+  const { jobRunId, isRunning } = props;
   const { account } = useAccount();
-  const _ = jobRunId;
+
   const {
     data: reportResp,
     isLoading: isLoadingReport,
     isPending: isPendingReport,
+    isFetching: isFetchingReport,
+    refetch: reportMutate,
   } = useQuery(
     JobService.method.getPiiDetectionReport,
     {
@@ -31,6 +37,9 @@ export default function JobRunPiiDetectionTable(props: Props): ReactElement {
     },
     {
       enabled: !!account && !!jobRunId,
+      refetchInterval(query) {
+        return query.state.data ? refreshWhenJobRunning(isRunning) : 0;
+      },
     }
   );
 
@@ -43,7 +52,7 @@ export default function JobRunPiiDetectionTable(props: Props): ReactElement {
       return [];
     }
     return getPiiDetectionRowsFromTables(report.tables);
-  }, [reportResp?.report, isLoadingReport, isPendingReport]);
+  }, [reportResp?.report, isLoadingReport, isPendingReport, isFetchingReport]);
 
   const table = useReactTable({
     data: data,
@@ -53,8 +62,29 @@ export default function JobRunPiiDetectionTable(props: Props): ReactElement {
     getFilteredRowModel: getFilteredRowModel(),
   });
 
+  function onRefreshClick(): void {
+    if (!isFetchingReport) {
+      reportMutate();
+    }
+  }
+
   return (
-    <div>
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-row gap-2 items-center">
+        <div className="text-xl font-semibold tracking-tight">
+          PII Detection Report
+        </div>
+        <div className="flex flex-row gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onRefreshClick()}
+            className={isFetchingReport ? 'animate-spin' : ''}
+          >
+            <ReloadIcon className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
       <FastTable table={table} estimateRowSize={() => 53} rowOverscan={50} />
     </div>
   );
