@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -43,8 +44,12 @@ func FormatTimeForComparison(t time.Time) string {
 		t.Second())
 }
 
-func fetchSQLRows(ctx context.Context, db *sql.DB, schema, table, driver, idCol string) (map[string]map[string]any, error) {
-	query := goqu.Dialect(driver).From(goqu.S(schema).Table(table)).Order(goqu.C(idCol).Asc())
+func fetchSQLRows(ctx context.Context, db *sql.DB, schema, table, driver string, idCols []string) (map[string]map[string]any, error) {
+	orderCols := make([]exp.OrderedExpression, len(idCols))
+	for i, col := range idCols {
+		orderCols[i] = goqu.C(col).Asc()
+	}
+	query := goqu.Dialect(driver).From(goqu.S(schema).Table(table)).Order(orderCols...)
 	generatedSql, _, err := query.ToSQL()
 	if err != nil {
 		return nil, err
@@ -79,15 +84,24 @@ func fetchSQLRows(ctx context.Context, db *sql.DB, schema, table, driver, idCol 
 		for i, col := range columns {
 			val := valuePtrs[i].(*any)
 			rowMap[col] = *val
-			if col == idCol {
-				uniqueKey = fmt.Sprintf("%v", *val)
+			if contains(idCols, col) {
+				uniqueKey += fmt.Sprintf("%v|", *val)
 			}
 		}
 
-		data[uniqueKey] = rowMap
+		data[strings.TrimSuffix(uniqueKey, "|")] = rowMap
 	}
 
 	return data, nil
+}
+
+func contains(slice []string, item string) bool {
+	for _, v := range slice {
+		if v == item {
+			return true
+		}
+	}
+	return false
 }
 
 func VerifySQLTableColumnValues(
@@ -95,14 +109,14 @@ func VerifySQLTableColumnValues(
 	ctx context.Context,
 	source *sql.DB,
 	target *sql.DB,
-	schema, table, driver,
-	idCol string,
+	schema, table, driver string,
+	idCols []string,
 ) {
 	// Fetch rows from both databases
-	sourceRows, err := fetchSQLRows(ctx, source, schema, table, driver, idCol)
+	sourceRows, err := fetchSQLRows(ctx, source, schema, table, driver, idCols)
 	require.NoErrorf(t, err, "Error fetching source rows from table %s", table)
 
-	targetRows, err := fetchSQLRows(ctx, target, schema, table, driver, idCol)
+	targetRows, err := fetchSQLRows(ctx, target, schema, table, driver, idCols)
 	require.NoErrorf(t, err, "Error fetching target rows from table %s", table)
 
 	query := goqu.Dialect(driver).From(goqu.S(schema).Table(table)).Limit(0)

@@ -129,6 +129,18 @@ func GetDefaultSyncJobMappings() []*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: "space_mission",
+			Table:  "missions",
+			Column: "status",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
+			},
+		},
+		{
+			Schema: "space_mission",
 			Table:  "objectives",
 			Column: "objective_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{

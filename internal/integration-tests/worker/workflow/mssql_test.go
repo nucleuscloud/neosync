@@ -154,7 +154,7 @@ func test_mssql_types(
 		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mssql_all_types Table: %s", expected.table))
 	}
 
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mssql.Source.DB, mssql.Target.DB, schema, "alldatatypes", sqlmanager_shared.MssqlDriver, "id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mssql.Source.DB, mssql.Target.DB, schema, "alldatatypes", sqlmanager_shared.MssqlDriver, []string{"id"})
 
 	// TODO: Tear down, fix schema dropping issue. No way to force drop schemas in MSSQL.
 	// err = mssql.Source.DropSchemas(ctx, []string{schema})
