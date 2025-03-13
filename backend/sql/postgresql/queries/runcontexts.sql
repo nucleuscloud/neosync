@@ -25,3 +25,9 @@ ON CONFLICT (workflow_id, external_id, account_id)
 DO UPDATE SET
     value = EXCLUDED.value,
     updated_by_id = EXCLUDED.updated_by_id;
+
+-- name: GetRunContextsByExternalIdSuffix :many
+SELECT * from neosync_api.runcontexts
+WHERE workflow_id = sqlc.arg('workflowId')
+  AND external_id LIKE '%' || sqlc.arg('externalIdSuffix')::text
+  AND account_id = sqlc.arg('accountId');

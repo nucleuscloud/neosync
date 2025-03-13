@@ -140,6 +140,9 @@ const (
 	// JobServiceGetActiveJobHooksByTimingProcedure is the fully-qualified name of the JobService's
 	// GetActiveJobHooksByTiming RPC.
 	JobServiceGetActiveJobHooksByTimingProcedure = "/mgmt.v1alpha1.JobService/GetActiveJobHooksByTiming"
+	// JobServiceGetPiiDetectionReportProcedure is the fully-qualified name of the JobService's
+	// GetPiiDetectionReport RPC.
+	JobServiceGetPiiDetectionReportProcedure = "/mgmt.v1alpha1.JobService/GetPiiDetectionReport"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -185,6 +188,7 @@ var (
 	jobServiceUpdateJobHookMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("UpdateJobHook")
 	jobServiceSetJobHookEnabledMethodDescriptor                = jobServiceServiceDescriptor.Methods().ByName("SetJobHookEnabled")
 	jobServiceGetActiveJobHooksByTimingMethodDescriptor        = jobServiceServiceDescriptor.Methods().ByName("GetActiveJobHooksByTiming")
+	jobServiceGetPiiDetectionReportMethodDescriptor            = jobServiceServiceDescriptor.Methods().ByName("GetPiiDetectionReport")
 )
 
 // JobServiceClient is a client for the mgmt.v1alpha1.JobService service.
@@ -270,6 +274,7 @@ type JobServiceClient interface {
 	SetJobHookEnabled(context.Context, *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error)
 	// Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
 	GetActiveJobHooksByTiming(context.Context, *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error)
+	GetPiiDetectionReport(context.Context, *connect.Request[v1alpha1.GetPiiDetectionReportRequest]) (*connect.Response[v1alpha1.GetPiiDetectionReportResponse], error)
 }
 
 // NewJobServiceClient constructs a client for the mgmt.v1alpha1.JobService service. By default, it
@@ -535,6 +540,13 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
+		getPiiDetectionReport: connect.NewClient[v1alpha1.GetPiiDetectionReportRequest, v1alpha1.GetPiiDetectionReportResponse](
+			httpClient,
+			baseURL+JobServiceGetPiiDetectionReportProcedure,
+			connect.WithSchema(jobServiceGetPiiDetectionReportMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -580,6 +592,7 @@ type jobServiceClient struct {
 	updateJobHook                    *connect.Client[v1alpha1.UpdateJobHookRequest, v1alpha1.UpdateJobHookResponse]
 	setJobHookEnabled                *connect.Client[v1alpha1.SetJobHookEnabledRequest, v1alpha1.SetJobHookEnabledResponse]
 	getActiveJobHooksByTiming        *connect.Client[v1alpha1.GetActiveJobHooksByTimingRequest, v1alpha1.GetActiveJobHooksByTimingResponse]
+	getPiiDetectionReport            *connect.Client[v1alpha1.GetPiiDetectionReportRequest, v1alpha1.GetPiiDetectionReportResponse]
 }
 
 // GetJobs calls mgmt.v1alpha1.JobService.GetJobs.
@@ -782,6 +795,11 @@ func (c *jobServiceClient) GetActiveJobHooksByTiming(ctx context.Context, req *c
 	return c.getActiveJobHooksByTiming.CallUnary(ctx, req)
 }
 
+// GetPiiDetectionReport calls mgmt.v1alpha1.JobService.GetPiiDetectionReport.
+func (c *jobServiceClient) GetPiiDetectionReport(ctx context.Context, req *connect.Request[v1alpha1.GetPiiDetectionReportRequest]) (*connect.Response[v1alpha1.GetPiiDetectionReportResponse], error) {
+	return c.getPiiDetectionReport.CallUnary(ctx, req)
+}
+
 // JobServiceHandler is an implementation of the mgmt.v1alpha1.JobService service.
 type JobServiceHandler interface {
 	// Returns a list of jobs by either account or job
@@ -865,6 +883,7 @@ type JobServiceHandler interface {
 	SetJobHookEnabled(context.Context, *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error)
 	// Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
 	GetActiveJobHooksByTiming(context.Context, *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error)
+	GetPiiDetectionReport(context.Context, *connect.Request[v1alpha1.GetPiiDetectionReportRequest]) (*connect.Response[v1alpha1.GetPiiDetectionReportResponse], error)
 }
 
 // NewJobServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -1126,6 +1145,13 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
+	jobServiceGetPiiDetectionReportHandler := connect.NewUnaryHandler(
+		JobServiceGetPiiDetectionReportProcedure,
+		svc.GetPiiDetectionReport,
+		connect.WithSchema(jobServiceGetPiiDetectionReportMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.JobService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case JobServiceGetJobsProcedure:
@@ -1208,6 +1234,8 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceSetJobHookEnabledHandler.ServeHTTP(w, r)
 		case JobServiceGetActiveJobHooksByTimingProcedure:
 			jobServiceGetActiveJobHooksByTimingHandler.ServeHTTP(w, r)
+		case JobServiceGetPiiDetectionReportProcedure:
+			jobServiceGetPiiDetectionReportHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -1375,4 +1403,8 @@ func (UnimplementedJobServiceHandler) SetJobHookEnabled(context.Context, *connec
 
 func (UnimplementedJobServiceHandler) GetActiveJobHooksByTiming(context.Context, *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetActiveJobHooksByTiming is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) GetPiiDetectionReport(context.Context, *connect.Request[v1alpha1.GetPiiDetectionReportRequest]) (*connect.Response[v1alpha1.GetPiiDetectionReportResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetPiiDetectionReport is not implemented"))
 }

@@ -1618,6 +1618,58 @@ message GetActiveJobHooksByTimingResponse {
   repeated JobHook hooks = 1;
 }
 
+message GetPiiDetectionReportRequest {
+  // The unique identifier of the job run
+  string job_run_id = 1 [(buf.validate.field).string.min_len = 1];
+  // The unique identifier of the account
+  string account_id = 2 [(buf.validate.field).string.uuid = true];
+}
+message GetPiiDetectionReportResponse {
+  // The pii detection report
+  PiiDetectionReport report = 1;
+}
+
+// The pii detection report
+message PiiDetectionReport {
+  // The report for each table where PII was detected. If no PII was detected, the table will not be included.
+  repeated TableReport tables = 1;
+
+  // The report for a table
+  message TableReport {
+    // The schema of the table
+    string schema = 1;
+    // The name of the table
+    string table = 2;
+    // The report
+    repeated ColumnReport columns = 3;
+
+    // The report for a column
+    message ColumnReport {
+      // The name of the column
+      string column = 1;
+
+      // The regex report
+      optional Regex regex_report = 2;
+      // The LLM report
+      optional LLM llm_report = 3;
+
+      // The regex report
+      message Regex {
+        // The category of the column
+        string category = 1;
+      }
+
+      // The LLM report
+      message LLM {
+        // The category of the column
+        string category = 1;
+        // The confidence of the column
+        float confidence = 2;
+      }
+    }
+  }
+}
+
 // Service that handles jobs, runs, and hooks
 service JobService {
   // Returns a list of jobs by either account or job
@@ -1728,6 +1780,9 @@ service JobService {
   rpc SetJobHookEnabled(SetJobHookEnabledRequest) returns (SetJobHookEnabledResponse) {}
   // Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
   rpc GetActiveJobHooksByTiming(GetActiveJobHooksByTimingRequest) returns (GetActiveJobHooksByTimingResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc GetPiiDetectionReport(GetPiiDetectionReportRequest) returns (GetPiiDetectionReportResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 }

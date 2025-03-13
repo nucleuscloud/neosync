@@ -54,6 +54,7 @@ import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityErrors from './components/JobRunActivityErrors';
 import JobRunActivityTable from './components/JobRunActivityTable';
 import JobRunLogs from './components/JobRunLogs';
+import JobRunPiiDetectionTable from './components/JobRunPiiDetectionTable/JobRunPiiDetectionTable';
 
 export default function Page(props: PageProps): ReactElement {
   const params = use(props.params);
@@ -80,7 +81,6 @@ export default function Page(props: PageProps): ReactElement {
     }
   );
   const jobRun = data?.jobRun;
-  jobRun?.status;
 
   const {
     data: eventData,
@@ -349,6 +349,10 @@ export default function Page(props: PageProps): ReactElement {
                 );
               }
             })}
+          </div>
+          <div className="space-y-4">
+            <p>This needs to be conditionally rendered based on the job type</p>
+            <JobRunPiiDetectionTable jobRunId={id} />
           </div>
           <div className="space-y-4">
             <JobRunActivityErrors

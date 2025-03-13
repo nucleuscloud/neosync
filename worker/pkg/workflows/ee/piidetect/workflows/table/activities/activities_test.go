@@ -211,8 +211,10 @@ func Test_SaveTablePiiDetectReport_Success(t *testing.T) {
 		TableName:   "users",
 		Report: map[string]CombinedPiiDetectReport{
 			"email": {
-				Regex: &[]PiiCategory{PiiCategoryContact}[0],
-				LLM: &PiiDetectReport{
+				Regex: &RegexPiiDetectReport{
+					Category: PiiCategoryContact,
+				},
+				LLM: &LLMPiiDetectReport{
 					Category:   PiiCategoryContact,
 					Confidence: 0.95,
 				},

@@ -69,6 +69,7 @@ type Querier interface {
 	GetJobsByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiJob, error)
 	GetPersonalAccountByUserId(ctx context.Context, db DBTX, userid pgtype.UUID) (NeosyncApiAccount, error)
 	GetRunContextByKey(ctx context.Context, db DBTX, arg GetRunContextByKeyParams) (NeosyncApiRuncontext, error)
+	GetRunContextsByExternalIdSuffix(ctx context.Context, db DBTX, arg GetRunContextsByExternalIdSuffixParams) ([]NeosyncApiRuncontext, error)
 	GetSlackAccessToken(ctx context.Context, db DBTX, accountID pgtype.UUID) (string, error)
 	GetTeamAccountsByUserId(ctx context.Context, db DBTX, userid pgtype.UUID) ([]NeosyncApiAccount, error)
 	GetTemporalConfigByAccount(ctx context.Context, db DBTX, id pgtype.UUID) (*pg_models.TemporalConfig, error)

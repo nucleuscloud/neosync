@@ -64,12 +64,12 @@ func Test_JobPiiDetect(t *testing.T) {
 		usersKey := &mgmtv1alpha1.RunContextKey{
 			AccountId:  "acc-123",
 			JobRunId:   "job-123",
-			ExternalId: "public.users--pii-report",
+			ExternalId: "public.users--table-pii-report",
 		}
 		ordersKey := &mgmtv1alpha1.RunContextKey{
 			AccountId:  "acc-123",
 			JobRunId:   "job-123",
-			ExternalId: "public.orders--pii-report",
+			ExternalId: "public.orders--table-pii-report",
 		}
 
 		env.OnWorkflow(tableWf.TablePiiDetect, mock.Anything, mock.Anything).Return(
@@ -149,7 +149,7 @@ func Test_JobPiiDetect(t *testing.T) {
 		usersKey := &mgmtv1alpha1.RunContextKey{
 			AccountId:  "acc-123",
 			JobRunId:   "job-123",
-			ExternalId: "public.users--pii-report",
+			ExternalId: "public.users--table-pii-report",
 		}
 		env.OnWorkflow(tableWf.TablePiiDetect, mock.Anything, mock.Anything).Return(&piidetect_table_workflow.TablePiiDetectResponse{
 			ResultKey: usersKey,
@@ -238,7 +238,7 @@ func Test_JobPiiDetect(t *testing.T) {
 		usersKey := &mgmtv1alpha1.RunContextKey{
 			AccountId:  "acc-123",
 			JobRunId:   "job-123",
-			ExternalId: "public.users--pii-report",
+			ExternalId: "public.users--table-pii-report",
 		}
 		env.OnWorkflow(tableWf.TablePiiDetect, mock.Anything, mock.Anything).Return(
 			func(ctx any, req *piidetect_table_workflow.TablePiiDetectRequest) (*piidetect_table_workflow.TablePiiDetectResponse, error) {

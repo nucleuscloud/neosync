@@ -164,7 +164,7 @@ func Test_SaveJobPiiDetectReport(t *testing.T) {
 		require.NotNil(t, resp.Key)
 		require.Equal(t, accountId, resp.Key.AccountId)
 		require.Equal(t, "default-test-workflow-id", resp.Key.JobRunId)
-		require.Equal(t, "test-job-id--pii-report", resp.Key.ExternalId)
+		require.Equal(t, "test-job-id--job-pii-report", resp.Key.ExternalId)
 
 		jobClient.AssertExpectations(t)
 	})

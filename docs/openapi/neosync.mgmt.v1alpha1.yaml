@@ -3123,6 +3123,44 @@ paths:
                 $ref: '#/components/schemas/connect.error'
       security:
         - BearerAuth: []
+  /mgmt.v1alpha1.JobService/GetPiiDetectionReport:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetPiiDetectionReport
+      operationId: mgmt.v1alpha1.JobService.GetPiiDetectionReport
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetPiiDetectionReportRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.GetPiiDetectionReportResponse
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.MetricsService/GetDailyMetricCount:
     post:
       tags:
@@ -11525,6 +11563,31 @@ components:
           description: The list of jobs
       title: GetJobsResponse
       additionalProperties: false
+    mgmt.v1alpha1.GetPiiDetectionReportRequest:
+      type: object
+      properties:
+        jobRunId:
+          type: string
+          title: job_run_id
+          minLength: 1
+          description: The unique identifier of the job run
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account
+      title: GetPiiDetectionReportRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetPiiDetectionReportResponse:
+      type: object
+      properties:
+        report:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PiiDetectionReport'
+          title: report
+          description: The pii detection report
+      title: GetPiiDetectionReportResponse
+      additionalProperties: false
     mgmt.v1alpha1.GetRunContextRequest:
       type: object
       properties:
@@ -13210,6 +13273,103 @@ components:
           description: The last failure of the activity
       title: PendingActivity
       additionalProperties: false
+    mgmt.v1alpha1.PiiDetectionReport:
+      type: object
+      properties:
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.PiiDetectionReport.TableReport'
+          title: tables
+          description: >-
+            The report for each table where PII was detected. If no PII was
+            detected, the table will not be included.
+      title: PiiDetectionReport
+      additionalProperties: false
+      description: The pii detection report
+    mgmt.v1alpha1.PiiDetectionReport.TableReport:
+      type: object
+      properties:
+        schema:
+          type: string
+          title: schema
+          description: The schema of the table
+        table:
+          type: string
+          title: table
+          description: The name of the table
+        columns:
+          type: array
+          items:
+            $ref: >-
+              #/components/schemas/mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport
+          title: columns
+          description: The report
+      title: TableReport
+      additionalProperties: false
+      description: The report for a table
+    mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - llmReport
+            - not:
+                anyOf:
+                  - required:
+                      - llmReport
+        - anyOf:
+            - required:
+                - regexReport
+            - not:
+                anyOf:
+                  - required:
+                      - regexReport
+      properties:
+        column:
+          type: string
+          title: column
+          description: The name of the column
+        regexReport:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.Regex
+          title: regex_report
+          description: The regex report
+        llmReport:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.LLM
+          title: llm_report
+          description: The LLM report
+      title: ColumnReport
+      additionalProperties: false
+      description: The report for a column
+    mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.LLM:
+      type: object
+      properties:
+        category:
+          type: string
+          title: category
+          description: The category of the column
+        confidence:
+          type: number
+          title: confidence
+          format: float
+          description: The confidence of the column
+      title: LLM
+      additionalProperties: false
+      description: The LLM report
+    mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.Regex:
+      type: object
+      properties:
+        category:
+          type: string
+          title: category
+          description: The category of the column
+      title: Regex
+      additionalProperties: false
+      description: The regex report
     mgmt.v1alpha1.PostgresDestinationConnectionOptions:
       type: object
       allOf:
