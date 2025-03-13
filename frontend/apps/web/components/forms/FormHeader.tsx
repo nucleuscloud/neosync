@@ -6,6 +6,7 @@ interface FormHeaderProps {
   title: string;
   description: string;
   containerClassName?: string;
+  labelClassName?: string;
   isErrored?: boolean;
   htmlFor?: string;
   isRequired?: boolean;
@@ -17,6 +18,7 @@ export default function FormHeader(props: FormHeaderProps): ReactElement {
     title,
     description,
     containerClassName,
+    labelClassName,
     isErrored,
     htmlFor,
     isRequired,
@@ -25,7 +27,10 @@ export default function FormHeader(props: FormHeaderProps): ReactElement {
     <div className={containerClassName}>
       <Label
         htmlFor={htmlFor}
-        className={cn(isErrored ? 'text-destructive' : undefined)}
+        className={cn(
+          isErrored ? 'text-destructive' : undefined,
+          labelClassName
+        )}
       >
         {isRequired && <span className="text-destructive mr-1">*</span>}
         {title}

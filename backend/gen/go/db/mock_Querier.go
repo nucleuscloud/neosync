@@ -6065,6 +6065,64 @@ func (_c *MockQuerier_UpdateJobSource_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
+// UpdateJobTypeConfig provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) UpdateJobTypeConfig(ctx context.Context, db DBTX, arg UpdateJobTypeConfigParams) (NeosyncApiJob, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateJobTypeConfig")
+	}
+
+	var r0 NeosyncApiJob
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateJobTypeConfigParams) (NeosyncApiJob, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateJobTypeConfigParams) NeosyncApiJob); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiJob)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, UpdateJobTypeConfigParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_UpdateJobTypeConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateJobTypeConfig'
+type MockQuerier_UpdateJobTypeConfig_Call struct {
+	*mock.Call
+}
+
+// UpdateJobTypeConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg UpdateJobTypeConfigParams
+func (_e *MockQuerier_Expecter) UpdateJobTypeConfig(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_UpdateJobTypeConfig_Call {
+	return &MockQuerier_UpdateJobTypeConfig_Call{Call: _e.mock.On("UpdateJobTypeConfig", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_UpdateJobTypeConfig_Call) Run(run func(ctx context.Context, db DBTX, arg UpdateJobTypeConfigParams)) *MockQuerier_UpdateJobTypeConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(UpdateJobTypeConfigParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_UpdateJobTypeConfig_Call) Return(_a0 NeosyncApiJob, _a1 error) *MockQuerier_UpdateJobTypeConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_UpdateJobTypeConfig_Call) RunAndReturn(run func(context.Context, DBTX, UpdateJobTypeConfigParams) (NeosyncApiJob, error)) *MockQuerier_UpdateJobTypeConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateJobVirtualForeignKeys provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) UpdateJobVirtualForeignKeys(ctx context.Context, db DBTX, arg UpdateJobVirtualForeignKeysParams) (NeosyncApiJob, error) {
 	ret := _m.Called(ctx, db, arg)

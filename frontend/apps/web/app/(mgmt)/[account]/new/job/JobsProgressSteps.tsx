@@ -16,6 +16,8 @@ const DATA_SYNC_STEPS_WITH_SUBSET: JobProgressStep[] = [
 
 const DATA_GEN_STEPS: JobProgressStep[] = ['define', 'connect', 'schema'];
 
+const PII_DETECTION_STEPS: JobProgressStep[] = ['define', 'connect', 'schema'];
+
 type JobProgressStep = 'define' | 'connect' | 'schema' | 'subset';
 
 interface Props {
@@ -54,7 +56,7 @@ export function getJobProgressSteps(
   includeSubsetting: boolean
 ): JobProgressStep[];
 export function getJobProgressSteps(
-  jobtype: 'ai-generate-table' | 'generate-table'
+  jobtype: 'ai-generate-table' | 'generate-table' | 'pii-detection'
 ): JobProgressStep[];
 export function getJobProgressSteps(jobtype: NewJobType): JobProgressStep[];
 export function getJobProgressSteps(
@@ -70,6 +72,8 @@ export function getJobProgressSteps(
       return DATA_GEN_STEPS;
     case 'ai-generate-table':
       return DATA_GEN_STEPS;
+    case 'pii-detection':
+      return PII_DETECTION_STEPS;
     default:
       return [];
   }

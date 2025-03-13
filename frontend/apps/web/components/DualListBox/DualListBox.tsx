@@ -23,7 +23,7 @@ import { Mode, Row, getListBoxColumns } from './columns';
 
 export interface Option {
   value: string;
-  // label: string;
+  // label?: string;
 }
 export type Action = 'add' | 'remove';
 interface Props {
@@ -31,10 +31,24 @@ interface Props {
   selected: Set<string>;
   onChange(value: Set<string>, action: Action): void;
   mode?: Mode;
+  leftEmptyState?: EmptyStateMessage;
+  rightEmptyState?: EmptyStateMessage;
+}
+
+export interface EmptyStateMessage {
+  noOptions?: string;
+  noSelected?: string;
 }
 
 export default function DualListBox(props: Props): ReactElement {
-  const { options, selected, onChange, mode = 'many' } = props;
+  const {
+    options,
+    selected,
+    onChange,
+    mode = 'many',
+    leftEmptyState,
+    rightEmptyState,
+  } = props;
 
   const [leftSelected, setLeftSelected] = useState<RowSelectionState>({});
   const [rightSelected, setRightSelected] = useState<RowSelectionState>({});
@@ -99,7 +113,12 @@ export default function DualListBox(props: Props): ReactElement {
       <div className="flex flex-1">
         <ListBox
           table={leftTable}
-          noDataMessage={getLeftBoxNoMessage(options, leftData, mode)}
+          noDataMessage={getLeftBoxNoMessage(
+            options,
+            leftData,
+            mode,
+            leftEmptyState
+          )}
         />
       </div>
       <div className="flex flex-row md:flex-col justify-center gap-2">
@@ -187,7 +206,12 @@ export default function DualListBox(props: Props): ReactElement {
       <div className="flex flex-1">
         <ListBox
           table={rightTable}
-          noDataMessage={getRightBoxNoMessage(options, rightData, mode)}
+          noDataMessage={getRightBoxNoMessage(
+            options,
+            rightData,
+            mode,
+            rightEmptyState
+          )}
         />
       </div>
     </div>
@@ -197,14 +221,17 @@ export default function DualListBox(props: Props): ReactElement {
 function getLeftBoxNoMessage(
   options: Option[],
   leftData: Row[],
-  _mode: Mode
+  _mode: Mode,
+  leftEmptyState?: EmptyStateMessage
 ): string {
   // this isnt super useful right now because the options are always a combination of schema+jobmappings
   if (options.length === 0) {
-    return 'Unable to load schema or found no tables';
+    return (
+      leftEmptyState?.noOptions ?? 'Unable to load schema or found no tables'
+    );
   }
   if (leftData.length === 0) {
-    return 'All tables have been added!';
+    return leftEmptyState?.noSelected ?? 'All tables have been added!';
   }
   return '';
 }
@@ -212,16 +239,19 @@ function getLeftBoxNoMessage(
 function getRightBoxNoMessage(
   options: Option[],
   rightData: Row[],
-  mode: Mode
+  mode: Mode,
+  rightEmptyState?: EmptyStateMessage
 ): string {
   if (options.length === 0) {
-    return 'Unable to load schema or found no tables';
+    return (
+      rightEmptyState?.noOptions ?? 'Unable to load schema or found no tables'
+    );
   }
   if (rightData.length === 0) {
     if (mode === 'many') {
-      return 'Add tables to get started!';
+      return rightEmptyState?.noSelected ?? 'Add tables to get started!';
     } else {
-      return 'Add a table to get started!';
+      return rightEmptyState?.noSelected ?? 'Add a table to get started!';
     }
   }
   return '';

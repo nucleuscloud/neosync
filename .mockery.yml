@@ -6,6 +6,9 @@ dir: "{{.InterfaceDir}}"
 mockname: "Mock{{.InterfaceName}}"
 outpkg: "{{.PackageName}}"
 inpackage: True
+resolve-type-alias: False
+issue-845-fix: True
+
 packages:
   github.com/nucleuscloud/neosync/backend/internal/auth/jwt:
     interfaces:
@@ -72,10 +75,6 @@ packages:
     interfaces:
       NeosyncAwsManagerClient:
       dynamoDBAPIV2:
-  github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync:
-    interfaces:
-      sqlProvider:
-      sqlDbtx:
   github.com/nucleuscloud/neosync/internal/benthos-stream:
     interfaces:
       BenthosStreamClient:

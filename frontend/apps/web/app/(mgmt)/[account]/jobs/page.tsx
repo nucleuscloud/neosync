@@ -78,6 +78,8 @@ function JobTable(props: JobTableProps): ReactElement {
       jobtype = 'Generate';
     } else if (j.source?.options?.config.case === 'aiGenerate') {
       jobtype = 'AI Generate';
+    } else if (j.jobType?.jobType.case === 'piiDetect') {
+      jobtype = 'PII Detection';
     }
     return {
       ...j,

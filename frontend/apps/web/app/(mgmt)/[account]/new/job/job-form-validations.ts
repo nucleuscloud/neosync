@@ -17,7 +17,11 @@ import cron from 'cron-validate';
 import * as Yup from 'yup';
 import { isValidConnectionPair } from '../../connections/util';
 
-export type NewJobType = 'data-sync' | 'generate-table' | 'ai-generate-table';
+export type NewJobType =
+  | 'data-sync'
+  | 'generate-table'
+  | 'ai-generate-table'
+  | 'pii-detection';
 
 // Schema for a job's workflow settings
 export const WorkflowSettingsSchema = Yup.object({
@@ -308,6 +312,62 @@ export type SingleTableAiConnectFormValues = Yup.InferType<
   typeof SingleTableAiConnectFormValues
 >;
 
+export const PiiDetectionConnectFormValues = Yup.object().shape({
+  sourceId: Yup.string().required('Connection is required').uuid(),
+});
+export type PiiDetectionConnectFormValues = Yup.InferType<
+  typeof PiiDetectionConnectFormValues
+>;
+
+const TableScanFilterModeFormValue = Yup.string()
+  .required()
+  .oneOf(['include_all', 'include', 'exclude']);
+export type TableScanFilterModeFormValue = Yup.InferType<
+  typeof TableScanFilterModeFormValue
+>;
+
+const FilterPatternTableIdentifier = Yup.object().shape({
+  schema: Yup.string().required(),
+  table: Yup.string().required(),
+});
+export type FilterPatternTableIdentifier = Yup.InferType<
+  typeof FilterPatternTableIdentifier
+>;
+
+const TableScanFilterPatternsFormValue = Yup.object().shape({
+  schemas: Yup.array().of(Yup.string().required()).required().default([]),
+  tables: Yup.array()
+    .of(FilterPatternTableIdentifier.required())
+    .required()
+    .default([]),
+});
+export type TableScanFilterPatternsFormValue = Yup.InferType<
+  typeof TableScanFilterPatternsFormValue
+>;
+
+const TableScanFilterFormValue = Yup.object().shape({
+  mode: TableScanFilterModeFormValue,
+  patterns: TableScanFilterPatternsFormValue,
+});
+export type TableScanFilterFormValue = Yup.InferType<
+  typeof TableScanFilterFormValue
+>;
+
+const DataSamplingFormValue = Yup.object().shape({
+  isEnabled: Yup.boolean().required().default(true),
+});
+export type DataSamplingFormValue = Yup.InferType<typeof DataSamplingFormValue>;
+
+export const PiiDetectionSchemaFormValues = Yup.object().shape({
+  dataSampling: DataSamplingFormValue,
+  tableScanFilter: TableScanFilterFormValue,
+  userPrompt: Yup.string(),
+});
+
+export type PiiDetectionSchemaFormValues = Yup.InferType<
+  typeof PiiDetectionSchemaFormValues
+>;
+
 export const SingleTableAiSchemaFormValues = Yup.object({
   numRows: Yup.number()
     .required('Must provide a number of rows to generate')
@@ -444,6 +504,26 @@ export const CreateSingleTableAiGenerateJobFormValues = Yup.object({
 }).required('AI Generate form values are required.');
 export type CreateSingleTableAiGenerateJobFormValues = Yup.InferType<
   typeof CreateSingleTableAiGenerateJobFormValues
+>;
+
+export const CreatePiiDetectionJobFormValues = Yup.object()
+  .shape({
+    define: DefineFormValues,
+    connect: PiiDetectionConnectFormValues,
+    schema: PiiDetectionSchemaFormValues,
+  })
+  .required('PII Detection form values are required.');
+export type CreatePiiDetectionJobFormValues = Yup.InferType<
+  typeof CreatePiiDetectionJobFormValues
+>;
+
+export const EditPiiDetectionJobFormValues = Yup.object()
+  .shape({
+    sourceId: Yup.string().required('Source is required').uuid(),
+  })
+  .concat(PiiDetectionSchemaFormValues);
+export type EditPiiDetectionJobFormValues = Yup.InferType<
+  typeof EditPiiDetectionJobFormValues
 >;
 
 export interface DefineFormValuesContext {

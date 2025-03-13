@@ -20,6 +20,7 @@ export interface SystemAppConfig {
   // public (client-side) base url;
   publicNeosyncApiBaseUrl: string;
   isRbacEnabled: boolean;
+  isPiiDetectionJobEnabled: boolean;
 }
 
 interface PosthogConfig {
