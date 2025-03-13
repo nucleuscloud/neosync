@@ -3,6 +3,7 @@ package sqlretry
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"io"
@@ -150,12 +151,19 @@ func isRetryableError(err error) bool {
 	if err == nil {
 		return false
 	}
+
+	if errors.Is(err, context.Canceled) {
+		return false
+	}
+
 	if isDeadlockError(err) {
 		return true
 	}
+
 	if errors.Is(err, mysql.ErrBusyBuffer) {
 		return true
 	}
+
 	if errors.Is(err, io.ErrUnexpectedEOF) {
 		return true
 	}
@@ -180,12 +188,27 @@ var (
 		"i/o timeout",
 		"no connection",
 		"connection closed",
+		"invalid connection", // should be caught be driver.ErrBadConn but being extra paranoid here
+		"lost connection",    // Common MySQL error
+		"connection terminated",
+		"server closed the connection",
+		"connection timed out",
+		"write: broken pipe",                            // Specific form of broken pipe error
+		"connection marked bad",                         // Another form of bad connection
+		"unexpected packet in response to channel open", // SSH tunnel specific error
+		"ssh: unexpected packet",                        // More general form of SSH packet errors
+		"database is closed",                            // Database was closed
+		"sql: database is closed",                       // Adds the wrapper sql: prefix to be more thorough
 	}
 )
 
 func isNetworkError(err error) bool {
 	if err == nil {
 		return false
+	}
+
+	if errors.Is(err, driver.ErrBadConn) {
+		return true
 	}
 
 	errMsg := strings.ToLower(err.Error())

@@ -2,6 +2,7 @@ package sshtunnel
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -144,9 +145,15 @@ func (s *SSHDialer) getClient(ctx context.Context) (*ssh.Client, error) {
 	return client, nil
 }
 
-// Could expand on this more if there are center errors we do not want to retry
+// Could expand on this more if there are specific errors we do or do not want to retry
 func isRetryableError(err error) bool {
-	return err != nil
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, context.Canceled) {
+		return false
+	}
+	return true
 }
 
 func (s *SSHDialer) startKeepAlive(client *ssh.Client) {
