@@ -484,21 +484,7 @@ func convertUInt8ToString(value any) (string, error) {
 }
 
 func BuildAddColumnStatement(column *sqlmanager_shared.DatabaseSchemaRow) (string, error) {
-	var identityType *string
-	if column.IdentityGeneration != nil && *column.IdentityGeneration != "" {
-		identityType = column.IdentityGeneration
-	}
-
-	columnDefaultStr := column.ColumnDefault
-	var columnDefaultType *string
-	if identityType != nil && columnDefaultStr != "" && *identityType == "" {
-		val := columnDefaultString // With this type columnDefaultStr will be surrounded by quotes when translated to SQL
-		columnDefaultType = &val
-	} else if identityType != nil && columnDefaultStr != "" && *identityType != "" {
-		val := columnDefaultDefault // With this type columnDefaultStr will be surrounded by parentheses when translated to SQL
-		columnDefaultType = &val
-	}
-	columnDefaultStr, err := EscapeMysqlDefaultColumn(columnDefaultStr, columnDefaultType)
+	columnDefaultStr, err := EscapeMysqlDefaultColumn(column.ColumnDefault, column.ColumnDefaultType)
 	if err != nil {
 		return "", fmt.Errorf("failed to escape column default: %w", err)
 	}
@@ -508,7 +494,7 @@ func BuildAddColumnStatement(column *sqlmanager_shared.DatabaseSchemaRow) (strin
 		ColumnDefault:       columnDefaultStr,
 		DataType:            column.DataType,
 		IsNullable:          column.IsNullable,
-		IdentityType:        identityType,
+		IdentityType:        column.IdentityGeneration,
 		GeneratedExpression: *column.GeneratedExpression,
 	})
 	return fmt.Sprintf("ALTER TABLE %s.%s ADD COLUMN %s;", EscapeMysqlColumn(column.TableSchema), EscapeMysqlColumn(column.TableName), col), nil

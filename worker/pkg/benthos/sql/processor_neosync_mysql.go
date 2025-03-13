@@ -104,6 +104,9 @@ func transformNeosyncToMysql(
 		return nil, fmt.Errorf("root value must be a map[string]any")
 	}
 
+	jsonF, _ := json.MarshalIndent(rootMap, "", " ")
+	fmt.Printf("\n\n rootMap: %s \n\n", string(jsonF))
+
 	newMap := make(map[string]any)
 	for col, val := range rootMap {
 		// Skip values that aren't in the column list to handle circular references
@@ -118,6 +121,8 @@ func transformNeosyncToMysql(
 		}
 		newMap[col] = newVal
 	}
+	jsonF, _ = json.MarshalIndent(newMap, "", " ")
+	fmt.Printf("\n\n newMap: %s \n\n", string(jsonF))
 
 	return newMap, nil
 }

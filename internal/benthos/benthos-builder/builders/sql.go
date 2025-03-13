@@ -147,6 +147,11 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 	b.configQueryMap = configQueryMap
+	for key, cfg := range configQueryMap {
+		fmt.Println()
+		fmt.Println(key, cfg.Query)
+		fmt.Println()
+	}
 
 	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, configQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.JobRunId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {

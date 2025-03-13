@@ -233,6 +233,12 @@ func BuildRunConfigs(
 		return nil, errors.New("Unsupported circular dependency detected. At least one foreign key in circular dependency must be nullable")
 	}
 
+	for _, cfg := range configs {
+		fmt.Println()
+		fmt.Println(cfg.String())
+		fmt.Println()
+	}
+
 	return configs, nil
 }
 
