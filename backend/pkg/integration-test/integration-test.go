@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -22,6 +23,11 @@ import (
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	"github.com/stretchr/testify/mock"
+	"go.temporal.io/api/common/v1"
+	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/workflow/v1"
+	"go.temporal.io/api/workflowservice/v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Mocks struct {
@@ -179,6 +185,30 @@ func (s *NeosyncApiTestClient) MockTemporalForCreateJob(returnId string) {
 		Once()
 }
 
+// Used for any API call that uses GetJobRun() as this mocks the response from Temporal for that execution
+func (s *NeosyncApiTestClient) MockTemporalForDescribeWorkflowExecution(accountId, jobId, jobRunId, workflowName string) {
+	s.Mocks.TemporalClientManager.EXPECT().DescribeWorklowExecution(mock.Anything, accountId, jobRunId, mock.Anything).
+		Return(&workflowservice.DescribeWorkflowExecutionResponse{
+			WorkflowExecutionInfo: &workflow.WorkflowExecutionInfo{
+				Execution: &common.WorkflowExecution{
+					WorkflowId: jobRunId,
+				},
+				CloseTime: timestamppb.New(time.Now()),
+				StartTime: timestamppb.New(time.Now().Add(-time.Minute)),
+				Status:    enums.WORKFLOW_EXECUTION_STATUS_COMPLETED,
+				Type: &common.WorkflowType{
+					Name: workflowName,
+				},
+				SearchAttributes: &common.SearchAttributes{
+					IndexedFields: map[string]*common.Payload{
+						"TemporalScheduledById": {
+							Data: []byte(jobId),
+						},
+					},
+				},
+			},
+		}, nil).Once()
+}
 func (s *NeosyncApiTestClient) InitializeTest(ctx context.Context, t testing.TB) error {
 	err := neomigrate.Up(ctx, s.Pgcontainer.URL, s.migrationsDir, testutil.GetTestLogger(t))
 	if err != nil {

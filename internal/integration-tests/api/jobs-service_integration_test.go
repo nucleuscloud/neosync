@@ -2,14 +2,17 @@ package integrationtests_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	integrationtests_test "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
+	piidetect_table_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table/activities"
 	"github.com/stretchr/testify/require"
 )
 
@@ -546,4 +549,91 @@ func (s *IntegrationTestSuite) Test_ValidateSchema() {
 		requireNoErrResp(t, resp, err)
 		require.Len(t, resp.Msg.MissingTables, 0)
 	})
+}
+
+func (s *IntegrationTestSuite) Test_GetPiiDetectionReport() {
+	userclient := s.OSSUnauthenticatedLicensedClients.Users()
+	s.setUser(s.ctx, userclient)
+	accountId := s.createPersonalAccount(s.ctx, userclient)
+
+	connclient := s.OSSUnauthenticatedLicensedClients.Connections()
+	jobclient := s.OSSUnauthenticatedLicensedClients.Jobs()
+
+	srcconn := s.createPostgresConnection(connclient, accountId, "pii-detect-src", "postgres://postgres:postgres@localhost:5432/postgres")
+
+	s.MockTemporalForCreateJob("test-id")
+	jobResp, err := jobclient.CreateJob(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobRequest{
+		AccountId: accountId,
+		JobName:   "pii-detection-test" + uuid.NewString(),
+		Source: &mgmtv1alpha1.JobSource{
+			Options: &mgmtv1alpha1.JobSourceOptions{
+				Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+					Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+						ConnectionId: srcconn.GetId(),
+					},
+				},
+			},
+		},
+		JobType: &mgmtv1alpha1.JobTypeConfig{
+			JobType: &mgmtv1alpha1.JobTypeConfig_PiiDetect{
+				PiiDetect: &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect{
+					DataSampling: &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_DataSampling{
+						IsEnabled: true,
+					},
+					TableScanFilter: &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter{Mode: &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter_IncludeAll{}},
+				},
+			},
+		},
+	}))
+	requireNoErrResp(s.T(), jobResp, err)
+
+	jobId := jobResp.Msg.GetJob().GetId()
+	jobRunId := fmt.Sprintf("%s-%s", jobId, time.Now().Format(time.RFC3339))
+
+	report := piidetect_table_activities.TableReport{
+		TableSchema: "public",
+		TableName:   "users",
+		ColumnReports: []piidetect_table_activities.ColumnReport{
+			{
+				ColumnName: "age",
+				Report: piidetect_table_activities.CombinedPiiDetectReport{
+					Regex: &piidetect_table_activities.RegexPiiDetectReport{
+						Category: piidetect_table_activities.PiiCategoryPersonal,
+					},
+				},
+			},
+		},
+	}
+	reportBytes, err := json.Marshal(report)
+	require.NoError(s.T(), err)
+
+	setResp, err := jobclient.SetRunContext(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
+		Id: &mgmtv1alpha1.RunContextKey{
+			AccountId:  accountId,
+			JobRunId:   jobRunId,
+			ExternalId: piidetect_table_activities.BuildTableReportExternalId("public", "users"),
+		},
+		Value: reportBytes,
+	}))
+	requireNoErrResp(s.T(), setResp, err)
+
+	s.MockTemporalForDescribeWorkflowExecution(accountId, jobId, jobRunId, "JobPiiDetect")
+
+	getResp, err := jobclient.GetPiiDetectionReport(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetPiiDetectionReportRequest{
+		JobRunId:  jobRunId,
+		AccountId: accountId,
+	}))
+	requireNoErrResp(s.T(), getResp, err)
+	require.NotNil(s.T(), getResp.Msg.GetReport())
+	tables := getResp.Msg.GetReport().GetTables()
+	require.Len(s.T(), tables, 1)
+
+	table := tables[0]
+	require.Equal(s.T(), "public", table.Schema)
+	require.Equal(s.T(), "users", table.Table)
+	require.Len(s.T(), table.Columns, 1)
+
+	columnReport := table.Columns[0]
+	require.Equal(s.T(), "age", columnReport.Column)
+	require.Equal(s.T(), piidetect_table_activities.PiiCategoryPersonal.String(), columnReport.RegexReport.Category)
 }

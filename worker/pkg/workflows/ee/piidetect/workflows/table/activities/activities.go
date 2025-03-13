@@ -590,7 +590,7 @@ func (a *Activities) SaveTablePiiDetectReport(
 	key := &mgmtv1alpha1.RunContextKey{
 		AccountId:  req.AccountId,
 		JobRunId:   jobRunId,
-		ExternalId: fmt.Sprintf("%s.%s%s", req.TableSchema, req.TableName, PiiTableReportSuffix),
+		ExternalId: BuildTableReportExternalId(req.TableSchema, req.TableName),
 	}
 
 	_, err = a.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
@@ -603,6 +603,10 @@ func (a *Activities) SaveTablePiiDetectReport(
 	return &SaveTablePiiDetectReportResponse{
 		Key: key,
 	}, nil
+}
+
+func BuildTableReportExternalId(tableSchema, tableName string) string {
+	return fmt.Sprintf("%s.%s%s", tableSchema, tableName, PiiTableReportSuffix)
 }
 
 const (
