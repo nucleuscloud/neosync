@@ -588,52 +588,67 @@ func (s *IntegrationTestSuite) Test_GetPiiDetectionReport() {
 	requireNoErrResp(s.T(), jobResp, err)
 
 	jobId := jobResp.Msg.GetJob().GetId()
-	jobRunId := fmt.Sprintf("%s-%s", jobId, time.Now().Format(time.RFC3339))
 
-	report := piidetect_table_activities.TableReport{
-		TableSchema: "public",
-		TableName:   "users",
-		ColumnReports: []piidetect_table_activities.ColumnReport{
-			{
-				ColumnName: "age",
-				Report: piidetect_table_activities.CombinedPiiDetectReport{
-					Regex: &piidetect_table_activities.RegexPiiDetectReport{
-						Category: piidetect_table_activities.PiiCategoryPersonal,
+	s.T().Run("found", func(t *testing.T) {
+		jobRunId := fmt.Sprintf("%s-%s", jobId, time.Now().Format(time.RFC3339))
+
+		report := piidetect_table_activities.TableReport{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnReports: []piidetect_table_activities.ColumnReport{
+				{
+					ColumnName: "age",
+					Report: piidetect_table_activities.CombinedPiiDetectReport{
+						Regex: &piidetect_table_activities.RegexPiiDetectReport{
+							Category: piidetect_table_activities.PiiCategoryPersonal,
+						},
 					},
 				},
 			},
-		},
-	}
-	reportBytes, err := json.Marshal(report)
-	require.NoError(s.T(), err)
+		}
+		reportBytes, err := json.Marshal(report)
+		require.NoError(s.T(), err)
 
-	setResp, err := jobclient.SetRunContext(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
-		Id: &mgmtv1alpha1.RunContextKey{
-			AccountId:  accountId,
-			JobRunId:   jobRunId,
-			ExternalId: piidetect_table_activities.BuildTableReportExternalId("public", "users"),
-		},
-		Value: reportBytes,
-	}))
-	requireNoErrResp(s.T(), setResp, err)
+		setResp, err := jobclient.SetRunContext(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
+			Id: &mgmtv1alpha1.RunContextKey{
+				AccountId:  accountId,
+				JobRunId:   jobRunId,
+				ExternalId: piidetect_table_activities.BuildTableReportExternalId("public", "users"),
+			},
+			Value: reportBytes,
+		}))
+		requireNoErrResp(t, setResp, err)
 
-	s.MockTemporalForDescribeWorkflowExecution(accountId, jobId, jobRunId, "JobPiiDetect")
+		s.MockTemporalForDescribeWorkflowExecution(accountId, jobId, jobRunId, "JobPiiDetect")
 
-	getResp, err := jobclient.GetPiiDetectionReport(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetPiiDetectionReportRequest{
-		JobRunId:  jobRunId,
-		AccountId: accountId,
-	}))
-	requireNoErrResp(s.T(), getResp, err)
-	require.NotNil(s.T(), getResp.Msg.GetReport())
-	tables := getResp.Msg.GetReport().GetTables()
-	require.Len(s.T(), tables, 1)
+		getResp, err := jobclient.GetPiiDetectionReport(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetPiiDetectionReportRequest{
+			JobRunId:  jobRunId,
+			AccountId: accountId,
+		}))
+		requireNoErrResp(t, getResp, err)
+		require.NotNil(t, getResp.Msg.GetReport())
+		tables := getResp.Msg.GetReport().GetTables()
+		require.Len(t, tables, 1)
 
-	table := tables[0]
-	require.Equal(s.T(), "public", table.Schema)
-	require.Equal(s.T(), "users", table.Table)
-	require.Len(s.T(), table.Columns, 1)
+		table := tables[0]
+		require.Equal(t, "public", table.Schema)
+		require.Equal(t, "users", table.Table)
+		require.Len(t, table.Columns, 1)
 
-	columnReport := table.Columns[0]
-	require.Equal(s.T(), "age", columnReport.Column)
-	require.Equal(s.T(), piidetect_table_activities.PiiCategoryPersonal.String(), columnReport.RegexReport.Category)
+		columnReport := table.Columns[0]
+		require.Equal(t, "age", columnReport.Column)
+		require.Equal(t, piidetect_table_activities.PiiCategoryPersonal.String(), columnReport.RegexReport.Category)
+	})
+
+	s.T().Run("empty", func(t *testing.T) {
+		jobRunId := fmt.Sprintf("%s-%s-empty", jobId, time.Now().Format(time.RFC3339))
+		s.MockTemporalForDescribeWorkflowExecution(accountId, jobId, jobRunId, "JobPiiDetect")
+
+		getResp, err := jobclient.GetPiiDetectionReport(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetPiiDetectionReportRequest{
+			JobRunId:  jobRunId,
+			AccountId: accountId,
+		}))
+		requireNoErrResp(t, getResp, err)
+		require.Empty(t, getResp.Msg.GetReport().GetTables())
+	})
 }

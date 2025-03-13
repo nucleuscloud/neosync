@@ -202,7 +202,8 @@ func (s *NeosyncApiTestClient) MockTemporalForDescribeWorkflowExecution(accountI
 				SearchAttributes: &common.SearchAttributes{
 					IndexedFields: map[string]*common.Payload{
 						"TemporalScheduledById": {
-							Data: []byte(jobId),
+							Data:     []byte(jobId),
+							Metadata: map[string][]byte{"jobId": []byte(jobId)}, // this doesnt seem to work as it's not the correct format for what temporal expects
 						},
 					},
 				},
