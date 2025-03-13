@@ -22,6 +22,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
+	piidetect_table_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table"
 	piidetect_table_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table/activities"
 	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
 	"go.temporal.io/api/enums/v1"
@@ -251,7 +252,8 @@ func (s *Service) GetJobRunEvents(
 				},
 			}
 			if len(attributes.Input.Payloads) > 0 {
-				if attributes.GetWorkflowType().GetName() == "TableSync" {
+				switch attributes.GetWorkflowType().GetName() {
+				case "TableSync":
 					var tableSyncRequest tablesync_workflow.TableSyncRequest
 					err := converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[0], &tableSyncRequest)
 					if err != nil {
@@ -265,7 +267,20 @@ func (s *Service) GetJobRunEvents(
 							Table:  tableSyncRequest.TableName,
 						},
 					}
-
+					jobRunEvent.Metadata = metadata
+				case "TablePiiDetect":
+					var piiDetectTableRequest piidetect_table_workflow.TablePiiDetectRequest
+					err := converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[0], &piiDetectTableRequest)
+					if err != nil {
+						logger.Error(fmt.Errorf("unable to convert to event input payload: %w", err).Error())
+					}
+					metadata := &mgmtv1alpha1.JobRunEventMetadata{}
+					metadata.Metadata = &mgmtv1alpha1.JobRunEventMetadata_SyncMetadata{
+						SyncMetadata: &mgmtv1alpha1.JobRunSyncMetadata{
+							Schema: piiDetectTableRequest.TableSchema,
+							Table:  piiDetectTableRequest.TableName,
+						},
+					}
 					jobRunEvent.Metadata = metadata
 				}
 			}
