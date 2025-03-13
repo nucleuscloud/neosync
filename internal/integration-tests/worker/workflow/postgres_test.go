@@ -1023,6 +1023,26 @@ func test_postgres_small_batch_size(
 		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: tablesync_pages Table: %s", expected.table))
 	}
 
+	source, err := sql.Open("postgres", postgres.Source.URL)
+	require.NoError(t, err)
+	defer source.Close()
+
+	target, err := sql.Open("postgres", postgres.Target.URL)
+	require.NoError(t, err)
+	defer target.Close()
+
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "employees", sqlmanager_shared.PostgresDriver, "employee_id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "jobs", sqlmanager_shared.PostgresDriver, "job_id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "departments", sqlmanager_shared.PostgresDriver, "department_id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "dependents", sqlmanager_shared.PostgresDriver, "dependent_id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "countries", sqlmanager_shared.PostgresDriver, "country_id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "locations", sqlmanager_shared.PostgresDriver, "location_id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "regions", sqlmanager_shared.PostgresDriver, "region_id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "referral_codes", sqlmanager_shared.PostgresDriver, "id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "store_customers", sqlmanager_shared.PostgresDriver, "id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "store_notifications", sqlmanager_shared.PostgresDriver, "id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "stores", sqlmanager_shared.PostgresDriver, "id")
+
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
 	require.NoError(t, err)

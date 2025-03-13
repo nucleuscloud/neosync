@@ -337,21 +337,14 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	// skip foreign key violations if the query could return rows that violate foreign key constraints
 	skipForeignKeyViolations := destOpts.SkipForeignKeyViolations || (query != nil && query.IsNotForeignKeySafeSubset)
 
-	columnDataTypes := map[string]string{}
-	for _, c := range benthosConfig.Columns {
-		colType, ok := colInfoMap[c]
-		if ok {
-			columnDataTypes[c] = colType.DataType
-		}
-	}
-
-	sqlProcessor, err := getSqlBatchProcessors(b.driver, benthosConfig.Columns, columnDataTypes, columnDefaultProperties)
-	if err != nil {
-		return nil, err
-	}
-
 	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
 	if benthosConfig.RunType == rc.RunTypeUpdate {
+		processorColumns := benthosConfig.Columns
+		processorColumns = append(processorColumns, benthosConfig.PrimaryKeys...)
+		sqlProcessor, err := getProcessors(b.driver, processorColumns, colInfoMap, columnDefaultProperties)
+		if err != nil {
+			return nil, err
+		}
 		config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
 				{
@@ -411,6 +404,10 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 				})
 			}
 		}
+		sqlProcessor, err := getProcessors(b.driver, benthosConfig.Columns, colInfoMap, columnDefaultProperties)
+		if err != nil {
+			return nil, err
+		}
 
 		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, columnDefaultProperties)
 		config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
@@ -451,6 +448,18 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	}
 
 	return config, nil
+}
+
+func getProcessors(driver string, columns []string, colInfoMap map[string]*sqlmanager_shared.DatabaseSchemaRow, columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties) (*neosync_benthos.BatchProcessor, error) {
+	columnDataTypes := map[string]string{}
+	for _, c := range columns {
+		colType, ok := colInfoMap[c]
+		if ok {
+			columnDataTypes[c] = colType.DataType
+		}
+	}
+
+	return getSqlBatchProcessors(driver, columns, columnDataTypes, columnDefaultProperties)
 }
 
 func getInsertPrefixAndSuffix(
