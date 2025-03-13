@@ -151,12 +151,19 @@ func isRetryableError(err error) bool {
 	if err == nil {
 		return false
 	}
+
+	if errors.Is(err, context.Canceled) {
+		return false
+	}
+
 	if isDeadlockError(err) {
 		return true
 	}
+
 	if errors.Is(err, mysql.ErrBusyBuffer) {
 		return true
 	}
+
 	if errors.Is(err, io.ErrUnexpectedEOF) {
 		return true
 	}
