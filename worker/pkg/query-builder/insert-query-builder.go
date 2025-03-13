@@ -1,11 +1,9 @@
 package querybuilder
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
-	"reflect"
 	"slices"
 	"strings"
 
@@ -18,6 +16,7 @@ import (
 func GetInsertBuilder(
 	logger *slog.Logger,
 	driver, schema, table string,
+	generatedColumns map[string]struct{},
 	opts ...InsertOption,
 ) (InsertQueryBuilder, error) {
 	options := &InsertOptions{
@@ -30,27 +29,30 @@ func GetInsertBuilder(
 	switch driver {
 	case sqlmanager_shared.PostgresDriver:
 		return &PostgresDriver{
-			driver:  driver,
-			logger:  logger,
-			schema:  schema,
-			table:   table,
-			options: options,
+			driver:           driver,
+			logger:           logger,
+			schema:           schema,
+			table:            table,
+			generatedColumns: generatedColumns,
+			options:          options,
 		}, nil
 	case sqlmanager_shared.MysqlDriver:
 		return &MysqlDriver{
-			driver:  driver,
-			logger:  logger,
-			schema:  schema,
-			table:   table,
-			options: options,
+			driver:           driver,
+			logger:           logger,
+			schema:           schema,
+			table:            table,
+			generatedColumns: generatedColumns,
+			options:          options,
 		}, nil
 	case sqlmanager_shared.MssqlDriver:
 		return &MssqlDriver{
-			driver:  driver,
-			logger:  logger,
-			schema:  schema,
-			table:   table,
-			options: options,
+			driver:           driver,
+			logger:           logger,
+			schema:           schema,
+			table:            table,
+			generatedColumns: generatedColumns,
+			options:          options,
 		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported driver: %s", driver)
@@ -124,10 +126,11 @@ func WithOnConflictDoUpdate(conflictColumns []string) InsertOption {
 }
 
 type PostgresDriver struct {
-	driver        string
-	logger        *slog.Logger
-	schema, table string
-	options       *InsertOptions
+	driver           string
+	logger           *slog.Logger
+	schema, table    string
+	generatedColumns map[string]struct{}
+	options          *InsertOptions
 }
 
 func (d *PostgresDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {
@@ -152,6 +155,9 @@ func (d *PostgresDriver) BuildInsertQuery(rows []map[string]any) (query string, 
 
 		columns := make([]string, 0, len(rows[0]))
 		for col := range rows[0] {
+			if _, ok := d.generatedColumns[col]; ok {
+				continue
+			}
 			columns = append(columns, col)
 		}
 		return d.buildInsertOnConflictDoUpdateQuery(goquRows, d.options.conflictConfig.onConflictDoUpdate.conflictColumns, columns)
@@ -194,10 +200,11 @@ func (d *PostgresDriver) buildInsertOnConflictDoUpdateQuery(
 }
 
 type MysqlDriver struct {
-	driver        string
-	logger        *slog.Logger
-	schema, table string
-	options       *InsertOptions
+	driver           string
+	logger           *slog.Logger
+	schema, table    string
+	generatedColumns map[string]struct{}
+	options          *InsertOptions
 }
 
 func (d *MysqlDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {
@@ -210,6 +217,9 @@ func (d *MysqlDriver) BuildInsertQuery(rows []map[string]any) (query string, que
 
 		columns := make([]string, 0, len(rows[0]))
 		for col := range rows[0] {
+			if _, ok := d.generatedColumns[col]; ok {
+				continue
+			}
 			columns = append(columns, col)
 		}
 		insertQuery, args, err := d.buildMysqlInsertOnConflictDoUpdateQuery(goquRows, columns)
@@ -241,11 +251,6 @@ func (d *MysqlDriver) buildMysqlInsertOnConflictDoUpdateQuery(
 	builder := getGoquDialect(sqlmanager_shared.MysqlDriver)
 	sqltable := goqu.S(d.schema).Table(d.table)
 	insert := builder.Insert(sqltable).As("new").Prepared(true).Rows(records)
-	if d.table == "departments" {
-		jsonF, _ := json.MarshalIndent(records, "", " ")
-		fmt.Printf("\n\n %s \n\n", string(jsonF))
-		fmt.Println(records[0]["dept_label"], reflect.TypeOf(records[0]["dept_label"]))
-	}
 
 	updateRecord := goqu.Record{}
 	for _, col := range updateColumns {
@@ -262,10 +267,11 @@ func (d *MysqlDriver) buildMysqlInsertOnConflictDoUpdateQuery(
 }
 
 type MssqlDriver struct {
-	driver        string
-	logger        *slog.Logger
-	schema, table string
-	options       *InsertOptions
+	driver           string
+	logger           *slog.Logger
+	schema, table    string
+	generatedColumns map[string]struct{}
+	options          *InsertOptions
 }
 
 func (d *MssqlDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {

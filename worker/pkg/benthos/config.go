@@ -258,6 +258,7 @@ type ColumnDefaultProperties struct {
 	NeedsReset            bool `json:"needs_reset" yaml:"needs_reset"`
 	NeedsOverride         bool `json:"needs_override" yaml:"needs_override"`
 	HasDefaultTransformer bool `json:"has_default_transformer" yaml:"has_default_transformer"`
+	IsGenerated           bool `json:"is_generated" yaml:"is_generated"`
 }
 
 type PooledSqlInsert struct {
@@ -265,6 +266,7 @@ type PooledSqlInsert struct {
 	Schema                      string    `json:"schema" yaml:"schema"`
 	Table                       string    `json:"table" yaml:"table"`
 	PrimaryKeyColumns           []string  `json:"primary_key_columns" yaml:"primary_key_columns"`
+	GeneratedColumns            []string  `json:"generated_columns" yaml:"generated_columns"`
 	OnConflictDoNothing         bool      `json:"on_conflict_do_nothing" yaml:"on_conflict_do_nothing"`
 	OnConflictDoUpdate          bool      `json:"on_conflict_do_update" yaml:"on_conflict_do_update"`
 	TruncateOnRetry             bool      `json:"truncate_on_retry" yaml:"truncate_on_retry"`

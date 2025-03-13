@@ -409,13 +409,17 @@ func getColumnDefaultProperties(
 		if jmTransformer != nil && isDefaultJobMappingTransformer(jmTransformer) {
 			hasDefaultTransformer = true
 		}
-		if !needsReset && !needsOverride && !hasDefaultTransformer {
+
+		isGenerated := info.GeneratedType != nil
+
+		if !needsReset && !needsOverride && !hasDefaultTransformer && !isGenerated {
 			continue
 		}
 		colDefaults[cName] = &neosync_benthos.ColumnDefaultProperties{
 			NeedsReset:            needsReset,
 			NeedsOverride:         needsOverride,
 			HasDefaultTransformer: hasDefaultTransformer,
+			IsGenerated:           isGenerated,
 		}
 	}
 	return colDefaults, nil
