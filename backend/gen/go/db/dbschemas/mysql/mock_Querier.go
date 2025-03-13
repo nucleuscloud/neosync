@@ -260,28 +260,28 @@ func (_c *MockQuerier_GetDatabaseTableSchemasBySchemasAndTables_Call) RunAndRetu
 	return _c
 }
 
-// GetIndicesBySchemasAndTables provides a mock function with given fields: ctx, db, arg
-func (_m *MockQuerier) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, arg *GetIndicesBySchemasAndTablesParams) ([]*GetIndicesBySchemasAndTablesRow, error) {
+// GetMariaDbIndicesBySchemasAndTables provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) GetMariaDbIndicesBySchemasAndTables(ctx context.Context, db DBTX, arg *GetMariaDbIndicesBySchemasAndTablesParams) ([]*GetMariaDbIndicesBySchemasAndTablesRow, error) {
 	ret := _m.Called(ctx, db, arg)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetIndicesBySchemasAndTables")
+		panic("no return value specified for GetMariaDbIndicesBySchemasAndTables")
 	}
 
-	var r0 []*GetIndicesBySchemasAndTablesRow
+	var r0 []*GetMariaDbIndicesBySchemasAndTablesRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetIndicesBySchemasAndTablesParams) ([]*GetIndicesBySchemasAndTablesRow, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetMariaDbIndicesBySchemasAndTablesParams) ([]*GetMariaDbIndicesBySchemasAndTablesRow, error)); ok {
 		return rf(ctx, db, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetIndicesBySchemasAndTablesParams) []*GetIndicesBySchemasAndTablesRow); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetMariaDbIndicesBySchemasAndTablesParams) []*GetMariaDbIndicesBySchemasAndTablesRow); ok {
 		r0 = rf(ctx, db, arg)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*GetIndicesBySchemasAndTablesRow)
+			r0 = ret.Get(0).([]*GetMariaDbIndicesBySchemasAndTablesRow)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, *GetIndicesBySchemasAndTablesParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, *GetMariaDbIndicesBySchemasAndTablesParams) error); ok {
 		r1 = rf(ctx, db, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -290,32 +290,92 @@ func (_m *MockQuerier) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX
 	return r0, r1
 }
 
-// MockQuerier_GetIndicesBySchemasAndTables_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetIndicesBySchemasAndTables'
-type MockQuerier_GetIndicesBySchemasAndTables_Call struct {
+// MockQuerier_GetMariaDbIndicesBySchemasAndTables_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMariaDbIndicesBySchemasAndTables'
+type MockQuerier_GetMariaDbIndicesBySchemasAndTables_Call struct {
 	*mock.Call
 }
 
-// GetIndicesBySchemasAndTables is a helper method to define mock.On call
+// GetMariaDbIndicesBySchemasAndTables is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-//   - arg *GetIndicesBySchemasAndTablesParams
-func (_e *MockQuerier_Expecter) GetIndicesBySchemasAndTables(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_GetIndicesBySchemasAndTables_Call {
-	return &MockQuerier_GetIndicesBySchemasAndTables_Call{Call: _e.mock.On("GetIndicesBySchemasAndTables", ctx, db, arg)}
+//   - arg *GetMariaDbIndicesBySchemasAndTablesParams
+func (_e *MockQuerier_Expecter) GetMariaDbIndicesBySchemasAndTables(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_GetMariaDbIndicesBySchemasAndTables_Call {
+	return &MockQuerier_GetMariaDbIndicesBySchemasAndTables_Call{Call: _e.mock.On("GetMariaDbIndicesBySchemasAndTables", ctx, db, arg)}
 }
 
-func (_c *MockQuerier_GetIndicesBySchemasAndTables_Call) Run(run func(ctx context.Context, db DBTX, arg *GetIndicesBySchemasAndTablesParams)) *MockQuerier_GetIndicesBySchemasAndTables_Call {
+func (_c *MockQuerier_GetMariaDbIndicesBySchemasAndTables_Call) Run(run func(ctx context.Context, db DBTX, arg *GetMariaDbIndicesBySchemasAndTablesParams)) *MockQuerier_GetMariaDbIndicesBySchemasAndTables_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(*GetIndicesBySchemasAndTablesParams))
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(*GetMariaDbIndicesBySchemasAndTablesParams))
 	})
 	return _c
 }
 
-func (_c *MockQuerier_GetIndicesBySchemasAndTables_Call) Return(_a0 []*GetIndicesBySchemasAndTablesRow, _a1 error) *MockQuerier_GetIndicesBySchemasAndTables_Call {
+func (_c *MockQuerier_GetMariaDbIndicesBySchemasAndTables_Call) Return(_a0 []*GetMariaDbIndicesBySchemasAndTablesRow, _a1 error) *MockQuerier_GetMariaDbIndicesBySchemasAndTables_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockQuerier_GetIndicesBySchemasAndTables_Call) RunAndReturn(run func(context.Context, DBTX, *GetIndicesBySchemasAndTablesParams) ([]*GetIndicesBySchemasAndTablesRow, error)) *MockQuerier_GetIndicesBySchemasAndTables_Call {
+func (_c *MockQuerier_GetMariaDbIndicesBySchemasAndTables_Call) RunAndReturn(run func(context.Context, DBTX, *GetMariaDbIndicesBySchemasAndTablesParams) ([]*GetMariaDbIndicesBySchemasAndTablesRow, error)) *MockQuerier_GetMariaDbIndicesBySchemasAndTables_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetMysqlIndicesBySchemasAndTables provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) GetMysqlIndicesBySchemasAndTables(ctx context.Context, db DBTX, arg *GetMysqlIndicesBySchemasAndTablesParams) ([]*GetMysqlIndicesBySchemasAndTablesRow, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMysqlIndicesBySchemasAndTables")
+	}
+
+	var r0 []*GetMysqlIndicesBySchemasAndTablesRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetMysqlIndicesBySchemasAndTablesParams) ([]*GetMysqlIndicesBySchemasAndTablesRow, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetMysqlIndicesBySchemasAndTablesParams) []*GetMysqlIndicesBySchemasAndTablesRow); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*GetMysqlIndicesBySchemasAndTablesRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, *GetMysqlIndicesBySchemasAndTablesParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetMysqlIndicesBySchemasAndTables_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMysqlIndicesBySchemasAndTables'
+type MockQuerier_GetMysqlIndicesBySchemasAndTables_Call struct {
+	*mock.Call
+}
+
+// GetMysqlIndicesBySchemasAndTables is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg *GetMysqlIndicesBySchemasAndTablesParams
+func (_e *MockQuerier_Expecter) GetMysqlIndicesBySchemasAndTables(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_GetMysqlIndicesBySchemasAndTables_Call {
+	return &MockQuerier_GetMysqlIndicesBySchemasAndTables_Call{Call: _e.mock.On("GetMysqlIndicesBySchemasAndTables", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_GetMysqlIndicesBySchemasAndTables_Call) Run(run func(ctx context.Context, db DBTX, arg *GetMysqlIndicesBySchemasAndTablesParams)) *MockQuerier_GetMysqlIndicesBySchemasAndTables_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(*GetMysqlIndicesBySchemasAndTablesParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetMysqlIndicesBySchemasAndTables_Call) Return(_a0 []*GetMysqlIndicesBySchemasAndTablesRow, _a1 error) *MockQuerier_GetMysqlIndicesBySchemasAndTables_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetMysqlIndicesBySchemasAndTables_Call) RunAndReturn(run func(context.Context, DBTX, *GetMysqlIndicesBySchemasAndTablesParams) ([]*GetMysqlIndicesBySchemasAndTablesRow, error)) *MockQuerier_GetMysqlIndicesBySchemasAndTables_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -495,6 +555,63 @@ func (_c *MockQuerier_GetTableConstraintsBySchemas_Call) Return(_a0 []*GetTableC
 }
 
 func (_c *MockQuerier_GetTableConstraintsBySchemas_Call) RunAndReturn(run func(context.Context, DBTX, []string) ([]*GetTableConstraintsBySchemasRow, error)) *MockQuerier_GetTableConstraintsBySchemas_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetVersion provides a mock function with given fields: ctx, db
+func (_m *MockQuerier) GetVersion(ctx context.Context, db DBTX) (string, error) {
+	ret := _m.Called(ctx, db)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetVersion")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX) (string, error)); ok {
+		return rf(ctx, db)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX) string); ok {
+		r0 = rf(ctx, db)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX) error); ok {
+		r1 = rf(ctx, db)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetVersion'
+type MockQuerier_GetVersion_Call struct {
+	*mock.Call
+}
+
+// GetVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+func (_e *MockQuerier_Expecter) GetVersion(ctx interface{}, db interface{}) *MockQuerier_GetVersion_Call {
+	return &MockQuerier_GetVersion_Call{Call: _e.mock.On("GetVersion", ctx, db)}
+}
+
+func (_c *MockQuerier_GetVersion_Call) Run(run func(ctx context.Context, db DBTX)) *MockQuerier_GetVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetVersion_Call) Return(_a0 string, _a1 error) *MockQuerier_GetVersion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetVersion_Call) RunAndReturn(run func(context.Context, DBTX) (string, error)) *MockQuerier_GetVersion_Call {
 	_c.Call.Return(run)
 	return _c
 }
