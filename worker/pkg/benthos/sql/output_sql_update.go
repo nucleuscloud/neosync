@@ -2,7 +2,6 @@ package neosync_benthos_sql
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -169,18 +168,11 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 			return fmt.Errorf("message returned non-map result: %T", msgMap)
 		}
 
-		jsonF, _ := json.MarshalIndent(msgMap, "", " ")
-		fmt.Printf("\n\n %s \n\n", string(jsonF))
-
 		query, err := querybuilder.BuildUpdateQuery(s.driver, s.schema, s.table, s.columns, s.whereCols, msgMap)
 		if err != nil {
 			return err
 		}
-		fmt.Println()
-		fmt.Println(query)
-		fmt.Println()
 		if _, err := db.ExecContext(ctx, query); err != nil {
-			fmt.Println("error", err)
 			if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 				return err
 			}

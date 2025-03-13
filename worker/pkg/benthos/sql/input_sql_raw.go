@@ -3,9 +3,7 @@ package neosync_benthos_sql
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
-	"strings"
 	"sync"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
@@ -249,14 +247,6 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 		_ = s.rows.Close()
 		s.rows = nil
 		return nil, nil, err
-	}
-
-	if strings.Contains(s.queryStatic, "employees") {
-		fmt.Println()
-		fmt.Println(s.queryStatic)
-		jsonF, _ := json.MarshalIndent(obj, "", " ")
-		fmt.Printf("%s \n\n", string(jsonF))
-		fmt.Println()
 	}
 
 	// store last order by columns values

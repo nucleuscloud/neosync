@@ -124,9 +124,6 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 		return nil, fmt.Errorf("unable to calculate schema diff: %w", err)
 	}
 
-	jsonF, _ := json.MarshalIndent(schemaDiff, "", " ")
-	fmt.Printf("\n\n %s \n\n", string(jsonF))
-
 	err = schemaManager.TruncateTables(ctx, schemaDiff)
 	if err != nil {
 		return nil, fmt.Errorf("unable to truncate data: %w", err)
@@ -137,9 +134,6 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 		if err != nil {
 			return nil, fmt.Errorf("unable to build schema diff statements: %w", err)
 		}
-
-		jsonF, _ = json.MarshalIndent(schemaStatements, "", " ")
-		fmt.Printf("\n\n %s \n\n", string(jsonF))
 
 		reconcileSchemaErrors, err := schemaManager.ReconcileDestinationSchema(ctx, uniqueTables, schemaStatements)
 		if err != nil {
