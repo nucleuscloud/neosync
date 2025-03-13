@@ -237,7 +237,7 @@ func (a *Activities) SaveJobPiiDetectReport(ctx context.Context, req *SaveJobPii
 	key := &mgmtv1alpha1.RunContextKey{
 		AccountId:  req.AccountId,
 		JobRunId:   jobRunId,
-		ExternalId: fmt.Sprintf("%s--pii-report", req.JobId),
+		ExternalId: fmt.Sprintf("%s--job-pii-report", req.JobId),
 	}
 
 	reportBytes, err := json.Marshal(req.Report)

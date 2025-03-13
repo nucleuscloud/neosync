@@ -1679,3 +1679,53 @@ class GetActiveJobHooksByTimingResponse(_message.Message):
     HOOKS_FIELD_NUMBER: _ClassVar[int]
     hooks: _containers.RepeatedCompositeFieldContainer[JobHook]
     def __init__(self, hooks: _Optional[_Iterable[_Union[JobHook, _Mapping]]] = ...) -> None: ...
+
+class GetPiiDetectionReportRequest(_message.Message):
+    __slots__ = ("job_run_id", "account_id")
+    JOB_RUN_ID_FIELD_NUMBER: _ClassVar[int]
+    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    job_run_id: str
+    account_id: str
+    def __init__(self, job_run_id: _Optional[str] = ..., account_id: _Optional[str] = ...) -> None: ...
+
+class GetPiiDetectionReportResponse(_message.Message):
+    __slots__ = ("report",)
+    REPORT_FIELD_NUMBER: _ClassVar[int]
+    report: PiiDetectionReport
+    def __init__(self, report: _Optional[_Union[PiiDetectionReport, _Mapping]] = ...) -> None: ...
+
+class PiiDetectionReport(_message.Message):
+    __slots__ = ("tables",)
+    class TableReport(_message.Message):
+        __slots__ = ("schema", "table", "columns")
+        class ColumnReport(_message.Message):
+            __slots__ = ("column", "regex_report", "llm_report")
+            class Regex(_message.Message):
+                __slots__ = ("category",)
+                CATEGORY_FIELD_NUMBER: _ClassVar[int]
+                category: str
+                def __init__(self, category: _Optional[str] = ...) -> None: ...
+            class LLM(_message.Message):
+                __slots__ = ("category", "confidence")
+                CATEGORY_FIELD_NUMBER: _ClassVar[int]
+                CONFIDENCE_FIELD_NUMBER: _ClassVar[int]
+                category: str
+                confidence: float
+                def __init__(self, category: _Optional[str] = ..., confidence: _Optional[float] = ...) -> None: ...
+            COLUMN_FIELD_NUMBER: _ClassVar[int]
+            REGEX_REPORT_FIELD_NUMBER: _ClassVar[int]
+            LLM_REPORT_FIELD_NUMBER: _ClassVar[int]
+            column: str
+            regex_report: PiiDetectionReport.TableReport.ColumnReport.Regex
+            llm_report: PiiDetectionReport.TableReport.ColumnReport.LLM
+            def __init__(self, column: _Optional[str] = ..., regex_report: _Optional[_Union[PiiDetectionReport.TableReport.ColumnReport.Regex, _Mapping]] = ..., llm_report: _Optional[_Union[PiiDetectionReport.TableReport.ColumnReport.LLM, _Mapping]] = ...) -> None: ...
+        SCHEMA_FIELD_NUMBER: _ClassVar[int]
+        TABLE_FIELD_NUMBER: _ClassVar[int]
+        COLUMNS_FIELD_NUMBER: _ClassVar[int]
+        schema: str
+        table: str
+        columns: _containers.RepeatedCompositeFieldContainer[PiiDetectionReport.TableReport.ColumnReport]
+        def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ..., columns: _Optional[_Iterable[_Union[PiiDetectionReport.TableReport.ColumnReport, _Mapping]]] = ...) -> None: ...
+    TABLES_FIELD_NUMBER: _ClassVar[int]
+    tables: _containers.RepeatedCompositeFieldContainer[PiiDetectionReport.TableReport]
+    def __init__(self, tables: _Optional[_Iterable[_Union[PiiDetectionReport.TableReport, _Mapping]]] = ...) -> None: ...

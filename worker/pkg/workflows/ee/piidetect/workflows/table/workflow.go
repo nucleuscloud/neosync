@@ -142,7 +142,9 @@ func buildFinalReport(
 
 	for col, category := range regexResp.PiiColumns {
 		reportByColumn[col] = piidetect_table_activities.CombinedPiiDetectReport{
-			Regex: &category,
+			Regex: &piidetect_table_activities.RegexPiiDetectReport{
+				Category: category,
+			},
 		}
 	}
 

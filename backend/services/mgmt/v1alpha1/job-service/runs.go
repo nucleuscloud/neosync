@@ -22,6 +22,8 @@ import (
 	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
+	piidetect_table_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table"
+	piidetect_table_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table/activities"
 	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
 	"go.temporal.io/api/enums/v1"
 	temporalclient "go.temporal.io/sdk/client"
@@ -107,7 +109,7 @@ func (s *Service) GetJobRun(
 
 	res, err := s.temporalmgr.DescribeWorklowExecution(ctx, req.Msg.GetAccountId(), req.Msg.GetJobRunId(), logger)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to describe workflow execution: %w", err)
 	}
 
 	dto := dtomaps.ToJobRunDto(logger, res)
@@ -250,7 +252,8 @@ func (s *Service) GetJobRunEvents(
 				},
 			}
 			if len(attributes.Input.Payloads) > 0 {
-				if attributes.GetWorkflowType().GetName() == "TableSync" {
+				switch attributes.GetWorkflowType().GetName() {
+				case "TableSync":
 					var tableSyncRequest tablesync_workflow.TableSyncRequest
 					err := converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[0], &tableSyncRequest)
 					if err != nil {
@@ -264,7 +267,20 @@ func (s *Service) GetJobRunEvents(
 							Table:  tableSyncRequest.TableName,
 						},
 					}
-
+					jobRunEvent.Metadata = metadata
+				case "TablePiiDetect":
+					var piiDetectTableRequest piidetect_table_workflow.TablePiiDetectRequest
+					err := converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[0], &piiDetectTableRequest)
+					if err != nil {
+						logger.Error(fmt.Errorf("unable to convert to event input payload: %w", err).Error())
+					}
+					metadata := &mgmtv1alpha1.JobRunEventMetadata{}
+					metadata.Metadata = &mgmtv1alpha1.JobRunEventMetadata_SyncMetadata{
+						SyncMetadata: &mgmtv1alpha1.JobRunSyncMetadata{
+							Schema: piiDetectTableRequest.TableSchema,
+							Table:  piiDetectTableRequest.TableName,
+						},
+					}
 					jobRunEvent.Metadata = metadata
 				}
 			}
@@ -922,4 +938,98 @@ func (s *Service) SetRunContexts(
 		return nil, connect.NewError(connect.CodeUnknown, err)
 	}
 	return connect.NewResponse(&mgmtv1alpha1.SetRunContextsResponse{}), nil
+}
+
+func (s *Service) GetPiiDetectionReport(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetPiiDetectionReportRequest],
+) (*connect.Response[mgmtv1alpha1.GetPiiDetectionReportResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("accountId", req.Msg.GetAccountId(), "jobRunId", req.Msg.GetJobRunId())
+
+	jrResp, err := s.GetJobRun(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRunRequest{
+		AccountId: req.Msg.GetAccountId(),
+		JobRunId:  req.Msg.GetJobRunId(),
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	jobRun := jrResp.Msg.GetJobRun()
+
+	logger.Debug("building pii detection report")
+
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	tableRunContexts, err := s.db.Q.GetRunContextsByExternalIdSuffix(ctx, s.db.Db, db_queries.GetRunContextsByExternalIdSuffixParams{
+		WorkflowId:       jobRun.GetId(),
+		ExternalIdSuffix: piidetect_table_activities.PiiTableReportSuffix,
+		AccountId:        accountUuid,
+	})
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, fmt.Errorf("unable to retrieve run contexts: %w", err)
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return connect.NewResponse(&mgmtv1alpha1.GetPiiDetectionReportResponse{}), nil
+	}
+
+	reports, err := getReportsFromTableContexts(tableRunContexts)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get reports from table contexts: %w", err)
+	}
+
+	reportDtos := getTableReportDtos(reports)
+
+	logger.Debug("got report dtos", "count", len(reportDtos))
+
+	return connect.NewResponse(&mgmtv1alpha1.GetPiiDetectionReportResponse{
+		Report: &mgmtv1alpha1.PiiDetectionReport{
+			Tables: reportDtos,
+		},
+	}), nil
+}
+
+func getReportsFromTableContexts(tableContexts []db_queries.NeosyncApiRuncontext) ([]*piidetect_table_activities.TableReport, error) {
+	reports := make([]*piidetect_table_activities.TableReport, len(tableContexts))
+	for i := range tableContexts {
+		runContext := tableContexts[i]
+		var report *piidetect_table_activities.TableReport
+		err := json.Unmarshal(runContext.Value, &report)
+		if err != nil {
+			return nil, fmt.Errorf("unable to unmarshal run context: %w", err)
+		}
+		reports[i] = report
+	}
+	return reports, nil
+}
+
+func getTableReportDtos(reports []*piidetect_table_activities.TableReport) []*mgmtv1alpha1.PiiDetectionReport_TableReport {
+	reportDtos := make([]*mgmtv1alpha1.PiiDetectionReport_TableReport, len(reports))
+	for i, report := range reports {
+		reportDtos[i] = &mgmtv1alpha1.PiiDetectionReport_TableReport{
+			Schema:  report.TableSchema,
+			Table:   report.TableName,
+			Columns: make([]*mgmtv1alpha1.PiiDetectionReport_TableReport_ColumnReport, 0, len(report.ColumnReports)),
+		}
+		for _, columnReport := range report.ColumnReports {
+			columnReportDto := &mgmtv1alpha1.PiiDetectionReport_TableReport_ColumnReport{
+				Column: columnReport.ColumnName,
+			}
+			if columnReport.Report.Regex != nil {
+				columnReportDto.RegexReport = &mgmtv1alpha1.PiiDetectionReport_TableReport_ColumnReport_Regex{
+					Category: columnReport.Report.Regex.Category.String(),
+				}
+			}
+			if columnReport.Report.LLM != nil {
+				columnReportDto.LlmReport = &mgmtv1alpha1.PiiDetectionReport_TableReport_ColumnReport_LLM{
+					Category:   string(columnReport.Report.LLM.Category),
+					Confidence: columnReport.Report.LLM.Confidence,
+				}
+			}
+			reportDtos[i].Columns = append(reportDtos[i].Columns, columnReportDto)
+		}
+	}
+	return reportDtos
 }

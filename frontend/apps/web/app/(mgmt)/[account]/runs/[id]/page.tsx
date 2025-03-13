@@ -18,6 +18,7 @@ import { TiCancel } from 'react-icons/ti';
 
 import { CopyButton } from '@/components/CopyButton';
 import ResourceId from '@/components/ResourceId';
+import PiiDetectionJobGuard from '@/components/guards/PiiDetectionJobGuard';
 import {
   Dialog,
   DialogContent,
@@ -54,6 +55,7 @@ import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityErrors from './components/JobRunActivityErrors';
 import JobRunActivityTable from './components/JobRunActivityTable';
 import JobRunLogs from './components/JobRunLogs';
+import JobRunPiiDetectionTable from './components/JobRunPiiDetectionTable/JobRunPiiDetectionTable';
 
 export default function Page(props: PageProps): ReactElement {
   const params = use(props.params);
@@ -80,7 +82,6 @@ export default function Page(props: PageProps): ReactElement {
     }
   );
   const jobRun = data?.jobRun;
-  jobRun?.status;
 
   const {
     data: eventData,
@@ -231,6 +232,13 @@ export default function Page(props: PageProps): ReactElement {
     }
   }
 
+  const isRunning = useMemo(() => {
+    return (
+      jobRun?.status === JobRunStatusEnum.RUNNING ||
+      jobRun?.status === JobRunStatusEnum.PENDING
+    );
+  }, [jobRun?.status]);
+
   return (
     <OverviewContainer
       Header={
@@ -248,8 +256,7 @@ export default function Page(props: PageProps): ReactElement {
                 description="Are you sure you want to delete this job run?"
                 onConfirm={async () => onDelete()}
               />
-              {(jobRun?.status === JobRunStatusEnum.RUNNING ||
-                jobRun?.status === JobRunStatusEnum.PENDING) && (
+              {isRunning && (
                 <div className="flex flex-row gap-4">
                   <ConfirmationDialog
                     trigger={
@@ -279,7 +286,7 @@ export default function Page(props: PageProps): ReactElement {
                   />
                 </div>
               )}
-              <ButtonLink jobId={jobRun?.jobId} />
+              <ViewJobButton jobId={jobRun?.jobId} />
             </div>
           }
           subHeadings={
@@ -350,6 +357,11 @@ export default function Page(props: PageProps): ReactElement {
               }
             })}
           </div>
+          <PiiDetectionJobGuard jobId={jobRun?.jobId ?? ''}>
+            <div className="space-y-4">
+              <JobRunPiiDetectionTable jobRunId={id} isRunning={isRunning} />
+            </div>
+          </PiiDetectionJobGuard>
           <div className="space-y-4">
             <JobRunActivityErrors
               jobRunId={id}
@@ -363,10 +375,7 @@ export default function Page(props: PageProps): ReactElement {
                 <JobRunLogs
                   accountId={accountId}
                   runId={id}
-                  isRunning={
-                    jobRun?.status === JobRunStatusEnum.RUNNING ||
-                    jobRun?.status === JobRunStatusEnum.PENDING
-                  }
+                  isRunning={isRunning}
                 />
               </div>
             )}
@@ -534,20 +543,21 @@ function AlertDestructive(props: AlertProps): ReactElement {
   );
 }
 
-interface ButtonProps {
+interface ViewJobButtonProps {
   jobId?: string;
 }
 
-function ButtonLink(props: ButtonProps): ReactElement {
+function ViewJobButton(props: ViewJobButtonProps): ReactElement {
+  const { jobId } = props;
   const router = useRouter();
   const { account } = useAccount();
-  if (!props.jobId) {
+  if (!jobId) {
     return <div />;
   }
   return (
     <Button
       variant="outline"
-      onClick={() => router.push(`/${account?.name}/jobs/${props.jobId}`)}
+      onClick={() => router.push(`/${account?.name}/jobs/${jobId}`)}
     >
       <ButtonText
         text="View Job"
