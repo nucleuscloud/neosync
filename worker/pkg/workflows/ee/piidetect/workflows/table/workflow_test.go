@@ -95,10 +95,10 @@ func Test_TablePiiDetect(t *testing.T) {
 		// Verify the combined report for email
 		emailReport, exists := result.PiiColumns["email"]
 		require.True(t, exists)
-		assert.Equal(t, piidetect_table_activities.PiiCategoryContact, *emailReport.Regex)
+		assert.Equal(t, piidetect_table_activities.PiiCategoryContact, emailReport.Regex.Category)
 		require.NotNil(t, emailReport.LLM)
 		assert.Equal(t, piidetect_table_activities.PiiCategoryContact, emailReport.LLM.Category)
-		assert.Equal(t, 0.95, emailReport.LLM.Confidence)
+		assert.Equal(t, float32(0.95), emailReport.LLM.Confidence)
 	})
 
 	t.Run("workflow_with_no_pii_detected", func(t *testing.T) {
