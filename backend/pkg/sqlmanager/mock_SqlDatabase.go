@@ -150,6 +150,122 @@ func (_c *MockSqlDatabase_Exec_Call) RunAndReturn(run func(context.Context, stri
 	return _c
 }
 
+// GetAllSchemas provides a mock function with given fields: ctx
+func (_m *MockSqlDatabase) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllSchemas")
+	}
+
+	var r0 []*sqlmanager_shared.DatabaseSchemaNameRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) []*sqlmanager_shared.DatabaseSchemaNameRow); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*sqlmanager_shared.DatabaseSchemaNameRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetAllSchemas_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllSchemas'
+type MockSqlDatabase_GetAllSchemas_Call struct {
+	*mock.Call
+}
+
+// GetAllSchemas is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockSqlDatabase_Expecter) GetAllSchemas(ctx interface{}) *MockSqlDatabase_GetAllSchemas_Call {
+	return &MockSqlDatabase_GetAllSchemas_Call{Call: _e.mock.On("GetAllSchemas", ctx)}
+}
+
+func (_c *MockSqlDatabase_GetAllSchemas_Call) Run(run func(ctx context.Context)) *MockSqlDatabase_GetAllSchemas_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetAllSchemas_Call) Return(_a0 []*sqlmanager_shared.DatabaseSchemaNameRow, _a1 error) *MockSqlDatabase_GetAllSchemas_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetAllSchemas_Call) RunAndReturn(run func(context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error)) *MockSqlDatabase_GetAllSchemas_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAllTables provides a mock function with given fields: ctx
+func (_m *MockSqlDatabase) GetAllTables(ctx context.Context) ([]*sqlmanager_shared.DatabaseTableRow, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllTables")
+	}
+
+	var r0 []*sqlmanager_shared.DatabaseTableRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]*sqlmanager_shared.DatabaseTableRow, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) []*sqlmanager_shared.DatabaseTableRow); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*sqlmanager_shared.DatabaseTableRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetAllTables_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllTables'
+type MockSqlDatabase_GetAllTables_Call struct {
+	*mock.Call
+}
+
+// GetAllTables is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockSqlDatabase_Expecter) GetAllTables(ctx interface{}) *MockSqlDatabase_GetAllTables_Call {
+	return &MockSqlDatabase_GetAllTables_Call{Call: _e.mock.On("GetAllTables", ctx)}
+}
+
+func (_c *MockSqlDatabase_GetAllTables_Call) Run(run func(ctx context.Context)) *MockSqlDatabase_GetAllTables_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetAllTables_Call) Return(_a0 []*sqlmanager_shared.DatabaseTableRow, _a1 error) *MockSqlDatabase_GetAllTables_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetAllTables_Call) RunAndReturn(run func(context.Context) ([]*sqlmanager_shared.DatabaseTableRow, error)) *MockSqlDatabase_GetAllTables_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetDatabaseSchema provides a mock function with given fields: ctx
 func (_m *MockSqlDatabase) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	ret := _m.Called(ctx)
