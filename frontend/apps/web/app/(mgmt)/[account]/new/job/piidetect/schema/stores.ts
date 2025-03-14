@@ -127,6 +127,15 @@ function getEditFormStateFromJob(job: Job): EditPiiDetectionJobFormValues {
   };
 }
 
+export function setInitialFormStateFromJob(
+  storage: Storage,
+  sessionKey: string,
+  job: Job
+): void {
+  const values = getFormStateFromJob(job);
+  storage.setItem(sessionKey, JSON.stringify({ formData: values }));
+}
+
 function getFormStateFromJob(job: Job): PiiDetectionSchemaFormValues {
   if (!job || job.jobType?.jobType.case !== 'piiDetect') {
     return {

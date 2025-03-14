@@ -128,6 +128,7 @@ import {
   CreateSingleTableAiGenerateJobFormValues,
   CreateSingleTableGenerateJobFormValues,
   DefineFormValues,
+  PiiDetectionConnectFormValues,
   PiiDetectionSchemaFormValues,
   SingleTableAiConnectFormValues,
   SingleTableAiSchemaFormValues,
@@ -139,6 +140,7 @@ import {
   TableScanFilterFormValue,
   WorkflowSettingsSchema,
 } from '../new/job/job-form-validations';
+import { setInitialFormStateFromJob } from '../new/job/piidetect/schema/stores';
 import { getConnectionIdFromSource } from './[id]/source/components/util';
 
 type GetConnectionById = (id: string) => Connection | undefined;
@@ -1284,6 +1286,13 @@ function setDefaultConnectFormValues(
       return;
     }
     case 'mysql': {
+      if (job.jobType?.jobType.case === 'piiDetect') {
+        const values: PiiDetectionConnectFormValues = {
+          sourceId: job.source.options.config.value.connectionId,
+        };
+        storage.setItem(sessionKeys.piidetect.connect, JSON.stringify(values));
+        return;
+      }
       const values: ConnectFormValues = {
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {
@@ -1304,6 +1313,13 @@ function setDefaultConnectFormValues(
       return;
     }
     case 'postgres': {
+      if (job.jobType?.jobType.case === 'piiDetect') {
+        const values: PiiDetectionConnectFormValues = {
+          sourceId: job.source.options.config.value.connectionId,
+        };
+        storage.setItem(sessionKeys.piidetect.connect, JSON.stringify(values));
+        return;
+      }
       const values: ConnectFormValues = {
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {
@@ -1325,6 +1341,13 @@ function setDefaultConnectFormValues(
       return;
     }
     case 'mssql': {
+      if (job.jobType?.jobType.case === 'piiDetect') {
+        const values: PiiDetectionConnectFormValues = {
+          sourceId: job.source.options.config.value.connectionId,
+        };
+        storage.setItem(sessionKeys.piidetect.connect, JSON.stringify(values));
+        return;
+      }
       const values: ConnectFormValues = {
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {
@@ -1401,6 +1424,10 @@ function setDefaultSchemaFormValues(
     case 'mongodb':
     case 'postgres':
     case 'mssql': {
+      if (job.jobType?.jobType.case === 'piiDetect') {
+        setInitialFormStateFromJob(storage, sessionKeys.piidetect.schema, job);
+        return;
+      }
       const values: SchemaFormValues = {
         destinationOptions: [],
         connectionId: job.source.options.config.value.connectionId,
