@@ -25,6 +25,9 @@ type DatabaseSchemaRow struct {
 	IdentityGeneration     *string
 	IdentitySeed           *int
 	IdentityIncrement      *int
+	// UpdateAllowed indicates whether updates are permitted for this column.
+	// generated columns are an example of columns that do not allow updates.
+	UpdateAllowed bool
 }
 
 func (d *DatabaseSchemaRow) NullableString() string {

@@ -410,16 +410,13 @@ func getColumnDefaultProperties(
 			hasDefaultTransformer = true
 		}
 
-		isGenerated := info.GeneratedType != nil
-
-		if !needsReset && !needsOverride && !hasDefaultTransformer && !isGenerated {
+		if !needsReset && !needsOverride && !hasDefaultTransformer {
 			continue
 		}
 		colDefaults[cName] = &neosync_benthos.ColumnDefaultProperties{
 			NeedsReset:            needsReset,
 			NeedsOverride:         needsOverride,
 			HasDefaultTransformer: hasDefaultTransformer,
-			IsGenerated:           isGenerated,
 		}
 	}
 	return colDefaults, nil

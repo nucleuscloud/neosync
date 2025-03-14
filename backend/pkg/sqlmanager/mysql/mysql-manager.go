@@ -3,6 +3,7 @@ package sqlmanager_mysql
 import (
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -98,9 +99,18 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 			NumericScale:           numericScale,
 			OrdinalPosition:        int(row.OrdinalPosition),
 			IdentityGeneration:     identityGeneration,
+			UpdateAllowed:          isColumnUpdateAllowed(row.Extra),
 		})
 	}
 	return result, nil
+}
+
+func isColumnUpdateAllowed(generatedType sql.NullString) bool {
+	// generated always stored columns cannot be updated
+	if generatedType.Valid && (strings.EqualFold(generatedType.String, "STORED GENERATED") || strings.EqualFold(generatedType.String, "VIRTUAL GENERATED")) {
+		return false
+	}
+	return true
 }
 
 func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
@@ -190,6 +200,7 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 				NumericScale:           int(row.NumericScale),
 				OrdinalPosition:        int(row.OrdinalPosition),
 				IdentityGeneration:     identityGeneration,
+				UpdateAllowed:          isColumnUpdateAllowed(row.IdentityGeneration),
 			})
 		}
 	}

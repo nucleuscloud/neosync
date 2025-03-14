@@ -423,7 +423,8 @@ func runSchemaInitWorkflowByDestination(
 		HeartbeatTimeout: 1 * time.Minute,
 	}
 	for _, destination := range destinations {
-		isMysql := destination.GetOptions().GetMysqlOptions() != nil
+		// right now only mysql supports schema drift
+		schemaDrift := destination.GetOptions().GetMysqlOptions() != nil
 		logger.Info("scheduling Schema Initialization workflow for execution.", "destinationId", destination.GetId())
 		siWf := &schemainit_workflow.Workflow{}
 		var wfResult schemainit_workflow.SchemaInitResponse
@@ -440,7 +441,7 @@ func runSchemaInitWorkflowByDestination(
 			SchemaInitActivityOptions: initSchemaActivityOptions,
 			JobRunId:                  jobRunId,
 			DestinationId:             destination.GetId(),
-			IsMysql:                   isMysql,
+			UseSchemaDrift:            schemaDrift,
 		}).Get(ctx, &wfResult)
 		if err != nil {
 			return err

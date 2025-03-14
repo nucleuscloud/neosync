@@ -326,6 +326,13 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		return nil, fmt.Errorf("unable to parse destination options: %w", err)
 	}
 
+	columnUpdatesDisallowed := []string{}
+	for _, col := range colInfoMap {
+		if !col.UpdateAllowed {
+			columnUpdatesDisallowed = append(columnUpdatesDisallowed, col.ColumnName)
+		}
+	}
+
 	// this will be nil if coming from CLI sync
 	query := b.configQueryMap[benthosConfig.Name]
 
@@ -404,13 +411,6 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 			return nil, err
 		}
 
-		generatedColumns := []string{}
-		for col, d := range columnDefaultProperties {
-			if d.IsGenerated {
-				generatedColumns = append(generatedColumns, col)
-			}
-		}
-
 		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, columnDefaultProperties)
 		config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
@@ -421,7 +421,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 						Schema:                      benthosConfig.TableSchema,
 						Table:                       benthosConfig.TableName,
 						PrimaryKeyColumns:           benthosConfig.PrimaryKeys,
-						GeneratedColumns:            generatedColumns,
+						ColumnUpdatesDisallowed:     columnUpdatesDisallowed,
 						OnConflictDoNothing:         destOpts.OnConflictDoNothing,
 						OnConflictDoUpdate:          destOpts.OnConflictDoUpdate,
 						SkipForeignKeyViolations:    skipForeignKeyViolations,
