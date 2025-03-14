@@ -55,6 +55,11 @@
     "driver": "mysql"
   },
   {
+    "folder": "mysql/schema-init",
+    "sql_file": "create-tables.sql",
+    "driver": "mysql"
+  },
+  {
     "folder": "mssql/alltypes",
     "sql_file": "create-tables.sql",
     "driver": "mssql"

@@ -18,6 +18,7 @@ import (
 	mysql_composite_keys "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/composite-keys"
 	mysql_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/edgecases"
 	mysql_human_resources "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/humanresources"
+	mysql_schemainit "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/schema-init"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
@@ -63,6 +64,8 @@ func createMysqlSyncJob(
 		onConflict := &mgmtv1alpha1.MysqlOnConflictConfig{}
 		if config.JobOptions.OnConflictDoUpdate {
 			onConflict.Strategy = &mgmtv1alpha1.MysqlOnConflictConfig_Update{}
+		} else if config.JobOptions.OnConflictDoNothing {
+			onConflict.Strategy = &mgmtv1alpha1.MysqlOnConflictConfig_Nothing{}
 		}
 		destinationOptions = &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
@@ -100,6 +103,25 @@ func createMysqlSyncJob(
 		},
 		Mappings:           config.JobMappings,
 		VirtualForeignKeys: config.VirtualForeignKeys,
+	}))
+	require.NoError(t, err)
+
+	return job.Msg.GetJob()
+}
+
+func updateJobMappings(
+	t *testing.T,
+	ctx context.Context,
+	jobclient mgmtv1alpha1connect.JobServiceClient,
+	jobId string,
+	mappings []*mgmtv1alpha1.JobMapping,
+	jobsource *mgmtv1alpha1.JobSource,
+) *mgmtv1alpha1.Job {
+
+	job, err := jobclient.UpdateJobSourceConnection(ctx, connect.NewRequest(&mgmtv1alpha1.UpdateJobSourceConnectionRequest{
+		Id:       jobId,
+		Mappings: mappings,
+		Source:   jobsource,
 	}))
 	require.NoError(t, err)
 
@@ -486,6 +508,109 @@ func test_mysql_complex(
 		require.NoError(t, err)
 		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mysql_complex Table: %s", expected.table))
 	}
+
+	// tear down
+	err = cleanupMysqlDatabases(ctx, mysql, []string{schema})
+	require.NoError(t, err)
+}
+
+func test_mysql_schema_reconciliation(
+	t *testing.T,
+	ctx context.Context,
+	mysql *tcmysql.MysqlTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+	shouldTruncate bool,
+) {
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	schema := fmt.Sprintf("reconcile-%v", shouldTruncate)
+
+	err := mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"schema-init/create-tables.sql"}, schema)
+	require.NoError(t, err)
+
+	neosyncApi.MockTemporalForCreateJob("test-mysql-sync")
+
+	mappings := mysql_schemainit.GetDefaultSyncJobMappings(schema)
+
+	job := createMysqlSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     schema,
+		JobMappings: mappings,
+		JobOptions: &TestJobOptions{
+			Truncate:           shouldTruncate,
+			InitSchema:         true,
+			OnConflictDoUpdate: !shouldTruncate,
+		},
+	})
+
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(100), WithPageLimit(1000))
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mysql-schema-reconciliation")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: mysql-schema-reconciliation")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: schema, table: "regions", rowCount: 4},
+		{schema: schema, table: "countries", rowCount: 25},
+		{schema: schema, table: "locations", rowCount: 7},
+		{schema: schema, table: "departments", rowCount: 11},
+		{schema: schema, table: "jobs", rowCount: 19},
+		{schema: schema, table: "employees", rowCount: 40},
+		{schema: schema, table: "dependents", rowCount: 30},
+		{schema: schema, table: "emails", rowCount: 10},
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := mysql.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mysql-schema-reconciliation Table: %s", expected.table))
+	}
+
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "regions", sqlmanager_shared.MysqlDriver, []string{"region_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "employees", sqlmanager_shared.MysqlDriver, []string{"employee_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "dependents", sqlmanager_shared.MysqlDriver, []string{"dependent_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "jobs", sqlmanager_shared.MysqlDriver, []string{"job_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "departments", sqlmanager_shared.MysqlDriver, []string{"department_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "countries", sqlmanager_shared.MysqlDriver, []string{"country_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "locations", sqlmanager_shared.MysqlDriver, []string{"location_id"})
+
+	err = mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"schema-init/alter-statements.sql"}, schema)
+	require.NoError(t, err)
+
+	updatedMappings := job.GetMappings()
+	updatedMappings = append(updatedMappings, mysql_schemainit.GetAlterSyncJobMappings(schema)...)
+	job = updateJobMappings(t, ctx, jobclient, job.GetId(), updatedMappings, job.GetSource())
+
+	testworkflow = NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(100), WithPageLimit(1000))
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: mysql-schema-reconciliation-run-2")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: mysql-schema-reconciliation-run-2")
+
+	for _, expected := range expectedResults {
+		rowCount, err := mysql.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mysql-schema-reconciliation-run-2 Table: %s", expected.table))
+	}
+
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "regions", sqlmanager_shared.MysqlDriver, []string{"region_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "employees", sqlmanager_shared.MysqlDriver, []string{"employee_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "dependents", sqlmanager_shared.MysqlDriver, []string{"dependent_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "emails", sqlmanager_shared.MysqlDriver, []string{"email_identity"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "jobs", sqlmanager_shared.MysqlDriver, []string{"job_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "departments", sqlmanager_shared.MysqlDriver, []string{"department_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "countries", sqlmanager_shared.MysqlDriver, []string{"country_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "locations", sqlmanager_shared.MysqlDriver, []string{"location_id"})
 
 	// tear down
 	err = cleanupMysqlDatabases(ctx, mysql, []string{schema})

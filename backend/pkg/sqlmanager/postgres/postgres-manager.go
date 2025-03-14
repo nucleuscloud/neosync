@@ -64,9 +64,18 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_
 			OrdinalPosition:        int(row.OrdinalPosition),
 			GeneratedType:          generatedType,
 			IdentityGeneration:     identityGeneration,
+			UpdateAllowed:          isColumnUpdateAllowed(row.IdentityGeneration, row.GeneratedType),
 		})
 	}
 	return result, nil
+}
+
+func isColumnUpdateAllowed(identityGeneration, generatedType string) bool {
+	// generated always columns cannot be updated, generated always as identity columns cannot be updated
+	if identityGeneration == "a" || generatedType == "s" {
+		return false
+	}
+	return true
 }
 
 func (p *PostgresManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
@@ -103,6 +112,7 @@ func (p *PostgresManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.
 			OrdinalPosition:        int(row.OrdinalPosition),
 			GeneratedType:          generatedType,
 			IdentityGeneration:     identityGeneration,
+			UpdateAllowed:          isColumnUpdateAllowed(row.IdentityGeneration, row.GeneratedType),
 		})
 	}
 	return result, nil

@@ -16,6 +16,7 @@ import (
 func GetInsertBuilder(
 	logger *slog.Logger,
 	driver, schema, table string,
+	columnUpdatesDisallowedMap map[string]struct{},
 	opts ...InsertOption,
 ) (InsertQueryBuilder, error) {
 	options := &InsertOptions{
@@ -28,27 +29,30 @@ func GetInsertBuilder(
 	switch driver {
 	case sqlmanager_shared.PostgresDriver:
 		return &PostgresDriver{
-			driver:  driver,
-			logger:  logger,
-			schema:  schema,
-			table:   table,
-			options: options,
+			driver:                  driver,
+			logger:                  logger,
+			schema:                  schema,
+			table:                   table,
+			columnUpdatesDisallowed: columnUpdatesDisallowedMap,
+			options:                 options,
 		}, nil
 	case sqlmanager_shared.MysqlDriver:
 		return &MysqlDriver{
-			driver:  driver,
-			logger:  logger,
-			schema:  schema,
-			table:   table,
-			options: options,
+			driver:                  driver,
+			logger:                  logger,
+			schema:                  schema,
+			table:                   table,
+			columnUpdatesDisallowed: columnUpdatesDisallowedMap,
+			options:                 options,
 		}, nil
 	case sqlmanager_shared.MssqlDriver:
 		return &MssqlDriver{
-			driver:  driver,
-			logger:  logger,
-			schema:  schema,
-			table:   table,
-			options: options,
+			driver:                  driver,
+			logger:                  logger,
+			schema:                  schema,
+			table:                   table,
+			columnUpdatesDisallowed: columnUpdatesDisallowedMap,
+			options:                 options,
 		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported driver: %s", driver)
@@ -122,10 +126,11 @@ func WithOnConflictDoUpdate(conflictColumns []string) InsertOption {
 }
 
 type PostgresDriver struct {
-	driver        string
-	logger        *slog.Logger
-	schema, table string
-	options       *InsertOptions
+	driver                  string
+	logger                  *slog.Logger
+	schema, table           string
+	columnUpdatesDisallowed map[string]struct{}
+	options                 *InsertOptions
 }
 
 func (d *PostgresDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {
@@ -150,6 +155,9 @@ func (d *PostgresDriver) BuildInsertQuery(rows []map[string]any) (query string, 
 
 		columns := make([]string, 0, len(rows[0]))
 		for col := range rows[0] {
+			if _, ok := d.columnUpdatesDisallowed[col]; ok {
+				continue
+			}
 			columns = append(columns, col)
 		}
 		return d.buildInsertOnConflictDoUpdateQuery(goquRows, d.options.conflictConfig.onConflictDoUpdate.conflictColumns, columns)
@@ -192,10 +200,11 @@ func (d *PostgresDriver) buildInsertOnConflictDoUpdateQuery(
 }
 
 type MysqlDriver struct {
-	driver        string
-	logger        *slog.Logger
-	schema, table string
-	options       *InsertOptions
+	driver                  string
+	logger                  *slog.Logger
+	schema, table           string
+	columnUpdatesDisallowed map[string]struct{}
+	options                 *InsertOptions
 }
 
 func (d *MysqlDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {
@@ -208,6 +217,9 @@ func (d *MysqlDriver) BuildInsertQuery(rows []map[string]any) (query string, que
 
 		columns := make([]string, 0, len(rows[0]))
 		for col := range rows[0] {
+			if _, ok := d.columnUpdatesDisallowed[col]; ok {
+				continue
+			}
 			columns = append(columns, col)
 		}
 		insertQuery, args, err := d.buildMysqlInsertOnConflictDoUpdateQuery(goquRows, columns)
@@ -255,10 +267,11 @@ func (d *MysqlDriver) buildMysqlInsertOnConflictDoUpdateQuery(
 }
 
 type MssqlDriver struct {
-	driver        string
-	logger        *slog.Logger
-	schema, table string
-	options       *InsertOptions
+	driver                  string
+	logger                  *slog.Logger
+	schema, table           string
+	columnUpdatesDisallowed map[string]struct{}
+	options                 *InsertOptions
 }
 
 func (d *MssqlDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {

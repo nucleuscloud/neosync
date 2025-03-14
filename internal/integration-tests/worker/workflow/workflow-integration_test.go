@@ -149,6 +149,18 @@ func Test_Workflow(t *testing.T) {
 			test_mysql_on_conflict_do_update(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
 
+		t.Run("schema_reconciliation", func(t *testing.T) {
+			t.Parallel()
+			t.Run("truncate", func(t *testing.T) {
+				t.Parallel()
+				test_mysql_schema_reconciliation(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn, true)
+			})
+			t.Run("no_truncate", func(t *testing.T) {
+				t.Parallel()
+				test_mysql_schema_reconciliation(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn, false)
+			})
+		})
+
 		t.Run("complex", func(t *testing.T) {
 			t.Parallel()
 			test_mysql_complex(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn)

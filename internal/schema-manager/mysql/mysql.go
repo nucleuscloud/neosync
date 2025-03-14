@@ -32,11 +32,13 @@ func NewMysqlSchemaManager(
 	destinationConnection *mgmtv1alpha1.Connection,
 	destOpts *mgmtv1alpha1.MysqlDestinationConnectionOptions,
 ) (*MysqlSchemaManager, error) {
+	logger.Debug("creating mysql schema manager")
+	logger.Debug("connecting to source database")
 	sourcedb, err := sqlmanagerclient.NewSqlConnection(ctx, session, sourceConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-
+	logger.Debug("connecting to destination database")
 	destdb, err := sqlmanagerclient.NewSqlConnection(ctx, session, destinationConnection, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
@@ -51,6 +53,154 @@ func NewMysqlSchemaManager(
 		destdb:                destdb,
 		sourcedb:              sourcedb,
 	}, nil
+}
+
+func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*shared.SchemaDifferences, error) {
+	d.logger.Debug("calculating schema diff")
+	diff := &shared.SchemaDifferences{
+		Missing: &shared.Missing{
+			Tables:  []*sqlmanager_shared.SchemaTable{},
+			Columns: []*sqlmanager_shared.DatabaseSchemaRow{},
+		},
+		ExistsInBoth: &shared.ExistsInBoth{
+			Tables: []*sqlmanager_shared.SchemaTable{},
+		},
+	}
+	tables := []*sqlmanager_shared.SchemaTable{}
+	for _, schematable := range uniqueTables {
+		tables = append(tables, schematable)
+	}
+	sourceColumns, err := d.sourcedb.Db().GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve source database table schemas: %w", err)
+	}
+	destColumns, err := d.destdb.Db().GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve destination database table schemas: %w", err)
+	}
+	sourceColMap := sqlmanager_shared.GetUniqueSchemaColMappings(sourceColumns)
+	destColMap := sqlmanager_shared.GetUniqueSchemaColMappings(destColumns)
+
+	for _, table := range tables {
+		sourceTable := sourceColMap[table.String()]
+		destTable := destColMap[table.String()]
+		if len(sourceTable) > 0 && len(destTable) == 0 {
+			diff.Missing.Tables = append(diff.Missing.Tables, table)
+		} else if len(sourceTable) > 0 && len(destTable) > 0 {
+			diff.ExistsInBoth.Tables = append(diff.ExistsInBoth.Tables, table)
+			for _, column := range sourceTable {
+				_, ok := destTable[column.ColumnName]
+				if !ok {
+					diff.Missing.Columns = append(diff.Missing.Columns, column)
+				}
+			}
+		}
+	}
+
+	return diff, nil
+}
+
+func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *shared.SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+	d.logger.Debug("building schema diff statements")
+	if !d.destOpts.GetInitTableSchema() {
+		d.logger.Info("skipping schema init as it is not enabled")
+		return nil, nil
+	}
+	addColumnStatements := []string{}
+	for _, column := range diff.Missing.Columns {
+		stmt, err := sqlmanager_mysql.BuildAddColumnStatement(column)
+		if err != nil {
+			return nil, fmt.Errorf("failed to build add column statement: %w", err)
+		}
+		addColumnStatements = append(addColumnStatements, stmt)
+	}
+
+	return []*sqlmanager_shared.InitSchemaStatements{
+		{
+			Label:      sqlmanager_mysql.AddColumnsLabel,
+			Statements: addColumnStatements,
+		},
+	}, nil
+}
+
+func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable, schemaStatements []*sqlmanager_shared.InitSchemaStatements) ([]*shared.InitSchemaError, error) {
+	d.logger.Debug("reconciling destination schema")
+	initErrors := []*shared.InitSchemaError{}
+	if !d.destOpts.GetInitTableSchema() {
+		d.logger.Info("skipping schema init as it is not enabled")
+		return initErrors, nil
+	}
+	tables := []*sqlmanager_shared.SchemaTable{}
+	for _, tableschema := range uniqueTables {
+		tables = append(tables, tableschema)
+	}
+
+	initblocks, err := d.sourcedb.Db().GetSchemaInitStatements(ctx, tables)
+	if err != nil {
+		return nil, err
+	}
+
+	schemaStatementsByLabel := map[string][]*sqlmanager_shared.InitSchemaStatements{}
+	for _, statement := range schemaStatements {
+		schemaStatementsByLabel[statement.Label] = append(schemaStatementsByLabel[statement.Label], statement)
+	}
+
+	// insert add columns statements after create table statements
+	// initblocks will eventually be replaced by schemastatements
+	// this is a weird intermitten state for now
+	statementBlocks := []*sqlmanager_shared.InitSchemaStatements{}
+	for _, statement := range initblocks {
+		statementBlocks = append(statementBlocks, statement)
+		if statement.Label == sqlmanager_mysql.CreateTablesLabel {
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.AddColumnsLabel]...)
+		}
+	}
+
+	for _, block := range statementBlocks {
+		d.logger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
+		if len(block.Statements) == 0 {
+			continue
+		}
+		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
+		if err != nil {
+			d.logger.Error(fmt.Sprintf("unable to exec mysql %s statements: %s", block.Label, err.Error()))
+			if block.Label != sqlmanager_mysql.SchemasLabel {
+				return nil, fmt.Errorf("unable to exec mysql %s statements: %w", block.Label, err)
+			}
+			for _, stmt := range block.Statements {
+				err = d.destdb.Db().BatchExec(ctx, 1, []string{stmt}, &sqlmanager_shared.BatchExecOpts{})
+				if err != nil {
+					initErrors = append(initErrors, &shared.InitSchemaError{
+						Statement: stmt,
+						Error:     err.Error(),
+					})
+				}
+			}
+		}
+	}
+	return initErrors, nil
+}
+
+func (d *MysqlSchemaManager) TruncateTables(ctx context.Context, schemaDiff *shared.SchemaDifferences) error {
+	if !d.destOpts.GetTruncateTable().GetTruncateBeforeInsert() {
+		d.logger.Info("skipping truncate as it is not enabled")
+		return nil
+	}
+	tableTruncate := []string{}
+	for _, schemaTable := range schemaDiff.ExistsInBoth.Tables {
+		stmt, err := sqlmanager_mysql.BuildMysqlTruncateStatement(schemaTable.Schema, schemaTable.Table)
+		if err != nil {
+			return err
+		}
+		tableTruncate = append(tableTruncate, stmt)
+	}
+	d.logger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(tableTruncate)))
+	disableFkChecks := sqlmanager_shared.DisableForeignKeyChecks
+	err := d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, tableTruncate, &sqlmanager_shared.BatchExecOpts{Prefix: &disableFkChecks})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (d *MysqlSchemaManager) InitializeSchema(ctx context.Context, uniqueTables map[string]struct{}) ([]*shared.InitSchemaError, error) {

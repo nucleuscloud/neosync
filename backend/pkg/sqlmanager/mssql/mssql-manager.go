@@ -92,10 +92,18 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 			IdentityGeneration:     identityGeneration,
 			IdentitySeed:           identitySeed,
 			IdentityIncrement:      identityIncrement,
+			UpdateAllowed:          isColumnUpdateAllowed(row.IsIdentity, row.IsComputed),
 		})
 	}
 
 	return output, nil
+}
+
+func isColumnUpdateAllowed(isIdentity, isComputed bool) bool {
+	if isIdentity || isComputed {
+		return false
+	}
+	return true
 }
 
 func (m *Manager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
@@ -172,6 +180,7 @@ func (m *Manager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			IdentityGeneration:     identityGeneration,
 			IdentitySeed:           identitySeed,
 			IdentityIncrement:      identityIncrement,
+			UpdateAllowed:          isColumnUpdateAllowed(row.IsIdentity, row.IsComputed),
 		})
 	}
 

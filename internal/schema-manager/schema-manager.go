@@ -7,6 +7,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	schema_mssql "github.com/nucleuscloud/neosync/internal/schema-manager/mssql"
@@ -19,6 +20,12 @@ import (
 type SchemaManagerService interface {
 	InitializeSchema(ctx context.Context, uniqueTables map[string]struct{}) ([]*schema_shared.InitSchemaError, error)
 	TruncateData(ctx context.Context, uniqueTables map[string]struct{}, uniqueSchemas []string) error
+
+	CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*schema_shared.SchemaDifferences, error)
+	BuildSchemaDiffStatements(ctx context.Context, diff *schema_shared.SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error)
+	ReconcileDestinationSchema(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable, schemaStatements []*sqlmanager_shared.InitSchemaStatements) ([]*schema_shared.InitSchemaError, error)
+	TruncateTables(ctx context.Context, schemaDiff *schema_shared.SchemaDifferences) error
+
 	CloseConnections()
 }
 

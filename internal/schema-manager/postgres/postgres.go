@@ -2,6 +2,7 @@ package schemamanager_postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -169,6 +170,22 @@ func (d *PostgresSchemaManager) TruncateData(ctx context.Context, uniqueTables m
 		}
 	}
 	return nil
+}
+
+func (d *PostgresSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*shared.SchemaDifferences, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *shared.SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (d *PostgresSchemaManager) ReconcileDestinationSchema(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable, schemaStatements []*sqlmanager_shared.InitSchemaStatements) ([]*shared.InitSchemaError, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (d *PostgresSchemaManager) TruncateTables(ctx context.Context, schemaDiff *shared.SchemaDifferences) error {
+	return errors.ErrUnsupported
 }
 
 func (d *PostgresSchemaManager) CloseConnections() {

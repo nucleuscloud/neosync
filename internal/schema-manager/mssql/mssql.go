@@ -2,6 +2,7 @@ package ddbuilder_mssql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -161,6 +162,21 @@ func (d *MssqlSchemaManager) TruncateData(ctx context.Context, uniqueTables map[
 	return nil
 }
 
+func (d *MssqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*shared.SchemaDifferences, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (d *MssqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *shared.SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (d *MssqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable, schemaStatements []*sqlmanager_shared.InitSchemaStatements) ([]*shared.InitSchemaError, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (d *MssqlSchemaManager) TruncateTables(ctx context.Context, schemaDiff *shared.SchemaDifferences) error {
+	return errors.ErrUnsupported
+}
 func (d *MssqlSchemaManager) CloseConnections() {
 	d.destdb.Db().Close()
 	d.sourcedb.Db().Close()

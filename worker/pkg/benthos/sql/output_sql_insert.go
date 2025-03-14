@@ -20,6 +20,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringField("schema")).
 		Field(service.NewStringField("table")).
 		Field(service.NewStringListField("primary_key_columns")).
+		Field(service.NewStringListField("column_updates_disallowed")).
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
 		Field(service.NewBoolField("on_conflict_do_update").Optional().Default(false)).
 		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
@@ -94,6 +95,15 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
+	columnUpdatesDisallowed, err := conf.FieldStringList("column_updates_disallowed")
+	if err != nil {
+		return nil, err
+	}
+	columnUpdatesDisallowedMap := make(map[string]struct{})
+	for _, col := range columnUpdatesDisallowed {
+		columnUpdatesDisallowedMap[col] = struct{}{}
+	}
+
 	onConflictDoNothing, err := conf.FieldBool("on_conflict_do_nothing")
 	if err != nil {
 		return nil, err
@@ -155,6 +165,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		driver,
 		schema,
 		table,
+		columnUpdatesDisallowedMap,
 		options...,
 	)
 	if err != nil {

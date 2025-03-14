@@ -21,9 +21,13 @@ type DatabaseSchemaRow struct {
 	NumericScale           int
 	OrdinalPosition        int
 	GeneratedType          *string
+	GeneratedExpression    *string
 	IdentityGeneration     *string
 	IdentitySeed           *int
 	IdentityIncrement      *int
+	// UpdateAllowed indicates whether updates are permitted for this column.
+	// generated columns are an example of columns that do not allow updates.
+	UpdateAllowed bool
 }
 
 func (d *DatabaseSchemaRow) NullableString() string {

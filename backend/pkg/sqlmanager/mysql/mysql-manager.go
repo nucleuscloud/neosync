@@ -3,6 +3,7 @@ package sqlmanager_mysql
 import (
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -21,7 +22,9 @@ const (
 	columnDefaultDefault = "Default"
 	columnDefaultString  = "String"
 
-	SchemasLabel = "schemas"
+	SchemasLabel      = "schemas"
+	CreateTablesLabel = "create table"
+	AddColumnsLabel   = "add columns"
 )
 
 type MysqlManager struct {
@@ -96,9 +99,18 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 			NumericScale:           numericScale,
 			OrdinalPosition:        int(row.OrdinalPosition),
 			IdentityGeneration:     identityGeneration,
+			UpdateAllowed:          isColumnUpdateAllowed(row.Extra),
 		})
 	}
 	return result, nil
+}
+
+func isColumnUpdateAllowed(generatedType sql.NullString) bool {
+	// generated always stored columns cannot be updated
+	if generatedType.Valid && (strings.EqualFold(generatedType.String, "STORED GENERATED") || strings.EqualFold(generatedType.String, "VIRTUAL GENERATED")) {
+		return false
+	}
+	return true
 }
 
 func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
@@ -147,6 +159,11 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 				generatedType = &generatedTypeCopy
 			}
 
+			genExp, err := convertUInt8ToString(row.GenerationExp)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert generation expression to string: %w", err)
+			}
+
 			columnDefaultStr, err := convertUInt8ToString(row.ColumnDefault)
 			if err != nil {
 				return nil, err
@@ -177,11 +194,13 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 				ColumnDefaultType:      columnDefaultType,
 				IsNullable:             row.IsNullable == 1,
 				GeneratedType:          generatedType,
+				GeneratedExpression:    &genExp,
 				CharacterMaximumLength: int(row.CharacterMaximumLength),
 				NumericPrecision:       int(row.NumericPrecision),
 				NumericScale:           int(row.NumericScale),
 				OrdinalPosition:        int(row.OrdinalPosition),
 				IdentityGeneration:     identityGeneration,
+				UpdateAllowed:          isColumnUpdateAllowed(row.IdentityGeneration),
 			})
 		}
 	}
@@ -523,6 +542,23 @@ func convertUInt8ToString(value any) (string, error) {
 	return string(convertedType), nil
 }
 
+func BuildAddColumnStatement(column *sqlmanager_shared.DatabaseSchemaRow) (string, error) {
+	columnDefaultStr, err := EscapeMysqlDefaultColumn(column.ColumnDefault, column.ColumnDefaultType)
+	if err != nil {
+		return "", fmt.Errorf("failed to escape column default: %w", err)
+	}
+
+	col := buildTableCol(&buildTableColRequest{
+		ColumnName:          column.ColumnName,
+		ColumnDefault:       columnDefaultStr,
+		DataType:            column.DataType,
+		IsNullable:          column.IsNullable,
+		IdentityType:        column.IdentityGeneration,
+		GeneratedExpression: *column.GeneratedExpression,
+	})
+	return fmt.Sprintf("ALTER TABLE %s.%s ADD COLUMN %s;", EscapeMysqlColumn(column.TableSchema), EscapeMysqlColumn(column.TableName), col), nil
+}
+
 type buildTableColRequest struct {
 	ColumnName          string
 	ColumnDefault       string
@@ -761,7 +797,7 @@ func (m *MysqlManager) GetSchemaInitStatements(
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{Label: SchemasLabel, Statements: schemaStmts},
 		{Label: "data types"},
-		{Label: "create table", Statements: createTables},
+		{Label: CreateTablesLabel, Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
 		{Label: "table index", Statements: idxStmts},
 		{Label: "fk alter table", Statements: fkAlterStmts},
