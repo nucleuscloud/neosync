@@ -92,6 +92,7 @@ export default function Page(props: PageProps): ReactElement {
     setErrors,
     isSubmitting,
     setSubmitting,
+    resetForm,
   } = usePiiDetectionSchemaStore();
 
   useEffect(() => {
@@ -131,6 +132,7 @@ export default function Page(props: PageProps): ReactElement {
       });
       toast.success('Successfully created job!');
 
+      resetForm();
       clearNewJobSession(window.sessionStorage, sessionPrefix);
 
       if (job.job?.id) {
