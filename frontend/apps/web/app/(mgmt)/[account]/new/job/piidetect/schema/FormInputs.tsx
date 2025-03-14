@@ -558,7 +558,6 @@ function useGetAvailableSchemasAndTables(
   connectionId: string,
   isValidMode: boolean
 ): UseGetAvailableSchemasAndTablesResponse {
-  const { account } = useAccount();
   const {
     data: availableSchemasAndTables,
     isLoading,
@@ -570,7 +569,7 @@ function useGetAvailableSchemasAndTables(
     {
       connectionId,
     },
-    { enabled: !!account?.id && isValidMode }
+    { enabled: !!connectionId && isValidMode }
   );
 
   return useMemo(() => {
