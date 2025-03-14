@@ -12,6 +12,49 @@ import (
 	"strings"
 )
 
+const getAllTables = `-- name: GetAllTables :many
+SELECT
+    table_schema,
+    table_name
+FROM
+    information_schema.tables
+WHERE
+    table_type = 'BASE TABLE'
+    AND table_schema NOT IN ('mysql', 'information_schema', 'performance_schema', 'sys')
+    AND table_schema NOT LIKE 'innodb%'
+ORDER BY
+    table_schema,
+    table_name
+`
+
+type GetAllTablesRow struct {
+	TableSchema string
+	TableName   string
+}
+
+func (q *Queries) GetAllTables(ctx context.Context, db DBTX) ([]*GetAllTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getAllTables)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetAllTablesRow
+	for rows.Next() {
+		var i GetAllTablesRow
+		if err := rows.Scan(&i.TableSchema, &i.TableName); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCustomFunctionsBySchemas = `-- name: GetCustomFunctionsBySchemas :many
 SELECT
     ROUTINE_NAME as function_name,
@@ -318,7 +361,7 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 }
 
 const getIndicesBySchemasAndTables = `-- name: GetIndicesBySchemasAndTables :many
-SELECT 
+SELECT
     s.TABLE_SCHEMA as schema_name,
     s.TABLE_NAME as table_name,
     s.COLUMN_NAME as column_name,
@@ -332,11 +375,11 @@ LEFT JOIN information_schema.table_constraints tc
        ON  s.TABLE_SCHEMA = tc.TABLE_SCHEMA
        AND s.TABLE_NAME   = tc.TABLE_NAME
        AND s.INDEX_NAME   = tc.CONSTRAINT_NAME
-WHERE 
+WHERE
       s.TABLE_SCHEMA = ?
   AND s.TABLE_NAME in (/*SLICE:tables*/?)
   AND tc.CONSTRAINT_NAME IS NULL -- filters out other constraints (foreign keys, unique, primary keys, etc)
-ORDER BY 
+ORDER BY
     s.TABLE_NAME,
     s.INDEX_NAME,
     s.SEQ_IN_INDEX

@@ -19,6 +19,20 @@ WHERE
 	c.table_schema NOT IN('sys', 'performance_schema', 'mysql')
 	AND t.table_type = 'BASE TABLE';
 
+-- name: GetAllTables :many
+SELECT
+    table_schema,
+    table_name
+FROM
+    information_schema.tables
+WHERE
+    table_type = 'BASE TABLE'
+    AND table_schema NOT IN ('mysql', 'information_schema', 'performance_schema', 'sys')
+    AND table_schema NOT LIKE 'innodb%'
+ORDER BY
+    table_schema,
+    table_name;
+
 -- name: GetTableConstraintsBySchemas :many
 SELECT
     tc.table_schema AS schema_name,
@@ -211,7 +225,7 @@ ORDER BY
 
 
 -- name: GetIndicesBySchemasAndTables :many
-SELECT 
+SELECT
     s.TABLE_SCHEMA as schema_name,
     s.TABLE_NAME as table_name,
     s.COLUMN_NAME as column_name,
@@ -225,11 +239,11 @@ LEFT JOIN information_schema.table_constraints tc
        ON  s.TABLE_SCHEMA = tc.TABLE_SCHEMA
        AND s.TABLE_NAME   = tc.TABLE_NAME
        AND s.INDEX_NAME   = tc.CONSTRAINT_NAME
-WHERE 
+WHERE
       s.TABLE_SCHEMA = sqlc.arg('schema')
   AND s.TABLE_NAME in (sqlc.slice('tables'))
   AND tc.CONSTRAINT_NAME IS NULL -- filters out other constraints (foreign keys, unique, primary keys, etc)
-ORDER BY 
+ORDER BY
     s.TABLE_NAME,
     s.INDEX_NAME,
     s.SEQ_IN_INDEX;

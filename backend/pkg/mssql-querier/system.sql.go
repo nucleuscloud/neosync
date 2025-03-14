@@ -30,13 +30,13 @@ SELECT
         WHEN c.is_computed = 1 THEN cc.definition
         ELSE NULL
     END AS generation_expression,
-     CASE 
+     CASE
         WHEN c.is_identity = 1 THEN CAST(IDENT_SEED(s.name + '.' + t.name) AS VARCHAR(50))
-        ELSE NULL 
+        ELSE NULL
     END AS identity_seed,
-    CASE 
+    CASE
         WHEN c.is_identity = 1 THEN CAST(IDENT_INCR(s.name + '.' + t.name) AS VARCHAR(50))
-        ELSE NULL 
+        ELSE NULL
     END AS identity_increment
 FROM
     sys.schemas s
@@ -109,6 +109,48 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db mysql_queries.DBTX) 
 	return items, nil
 }
 
+const getAllTables = `-- name: getAllTables :many
+SELECT
+    SCHEMA_NAME(schema_id) AS table_schema,
+    name AS table_name
+FROM
+    sys.tables
+WHERE
+    SCHEMA_NAME(schema_id) NOT IN ('sys', 'guest', 'INFORMATION_SCHEMA')
+    AND SCHEMA_NAME(schema_id) NOT LIKE 'db_%'
+ORDER BY
+    table_schema,
+    table_name;
+`
+
+type GetAllTablesRow struct {
+	TableSchema string
+	TableName   string
+}
+
+func (q *Queries) GetAllTables(ctx context.Context, db mysql_queries.DBTX) ([]*GetAllTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getAllTables)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetAllTablesRow
+	for rows.Next() {
+		var i GetAllTablesRow
+		if err := rows.Scan(&i.TableSchema, &i.TableName); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDatabaseTableSchemasBySchemasAndTables = `-- name: getDatabaseTableSchemasBySchemasAndTables :many
 SELECT
     s.name AS table_schema,
@@ -126,13 +168,13 @@ SELECT
     c.precision AS numeric_precision,
     c.scale AS numeric_scale,
     c.is_identity,
-    CASE 
+    CASE
         WHEN c.is_identity = 1 THEN CAST(IDENT_SEED(s.name + '.' + t.name) AS VARCHAR(50))
-        ELSE NULL 
+        ELSE NULL
     END AS identity_seed,
-    CASE 
+    CASE
         WHEN c.is_identity = 1 THEN CAST(IDENT_INCR(s.name + '.' + t.name) AS VARCHAR(50))
-        ELSE NULL 
+        ELSE NULL
     END AS identity_increment,
     c.is_computed,
     CASE
@@ -140,7 +182,7 @@ SELECT
     	ELSE 0
     END as is_persisted,
     cc.definition as generation_expression,
-    CASE 
+    CASE
         WHEN c.generated_always_type = 1 THEN 'GENERATED ALWAYS AS ROW START'
         WHEN c.generated_always_type = 2 THEN 'GENERATED ALWAYS AS ROW END'
         WHEN c.generated_always_type = 5 THEN 'GENERATED ALWAYS AS TRANSACTION_ID_START'
@@ -150,14 +192,14 @@ SELECT
         ELSE NULL
     END AS generated_always_type,
     CASE WHEN c.generated_always_type != 0 THEN
-       (SELECT 
-            CONCAT('PERIOD FOR SYSTEM_TIME (', 
+       (SELECT
+            CONCAT('PERIOD FOR SYSTEM_TIME (',
                   start_column.name, ', ',
                   end_column.name, ')')
          FROM sys.periods p
-         JOIN sys.columns start_column ON p.start_column_id = start_column.column_id 
+         JOIN sys.columns start_column ON p.start_column_id = start_column.column_id
             AND p.object_id = start_column.object_id
-         JOIN sys.columns end_column ON p.end_column_id = end_column.column_id 
+         JOIN sys.columns end_column ON p.end_column_id = end_column.column_id
             AND p.object_id = end_column.object_id
          WHERE p.object_id = t.object_id)
    		ELSE NULL
@@ -176,15 +218,15 @@ FROM
     LEFT JOIN sys.computed_columns cc ON c.object_id = cc.object_id AND c.column_id = cc.column_id
     LEFT JOIN sys.periods p ON t.object_id = p.object_id
     LEFT JOIN (
-        SELECT 
+        SELECT
             ic.object_id,
             ic.column_id
         FROM sys.index_columns ic
-        INNER JOIN sys.indexes i 
-            ON ic.object_id = i.object_id 
+        INNER JOIN sys.indexes i
+            ON ic.object_id = i.object_id
             AND ic.index_id = i.index_id
         WHERE i.is_primary_key = 1
-    ) pk ON c.object_id = pk.object_id 
+    ) pk ON c.object_id = pk.object_id
         AND c.column_id = pk.column_id
 WHERE t.type = 'U' AND t.temporal_type != 1 AND CONCAT(s.name, '.', t.name) IN (%s)
 ORDER BY
@@ -429,7 +471,7 @@ SELECT
         ELSE NULL
     END AS referenced_columns,
      CASE WHEN o.type = 'F'
-        THEN 'ON UPDATE ' + 
+        THEN 'ON UPDATE ' +
              CASE LOWER(fk.update_referential_action_desc)
                  WHEN 'no_action' THEN 'no action'
                  WHEN 'cascade' THEN 'cascade'
@@ -437,7 +479,7 @@ SELECT
                  WHEN 'set_default' THEN 'set default'
                  ELSE fk.update_referential_action_desc
              END +
-             ' ON DELETE ' + 
+             ' ON DELETE ' +
              CASE LOWER(fk.delete_referential_action_desc)
                  WHEN 'no_action' THEN 'no action'
                  WHEN 'cascade' THEN 'cascade'
@@ -522,13 +564,13 @@ func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db mysql_que
 }
 
 const getIndicesBySchemasAndTable = `--- name: GetIndicesBySchemaAndTables :many
-SELECT 
+SELECT
     SCHEMA_NAME(t.schema_id) AS schema_name,
     t.name AS table_name,
     i.name AS index_name,
     SUBSTRING(
         (
-            SELECT CASE 
+            SELECT CASE
                 -- Clustered index
                 WHEN i.type = 1 THEN 'CREATE CLUSTERED INDEX ' + QUOTENAME(i.name) + ' ON ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name) + ' ('
                 -- Nonclustered index
@@ -545,14 +587,14 @@ SELECT
             -- Key columns
             CASE WHEN i.type IN (1,2) THEN
                 STUFF((
-                    SELECT ', ' + QUOTENAME(c.name) + 
-                        CASE WHEN ic.is_descending_key = 1 
-                            THEN ' DESC' 
-                            ELSE ' ASC' 
+                    SELECT ', ' + QUOTENAME(c.name) +
+                        CASE WHEN ic.is_descending_key = 1
+                            THEN ' DESC'
+                            ELSE ' ASC'
                         END
                     FROM sys.index_columns ic
                     JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
-                    WHERE ic.object_id = i.object_id 
+                    WHERE ic.object_id = i.object_id
                         AND ic.index_id = i.index_id
                         AND ic.is_included_column = 0
                     ORDER BY ic.key_ordinal
@@ -563,7 +605,7 @@ SELECT
                     SELECT ', ' + QUOTENAME(c.name)
                     FROM sys.index_columns ic
                     JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
-                    WHERE ic.object_id = i.object_id 
+                    WHERE ic.object_id = i.object_id
                         AND ic.index_id = i.index_id
                     ORDER BY ic.index_column_id
                     FOR XML PATH('')
@@ -574,16 +616,16 @@ SELECT
             CASE WHEN i.type = 2 AND EXISTS (
                 SELECT 1
                 FROM sys.index_columns ic2
-                WHERE ic2.object_id = i.object_id 
+                WHERE ic2.object_id = i.object_id
                     AND ic2.index_id = i.index_id
                     AND ic2.is_included_column = 1
-            ) THEN 
-                ' INCLUDE (' + 
+            ) THEN
+                ' INCLUDE (' +
                 STUFF((
                     SELECT ', ' + QUOTENAME(c.name)
                     FROM sys.index_columns ic
                     JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
-                    WHERE ic.object_id = i.object_id 
+                    WHERE ic.object_id = i.object_id
                         AND ic.index_id = i.index_id
                         AND ic.is_included_column = 1
                     ORDER BY c.name
@@ -592,30 +634,30 @@ SELECT
             ELSE ''
             END +
             -- Where clause for filtered indexes
-            CASE WHEN i.has_filter = 1 
+            CASE WHEN i.has_filter = 1
                 THEN ' WHERE ' + i.filter_definition
                 ELSE ''
             END +
             -- Index options
             CASE WHEN i.fill_factor <> 0 OR i.is_padded = 1
                 THEN ' WITH ('
-                    + CASE WHEN i.fill_factor <> 0 
+                    + CASE WHEN i.fill_factor <> 0
                         THEN 'FILLFACTOR = ' + CAST(i.fill_factor AS varchar(3))
                         ELSE ''
                     END
                     + CASE WHEN i.fill_factor <> 0 AND i.is_padded = 1 THEN ', ' ELSE '' END
-                    + CASE WHEN i.is_padded = 1 
+                    + CASE WHEN i.is_padded = 1
                         THEN 'PAD_INDEX = ON'
                         ELSE ''
                     END
                     + ')'
                 ELSE ''
             END
-        ), 1, 8000) AS index_definition 
+        ), 1, 8000) AS index_definition
 FROM sys.indexes i
 INNER JOIN sys.tables t ON i.object_id = t.object_id
-WHERE i.is_primary_key = 0 
-    AND i.type > 0 
+WHERE i.is_primary_key = 0
+    AND i.type > 0
     AND is_unique_constraint = 0
     AND CONCAT(SCHEMA_NAME(t.schema_id), '.', t.name) IN (%s)
 ORDER BY i.index_id;
@@ -665,7 +707,7 @@ func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db mysql_que
 const getViewsAndFunctionsBySchemas = `-- name: GetViewsAndFunctionsBySchemas :many
 WITH ObjectInfo AS (
    -- Base programmable objects with their definitions
-   SELECT 
+   SELECT
        o.object_id,
        OBJECT_SCHEMA_NAME(o.object_id) as object_schema,
        o.name as object_name,
@@ -676,14 +718,14 @@ WITH ObjectInfo AS (
 ),
 Dependencies AS (
    -- Get non-table dependencies
-   SELECT 
+   SELECT
        sed.referencing_id,
        STRING_AGG(
            CONCAT(
                OBJECT_SCHEMA_NAME(sed.referenced_id),
                '.',
                OBJECT_NAME(sed.referenced_id)
-           ), 
+           ),
            ','
        ) WITHIN GROUP (ORDER BY OBJECT_SCHEMA_NAME(sed.referenced_id), OBJECT_NAME(sed.referenced_id)) as dependencies
    FROM sys.sql_expression_dependencies sed
@@ -691,7 +733,7 @@ Dependencies AS (
    WHERE o.type IN ('V', 'FN', 'IF', 'TF', 'P')  -- Views, Stored Procedures, Functions
    GROUP BY sed.referencing_id
 )
-SELECT 
+SELECT
    oi.object_schema,
    oi.object_name,
    oi.object_type,
@@ -699,7 +741,7 @@ SELECT
    d.dependencies
 FROM ObjectInfo oi
 LEFT JOIN Dependencies d ON oi.object_id = d.referencing_id
-ORDER BY 
+ORDER BY
    oi.object_type,
    oi.object_schema,
    oi.object_name;
@@ -745,22 +787,22 @@ func (q *Queries) GetViewsAndFunctionsBySchemas(ctx context.Context, db mysql_qu
 }
 
 const getCustomSequencesBySchemas = `-- name: GetCustomSequencesBySchemasAndTables :many
-SELECT 
+SELECT
     SCHEMA_NAME(seq.schema_id) AS schema_name,
     seq.name AS sequence_name,
     -- Build CREATE SEQUENCE statement with proper CASTing
     CONCAT(
-        'CREATE SEQUENCE ', QUOTENAME(SCHEMA_NAME(seq.schema_id)), '.', QUOTENAME(seq.name), 
+        'CREATE SEQUENCE ', QUOTENAME(SCHEMA_NAME(seq.schema_id)), '.', QUOTENAME(seq.name),
         ' AS ', TYPE_NAME(seq.system_type_id),
         ' START WITH ', CAST(CAST(seq.start_value AS bigint) AS varchar(20)),
         ' INCREMENT BY ', CAST(CAST(seq.increment AS bigint) AS varchar(20)),
         ' MINVALUE ', CAST(CAST(seq.minimum_value AS bigint) AS varchar(20)),
         ' MAXVALUE ', CAST(CAST(seq.maximum_value AS bigint) AS varchar(20)),
-        CASE 
-            WHEN seq.is_cycling = 1 THEN ' CYCLE' 
+        CASE
+            WHEN seq.is_cycling = 1 THEN ' CYCLE'
             ELSE ' NO CYCLE'
         END,
-        CASE 
+        CASE
             WHEN seq.is_cached = 1 THEN ' CACHE ' + CAST(seq.cache_size AS varchar(20))
             ELSE ' NO CACHE'
         END,
@@ -857,23 +899,23 @@ func (q *Queries) GetCustomTriggersBySchemasAndTables(ctx context.Context, db my
 }
 
 const getDataTypesBySchemasAndTables = `-- name: GetDataTypesBySchemasAndTables :many
-SELECT 
+SELECT
     SCHEMA_NAME(t.schema_id) AS schema_name,
     t.name AS type_name,
     'domain' as type,
-    'CREATE TYPE [' + SCHEMA_NAME(t.schema_id) + '].[' + t.name + '] FROM ' + 
-    typ.name + 
-    CASE 
-        WHEN typ.name IN ('varchar', 'nvarchar', 'char', 'nchar') 
-            THEN '(' + CASE WHEN t.max_length = -1 THEN 'MAX' 
-                           ELSE CAST(CASE WHEN typ.name LIKE 'n%' 
-                                         THEN t.max_length/2 
-                                         ELSE t.max_length END AS VARCHAR(10)) 
+    'CREATE TYPE [' + SCHEMA_NAME(t.schema_id) + '].[' + t.name + '] FROM ' +
+    typ.name +
+    CASE
+        WHEN typ.name IN ('varchar', 'nvarchar', 'char', 'nchar')
+            THEN '(' + CASE WHEN t.max_length = -1 THEN 'MAX'
+                           ELSE CAST(CASE WHEN typ.name LIKE 'n%'
+                                         THEN t.max_length/2
+                                         ELSE t.max_length END AS VARCHAR(10))
                       END + ')'
-        WHEN typ.name IN ('decimal', 'numeric') 
+        WHEN typ.name IN ('decimal', 'numeric')
             THEN '(' + CAST(t.[precision] AS VARCHAR(10)) + ',' + CAST(t.scale AS VARCHAR(10)) + ')'
         ELSE ''
-    END + 
+    END +
     ' ' + CASE WHEN t.is_nullable = 1 THEN 'NULL' ELSE 'NOT NULL' END + ';' AS definition
 FROM sys.types t
 JOIN sys.types typ ON t.system_type_id = typ.system_type_id
@@ -883,24 +925,24 @@ AND t.is_table_type = 0
 
 UNION ALL
 
-SELECT 
+SELECT
     SCHEMA_NAME(tt.schema_id) AS schema_name,
     tt.name AS type_name,
     'composite' as type,
-    'CREATE TYPE [' + SCHEMA_NAME(tt.schema_id) + '].[' + tt.name + '] AS TABLE (' + 
+    'CREATE TYPE [' + SCHEMA_NAME(tt.schema_id) + '].[' + tt.name + '] AS TABLE (' +
     STUFF((
-        SELECT ', ' + c.name + ' ' + 
-            CASE 
-                WHEN typ.name IN ('varchar', 'nvarchar', 'char', 'nchar') 
-                    THEN typ.name + '(' + CASE WHEN c.max_length = -1 THEN 'MAX' 
-                                               ELSE CAST(CASE WHEN typ.name LIKE 'n%' 
-                                                             THEN c.max_length/2 
-                                                             ELSE c.max_length END AS VARCHAR(10)) 
+        SELECT ', ' + c.name + ' ' +
+            CASE
+                WHEN typ.name IN ('varchar', 'nvarchar', 'char', 'nchar')
+                    THEN typ.name + '(' + CASE WHEN c.max_length = -1 THEN 'MAX'
+                                               ELSE CAST(CASE WHEN typ.name LIKE 'n%'
+                                                             THEN c.max_length/2
+                                                             ELSE c.max_length END AS VARCHAR(10))
                                           END + ')'
-                WHEN typ.name IN ('decimal', 'numeric') 
+                WHEN typ.name IN ('decimal', 'numeric')
                     THEN typ.name + '(' + CAST(c.[precision] AS VARCHAR(10)) + ',' + CAST(c.scale AS VARCHAR(10)) + ')'
                 ELSE typ.name
-            END + 
+            END +
             CASE WHEN c.is_nullable = 1 THEN ' NULL' ELSE ' NOT NULL' END
         FROM sys.columns c
         JOIN sys.types typ ON c.system_type_id = typ.system_type_id
