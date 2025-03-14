@@ -8750,6 +8750,126 @@
           ]
         },
         {
+          "name": "GetAllSchemasAndTablesRequest",
+          "longName": "GetAllSchemasAndTablesRequest",
+          "fullName": "mgmt.v1alpha1.GetAllSchemasAndTablesRequest",
+          "description": "Request to get all the schemas and tables for a connection",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "The unique identifier of the connection to get the all schema tables for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAllSchemasAndTablesResponse",
+          "longName": "GetAllSchemasAndTablesResponse",
+          "fullName": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse",
+          "description": "A list of all the schemas and tables for a connection",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schemas",
+              "description": "A list of all the schemas for a connection. Empty schemas (those without any tables) will appear in this list.",
+              "label": "repeated",
+              "type": "Schema",
+              "longType": "GetAllSchemasAndTablesResponse.Schema",
+              "fullType": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Schema",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "tables",
+              "description": "A list of all the tables for the connection",
+              "label": "repeated",
+              "type": "Table",
+              "longType": "GetAllSchemasAndTablesResponse.Table",
+              "fullType": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Table",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Schema",
+          "longName": "GetAllSchemasAndTablesResponse.Schema",
+          "fullName": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Schema",
+          "description": "A schema",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "name",
+              "description": "The name of the schema",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Table",
+          "longName": "GetAllSchemasAndTablesResponse.Table",
+          "fullName": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Table",
+          "description": "A table in a schema",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema_name",
+              "description": "The name of the schema",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table_name",
+              "description": "The name of the table",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetConnectionDataStreamRequest",
           "longName": "GetConnectionDataStreamRequest",
           "fullName": "mgmt.v1alpha1.GetConnectionDataStreamRequest",
@@ -9892,6 +10012,21 @@
               "responseType": "GetTableRowCountResponse",
               "responseLongType": "GetTableRowCountResponse",
               "responseFullType": "mgmt.v1alpha1.GetTableRowCountResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            },
+            {
+              "name": "GetAllSchemasAndTables",
+              "description": "Get all schemas and tables for a connection",
+              "requestType": "GetAllSchemasAndTablesRequest",
+              "requestLongType": "GetAllSchemasAndTablesRequest",
+              "requestFullType": "mgmt.v1alpha1.GetAllSchemasAndTablesRequest",
+              "requestStreaming": false,
+              "responseType": "GetAllSchemasAndTablesResponse",
+              "responseLongType": "GetAllSchemasAndTablesResponse",
+              "responseFullType": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse",
               "responseStreaming": false,
               "options": {
                 "idempotency_level": "NO_SIDE_EFFECTS"

@@ -35,6 +35,10 @@ func (s *MongoDbConnectionDataService) GetAllTables(ctx context.Context) ([]Tabl
 	return nil, errors.ErrUnsupported
 }
 
+func (s *MongoDbConnectionDataService) GetAllSchemas(ctx context.Context) ([]string, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (s *MongoDbConnectionDataService) SampleData(
 	ctx context.Context,
 	stream SampleDataStream,

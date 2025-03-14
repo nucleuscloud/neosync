@@ -319,3 +319,66 @@ func (s *Service) GetTableRowCount(
 		Count: count,
 	}), nil
 }
+
+func (s *Service) GetAllSchemasAndTables(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetAllSchemasAndTablesRequest],
+) (*connect.Response[mgmtv1alpha1.GetAllSchemasAndTablesResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.ConnectionId,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(logger, connection.Msg.GetConnection())
+	if err != nil {
+		return nil, fmt.Errorf("unable to create connection data builder: %w", err)
+	}
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+
+	var schemas []*mgmtv1alpha1.GetAllSchemasAndTablesResponse_Schema
+	errgrp.Go(func() error {
+		var err error
+		schemasResp, err := connectiondatabuilder.GetAllSchemas(errctx)
+		if err != nil {
+			return fmt.Errorf("unable to get all schemas: %w", err)
+		}
+		schemas = make([]*mgmtv1alpha1.GetAllSchemasAndTablesResponse_Schema, len(schemasResp))
+		for i, schema := range schemasResp {
+			schemas[i] = &mgmtv1alpha1.GetAllSchemasAndTablesResponse_Schema{
+				Name: schema,
+			}
+		}
+		return nil
+	})
+
+	var tables []*mgmtv1alpha1.GetAllSchemasAndTablesResponse_Table
+	errgrp.Go(func() error {
+		var err error
+		tablesResp, err := connectiondatabuilder.GetAllTables(errctx)
+		if err != nil {
+			return fmt.Errorf("unable to get all tables: %w", err)
+		}
+		tables = make([]*mgmtv1alpha1.GetAllSchemasAndTablesResponse_Table, len(tablesResp))
+		for i, table := range tablesResp {
+			tables[i] = &mgmtv1alpha1.GetAllSchemasAndTablesResponse_Table{
+				SchemaName: table.Schema,
+				TableName:  table.Table,
+			}
+		}
+		return nil
+	})
+
+	err = errgrp.Wait()
+	if err != nil {
+		return nil, fmt.Errorf("unable to get all schema and tables: %w", err)
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetAllSchemasAndTablesResponse{
+		Schemas: schemas,
+		Tables:  tables,
+	}), nil
+}

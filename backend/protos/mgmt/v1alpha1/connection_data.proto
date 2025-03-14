@@ -290,6 +290,33 @@ message GetTableRowCountResponse {
   int64 count = 1;
 }
 
+// Request to get all the schemas and tables for a connection
+message GetAllSchemasAndTablesRequest {
+  // The unique identifier of the connection to get the all schema tables for.
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// A list of all the schemas and tables for a connection
+message GetAllSchemasAndTablesResponse {
+  // A list of all the schemas for a connection. Empty schemas (those without any tables) will appear in this list.
+  repeated Schema schemas = 1;
+  // A list of all the tables for the connection
+  repeated Table tables = 2;
+
+  // A schema
+  message Schema {
+    // The name of the schema
+    string name = 1;
+  }
+  // A table in a schema
+  message Table {
+    // The name of the schema
+    string schema_name = 1;
+    // The name of the table
+    string table_name = 2;
+  }
+}
+
 // Service for managing connection data.
 // This is used in handle data from a connection
 service ConnectionDataService {
@@ -311,6 +338,10 @@ service ConnectionDataService {
   rpc GetAiGeneratedData(GetAiGeneratedDataRequest) returns (GetAiGeneratedDataResponse) {}
   // Query table with subset to get row count
   rpc GetTableRowCount(GetTableRowCountRequest) returns (GetTableRowCountResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Get all schemas and tables for a connection
+  rpc GetAllSchemasAndTables(GetAllSchemasAndTablesRequest) returns (GetAllSchemasAndTablesResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 }

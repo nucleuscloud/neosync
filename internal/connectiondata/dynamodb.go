@@ -39,6 +39,10 @@ func (s *AwsDynamodbConnectionDataService) GetAllTables(ctx context.Context) ([]
 	return nil, errors.ErrUnsupported
 }
 
+func (s *AwsDynamodbConnectionDataService) GetAllSchemas(ctx context.Context) ([]string, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (s *AwsDynamodbConnectionDataService) SampleData(
 	ctx context.Context,
 	stream SampleDataStream,
