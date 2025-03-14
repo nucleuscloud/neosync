@@ -65,6 +65,7 @@ func Test_PostgresManager(t *testing.T) {
 				NumericPrecision:       -1,
 				NumericScale:           -1,
 				OrdinalPosition:        1,
+				UpdateAllowed:          true,
 			},
 		}
 
@@ -88,6 +89,7 @@ func Test_PostgresManager(t *testing.T) {
 				NumericScale:           0,
 				OrdinalPosition:        1,
 				IdentityGeneration:     sqlmanager_shared.Ptr("a"),
+				UpdateAllowed:          false,
 			},
 		}
 
