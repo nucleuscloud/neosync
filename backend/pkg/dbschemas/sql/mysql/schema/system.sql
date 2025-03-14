@@ -22,6 +22,15 @@ create table information_schema.tables (
   auto_increment bigint
 );
 
+create table information_schema.schemata (
+  catalog_name text not null,
+  schema_name text not null,
+  default_character_set_name text,
+  default_collation_name text,
+  sql_path text,
+  default_encryption text
+);
+
 create table information_schema.key_column_usage (
   constraint_name text not null,
   table_schema text not null,

@@ -108,6 +108,35 @@ func (p *PostgresManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.
 	return result, nil
 }
 
+func (p *PostgresManager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
+	rows, err := p.querier.GetAllSchemas(ctx, p.db)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*sqlmanager_shared.DatabaseSchemaNameRow, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, &sqlmanager_shared.DatabaseSchemaNameRow{
+			SchemaName: row,
+		})
+	}
+	return result, nil
+}
+
+func (p *PostgresManager) GetAllTables(ctx context.Context) ([]*sqlmanager_shared.DatabaseTableRow, error) {
+	rows, err := p.querier.GetAllTables(ctx, p.db)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*sqlmanager_shared.DatabaseTableRow, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, &sqlmanager_shared.DatabaseTableRow{
+			SchemaName: row.TableSchema,
+			TableName:  row.TableName,
+		})
+	}
+	return result, nil
+}
+
 // returns: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 func (p *PostgresManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := p.GetDatabaseSchema(ctx)

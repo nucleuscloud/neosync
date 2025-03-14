@@ -33,6 +33,15 @@ func (d *DatabaseSchemaRow) NullableString() string {
 	return "NO"
 }
 
+type DatabaseSchemaNameRow struct {
+	SchemaName string
+}
+
+type DatabaseTableRow struct {
+	SchemaName string
+	TableName  string
+}
+
 type ForeignKeyConstraintsRow struct {
 	ConstraintName    string
 	SchemaName        string

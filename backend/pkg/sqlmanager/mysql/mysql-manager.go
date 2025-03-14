@@ -188,6 +188,35 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 	return result, nil
 }
 
+func (m *MysqlManager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
+	rows, err := m.querier.GetAllSchemas(ctx, m.pool)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*sqlmanager_shared.DatabaseSchemaNameRow, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, &sqlmanager_shared.DatabaseSchemaNameRow{
+			SchemaName: row,
+		})
+	}
+	return result, nil
+}
+
+func (m *MysqlManager) GetAllTables(ctx context.Context) ([]*sqlmanager_shared.DatabaseTableRow, error) {
+	rows, err := m.querier.GetAllTables(ctx, m.pool)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*sqlmanager_shared.DatabaseTableRow, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, &sqlmanager_shared.DatabaseTableRow{
+			SchemaName: row.TableSchema,
+			TableName:  row.TableName,
+		})
+	}
+	return result, nil
+}
+
 // returns: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 func (m *MysqlManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.GetDatabaseSchema(ctx)

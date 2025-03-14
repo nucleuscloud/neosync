@@ -9,6 +9,8 @@ import (
 )
 
 type Querier interface {
+	GetAllSchemas(ctx context.Context, db DBTX) ([]string, error)
+	GetAllTables(ctx context.Context, db DBTX) ([]*GetAllTablesRow, error)
 	GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomFunctionsBySchemaAndTablesParams) ([]*GetCustomFunctionsBySchemaAndTablesRow, error)
 	GetCustomSequencesBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomSequencesBySchemaAndTablesParams) ([]*GetCustomSequencesBySchemaAndTablesRow, error)
 	GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetCustomTriggersBySchemaAndTablesRow, error)

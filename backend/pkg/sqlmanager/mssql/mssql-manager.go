@@ -178,6 +178,35 @@ func (m *Manager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 	return output, nil
 }
 
+func (m *Manager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
+	rows, err := m.querier.GetAllSchemas(ctx, m.db)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*sqlmanager_shared.DatabaseSchemaNameRow, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, &sqlmanager_shared.DatabaseSchemaNameRow{
+			SchemaName: row,
+		})
+	}
+	return result, nil
+}
+
+func (m *Manager) GetAllTables(ctx context.Context) ([]*sqlmanager_shared.DatabaseTableRow, error) {
+	rows, err := m.querier.GetAllTables(ctx, m.db)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*sqlmanager_shared.DatabaseTableRow, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, &sqlmanager_shared.DatabaseTableRow{
+			SchemaName: row.TableSchema,
+			TableName:  row.TableName,
+		})
+	}
+	return result, nil
+}
+
 func (m *Manager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.GetDatabaseSchema(ctx)
 	if err != nil {
