@@ -109,6 +109,41 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db mysql_queries.DBTX) 
 	return items, nil
 }
 
+const getAllSchemas = `-- name: getAllSchemas :many
+SELECT
+    name AS schema_name
+FROM
+    sys.schemas
+WHERE
+    name NOT IN ('sys', 'guest', 'INFORMATION_SCHEMA')
+    AND name NOT LIKE 'db_%'
+ORDER BY
+    name;
+`
+
+func (q *Queries) GetAllSchemas(ctx context.Context, db mysql_queries.DBTX) ([]string, error) {
+	rows, err := db.QueryContext(ctx, getAllSchemas)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var schema_name string
+		if err := rows.Scan(&schema_name); err != nil {
+			return nil, err
+		}
+		items = append(items, schema_name)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllTables = `-- name: getAllTables :many
 SELECT
     SCHEMA_NAME(schema_id) AS table_schema,

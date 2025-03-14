@@ -12,6 +12,41 @@ import (
 	"github.com/lib/pq"
 )
 
+const getAllSchemas = `-- name: GetAllSchemas :many
+SELECT
+    nspname AS schema_name
+FROM
+    pg_catalog.pg_namespace
+WHERE
+    nspname NOT IN ('information_schema')
+    AND nspname NOT LIKE 'pg_%'
+ORDER BY
+    schema_name
+`
+
+func (q *Queries) GetAllSchemas(ctx context.Context, db DBTX) ([]string, error) {
+	rows, err := db.QueryContext(ctx, getAllSchemas)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var schema_name string
+		if err := rows.Scan(&schema_name); err != nil {
+			return nil, err
+		}
+		items = append(items, schema_name)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllTables = `-- name: GetAllTables :many
 SELECT
     n.nspname AS table_schema,

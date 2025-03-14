@@ -262,6 +262,17 @@ LEFT JOIN identity_columns ic
 ORDER BY
     cd.ordinal_position;
 
+-- name: GetAllSchemas :many
+SELECT
+    nspname AS schema_name
+FROM
+    pg_catalog.pg_namespace
+WHERE
+    nspname NOT IN ('information_schema')
+    AND nspname NOT LIKE 'pg_%'
+ORDER BY
+    schema_name;
+
 -- name: GetAllTables :many
 SELECT
     n.nspname AS table_schema,

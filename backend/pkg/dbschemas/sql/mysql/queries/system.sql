@@ -19,6 +19,17 @@ WHERE
 	c.table_schema NOT IN('sys', 'performance_schema', 'mysql')
 	AND t.table_type = 'BASE TABLE';
 
+-- name: GetAllSchemas :many
+SELECT
+    schema_name
+FROM
+    information_schema.schemata
+WHERE
+    schema_name NOT IN ('mysql', 'information_schema', 'performance_schema', 'sys')
+    AND schema_name NOT LIKE 'innodb%'
+ORDER BY
+    schema_name;
+
 -- name: GetAllTables :many
 SELECT
     table_schema,

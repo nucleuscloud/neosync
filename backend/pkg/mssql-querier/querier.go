@@ -7,6 +7,8 @@ import (
 )
 
 type Querier interface {
+	GetAllSchemas(ctx context.Context, db mysql_queries.DBTX) ([]string, error)
+	GetAllTables(ctx context.Context, db mysql_queries.DBTX) ([]*GetAllTablesRow, error)
 	GetCustomSequencesBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetCustomSequencesBySchemasRow, error)
 	GetCustomTriggersBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomTriggersBySchemasAndTablesRow, error)
 	GetDataTypesBySchemas(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDataTypesBySchemasRow, error)

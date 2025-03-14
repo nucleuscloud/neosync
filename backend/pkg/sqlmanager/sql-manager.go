@@ -34,6 +34,8 @@ type SqlDatabase interface {
 	BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error
 	Exec(ctx context.Context, statement string) error
 	Close()
+	GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error)
+	GetAllTables(ctx context.Context) ([]*sqlmanager_shared.DatabaseTableRow, error)
 }
 
 type SqlManager struct {

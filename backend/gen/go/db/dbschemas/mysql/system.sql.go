@@ -12,6 +12,41 @@ import (
 	"strings"
 )
 
+const getAllSchemas = `-- name: GetAllSchemas :many
+SELECT
+    schema_name
+FROM
+    information_schema.schemata
+WHERE
+    schema_name NOT IN ('mysql', 'information_schema', 'performance_schema', 'sys')
+    AND schema_name NOT LIKE 'innodb%'
+ORDER BY
+    schema_name
+`
+
+func (q *Queries) GetAllSchemas(ctx context.Context, db DBTX) ([]string, error) {
+	rows, err := db.QueryContext(ctx, getAllSchemas)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var schema_name string
+		if err := rows.Scan(&schema_name); err != nil {
+			return nil, err
+		}
+		items = append(items, schema_name)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllTables = `-- name: GetAllTables :many
 SELECT
     table_schema,
