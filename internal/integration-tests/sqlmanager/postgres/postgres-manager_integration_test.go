@@ -424,6 +424,47 @@ func Test_PostgresManager(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
+
+	t.Run("GetAllSchemas", func(t *testing.T) {
+		t.Parallel()
+		schemas, err := manager.GetAllSchemas(ctx)
+		require.NoError(t, err)
+		require.NotEmpty(t, schemas)
+
+		// Check if schemas contain the expected values instead of exact matching
+		schemaNames := make([]string, len(schemas))
+		for i, s := range schemas {
+			schemaNames[i] = s.SchemaName
+		}
+		require.Contains(t, schemaNames, schema)
+		require.Contains(t, schemaNames, capitalSchema)
+	})
+
+	t.Run("GetAllTables", func(t *testing.T) {
+		t.Parallel()
+		tables, err := manager.GetAllTables(ctx)
+		require.NoError(t, err)
+		require.NotEmpty(t, tables)
+		// Check table names
+		tableNames := make([]string, len(tables))
+		for i, t := range tables {
+			tableNames[i] = t.TableName
+		}
+		require.Contains(t, tableNames, "users")
+		require.Contains(t, tableNames, "users_with_identity")
+		require.Contains(t, tableNames, "child1")
+		require.Contains(t, tableNames, "parent1")
+
+		// Check schemas
+		schemaTableMap := make(map[string]string)
+		for _, t := range tables {
+			schemaTableMap[t.TableName] = t.SchemaName
+		}
+		require.Equal(t, schema, schemaTableMap["users"])
+		require.Equal(t, schema, schemaTableMap["users_with_identity"])
+		require.Equal(t, schema, schemaTableMap["child1"])
+		require.Equal(t, schema, schemaTableMap["parent1"])
+	})
 }
 
 func getSchemaTables(ctx context.Context, manager *postgres.PostgresManager) ([]*sqlmanager_shared.SchemaTable, error) {

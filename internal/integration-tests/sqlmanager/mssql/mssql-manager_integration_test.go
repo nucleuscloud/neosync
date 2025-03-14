@@ -262,6 +262,43 @@ func Test_MssqlManager(t *testing.T) {
 		}
 	})
 
+	t.Run("GetAllSchemas", func(t *testing.T) {
+		t.Parallel()
+		schemas, err := manager.GetAllSchemas(ctx)
+		require.NoError(t, err)
+		require.NotEmpty(t, schemas)
+
+		// Check if schemas contain the expected values instead of exact matching
+		schemaNames := make([]string, len(schemas))
+		for i, s := range schemas {
+			schemaNames[i] = s.SchemaName
+		}
+		require.Contains(t, schemaNames, "sqlmanagermssql2")
+		require.Contains(t, schemaNames, "sqlmanagermssql3")
+	})
+
+	t.Run("GetAllTables", func(t *testing.T) {
+		t.Parallel()
+		tables, err := manager.GetAllTables(ctx)
+		require.NoError(t, err)
+		require.NotEmpty(t, tables)
+		// Check table names
+		tableNames := make([]string, len(tables))
+		for i, t := range tables {
+			tableNames[i] = t.TableName
+		}
+		require.Contains(t, tableNames, "users")
+		require.Contains(t, tableNames, "parent1")
+
+		// Check schemas
+		schemaTableMap := make(map[string]string)
+		for _, t := range tables {
+			schemaTableMap[t.TableName] = t.SchemaName
+		}
+		require.Equal(t, "sqlmanagermssql2", schemaTableMap["parent1"])
+		require.Equal(t, "sqlmanagermssql3", schemaTableMap["users"])
+	})
+
 	t.Log("Finished running mssql manager integration tests")
 	t.Cleanup(func() {
 		t.Log("Cleaning up source and target mssql containers")
