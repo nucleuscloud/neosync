@@ -1508,6 +1508,9 @@ function setDefaultSubsetFormValues(
   job: Job,
   sessionPrefix: string
 ): void {
+  if (job.jobType?.jobType.case === 'piiDetect') {
+    return;
+  }
   switch (job.source?.options?.config.case) {
     case 'postgres':
     case 'mysql':
