@@ -2,7 +2,7 @@ import { getConnectionIdFromSource } from '@/app/(mgmt)/[account]/jobs/[id]/sour
 import { BaseHookStore } from '@/util/zustand.stores.util';
 import { Job } from '@neosync/sdk';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { createJSONStorage, persist, StorageValue } from 'zustand/middleware';
 import {
   EditPiiDetectionJobFormValues,
   PiiDetectionSchemaFormValues,
@@ -40,6 +40,9 @@ interface PiiDetectionSchemaStore
 
 const PLACEHOLDER_STORE_PERSIST_KEY = 'pii-detect-schema';
 
+// This is the state that is persisted to storage to handle reloads and cloning
+type PersistedState = Pick<PiiDetectionSchemaStore, 'formData'>;
+
 export const usePiiDetectionSchemaStore = create<PiiDetectionSchemaStore>()(
   persist(
     (set, get) => ({
@@ -71,7 +74,7 @@ export const usePiiDetectionSchemaStore = create<PiiDetectionSchemaStore>()(
     {
       name: PLACEHOLDER_STORE_PERSIST_KEY,
       storage: createJSONStorage(() => sessionStorage),
-      partialize: (state) => ({
+      partialize: (state): PersistedState => ({
         formData: state.formData,
       }),
     }
@@ -125,6 +128,19 @@ function getEditFormStateFromJob(job: Job): EditPiiDetectionJobFormValues {
     ...getFormStateFromJob(job),
     sourceId: getConnectionIdFromSource(job.source) ?? '',
   };
+}
+
+export function setInitialFormStateFromJob(
+  storage: Storage,
+  sessionKey: string,
+  job: Job
+): void {
+  const values = getFormStateFromJob(job);
+  const state: StorageValue<PersistedState> = {
+    state: { formData: values },
+    version: 0,
+  };
+  storage.setItem(sessionKey, JSON.stringify(state));
 }
 
 function getFormStateFromJob(job: Job): PiiDetectionSchemaFormValues {
