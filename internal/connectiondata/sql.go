@@ -45,6 +45,24 @@ func NewSQLConnectionDataService(
 	}
 }
 
+func (s *SQLConnectionDataService) GetAllSchemas(ctx context.Context) ([]string, error) {
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), s.connection, s.logger)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db().Close()
+
+	dbschema, err := db.Db().GetAllSchemas(ctx)
+	if err != nil {
+		return nil, err
+	}
+	schemas := make([]string, 0, len(dbschema))
+	for _, row := range dbschema {
+		schemas = append(schemas, row.SchemaName)
+	}
+	return schemas, nil
+}
+
 func (s *SQLConnectionDataService) GetAllTables(ctx context.Context) ([]TableIdentifier, error) {
 	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), s.connection, s.logger)
 	if err != nil {

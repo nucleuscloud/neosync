@@ -57,6 +57,9 @@ const (
 	// ConnectionDataServiceGetTableRowCountProcedure is the fully-qualified name of the
 	// ConnectionDataService's GetTableRowCount RPC.
 	ConnectionDataServiceGetTableRowCountProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetTableRowCount"
+	// ConnectionDataServiceGetAllSchemaAndTablesProcedure is the fully-qualified name of the
+	// ConnectionDataService's GetAllSchemaAndTables RPC.
+	ConnectionDataServiceGetAllSchemaAndTablesProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetAllSchemaAndTables"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -70,6 +73,7 @@ var (
 	connectionDataServiceGetConnectionInitStatementsMethodDescriptor   = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionInitStatements")
 	connectionDataServiceGetAiGeneratedDataMethodDescriptor            = connectionDataServiceServiceDescriptor.Methods().ByName("GetAiGeneratedData")
 	connectionDataServiceGetTableRowCountMethodDescriptor              = connectionDataServiceServiceDescriptor.Methods().ByName("GetTableRowCount")
+	connectionDataServiceGetAllSchemaAndTablesMethodDescriptor         = connectionDataServiceServiceDescriptor.Methods().ByName("GetAllSchemaAndTables")
 )
 
 // ConnectionDataServiceClient is a client for the mgmt.v1alpha1.ConnectionDataService service.
@@ -92,6 +96,8 @@ type ConnectionDataServiceClient interface {
 	GetAiGeneratedData(context.Context, *connect.Request[v1alpha1.GetAiGeneratedDataRequest]) (*connect.Response[v1alpha1.GetAiGeneratedDataResponse], error)
 	// Query table with subset to get row count
 	GetTableRowCount(context.Context, *connect.Request[v1alpha1.GetTableRowCountRequest]) (*connect.Response[v1alpha1.GetTableRowCountResponse], error)
+	// Get all schemas and tables for a connection
+	GetAllSchemaAndTables(context.Context, *connect.Request[v1alpha1.GetAllSchemaAndTablesRequest]) (*connect.Response[v1alpha1.GetAllSchemaAndTablesResponse], error)
 }
 
 // NewConnectionDataServiceClient constructs a client for the mgmt.v1alpha1.ConnectionDataService
@@ -153,6 +159,13 @@ func NewConnectionDataServiceClient(httpClient connect.HTTPClient, baseURL strin
 			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
+		getAllSchemaAndTables: connect.NewClient[v1alpha1.GetAllSchemaAndTablesRequest, v1alpha1.GetAllSchemaAndTablesResponse](
+			httpClient,
+			baseURL+ConnectionDataServiceGetAllSchemaAndTablesProcedure,
+			connect.WithSchema(connectionDataServiceGetAllSchemaAndTablesMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -166,6 +179,7 @@ type connectionDataServiceClient struct {
 	getConnectionInitStatements   *connect.Client[v1alpha1.GetConnectionInitStatementsRequest, v1alpha1.GetConnectionInitStatementsResponse]
 	getAiGeneratedData            *connect.Client[v1alpha1.GetAiGeneratedDataRequest, v1alpha1.GetAiGeneratedDataResponse]
 	getTableRowCount              *connect.Client[v1alpha1.GetTableRowCountRequest, v1alpha1.GetTableRowCountResponse]
+	getAllSchemaAndTables         *connect.Client[v1alpha1.GetAllSchemaAndTablesRequest, v1alpha1.GetAllSchemaAndTablesResponse]
 }
 
 // GetConnectionDataStream calls mgmt.v1alpha1.ConnectionDataService.GetConnectionDataStream.
@@ -210,6 +224,11 @@ func (c *connectionDataServiceClient) GetTableRowCount(ctx context.Context, req 
 	return c.getTableRowCount.CallUnary(ctx, req)
 }
 
+// GetAllSchemaAndTables calls mgmt.v1alpha1.ConnectionDataService.GetAllSchemaAndTables.
+func (c *connectionDataServiceClient) GetAllSchemaAndTables(ctx context.Context, req *connect.Request[v1alpha1.GetAllSchemaAndTablesRequest]) (*connect.Response[v1alpha1.GetAllSchemaAndTablesResponse], error) {
+	return c.getAllSchemaAndTables.CallUnary(ctx, req)
+}
+
 // ConnectionDataServiceHandler is an implementation of the mgmt.v1alpha1.ConnectionDataService
 // service.
 type ConnectionDataServiceHandler interface {
@@ -231,6 +250,8 @@ type ConnectionDataServiceHandler interface {
 	GetAiGeneratedData(context.Context, *connect.Request[v1alpha1.GetAiGeneratedDataRequest]) (*connect.Response[v1alpha1.GetAiGeneratedDataResponse], error)
 	// Query table with subset to get row count
 	GetTableRowCount(context.Context, *connect.Request[v1alpha1.GetTableRowCountRequest]) (*connect.Response[v1alpha1.GetTableRowCountResponse], error)
+	// Get all schemas and tables for a connection
+	GetAllSchemaAndTables(context.Context, *connect.Request[v1alpha1.GetAllSchemaAndTablesRequest]) (*connect.Response[v1alpha1.GetAllSchemaAndTablesResponse], error)
 }
 
 // NewConnectionDataServiceHandler builds an HTTP handler from the service implementation. It
@@ -288,6 +309,13 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
+	connectionDataServiceGetAllSchemaAndTablesHandler := connect.NewUnaryHandler(
+		ConnectionDataServiceGetAllSchemaAndTablesProcedure,
+		svc.GetAllSchemaAndTables,
+		connect.WithSchema(connectionDataServiceGetAllSchemaAndTablesMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.ConnectionDataService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ConnectionDataServiceGetConnectionDataStreamProcedure:
@@ -306,6 +334,8 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 			connectionDataServiceGetAiGeneratedDataHandler.ServeHTTP(w, r)
 		case ConnectionDataServiceGetTableRowCountProcedure:
 			connectionDataServiceGetTableRowCountHandler.ServeHTTP(w, r)
+		case ConnectionDataServiceGetAllSchemaAndTablesProcedure:
+			connectionDataServiceGetAllSchemaAndTablesHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -345,4 +375,8 @@ func (UnimplementedConnectionDataServiceHandler) GetAiGeneratedData(context.Cont
 
 func (UnimplementedConnectionDataServiceHandler) GetTableRowCount(context.Context, *connect.Request[v1alpha1.GetTableRowCountRequest]) (*connect.Response[v1alpha1.GetTableRowCountResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetTableRowCount is not implemented"))
+}
+
+func (UnimplementedConnectionDataServiceHandler) GetAllSchemaAndTables(context.Context, *connect.Request[v1alpha1.GetAllSchemaAndTablesRequest]) (*connect.Response[v1alpha1.GetAllSchemaAndTablesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetAllSchemaAndTables is not implemented"))
 }

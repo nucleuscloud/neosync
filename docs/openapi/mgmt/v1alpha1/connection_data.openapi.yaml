@@ -615,6 +615,59 @@ components:
           description: A list of generated records
       title: GetAiGeneratedDataResponse
       additionalProperties: false
+    mgmt.v1alpha1.GetAllSchemaAndTablesRequest:
+      type: object
+      properties:
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+          description: The unique identifier of the connection to get the all schema tables for.
+      title: GetAllSchemaAndTablesRequest
+      additionalProperties: false
+      description: Request to get all the schemas and tables for a connection
+    mgmt.v1alpha1.GetAllSchemaAndTablesResponse:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemaAndTablesResponse.Schema'
+          title: schemas
+          description: A list of all the schemas for a connection. Empty schemas (those without any tables) will appear in this list.
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemaAndTablesResponse.Table'
+          title: tables
+          description: A list of all the tables for the connection
+      title: GetAllSchemaAndTablesResponse
+      additionalProperties: false
+      description: A list of all the schemas and tables for a connection
+    mgmt.v1alpha1.GetAllSchemaAndTablesResponse.Schema:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          description: The name of the schema
+      title: Schema
+      additionalProperties: false
+      description: A schema
+    mgmt.v1alpha1.GetAllSchemaAndTablesResponse.Table:
+      type: object
+      properties:
+        schemaName:
+          type: string
+          title: schema_name
+          description: The name of the schema
+        tableName:
+          type: string
+          title: table_name
+          description: The name of the table
+      title: Table
+      additionalProperties: false
+      description: A table in a schema
     mgmt.v1alpha1.GetConnectionDataStreamRequest:
       type: object
       properties:
@@ -1377,6 +1430,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.GetTableRowCountResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetAllSchemaAndTables:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetAllSchemaAndTables
+      description: Get all schemas and tables for a connection
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetAllSchemaAndTables
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemaAndTablesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemaAndTablesResponse'
 tags:
   - name: mgmt.v1alpha1.ConnectionDataService
     description: |-

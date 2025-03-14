@@ -50,6 +50,10 @@ func (s *AwsS3ConnectionDataService) GetAllTables(ctx context.Context) ([]TableI
 	return nil, errors.ErrUnsupported
 }
 
+func (s *AwsS3ConnectionDataService) GetAllSchemas(ctx context.Context) ([]string, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (s *AwsS3ConnectionDataService) SampleData(
 	ctx context.Context,
 	stream SampleDataStream,

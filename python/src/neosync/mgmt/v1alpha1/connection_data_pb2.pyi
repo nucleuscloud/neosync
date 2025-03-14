@@ -387,3 +387,29 @@ class GetTableRowCountResponse(_message.Message):
     COUNT_FIELD_NUMBER: _ClassVar[int]
     count: int
     def __init__(self, count: _Optional[int] = ...) -> None: ...
+
+class GetAllSchemaAndTablesRequest(_message.Message):
+    __slots__ = ("connection_id",)
+    CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
+    connection_id: str
+    def __init__(self, connection_id: _Optional[str] = ...) -> None: ...
+
+class GetAllSchemaAndTablesResponse(_message.Message):
+    __slots__ = ("schemas", "tables")
+    class Schema(_message.Message):
+        __slots__ = ("name",)
+        NAME_FIELD_NUMBER: _ClassVar[int]
+        name: str
+        def __init__(self, name: _Optional[str] = ...) -> None: ...
+    class Table(_message.Message):
+        __slots__ = ("schema_name", "table_name")
+        SCHEMA_NAME_FIELD_NUMBER: _ClassVar[int]
+        TABLE_NAME_FIELD_NUMBER: _ClassVar[int]
+        schema_name: str
+        table_name: str
+        def __init__(self, schema_name: _Optional[str] = ..., table_name: _Optional[str] = ...) -> None: ...
+    SCHEMAS_FIELD_NUMBER: _ClassVar[int]
+    TABLES_FIELD_NUMBER: _ClassVar[int]
+    schemas: _containers.RepeatedCompositeFieldContainer[GetAllSchemaAndTablesResponse.Schema]
+    tables: _containers.RepeatedCompositeFieldContainer[GetAllSchemaAndTablesResponse.Table]
+    def __init__(self, schemas: _Optional[_Iterable[_Union[GetAllSchemaAndTablesResponse.Schema, _Mapping]]] = ..., tables: _Optional[_Iterable[_Union[GetAllSchemaAndTablesResponse.Table, _Mapping]]] = ...) -> None: ...
