@@ -69,7 +69,7 @@ export default function JobRunLogs({
       )}
       <div className="flex flex-row items-center gap-8">
         <div className="flex flex-row items-center gap-2">
-          <h2 className="text-2xl font-bold tracking-tight">Logs</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Logs</h2>
           <Button
             className={isLogsValidating ? 'animate-spin' : ''}
             disabled={isLogsValidating}

@@ -41,6 +41,10 @@ func (s *GcpConnectionDataService) GetAllTables(ctx context.Context) ([]TableIde
 	return nil, errors.ErrUnsupported
 }
 
+func (s *GcpConnectionDataService) GetAllSchemas(ctx context.Context) ([]string, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (s *GcpConnectionDataService) SampleData(
 	ctx context.Context,
 	stream SampleDataStream,

@@ -8750,6 +8750,126 @@
           ]
         },
         {
+          "name": "GetAllSchemasAndTablesRequest",
+          "longName": "GetAllSchemasAndTablesRequest",
+          "fullName": "mgmt.v1alpha1.GetAllSchemasAndTablesRequest",
+          "description": "Request to get all the schemas and tables for a connection",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "The unique identifier of the connection to get the all schema tables for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAllSchemasAndTablesResponse",
+          "longName": "GetAllSchemasAndTablesResponse",
+          "fullName": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse",
+          "description": "A list of all the schemas and tables for a connection",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schemas",
+              "description": "A list of all the schemas for a connection. Empty schemas (those without any tables) will appear in this list.",
+              "label": "repeated",
+              "type": "Schema",
+              "longType": "GetAllSchemasAndTablesResponse.Schema",
+              "fullType": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Schema",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "tables",
+              "description": "A list of all the tables for the connection",
+              "label": "repeated",
+              "type": "Table",
+              "longType": "GetAllSchemasAndTablesResponse.Table",
+              "fullType": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Table",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Schema",
+          "longName": "GetAllSchemasAndTablesResponse.Schema",
+          "fullName": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Schema",
+          "description": "A schema",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "name",
+              "description": "The name of the schema",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Table",
+          "longName": "GetAllSchemasAndTablesResponse.Table",
+          "fullName": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Table",
+          "description": "A table in a schema",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema_name",
+              "description": "The name of the schema",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table_name",
+              "description": "The name of the table",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetConnectionDataStreamRequest",
           "longName": "GetConnectionDataStreamRequest",
           "fullName": "mgmt.v1alpha1.GetConnectionDataStreamRequest",
@@ -9892,6 +10012,21 @@
               "responseType": "GetTableRowCountResponse",
               "responseLongType": "GetTableRowCountResponse",
               "responseFullType": "mgmt.v1alpha1.GetTableRowCountResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            },
+            {
+              "name": "GetAllSchemasAndTables",
+              "description": "Get all schemas and tables for a connection",
+              "requestType": "GetAllSchemasAndTablesRequest",
+              "requestLongType": "GetAllSchemasAndTablesRequest",
+              "requestFullType": "mgmt.v1alpha1.GetAllSchemasAndTablesRequest",
+              "requestStreaming": false,
+              "responseType": "GetAllSchemasAndTablesResponse",
+              "responseLongType": "GetAllSchemasAndTablesResponse",
+              "responseFullType": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse",
               "responseStreaming": false,
               "options": {
                 "idempotency_level": "NO_SIDE_EFFECTS"
@@ -12858,6 +12993,66 @@
           ]
         },
         {
+          "name": "GetPiiDetectionReportRequest",
+          "longName": "GetPiiDetectionReportRequest",
+          "fullName": "mgmt.v1alpha1.GetPiiDetectionReportRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_run_id",
+              "description": "The unique identifier of the job run",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "account_id",
+              "description": "The unique identifier of the account",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetPiiDetectionReportResponse",
+          "longName": "GetPiiDetectionReportResponse",
+          "fullName": "mgmt.v1alpha1.GetPiiDetectionReportResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "report",
+              "description": "The pii detection report",
+              "label": "",
+              "type": "PiiDetectionReport",
+              "longType": "PiiDetectionReport",
+              "fullType": "mgmt.v1alpha1.PiiDetectionReport",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetRunContextRequest",
           "longName": "GetRunContextRequest",
           "fullName": "mgmt.v1alpha1.GetRunContextRequest",
@@ -15583,6 +15778,186 @@
           ]
         },
         {
+          "name": "PiiDetectionReport",
+          "longName": "PiiDetectionReport",
+          "fullName": "mgmt.v1alpha1.PiiDetectionReport",
+          "description": "The pii detection report",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "tables",
+              "description": "The report for each table where PII was detected. If no PII was detected, the table will not be included.",
+              "label": "repeated",
+              "type": "TableReport",
+              "longType": "PiiDetectionReport.TableReport",
+              "fullType": "mgmt.v1alpha1.PiiDetectionReport.TableReport",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TableReport",
+          "longName": "PiiDetectionReport.TableReport",
+          "fullName": "mgmt.v1alpha1.PiiDetectionReport.TableReport",
+          "description": "The report for a table",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "The schema of the table",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "The name of the table",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "columns",
+              "description": "The report for each column",
+              "label": "repeated",
+              "type": "ColumnReport",
+              "longType": "PiiDetectionReport.TableReport.ColumnReport",
+              "fullType": "mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ColumnReport",
+          "longName": "PiiDetectionReport.TableReport.ColumnReport",
+          "fullName": "mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport",
+          "description": "The report for a column",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "column",
+              "description": "The name of the column",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "regex_report",
+              "description": "The regex report. Will be empty if no regex matched the column name.",
+              "label": "optional",
+              "type": "Regex",
+              "longType": "PiiDetectionReport.TableReport.ColumnReport.Regex",
+              "fullType": "mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.Regex",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_regex_report",
+              "defaultValue": ""
+            },
+            {
+              "name": "llm_report",
+              "description": "The LLM report. Will be empty if the LLM determined the column name (and optionally the data) was not PII.",
+              "label": "optional",
+              "type": "LLM",
+              "longType": "PiiDetectionReport.TableReport.ColumnReport.LLM",
+              "fullType": "mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.LLM",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_llm_report",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "LLM",
+          "longName": "PiiDetectionReport.TableReport.ColumnReport.LLM",
+          "fullName": "mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.LLM",
+          "description": "The LLM report",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "category",
+              "description": "The category of the column",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "confidence",
+              "description": "The confidence of the column from 0.0-1.0",
+              "label": "",
+              "type": "float",
+              "longType": "float",
+              "fullType": "float",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Regex",
+          "longName": "PiiDetectionReport.TableReport.ColumnReport.Regex",
+          "fullName": "mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.Regex",
+          "description": "The regex report",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "category",
+              "description": "The category of the column",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "PostgresDestinationConnectionOptions",
           "longName": "PostgresDestinationConnectionOptions",
           "fullName": "mgmt.v1alpha1.PostgresDestinationConnectionOptions",
@@ -17874,6 +18249,21 @@
               "responseType": "GetActiveJobHooksByTimingResponse",
               "responseLongType": "GetActiveJobHooksByTimingResponse",
               "responseFullType": "mgmt.v1alpha1.GetActiveJobHooksByTimingResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            },
+            {
+              "name": "GetPiiDetectionReport",
+              "description": "",
+              "requestType": "GetPiiDetectionReportRequest",
+              "requestLongType": "GetPiiDetectionReportRequest",
+              "requestFullType": "mgmt.v1alpha1.GetPiiDetectionReportRequest",
+              "requestStreaming": false,
+              "responseType": "GetPiiDetectionReportResponse",
+              "responseLongType": "GetPiiDetectionReportResponse",
+              "responseFullType": "mgmt.v1alpha1.GetPiiDetectionReportResponse",
               "responseStreaming": false,
               "options": {
                 "idempotency_level": "NO_SIDE_EFFECTS"

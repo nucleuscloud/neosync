@@ -20,7 +20,7 @@ func ToJobRunDto(
 	logger *slog.Logger,
 	input *workflowservice.DescribeWorkflowExecutionResponse,
 ) *mgmtv1alpha1.JobRun {
-	jr := ToJobRunDtoFromWorkflowExecutionInfo(input.WorkflowExecutionInfo, logger)
+	jr := ToJobRunDtoFromWorkflowExecutionInfo(input.GetWorkflowExecutionInfo(), logger)
 	jr.PendingActivities = toPendingActivitiesDto(input.GetPendingActivities())
 	return jr
 }
@@ -32,17 +32,17 @@ func ToJobRunDtoFromWorkflowExecutionInfo(workflow *workflowpb.WorkflowExecution
 		completedTime = workflow.GetCloseTime()
 	}
 	return &mgmtv1alpha1.JobRun{
-		Id:          workflow.Execution.WorkflowId,
+		Id:          workflow.GetExecution().GetWorkflowId(),
 		JobId:       GetJobIdFromWorkflow(logger, workflow.GetSearchAttributes()),
-		Name:        workflow.Type.Name,
-		Status:      toWorfklowStatus(workflow.Status),
-		StartedAt:   workflow.StartTime,
+		Name:        workflow.GetType().GetName(),
+		Status:      toWorfklowStatus(workflow.GetStatus()),
+		StartedAt:   workflow.GetStartTime(),
 		CompletedAt: completedTime,
 	}
 }
 
 func GetJobIdFromWorkflow(logger *slog.Logger, searchAttributes *commonpb.SearchAttributes) string {
-	scheduledByIDPayload := searchAttributes.IndexedFields["TemporalScheduledById"]
+	scheduledByIDPayload := searchAttributes.GetIndexedFields()["TemporalScheduledById"]
 	var scheduledByID string
 	err := converter.GetDefaultDataConverter().FromPayload(scheduledByIDPayload, &scheduledByID)
 	if err != nil {

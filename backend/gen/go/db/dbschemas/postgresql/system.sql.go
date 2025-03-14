@@ -12,6 +12,87 @@ import (
 	"github.com/lib/pq"
 )
 
+const getAllSchemas = `-- name: GetAllSchemas :many
+SELECT
+    nspname AS schema_name
+FROM
+    pg_catalog.pg_namespace
+WHERE
+    nspname NOT IN ('information_schema')
+    AND nspname NOT LIKE 'pg_%'
+ORDER BY
+    schema_name
+`
+
+func (q *Queries) GetAllSchemas(ctx context.Context, db DBTX) ([]string, error) {
+	rows, err := db.QueryContext(ctx, getAllSchemas)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var schema_name string
+		if err := rows.Scan(&schema_name); err != nil {
+			return nil, err
+		}
+		items = append(items, schema_name)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllTables = `-- name: GetAllTables :many
+SELECT
+    n.nspname AS table_schema,
+    c.relname AS table_name
+FROM
+    pg_catalog.pg_class c
+JOIN
+    pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+WHERE
+    c.relkind IN ('r', 'p')
+    AND c.relispartition = FALSE
+    AND n.nspname NOT IN ('information_schema')
+    AND n.nspname NOT LIKE 'pg_%'
+ORDER BY
+    table_schema,
+    table_name
+`
+
+type GetAllTablesRow struct {
+	TableSchema string
+	TableName   string
+}
+
+func (q *Queries) GetAllTables(ctx context.Context, db DBTX) ([]*GetAllTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getAllTables)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetAllTablesRow
+	for rows.Next() {
+		var i GetAllTablesRow
+		if err := rows.Scan(&i.TableSchema, &i.TableName); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCustomFunctionsBySchemaAndTables = `-- name: GetCustomFunctionsBySchemaAndTables :many
 WITH relevant_schemas_tables AS (
     SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
@@ -882,27 +963,27 @@ const getForeignKeyConstraintsBySchemas = `-- name: GetForeignKeyConstraintsBySc
 SELECT
     -- Name of the foreign key constraint
     constraint_def.conname AS constraint_name,
-    
+
     -- Schema of the table that contains the foreign key constraint
     referencing_schema.nspname AS referencing_schema,
-    
+
     -- Name of the table that holds the foreign key constraint
     referencing_tbl.relname AS referencing_table,
-    
+
     -- Array of column names in the referencing table involved in the constraint,
     -- ordered by the column's ordinal position (attnum) to maintain the defined column order.
     array_agg(referencing_attr.attname ORDER BY referencing_attr.attnum)::TEXT[] AS referencing_columns,
-    
+
     -- Array of boolean values indicating whether each referencing column is NOT NULL,
     -- ordered to correspond with the column names.
     array_agg(referencing_attr.attnotnull ORDER BY referencing_attr.attnum)::BOOL[] AS not_nullable,
-    
+
     -- Schema of the referenced table (the table that the foreign key points to)
     referenced_schema.nspname::TEXT AS referenced_schema,
-    
+
     -- Name of the referenced table
     referenced_tbl.relname::TEXT AS referenced_table,
-    
+
     -- Array of column names in the referenced table involved in the foreign key constraint
     ref_columns.foreign_column_names::TEXT[] AS referenced_columns
 FROM

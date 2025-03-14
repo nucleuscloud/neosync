@@ -45,6 +45,24 @@ func NewSQLConnectionDataService(
 	}
 }
 
+func (s *SQLConnectionDataService) GetAllSchemas(ctx context.Context) ([]string, error) {
+	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), s.connection, s.logger)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db().Close()
+
+	dbschema, err := db.Db().GetAllSchemas(ctx)
+	if err != nil {
+		return nil, err
+	}
+	schemas := make([]string, 0, len(dbschema))
+	for _, row := range dbschema {
+		schemas = append(schemas, row.SchemaName)
+	}
+	return schemas, nil
+}
+
 func (s *SQLConnectionDataService) GetAllTables(ctx context.Context) ([]TableIdentifier, error) {
 	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), s.connection, s.logger)
 	if err != nil {
@@ -52,24 +70,22 @@ func (s *SQLConnectionDataService) GetAllTables(ctx context.Context) ([]TableIde
 	}
 	defer db.Db().Close()
 
-	// todo: write a more optimized query that only returns schemas and tables instead of all columns
-	dbschema, err := db.Db().GetDatabaseSchema(ctx)
+	dbschema, err := db.Db().GetAllTables(ctx)
 	if err != nil {
 		return nil, err
 	}
-	uniqueTis := map[TableIdentifier]bool{}
-	for _, col := range dbschema {
-		col := col
+	uniqueTids := map[TableIdentifier]bool{}
+	for _, row := range dbschema {
 		ti := TableIdentifier{
-			Schema: col.TableSchema,
-			Table:  col.TableName,
+			Schema: row.SchemaName,
+			Table:  row.TableName,
 		}
-		uniqueTis[ti] = true
+		uniqueTids[ti] = true
 	}
 
-	identifiers := make([]TableIdentifier, 0, len(uniqueTis))
-	for ti := range uniqueTis {
-		identifiers = append(identifiers, ti)
+	identifiers := make([]TableIdentifier, 0, len(uniqueTids))
+	for tid := range uniqueTids {
+		identifiers = append(identifiers, tid)
 	}
 	return identifiers, nil
 }

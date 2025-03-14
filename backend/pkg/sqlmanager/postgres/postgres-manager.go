@@ -64,9 +64,18 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_
 			OrdinalPosition:        int(row.OrdinalPosition),
 			GeneratedType:          generatedType,
 			IdentityGeneration:     identityGeneration,
+			UpdateAllowed:          isColumnUpdateAllowed(row.IdentityGeneration, row.GeneratedType),
 		})
 	}
 	return result, nil
+}
+
+func isColumnUpdateAllowed(identityGeneration, generatedType string) bool {
+	// generated always columns cannot be updated, generated always as identity columns cannot be updated
+	if identityGeneration == "a" || generatedType == "s" {
+		return false
+	}
+	return true
 }
 
 func (p *PostgresManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
@@ -103,6 +112,36 @@ func (p *PostgresManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.
 			OrdinalPosition:        int(row.OrdinalPosition),
 			GeneratedType:          generatedType,
 			IdentityGeneration:     identityGeneration,
+			UpdateAllowed:          isColumnUpdateAllowed(row.IdentityGeneration, row.GeneratedType),
+		})
+	}
+	return result, nil
+}
+
+func (p *PostgresManager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
+	rows, err := p.querier.GetAllSchemas(ctx, p.db)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*sqlmanager_shared.DatabaseSchemaNameRow, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, &sqlmanager_shared.DatabaseSchemaNameRow{
+			SchemaName: row,
+		})
+	}
+	return result, nil
+}
+
+func (p *PostgresManager) GetAllTables(ctx context.Context) ([]*sqlmanager_shared.DatabaseTableRow, error) {
+	rows, err := p.querier.GetAllTables(ctx, p.db)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*sqlmanager_shared.DatabaseTableRow, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, &sqlmanager_shared.DatabaseTableRow{
+			SchemaName: row.TableSchema,
+			TableName:  row.TableName,
 		})
 	}
 	return result, nil

@@ -13,21 +13,15 @@ import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import {
-  Connection,
-  ConnectionDataService,
-  ConnectionService,
-  JobService,
-} from '@neosync/sdk';
+import { Connection, ConnectionService, JobService } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { FormEvent, ReactElement, use, useEffect, useMemo } from 'react';
+import { FormEvent, ReactElement, use, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
 import { ValidationError } from 'yup';
 import {
   DefineFormValues,
-  FilterPatternTableIdentifier,
   PiiDetectionConnectFormValues,
   PiiDetectionSchemaFormValues,
 } from '../../job-form-validations';
@@ -89,45 +83,7 @@ export default function Page(props: PageProps): ReactElement {
     {} as Record<string, Connection | undefined>
   );
 
-  const {
-    data: connectionSchemaDataResp,
-    isPending,
-    isFetching,
-  } = useQuery(
-    ConnectionDataService.method.getConnectionSchema,
-    { connectionId: connectFormValues.sourceId },
-    { enabled: !!connectFormValues.sourceId }
-  );
-
   const { mutateAsync: createJob } = useMutation(JobService.method.createJob);
-
-  const availableSchemas = useMemo(() => {
-    if (isPending || !connectionSchemaDataResp) {
-      return [];
-    }
-    const uniqueSchemas = new Set<string>();
-    connectionSchemaDataResp?.schemas?.forEach((schema) => {
-      uniqueSchemas.add(schema.schema);
-    });
-    return Array.from(uniqueSchemas);
-  }, [connectionSchemaDataResp, isPending, isFetching]);
-
-  const availableTableIdentifiers = useMemo(() => {
-    if (isPending || !connectionSchemaDataResp) {
-      return [];
-    }
-    const uniqueTableIdentifiers = new Map<
-      string,
-      FilterPatternTableIdentifier
-    >();
-    connectionSchemaDataResp?.schemas?.forEach((schema) => {
-      uniqueTableIdentifiers.set(`${schema.schema}.${schema.table}`, {
-        schema: schema.schema,
-        table: schema.table,
-      });
-    });
-    return Array.from(uniqueTableIdentifiers.values());
-  }, [connectionSchemaDataResp, isPending, isFetching]);
 
   const {
     formData,
@@ -250,8 +206,7 @@ export default function Page(props: PageProps): ReactElement {
                 },
               })
             }
-            availableSchemas={availableSchemas}
-            availableTableIdentifiers={availableTableIdentifiers}
+            connectionId={connectFormValues.sourceId}
             errors={errors}
             mode={formData.tableScanFilter.mode}
           />

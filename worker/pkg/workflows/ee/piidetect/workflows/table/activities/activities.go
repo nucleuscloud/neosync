@@ -134,6 +134,10 @@ const (
 	PiiCategoryAuth       PiiCategory = "authentication"
 )
 
+func (p PiiCategory) String() string {
+	return string(p)
+}
+
 // GetAllPiiCategories returns a slice of all defined PII categories
 func GetAllPiiCategories() []PiiCategory {
 	return []PiiCategory{
@@ -180,10 +184,12 @@ func init() {
 		{`(?i)^birth[_-]?date$`, PiiCategoryPersonal},
 		{`(?i)^(first|last|full)[_-]?name$`, PiiCategoryPersonal},
 		{`(?i)^dob$|(?i)^date[_-]?of[_-]?birth$`, PiiCategoryPersonal},
+		{`(?i)^age$`, PiiCategoryPersonal},
 
 		{`(?i)^(credit[_-]?card|cc)[_-]?(num(ber)?)?$`, PiiCategoryFinancial},
 		{`(?i)^account[_-]?num(ber)?$`, PiiCategoryFinancial},
 		{`(?i)^bank[_-]?account[_-]?(num(ber)?)?$`, PiiCategoryFinancial},
+		{`(?i)^salary$|(?i)^current[_-]?salary$`, PiiCategoryFinancial},
 
 		{`(?i)^password$|(?i)^passwd$`, PiiCategoryAuth},
 		{`(?i)^auth[_-]?token$|(?i)^secret$`, PiiCategoryAuth},
@@ -244,17 +250,21 @@ type DetectPiiLLMRequest struct {
 }
 
 type DetectPiiLLMResponse struct {
-	PiiColumns map[string]PiiDetectReport
+	PiiColumns map[string]LLMPiiDetectReport
 }
 
-type PiiDetectReport struct {
+type LLMPiiDetectReport struct {
 	Category   PiiCategory `json:"category"`
-	Confidence float64     `json:"confidence"`
+	Confidence float32     `json:"confidence"`
+}
+
+type RegexPiiDetectReport struct {
+	Category PiiCategory `json:"category"`
 }
 
 type CombinedPiiDetectReport struct {
-	Regex *PiiCategory     `json:"regex"`
-	LLM   *PiiDetectReport `json:"llm"`
+	Regex *RegexPiiDetectReport `json:"regex"`
+	LLM   *LLMPiiDetectReport   `json:"llm"`
 }
 
 type sampleDataStream struct {
@@ -487,9 +497,9 @@ func (a *Activities) DetectPiiLLM(ctx context.Context, req *DetectPiiLLMRequest)
 		return nil, err
 	}
 
-	piiColumns := make(map[string]PiiDetectReport)
+	piiColumns := make(map[string]LLMPiiDetectReport)
 	for _, column := range openAiResp.Output {
-		piiColumns[column.FieldName] = PiiDetectReport{
+		piiColumns[column.FieldName] = LLMPiiDetectReport{
 			Category:   column.Category,
 			Confidence: column.Confidence,
 		}
@@ -536,6 +546,17 @@ type SaveTablePiiDetectReportResponse struct {
 	Key *mgmtv1alpha1.RunContextKey
 }
 
+type ColumnReport struct {
+	ColumnName string                  `json:"column_name"`
+	Report     CombinedPiiDetectReport `json:"report"`
+}
+
+type TableReport struct {
+	TableSchema   string         `json:"table_schema"`
+	TableName     string         `json:"table_name"`
+	ColumnReports []ColumnReport `json:"column_reports"`
+}
+
 func (a *Activities) SaveTablePiiDetectReport(
 	ctx context.Context,
 	req *SaveTablePiiDetectReportRequest,
@@ -547,7 +568,21 @@ func (a *Activities) SaveTablePiiDetectReport(
 		jobRunId = *req.ParentRunId
 	}
 
-	reportBytes, err := json.Marshal(req.Report)
+	columnReports := make([]ColumnReport, 0, len(req.Report))
+	for columnName, report := range req.Report {
+		columnReports = append(columnReports, ColumnReport{
+			ColumnName: columnName,
+			Report:     report,
+		})
+	}
+
+	finalReport := &TableReport{
+		TableSchema:   req.TableSchema,
+		TableName:     req.TableName,
+		ColumnReports: columnReports,
+	}
+
+	reportBytes, err := json.Marshal(finalReport)
 	if err != nil {
 		return nil, fmt.Errorf("unable to marshal report: %w", err)
 	}
@@ -555,7 +590,7 @@ func (a *Activities) SaveTablePiiDetectReport(
 	key := &mgmtv1alpha1.RunContextKey{
 		AccountId:  req.AccountId,
 		JobRunId:   jobRunId,
-		ExternalId: fmt.Sprintf("%s.%s--pii-report", req.TableSchema, req.TableName),
+		ExternalId: BuildTableReportExternalId(req.TableSchema, req.TableName),
 	}
 
 	_, err = a.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
@@ -570,13 +605,21 @@ func (a *Activities) SaveTablePiiDetectReport(
 	}, nil
 }
 
+func BuildTableReportExternalId(tableSchema, tableName string) string {
+	return fmt.Sprintf("%s.%s%s", tableSchema, tableName, PiiTableReportSuffix)
+}
+
+const (
+	PiiTableReportSuffix = "--table-pii-report"
+)
+
 type openAiResponse struct {
 	Output []openAiColumnResponse `json:"output"`
 }
 type openAiColumnResponse struct {
 	FieldName  string      `json:"field_name"`
 	Category   PiiCategory `json:"category"`
-	Confidence float64     `json:"confidence"`
+	Confidence float32     `json:"confidence"`
 }
 
 // isPiiColumn checks if a column name matches any PII patterns and returns the category

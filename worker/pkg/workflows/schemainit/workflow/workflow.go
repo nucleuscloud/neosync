@@ -8,11 +8,11 @@ import (
 )
 
 type SchemaInitRequest struct {
-	AccountId     string
-	JobId         string
-	JobRunId      string
-	DestinationId string
-	IsMysql       bool // hack for now to only use reconcile schema for mysql
+	AccountId      string
+	JobId          string
+	JobRunId       string
+	DestinationId  string
+	UseSchemaDrift bool
 
 	SchemaInitActivityOptions *workflow.ActivityOptions
 }
@@ -33,7 +33,7 @@ func (w *Workflow) SchemaInit(ctx workflow.Context, req *SchemaInitRequest) (*Sc
 		"jobRunId", req.JobRunId,
 		"destinationId", req.DestinationId,
 	)
-	if req.IsMysql {
+	if req.UseSchemaDrift {
 		logger.Info("scheduling ReconcileSchema activityfor execution.")
 		var resp *reconcileschema_activity.RunReconcileSchemaResponse
 		var reconcileSchema *reconcileschema_activity.Activity

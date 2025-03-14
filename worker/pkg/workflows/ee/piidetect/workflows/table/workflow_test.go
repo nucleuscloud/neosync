@@ -52,7 +52,7 @@ func Test_TablePiiDetect(t *testing.T) {
 
 		// Setup DetectPiiLLM activity expectations
 		env.OnActivity(activities.DetectPiiLLM, mock.Anything, mock.Anything).Return(&piidetect_table_activities.DetectPiiLLMResponse{
-			PiiColumns: map[string]piidetect_table_activities.PiiDetectReport{
+			PiiColumns: map[string]piidetect_table_activities.LLMPiiDetectReport{
 				"email": {
 					Category:   piidetect_table_activities.PiiCategoryContact,
 					Confidence: 0.95,
@@ -64,7 +64,7 @@ func Test_TablePiiDetect(t *testing.T) {
 		expectedKey := &mgmtv1alpha1.RunContextKey{
 			AccountId:  "acc-123",
 			JobRunId:   "job-123",
-			ExternalId: "public.users--pii-report",
+			ExternalId: "public.users--table-pii-report",
 		}
 		env.OnActivity(activities.SaveTablePiiDetectReport, mock.Anything, mock.Anything, mock.Anything).Return(&piidetect_table_activities.SaveTablePiiDetectReportResponse{
 			Key: expectedKey,
@@ -95,10 +95,10 @@ func Test_TablePiiDetect(t *testing.T) {
 		// Verify the combined report for email
 		emailReport, exists := result.PiiColumns["email"]
 		require.True(t, exists)
-		assert.Equal(t, piidetect_table_activities.PiiCategoryContact, *emailReport.Regex)
+		assert.Equal(t, piidetect_table_activities.PiiCategoryContact, emailReport.Regex.Category)
 		require.NotNil(t, emailReport.LLM)
 		assert.Equal(t, piidetect_table_activities.PiiCategoryContact, emailReport.LLM.Category)
-		assert.Equal(t, 0.95, emailReport.LLM.Confidence)
+		assert.Equal(t, float32(0.95), emailReport.LLM.Confidence)
 	})
 
 	t.Run("workflow_with_no_pii_detected", func(t *testing.T) {
@@ -132,13 +132,13 @@ func Test_TablePiiDetect(t *testing.T) {
 		}, nil)
 
 		env.OnActivity(activities.DetectPiiLLM, mock.Anything, mock.Anything).Return(&piidetect_table_activities.DetectPiiLLMResponse{
-			PiiColumns: map[string]piidetect_table_activities.PiiDetectReport{},
+			PiiColumns: map[string]piidetect_table_activities.LLMPiiDetectReport{},
 		}, nil)
 
 		expectedKey := &mgmtv1alpha1.RunContextKey{
 			AccountId:  "acc-123",
 			JobRunId:   "job-123",
-			ExternalId: "public.users--pii-report",
+			ExternalId: "public.users--table-pii-report",
 		}
 		env.OnActivity(activities.SaveTablePiiDetectReport, mock.Anything, mock.Anything, mock.Anything).Return(&piidetect_table_activities.SaveTablePiiDetectReportResponse{
 			Key: expectedKey,

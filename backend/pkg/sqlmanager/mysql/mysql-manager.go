@@ -3,6 +3,7 @@ package sqlmanager_mysql
 import (
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -98,9 +99,18 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 			NumericScale:           numericScale,
 			OrdinalPosition:        int(row.OrdinalPosition),
 			IdentityGeneration:     identityGeneration,
+			UpdateAllowed:          isColumnUpdateAllowed(row.Extra),
 		})
 	}
 	return result, nil
+}
+
+func isColumnUpdateAllowed(generatedType sql.NullString) bool {
+	// generated always stored columns cannot be updated
+	if generatedType.Valid && (strings.EqualFold(generatedType.String, "STORED GENERATED") || strings.EqualFold(generatedType.String, "VIRTUAL GENERATED")) {
+		return false
+	}
+	return true
 }
 
 func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
@@ -190,8 +200,38 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 				NumericScale:           int(row.NumericScale),
 				OrdinalPosition:        int(row.OrdinalPosition),
 				IdentityGeneration:     identityGeneration,
+				UpdateAllowed:          isColumnUpdateAllowed(row.IdentityGeneration),
 			})
 		}
+	}
+	return result, nil
+}
+
+func (m *MysqlManager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
+	rows, err := m.querier.GetAllSchemas(ctx, m.pool)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*sqlmanager_shared.DatabaseSchemaNameRow, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, &sqlmanager_shared.DatabaseSchemaNameRow{
+			SchemaName: row,
+		})
+	}
+	return result, nil
+}
+
+func (m *MysqlManager) GetAllTables(ctx context.Context) ([]*sqlmanager_shared.DatabaseTableRow, error) {
+	rows, err := m.querier.GetAllTables(ctx, m.pool)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*sqlmanager_shared.DatabaseTableRow, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, &sqlmanager_shared.DatabaseTableRow{
+			SchemaName: row.TableSchema,
+			TableName:  row.TableName,
+		})
 	}
 	return result, nil
 }

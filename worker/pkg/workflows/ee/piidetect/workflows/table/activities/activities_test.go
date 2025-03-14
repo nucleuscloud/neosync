@@ -184,7 +184,7 @@ func Test_DetectPiiLLM_Success(t *testing.T) {
 	report, ok := res.PiiColumns["email"]
 	assert.True(t, ok)
 	assert.Equal(t, PiiCategoryContact, report.Category)
-	assert.Equal(t, 0.95, report.Confidence)
+	assert.Equal(t, float32(0.95), report.Confidence)
 }
 
 func Test_SaveTablePiiDetectReport_Success(t *testing.T) {
@@ -211,8 +211,10 @@ func Test_SaveTablePiiDetectReport_Success(t *testing.T) {
 		TableName:   "users",
 		Report: map[string]CombinedPiiDetectReport{
 			"email": {
-				Regex: &[]PiiCategory{PiiCategoryContact}[0],
-				LLM: &PiiDetectReport{
+				Regex: &RegexPiiDetectReport{
+					Category: PiiCategoryContact,
+				},
+				LLM: &LLMPiiDetectReport{
 					Category:   PiiCategoryContact,
 					Confidence: 0.95,
 				},
