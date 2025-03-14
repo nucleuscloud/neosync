@@ -320,10 +320,10 @@ func (s *Service) GetTableRowCount(
 	}), nil
 }
 
-func (s *Service) GetAllSchemaAndTables(
+func (s *Service) GetAllSchemasAndTables(
 	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.GetAllSchemaAndTablesRequest],
-) (*connect.Response[mgmtv1alpha1.GetAllSchemaAndTablesResponse], error) {
+	req *connect.Request[mgmtv1alpha1.GetAllSchemasAndTablesRequest],
+) (*connect.Response[mgmtv1alpha1.GetAllSchemasAndTablesResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.ConnectionId,
@@ -339,32 +339,32 @@ func (s *Service) GetAllSchemaAndTables(
 
 	errgrp, errctx := errgroup.WithContext(ctx)
 
-	var schemas []*mgmtv1alpha1.GetAllSchemaAndTablesResponse_Schema
+	var schemas []*mgmtv1alpha1.GetAllSchemasAndTablesResponse_Schema
 	errgrp.Go(func() error {
 		var err error
 		schemasResp, err := connectiondatabuilder.GetAllSchemas(errctx)
 		if err != nil {
 			return fmt.Errorf("unable to get all schemas: %w", err)
 		}
-		schemas = make([]*mgmtv1alpha1.GetAllSchemaAndTablesResponse_Schema, len(schemasResp))
+		schemas = make([]*mgmtv1alpha1.GetAllSchemasAndTablesResponse_Schema, len(schemasResp))
 		for i, schema := range schemasResp {
-			schemas[i] = &mgmtv1alpha1.GetAllSchemaAndTablesResponse_Schema{
+			schemas[i] = &mgmtv1alpha1.GetAllSchemasAndTablesResponse_Schema{
 				Name: schema,
 			}
 		}
 		return nil
 	})
 
-	var tables []*mgmtv1alpha1.GetAllSchemaAndTablesResponse_Table
+	var tables []*mgmtv1alpha1.GetAllSchemasAndTablesResponse_Table
 	errgrp.Go(func() error {
 		var err error
 		tablesResp, err := connectiondatabuilder.GetAllTables(errctx)
 		if err != nil {
 			return fmt.Errorf("unable to get all tables: %w", err)
 		}
-		tables = make([]*mgmtv1alpha1.GetAllSchemaAndTablesResponse_Table, len(tablesResp))
+		tables = make([]*mgmtv1alpha1.GetAllSchemasAndTablesResponse_Table, len(tablesResp))
 		for i, table := range tablesResp {
-			tables[i] = &mgmtv1alpha1.GetAllSchemaAndTablesResponse_Table{
+			tables[i] = &mgmtv1alpha1.GetAllSchemasAndTablesResponse_Table{
 				SchemaName: table.Schema,
 				TableName:  table.Table,
 			}
@@ -377,7 +377,7 @@ func (s *Service) GetAllSchemaAndTables(
 		return nil, fmt.Errorf("unable to get all schema and tables: %w", err)
 	}
 
-	return connect.NewResponse(&mgmtv1alpha1.GetAllSchemaAndTablesResponse{
+	return connect.NewResponse(&mgmtv1alpha1.GetAllSchemasAndTablesResponse{
 		Schemas: schemas,
 		Tables:  tables,
 	}), nil

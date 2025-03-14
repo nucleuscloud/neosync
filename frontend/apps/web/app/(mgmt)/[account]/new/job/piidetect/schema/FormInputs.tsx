@@ -5,6 +5,7 @@ import DualListBox, {
 import FormErrorMessage from '@/components/FormErrorMessage';
 import FormHeader from '@/components/forms/FormHeader';
 import { useAccount } from '@/components/providers/account-provider';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -20,10 +21,10 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { splitConnections } from '@/libs/utils';
+import { cn, splitConnections } from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
-import { ConnectionService } from '@neosync/sdk';
-import { TableIcon } from '@radix-ui/react-icons';
+import { ConnectionDataService, ConnectionService } from '@neosync/sdk';
+import { ReloadIcon, TableIcon } from '@radix-ui/react-icons';
 import { ReactElement, useCallback, useMemo } from 'react';
 import ConnectionSelectContent from '../../connect/ConnectionSelectContent';
 import {
@@ -199,22 +200,18 @@ interface TableScanFilterPatternsProps {
   errors?: Record<string, string>;
   value: TableScanFilterPatternsFormValue;
   onChange(value: TableScanFilterPatternsFormValue): void;
-  availableSchemas: string[];
-  availableTableIdentifiers: FilterPatternTableIdentifier[];
   mode: TableScanFilterModeFormValue;
+  connectionId: string;
 }
 
 export function TableScanFilterPatterns(
   props: TableScanFilterPatternsProps
 ): ReactElement | null {
-  const {
-    errors,
-    value,
-    onChange,
-    availableSchemas,
-    availableTableIdentifiers,
-    mode,
-  } = props;
+  const { errors, value, onChange, connectionId, mode } = props;
+  const schemasAndTablesResp = useGetAvailableSchemasAndTables(
+    connectionId,
+    mode !== 'include_all'
+  );
 
   if (mode === 'include_all') {
     return null;
@@ -236,7 +233,9 @@ export function TableScanFilterPatterns(
         onChange={(newSchemas) => {
           onChange({ ...value, schemas: newSchemas });
         }}
-        availableSchemas={availableSchemas}
+        availableSchemas={schemasAndTablesResp.schemas}
+        isFetchingAvailableSchemas={schemasAndTablesResp.isFetching}
+        onRefreshSchemasClicked={schemasAndTablesResp.refresh}
         mode={mode}
       />
       <TableScanFilterPatternTables
@@ -245,7 +244,9 @@ export function TableScanFilterPatterns(
         onChange={(newTables) => {
           onChange({ ...value, tables: newTables });
         }}
-        availableTableIdentifiers={availableTableIdentifiers}
+        availableTableIdentifiers={schemasAndTablesResp.tables}
+        isFetchingAvailableTableIdentifiers={schemasAndTablesResp.isFetching}
+        onRefreshIdentifiersClicked={schemasAndTablesResp.refresh}
         mode={mode}
       />
     </div>
@@ -257,13 +258,23 @@ interface TableScanFilterPatternSchemasProps {
   value: string[];
   onChange(value: string[]): void;
   availableSchemas: string[];
+  isFetchingAvailableSchemas: boolean;
+  onRefreshSchemasClicked(): void;
   mode: TableScanFilterModeFormValue;
 }
 
 function TableScanFilterPatternSchemas(
   props: TableScanFilterPatternSchemasProps
 ): ReactElement {
-  const { error, value, onChange, availableSchemas, mode } = props;
+  const {
+    error,
+    value,
+    onChange,
+    availableSchemas,
+    isFetchingAvailableSchemas,
+    onRefreshSchemasClicked,
+    mode,
+  } = props;
 
   const dualListBoxOpts = useMemo((): Option[] => {
     return availableSchemas.map((schema) => ({
@@ -282,6 +293,12 @@ function TableScanFilterPatternSchemas(
     [onChange]
   );
 
+  function onRefreshClick(): void {
+    if (!isFetchingAvailableSchemas) {
+      onRefreshSchemasClicked();
+    }
+  }
+
   const leftEmptyStates = useGetSchemaLeftEmptyStates(mode);
   const rightEmptyStates = useGetSchemaRightEmptyStates(mode);
   const cardDescription = useSchemaCardDescription(mode);
@@ -295,6 +312,10 @@ function TableScanFilterPatternSchemas(
               <TableIcon className="h-4 w-4" />
             </div>
             <CardTitle>Schema Selection</CardTitle>
+            <RefreshButton
+              isFetching={isFetchingAvailableSchemas}
+              onClick={() => onRefreshClick()}
+            />
           </div>
           <CardDescription>{cardDescription}</CardDescription>
         </CardHeader>
@@ -378,16 +399,24 @@ interface TableScanFilterPatternTablesProps {
   error?: string;
   value: FilterPatternTableIdentifier[];
   onChange(value: FilterPatternTableIdentifier[]): void;
-
   availableTableIdentifiers: FilterPatternTableIdentifier[];
+  isFetchingAvailableTableIdentifiers: boolean;
+  onRefreshIdentifiersClicked(): void;
   mode: TableScanFilterModeFormValue;
 }
 
 function TableScanFilterPatternTables(
   props: TableScanFilterPatternTablesProps
 ): ReactElement {
-  const { error, value, onChange, availableTableIdentifiers, mode } = props;
-
+  const {
+    error,
+    value,
+    onChange,
+    availableTableIdentifiers,
+    isFetchingAvailableTableIdentifiers,
+    onRefreshIdentifiersClicked,
+    mode,
+  } = props;
   const dualListBoxOpts = useMemo((): Option[] => {
     return availableTableIdentifiers.map((tableIdentifier) => ({
       value: `${tableIdentifier.schema}.${tableIdentifier.table}`,
@@ -415,6 +444,12 @@ function TableScanFilterPatternTables(
     [onChange]
   );
 
+  function onRefreshClick(): void {
+    if (!isFetchingAvailableTableIdentifiers) {
+      onRefreshIdentifiersClicked();
+    }
+  }
+
   const leftEmptyStates = useGetTableLeftEmptyStates(mode);
   const rightEmptyStates = useGetTableRightEmptyStates(mode);
   const cardDescription = useTableCardDescription(mode);
@@ -427,6 +462,10 @@ function TableScanFilterPatternTables(
               <TableIcon className="h-4 w-4" />
             </div>
             <CardTitle>Table Selection</CardTitle>
+            <RefreshButton
+              isFetching={isFetchingAvailableTableIdentifiers}
+              onClick={() => onRefreshClick()}
+            />
           </div>
           <CardDescription>{cardDescription}</CardDescription>
         </CardHeader>
@@ -505,4 +544,71 @@ function useGetTableRightEmptyStates(
         };
     }
   }, [mode]);
+}
+
+interface UseGetAvailableSchemasAndTablesResponse {
+  schemas: string[];
+  tables: FilterPatternTableIdentifier[];
+
+  isFetching: boolean;
+  refresh(): Promise<void>;
+}
+
+function useGetAvailableSchemasAndTables(
+  connectionId: string,
+  isValidMode: boolean
+): UseGetAvailableSchemasAndTablesResponse {
+  const { account } = useAccount();
+  const {
+    data: availableSchemasAndTables,
+    isLoading,
+    isPending,
+    isFetching,
+    refetch,
+  } = useQuery(
+    ConnectionDataService.method.getAllSchemasAndTables,
+    {
+      connectionId,
+    },
+    { enabled: !!account?.id && isValidMode }
+  );
+
+  return useMemo(() => {
+    if (isLoading || isPending || !availableSchemasAndTables) {
+      return {
+        schemas: [],
+        tables: [],
+        isFetching,
+        refresh: async () => {
+          await refetch();
+        },
+      };
+    }
+    return {
+      schemas: availableSchemasAndTables.schemas.map((schema) => schema.name),
+      tables: availableSchemasAndTables.tables.map((table) => ({
+        schema: table.schemaName,
+        table: table.tableName,
+      })),
+      isFetching,
+      refresh: async () => {
+        await refetch();
+      },
+    };
+  }, [availableSchemasAndTables, isLoading, isPending, isFetching, refetch]);
+}
+
+interface RefreshButtonProps {
+  isFetching: boolean;
+  onClick(): void;
+}
+
+function RefreshButton(props: RefreshButtonProps): ReactElement {
+  const { isFetching, onClick } = props;
+
+  return (
+    <Button variant="ghost" size="icon" onClick={onClick} type="button">
+      <ReloadIcon className={cn('h-4 w-4', isFetching && 'animate-spin')} />
+    </Button>
+  );
 }

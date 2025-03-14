@@ -56,10 +56,10 @@ class ConnectionDataServiceStub(object):
                 request_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetTableRowCountRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetTableRowCountResponse.FromString,
                 _registered_method=True)
-        self.GetAllSchemaAndTables = channel.unary_unary(
-                '/mgmt.v1alpha1.ConnectionDataService/GetAllSchemaAndTables',
-                request_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetAllSchemaAndTablesRequest.SerializeToString,
-                response_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetAllSchemaAndTablesResponse.FromString,
+        self.GetAllSchemasAndTables = channel.unary_unary(
+                '/mgmt.v1alpha1.ConnectionDataService/GetAllSchemasAndTables',
+                request_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetAllSchemasAndTablesRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetAllSchemasAndTablesResponse.FromString,
                 _registered_method=True)
 
 
@@ -126,7 +126,7 @@ class ConnectionDataServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetAllSchemaAndTables(self, request, context):
+    def GetAllSchemasAndTables(self, request, context):
         """Get all schemas and tables for a connection
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -176,10 +176,10 @@ def add_ConnectionDataServiceServicer_to_server(servicer, server):
                     request_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetTableRowCountRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetTableRowCountResponse.SerializeToString,
             ),
-            'GetAllSchemaAndTables': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetAllSchemaAndTables,
-                    request_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetAllSchemaAndTablesRequest.FromString,
-                    response_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetAllSchemaAndTablesResponse.SerializeToString,
+            'GetAllSchemasAndTables': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetAllSchemasAndTables,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetAllSchemasAndTablesRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_connection__data__pb2.GetAllSchemasAndTablesResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -411,7 +411,7 @@ class ConnectionDataService(object):
             _registered_method=True)
 
     @staticmethod
-    def GetAllSchemaAndTables(request,
+    def GetAllSchemasAndTables(request,
             target,
             options=(),
             channel_credentials=None,
@@ -424,9 +424,9 @@ class ConnectionDataService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/mgmt.v1alpha1.ConnectionDataService/GetAllSchemaAndTables',
-            mgmt_dot_v1alpha1_dot_connection__data__pb2.GetAllSchemaAndTablesRequest.SerializeToString,
-            mgmt_dot_v1alpha1_dot_connection__data__pb2.GetAllSchemaAndTablesResponse.FromString,
+            '/mgmt.v1alpha1.ConnectionDataService/GetAllSchemasAndTables',
+            mgmt_dot_v1alpha1_dot_connection__data__pb2.GetAllSchemasAndTablesRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_connection__data__pb2.GetAllSchemasAndTablesResponse.FromString,
             options,
             channel_credentials,
             insecure,

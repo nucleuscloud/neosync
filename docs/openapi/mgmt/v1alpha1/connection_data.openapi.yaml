@@ -615,7 +615,7 @@ components:
           description: A list of generated records
       title: GetAiGeneratedDataResponse
       additionalProperties: false
-    mgmt.v1alpha1.GetAllSchemaAndTablesRequest:
+    mgmt.v1alpha1.GetAllSchemasAndTablesRequest:
       type: object
       properties:
         connectionId:
@@ -623,28 +623,28 @@ components:
           title: connection_id
           format: uuid
           description: The unique identifier of the connection to get the all schema tables for.
-      title: GetAllSchemaAndTablesRequest
+      title: GetAllSchemasAndTablesRequest
       additionalProperties: false
       description: Request to get all the schemas and tables for a connection
-    mgmt.v1alpha1.GetAllSchemaAndTablesResponse:
+    mgmt.v1alpha1.GetAllSchemasAndTablesResponse:
       type: object
       properties:
         schemas:
           type: array
           items:
-            $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemaAndTablesResponse.Schema'
+            $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Schema'
           title: schemas
           description: A list of all the schemas for a connection. Empty schemas (those without any tables) will appear in this list.
         tables:
           type: array
           items:
-            $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemaAndTablesResponse.Table'
+            $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Table'
           title: tables
           description: A list of all the tables for the connection
-      title: GetAllSchemaAndTablesResponse
+      title: GetAllSchemasAndTablesResponse
       additionalProperties: false
       description: A list of all the schemas and tables for a connection
-    mgmt.v1alpha1.GetAllSchemaAndTablesResponse.Schema:
+    mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Schema:
       type: object
       properties:
         name:
@@ -654,7 +654,7 @@ components:
       title: Schema
       additionalProperties: false
       description: A schema
-    mgmt.v1alpha1.GetAllSchemaAndTablesResponse.Table:
+    mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Table:
       type: object
       properties:
         schemaName:
@@ -1430,13 +1430,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.GetTableRowCountResponse'
-  /mgmt.v1alpha1.ConnectionDataService/GetAllSchemaAndTables:
+  /mgmt.v1alpha1.ConnectionDataService/GetAllSchemasAndTables:
     post:
       tags:
         - mgmt.v1alpha1.ConnectionDataService
-      summary: GetAllSchemaAndTables
+      summary: GetAllSchemasAndTables
       description: Get all schemas and tables for a connection
-      operationId: mgmt.v1alpha1.ConnectionDataService.GetAllSchemaAndTables
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetAllSchemasAndTables
       parameters:
         - name: Connect-Protocol-Version
           in: header
@@ -1451,7 +1451,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemaAndTablesRequest'
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemasAndTablesRequest'
         required: true
       responses:
         default:
@@ -1465,7 +1465,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemaAndTablesResponse'
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemasAndTablesResponse'
 tags:
   - name: mgmt.v1alpha1.ConnectionDataService
     description: |-

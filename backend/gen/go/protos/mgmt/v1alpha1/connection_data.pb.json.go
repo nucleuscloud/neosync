@@ -428,41 +428,41 @@ func (msg *GetTableRowCountResponse) UnmarshalJSON(b []byte) error {
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *GetAllSchemaAndTablesRequest) MarshalJSON() ([]byte, error) {
+func (msg *GetAllSchemasAndTablesRequest) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *GetAllSchemaAndTablesRequest) UnmarshalJSON(b []byte) error {
+func (msg *GetAllSchemasAndTablesRequest) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *GetAllSchemaAndTablesResponse) MarshalJSON() ([]byte, error) {
+func (msg *GetAllSchemasAndTablesResponse) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *GetAllSchemaAndTablesResponse) UnmarshalJSON(b []byte) error {
+func (msg *GetAllSchemasAndTablesResponse) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *GetAllSchemaAndTablesResponse_Schema) MarshalJSON() ([]byte, error) {
+func (msg *GetAllSchemasAndTablesResponse_Schema) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *GetAllSchemaAndTablesResponse_Schema) UnmarshalJSON(b []byte) error {
+func (msg *GetAllSchemasAndTablesResponse_Schema) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *GetAllSchemaAndTablesResponse_Table) MarshalJSON() ([]byte, error) {
+func (msg *GetAllSchemasAndTablesResponse_Table) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *GetAllSchemaAndTablesResponse_Table) UnmarshalJSON(b []byte) error {
+func (msg *GetAllSchemasAndTablesResponse_Table) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }

@@ -388,13 +388,13 @@ class GetTableRowCountResponse(_message.Message):
     count: int
     def __init__(self, count: _Optional[int] = ...) -> None: ...
 
-class GetAllSchemaAndTablesRequest(_message.Message):
+class GetAllSchemasAndTablesRequest(_message.Message):
     __slots__ = ("connection_id",)
     CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
     connection_id: str
     def __init__(self, connection_id: _Optional[str] = ...) -> None: ...
 
-class GetAllSchemaAndTablesResponse(_message.Message):
+class GetAllSchemasAndTablesResponse(_message.Message):
     __slots__ = ("schemas", "tables")
     class Schema(_message.Message):
         __slots__ = ("name",)
@@ -410,6 +410,6 @@ class GetAllSchemaAndTablesResponse(_message.Message):
         def __init__(self, schema_name: _Optional[str] = ..., table_name: _Optional[str] = ...) -> None: ...
     SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     TABLES_FIELD_NUMBER: _ClassVar[int]
-    schemas: _containers.RepeatedCompositeFieldContainer[GetAllSchemaAndTablesResponse.Schema]
-    tables: _containers.RepeatedCompositeFieldContainer[GetAllSchemaAndTablesResponse.Table]
-    def __init__(self, schemas: _Optional[_Iterable[_Union[GetAllSchemaAndTablesResponse.Schema, _Mapping]]] = ..., tables: _Optional[_Iterable[_Union[GetAllSchemaAndTablesResponse.Table, _Mapping]]] = ...) -> None: ...
+    schemas: _containers.RepeatedCompositeFieldContainer[GetAllSchemasAndTablesResponse.Schema]
+    tables: _containers.RepeatedCompositeFieldContainer[GetAllSchemasAndTablesResponse.Table]
+    def __init__(self, schemas: _Optional[_Iterable[_Union[GetAllSchemasAndTablesResponse.Schema, _Mapping]]] = ..., tables: _Optional[_Iterable[_Union[GetAllSchemasAndTablesResponse.Table, _Mapping]]] = ...) -> None: ...

@@ -1,7 +1,4 @@
-import {
-  EditPiiDetectionJobFormValues,
-  FilterPatternTableIdentifier,
-} from '@/app/(mgmt)/[account]/new/job/job-form-validations';
+import { EditPiiDetectionJobFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import {
   DataSampling,
   SourceConnectionId,
@@ -15,12 +12,7 @@ import { useAccount } from '@/components/providers/account-provider';
 import Spinner from '@/components/Spinner';
 import { Button } from '@/components/ui/button';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import {
-  Connection,
-  ConnectionDataService,
-  ConnectionService,
-  JobService,
-} from '@neosync/sdk';
+import { Connection, ConnectionService, JobService } from '@neosync/sdk';
 import {
   FormEvent,
   ReactElement,
@@ -59,44 +51,6 @@ export default function PiiDetectConnectionCard({
     sourcedFromRemote,
     setFromRemoteJob: setFromRemote,
   } = useEditPiiDetectionSchemaStore();
-
-  const {
-    data: connectionSchemaDataResp,
-    isPending,
-    isFetching,
-  } = useQuery(
-    ConnectionDataService.method.getConnectionSchema,
-    { connectionId: formData.sourceId },
-    { enabled: !!formData.sourceId }
-  );
-
-  const availableSchemas = useMemo(() => {
-    if (isPending || !connectionSchemaDataResp) {
-      return [];
-    }
-    const uniqueSchemas = new Set<string>();
-    connectionSchemaDataResp?.schemas?.forEach((schema) => {
-      uniqueSchemas.add(schema.schema);
-    });
-    return Array.from(uniqueSchemas);
-  }, [connectionSchemaDataResp, isPending, isFetching]);
-
-  const availableTableIdentifiers = useMemo(() => {
-    if (isPending || !connectionSchemaDataResp) {
-      return [];
-    }
-    const uniqueTableIdentifiers = new Map<
-      string,
-      FilterPatternTableIdentifier
-    >();
-    connectionSchemaDataResp?.schemas?.forEach((schema) => {
-      uniqueTableIdentifiers.set(`${schema.schema}.${schema.table}`, {
-        schema: schema.schema,
-        table: schema.table,
-      });
-    });
-    return Array.from(uniqueTableIdentifiers.values());
-  }, [connectionSchemaDataResp, isPending, isFetching]);
 
   useEffect(() => {
     if (sourcedFromRemote || isJobDataLoading || !data?.job) {
@@ -217,8 +171,7 @@ export default function PiiDetectConnectionCard({
             },
           })
         }
-        availableSchemas={availableSchemas}
-        availableTableIdentifiers={availableTableIdentifiers}
+        connectionId={formData.sourceId}
         errors={errors}
         mode={formData.tableScanFilter.mode}
       />
