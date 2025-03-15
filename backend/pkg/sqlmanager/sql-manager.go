@@ -20,22 +20,29 @@ import (
 )
 
 type SqlDatabase interface {
+	// Schema level methods for managing and retrieving information about the database schema
 	GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error)
-	GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error)
 	GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 	GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*sqlmanager_shared.TableConstraints, error)
 	GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error)
 	GetRolePermissionsMap(ctx context.Context) (map[string][]string, error)
+	GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error)
+	GetAllTables(ctx context.Context) ([]*sqlmanager_shared.DatabaseTableRow, error)
+
+	// Table level methods for managing and retrieving information about the tables within the database
+	GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error)
 	GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error)
 	GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error)
 	GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error)
 	GetSchemaInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error)
 	GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error)
+	// returns a map of schema.table to all constraints for that table
+	GetTableConstraintsByTables(ctx context.Context, schema string, tables []string) (map[string]*sqlmanager_shared.AllTableConstraints, error)
+
+	// Connection level methods for managing database connections and executing statements
 	BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error
 	Exec(ctx context.Context, statement string) error
 	Close()
-	GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error)
-	GetAllTables(ctx context.Context) ([]*sqlmanager_shared.DatabaseTableRow, error)
 }
 
 type SqlManager struct {

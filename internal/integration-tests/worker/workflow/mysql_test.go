@@ -567,6 +567,12 @@ func test_mysql_schema_reconciliation(
 		{schema: schema, table: "employees", rowCount: 40},
 		{schema: schema, table: "dependents", rowCount: 30},
 		{schema: schema, table: "emails", rowCount: 10},
+		{schema: schema, table: "grandparent", rowCount: 3},
+		{schema: schema, table: "parent", rowCount: 3},
+		{schema: schema, table: "child", rowCount: 3},
+		{schema: schema, table: "multi_col_parent", rowCount: 2},
+		{schema: schema, table: "multi_col_child", rowCount: 2},
+		{schema: schema, table: "cyclic_table", rowCount: 3},
 	}
 
 	for _, expected := range expectedResults {
@@ -575,16 +581,14 @@ func test_mysql_schema_reconciliation(
 		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mysql-schema-reconciliation Table: %s", expected.table))
 	}
 
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "regions", sqlmanager_shared.MysqlDriver, []string{"region_id"})
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "employees", sqlmanager_shared.MysqlDriver, []string{"employee_id"})
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "dependents", sqlmanager_shared.MysqlDriver, []string{"dependent_id"})
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "jobs", sqlmanager_shared.MysqlDriver, []string{"job_id"})
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "departments", sqlmanager_shared.MysqlDriver, []string{"department_id"})
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "countries", sqlmanager_shared.MysqlDriver, []string{"country_id"})
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "locations", sqlmanager_shared.MysqlDriver, []string{"location_id"})
+	t.Logf("verifying destination data")
+	test_mysql_schema_reconciliation_column_values(t, ctx, mysql, schema)
+	t.Logf("finished verifying destination data")
 
+	t.Logf("running alter statements")
 	err = mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"schema-init/alter-statements.sql"}, schema)
 	require.NoError(t, err)
+	t.Logf("finished running alter statements")
 
 	updatedMappings := job.GetMappings()
 	updatedMappings = append(updatedMappings, mysql_schemainit.GetAlterSyncJobMappings(schema)...)
@@ -603,18 +607,37 @@ func test_mysql_schema_reconciliation(
 		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mysql-schema-reconciliation-run-2 Table: %s", expected.table))
 	}
 
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "regions", sqlmanager_shared.MysqlDriver, []string{"region_id"})
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "employees", sqlmanager_shared.MysqlDriver, []string{"employee_id"})
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "dependents", sqlmanager_shared.MysqlDriver, []string{"dependent_id"})
+	t.Logf("verifying destination data after alter statements")
+	test_mysql_schema_reconciliation_column_values(t, ctx, mysql, schema)
+	t.Logf("finished verifying destination data after alter statements")
+
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "emails", sqlmanager_shared.MysqlDriver, []string{"email_identity"})
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "jobs", sqlmanager_shared.MysqlDriver, []string{"job_id"})
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "departments", sqlmanager_shared.MysqlDriver, []string{"department_id"})
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "countries", sqlmanager_shared.MysqlDriver, []string{"country_id"})
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "locations", sqlmanager_shared.MysqlDriver, []string{"location_id"})
 
 	// tear down
 	err = cleanupMysqlDatabases(ctx, mysql, []string{schema})
 	require.NoError(t, err)
+}
+
+func test_mysql_schema_reconciliation_column_values(
+	t *testing.T,
+	ctx context.Context,
+	mysql *tcmysql.MysqlTestSyncContainer,
+	schema string,
+) {
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "regions", sqlmanager_shared.MysqlDriver, []string{"region_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "employees", sqlmanager_shared.MysqlDriver, []string{"employee_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "dependents", sqlmanager_shared.MysqlDriver, []string{"dependent_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "jobs", sqlmanager_shared.MysqlDriver, []string{"job_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "departments", sqlmanager_shared.MysqlDriver, []string{"department_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "countries", sqlmanager_shared.MysqlDriver, []string{"country_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "locations", sqlmanager_shared.MysqlDriver, []string{"location_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "grandparent", sqlmanager_shared.MysqlDriver, []string{"gp_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "parent", sqlmanager_shared.MysqlDriver, []string{"p_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "child", sqlmanager_shared.MysqlDriver, []string{"c_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "multi_col_parent", sqlmanager_shared.MysqlDriver, []string{"mcp_a", "mcp_b"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "multi_col_child", sqlmanager_shared.MysqlDriver, []string{"mc_child_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "cyclic_table", sqlmanager_shared.MysqlDriver, []string{"cycle_id"})
+
 }
 
 func cleanupMysqlDatabases(ctx context.Context, mysql *tcmysql.MysqlTestSyncContainer, databases []string) error {

@@ -795,6 +795,66 @@ func (_c *MockSqlDatabase_GetTableConstraintsBySchema_Call) RunAndReturn(run fun
 	return _c
 }
 
+// GetTableConstraintsByTables provides a mock function with given fields: ctx, schema, tables
+func (_m *MockSqlDatabase) GetTableConstraintsByTables(ctx context.Context, schema string, tables []string) (map[string]*sqlmanager_shared.AllTableConstraints, error) {
+	ret := _m.Called(ctx, schema, tables)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTableConstraintsByTables")
+	}
+
+	var r0 map[string]*sqlmanager_shared.AllTableConstraints
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) (map[string]*sqlmanager_shared.AllTableConstraints, error)); ok {
+		return rf(ctx, schema, tables)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) map[string]*sqlmanager_shared.AllTableConstraints); ok {
+		r0 = rf(ctx, schema, tables)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]*sqlmanager_shared.AllTableConstraints)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, []string) error); ok {
+		r1 = rf(ctx, schema, tables)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetTableConstraintsByTables_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTableConstraintsByTables'
+type MockSqlDatabase_GetTableConstraintsByTables_Call struct {
+	*mock.Call
+}
+
+// GetTableConstraintsByTables is a helper method to define mock.On call
+//   - ctx context.Context
+//   - schema string
+//   - tables []string
+func (_e *MockSqlDatabase_Expecter) GetTableConstraintsByTables(ctx interface{}, schema interface{}, tables interface{}) *MockSqlDatabase_GetTableConstraintsByTables_Call {
+	return &MockSqlDatabase_GetTableConstraintsByTables_Call{Call: _e.mock.On("GetTableConstraintsByTables", ctx, schema, tables)}
+}
+
+func (_c *MockSqlDatabase_GetTableConstraintsByTables_Call) Run(run func(ctx context.Context, schema string, tables []string)) *MockSqlDatabase_GetTableConstraintsByTables_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].([]string))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetTableConstraintsByTables_Call) Return(_a0 map[string]*sqlmanager_shared.AllTableConstraints, _a1 error) *MockSqlDatabase_GetTableConstraintsByTables_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetTableConstraintsByTables_Call) RunAndReturn(run func(context.Context, string, []string) (map[string]*sqlmanager_shared.AllTableConstraints, error)) *MockSqlDatabase_GetTableConstraintsByTables_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTableInitStatements provides a mock function with given fields: ctx, tables
 func (_m *MockSqlDatabase) GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error) {
 	ret := _m.Called(ctx, tables)

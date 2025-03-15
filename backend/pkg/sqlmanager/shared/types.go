@@ -93,6 +93,7 @@ type AlterTableStatement struct {
 
 type ForeignKeyConstraint struct {
 	ConstraintName     string
+	ConstraintType     string
 	ReferencingSchema  string
 	ReferencingTable   string
 	ReferencingColumns []string
@@ -100,14 +101,21 @@ type ForeignKeyConstraint struct {
 	ReferencedTable    string
 	ReferencedColumns  []string
 	NotNullable        []bool
+	UpdateRule         *string
+	DeleteRule         *string
 }
 type NonForeignKeyConstraint struct {
 	ConstraintName string
-	ConstraintType ConstraintType
+	ConstraintType string
 	SchemaName     string
 	TableName      string
 	Columns        []string
 	Definition     string
+}
+
+type AllTableConstraints struct {
+	ForeignKeyConstraints    []*ForeignKeyConstraint
+	NonForeignKeyConstraints []*NonForeignKeyConstraint
 }
 
 type ConstraintType int
