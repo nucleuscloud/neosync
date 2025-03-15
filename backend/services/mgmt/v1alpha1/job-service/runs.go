@@ -378,8 +378,9 @@ func (s *Service) getEventsByWorkflowId(ctx context.Context, accountId, workflow
 
 			switch info.GetStatus() {
 			case enums.WORKFLOW_EXECUTION_STATUS_COMPLETED:
+				highestEventId++
 				childEvent.Tasks = append(childEvent.Tasks, dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
-					EventId:    childEvent.GetId() * 10,
+					EventId:    highestEventId,
 					EventTime:  info.GetCloseTime(),
 					EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_COMPLETED,
 					Attributes: nil,
@@ -407,22 +408,25 @@ func (s *Service) getEventsByWorkflowId(ctx context.Context, accountId, workflow
 					Attributes: nil,
 				}, eventErr))
 			case enums.WORKFLOW_EXECUTION_STATUS_TIMED_OUT:
+				highestEventId++
 				childEvent.Tasks = append(childEvent.Tasks, dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
-					EventId:    childEvent.GetId() * 10,
+					EventId:    highestEventId,
 					EventTime:  info.GetCloseTime(),
 					EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_TIMED_OUT,
 					Attributes: nil,
 				}, nil))
 			case enums.WORKFLOW_EXECUTION_STATUS_CANCELED:
+				highestEventId++
 				childEvent.Tasks = append(childEvent.Tasks, dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
-					EventId:    childEvent.GetId() * 10,
+					EventId:    highestEventId,
 					EventTime:  info.GetCloseTime(),
 					EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_CANCELED,
 					Attributes: nil,
 				}, nil))
 			case enums.WORKFLOW_EXECUTION_STATUS_TERMINATED:
+				highestEventId++
 				childEvent.Tasks = append(childEvent.Tasks, dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
-					EventId:    childEvent.GetId() * 10,
+					EventId:    highestEventId,
 					EventTime:  info.GetCloseTime(),
 					EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_TERMINATED,
 					Attributes: nil,
