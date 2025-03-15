@@ -72,19 +72,21 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
         <DataTableColumnHeader column={column} title="Completed" />
       ),
       cell: ({ row }) => {
-        const closeTime = row.original.tasks.find(
-          (item) =>
-            item.type === 'ActivityTaskCompleted' ||
-            item.type === 'ActivityTaskFailed' ||
-            item.type === 'ActivityTaskTerminated' ||
-            item.type === 'ActivityTaskCanceled' ||
-            item.type === 'ActivityTaskTimedOut' ||
-            item.type === 'ChildWorkflowExecutionCompleted' ||
-            item.type === 'ChildWorkflowExecutionFailed' ||
-            item.type === 'ChildWorkflowExecutionTerminated' ||
-            item.type === 'ChildWorkflowExecutionCanceled' ||
-            item.type === 'ChildWorkflowExecutionTimedOut'
-        )?.eventTime;
+        const closeTime =
+          row.original.closeTime ??
+          row.original.tasks.find(
+            (item) =>
+              item.type === 'ActivityTaskCompleted' ||
+              item.type === 'ActivityTaskFailed' ||
+              item.type === 'ActivityTaskTerminated' ||
+              item.type === 'ActivityTaskCanceled' ||
+              item.type === 'ActivityTaskTimedOut' ||
+              item.type === 'ChildWorkflowExecutionCompleted' ||
+              item.type === 'ChildWorkflowExecutionFailed' ||
+              item.type === 'ChildWorkflowExecutionTerminated' ||
+              item.type === 'ChildWorkflowExecutionCanceled' ||
+              item.type === 'ChildWorkflowExecutionTimedOut'
+          )?.eventTime;
 
         return (
           <div className="flex space-x-2">
