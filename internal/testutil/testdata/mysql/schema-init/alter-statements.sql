@@ -78,33 +78,83 @@ UPDATE regions
   WHERE region_name = 'Europe';
 
 UPDATE regions
-  SET region_code = 'AME'
-  WHERE region_name = 'Americas';
-
-UPDATE regions
-  SET region_code = 'ASI'
-  WHERE region_name = 'Asia';
-
-UPDATE regions
   SET region_code = 'MEA'
   WHERE region_name = 'Middle East and Africa';
+
+
+
+-- Force a specific updated_at for these countries
+UPDATE countries
+  SET updated_at = '2022-12-31 10:00:00'
+  WHERE country_id IN ('AR','AU','BE');
+
 
 UPDATE locations
   SET established_year = 1990
   WHERE location_id = 1400;
-
+  
 UPDATE locations
   SET established_year = 2005
   WHERE location_id = 1500;
 
+UPDATE locations
+  SET established_year = 1985
+  WHERE location_id = 1700;
+
+UPDATE locations
+  SET established_year = 1970
+  WHERE location_id = 1800;
+
+UPDATE locations
+  SET established_year = 2000
+  WHERE location_id = 2400;
+
+UPDATE locations
+  SET established_year = 2021
+  WHERE location_id = 2500;
+
+UPDATE locations
+  SET established_year = 1965
+  WHERE location_id = 2700;
+
+
+-- Mark one employee as inactive
 UPDATE employees
   SET is_active = 0
   WHERE employee_id = 100;
+
+-- Mark a few employees specifically as active
+UPDATE employees
+  SET is_active = 1
+  WHERE employee_id IN (101, 102, 103);
+
+
+UPDATE employees
+  SET last_modified = '2023-01-01 12:00:00'
+  WHERE employee_id = 100;
+
 
 UPDATE employees
   SET extra_info = JSON_OBJECT('hobbies', 'reading', 'favorite_color', 'blue')
   WHERE employee_id = 108;
 
+UPDATE employees
+  SET extra_info = JSON_OBJECT('skills', JSON_ARRAY('SQL','Java','Python'))
+  WHERE employee_id = 103;
+
+
+-- Assign 'added_on' dates to some dependents
+UPDATE dependents
+  SET added_on = '2023-01-15'
+  WHERE dependent_id = 1;
+
+UPDATE dependents
+  SET added_on = '2023-01-20'
+  WHERE dependent_id = 2;
+
+UPDATE dependents
+  SET added_on = '2023-02-01'
+  WHERE dependent_id = 3;
 
 -- ================================================
 -- 1) Dropping constraints from multi_col_child

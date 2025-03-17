@@ -411,13 +411,6 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 			return nil, err
 		}
 
-		generatedColumns := []string{}
-		for col, d := range columnDefaultProperties {
-			if d.IsGenerated {
-				generatedColumns = append(generatedColumns, col)
-			}
-		}
-
 		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, columnDefaultProperties)
 		config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{

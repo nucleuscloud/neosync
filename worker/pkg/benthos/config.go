@@ -258,7 +258,6 @@ type ColumnDefaultProperties struct {
 	NeedsReset            bool `json:"needs_reset" yaml:"needs_reset"`
 	NeedsOverride         bool `json:"needs_override" yaml:"needs_override"`
 	HasDefaultTransformer bool `json:"has_default_transformer" yaml:"has_default_transformer"`
-	IsGenerated           bool `json:"is_generated" yaml:"is_generated"`
 }
 
 type PooledSqlInsert struct {
