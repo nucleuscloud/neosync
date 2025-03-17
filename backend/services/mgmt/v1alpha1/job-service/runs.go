@@ -26,6 +26,7 @@ import (
 	piidetect_table_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table/activities"
 	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
 	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/history/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -144,22 +145,36 @@ func (s *Service) GetJobRunEvents(
 
 	jobRun := jrResp.Msg.GetJobRun()
 
+	resp, err := s.getEventsByWorkflowId(ctx, req.Msg.GetAccountId(), jobRun.GetId(), logger)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get events by workflow id: %w", err)
+	}
+
+	return connect.NewResponse(resp), nil
+}
+
+func (s *Service) getEventsByWorkflowId(ctx context.Context, accountId, workflowId string, logger *slog.Logger) (*mgmtv1alpha1.GetJobRunEventsResponse, error) {
 	isRunComplete := false
 	activityOrder := []int64{}
 	activityMap := map[int64]*mgmtv1alpha1.JobRunEvent{}
 	iter, err := s.temporalmgr.GetWorkflowHistory(
 		ctx,
-		req.Msg.GetAccountId(),
-		jobRun.GetId(),
+		accountId,
+		workflowId,
 		logger,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get workflow history: %w", err)
 	}
+	childEvents := map[int64]string{} // eventId -> workflowId
+	highestEventId := int64(0)
 	for iter.HasNext() {
 		event, err := iter.Next()
 		if err != nil {
 			return nil, err
+		}
+		if event.GetEventId() > highestEventId {
+			highestEventId = event.GetEventId()
 		}
 
 		switch event.EventType {
@@ -243,6 +258,9 @@ func (s *Service) GetJobRunEvents(
 		case enums.EVENT_TYPE_START_CHILD_WORKFLOW_EXECUTION_INITIATED:
 			activityOrder = append(activityOrder, event.GetEventId())
 			attributes := event.GetStartChildWorkflowExecutionInitiatedEventAttributes()
+
+			childEvents[event.GetEventId()] = attributes.GetWorkflowId()
+
 			jobRunEvent := &mgmtv1alpha1.JobRunEvent{
 				Id:        event.EventId,
 				Type:      attributes.GetWorkflowType().GetName(),
@@ -330,16 +348,100 @@ func (s *Service) GetJobRunEvents(
 		}
 	}
 
+	if isRunComplete && len(childEvents) > 0 {
+		logger.Debug("checking if child workflows are complete")
+		for _, eventId := range activityOrder {
+			childWorkflowId, ok := childEvents[eventId]
+			if !ok {
+				continue
+			}
+
+			childEvent, ok := activityMap[eventId]
+			if !ok {
+				continue
+			}
+
+			if childEvent.GetCloseTime() != nil {
+				continue
+			}
+			logger.Debug("child workflow is not complete, checking if it is closed")
+			info, err := s.temporalmgr.GetWorkflowExecutionById(ctx, accountId, childWorkflowId, logger)
+			if err != nil {
+				logger.Warn(fmt.Sprintf("unable to get workflow execution info for %s: %s", childWorkflowId, err))
+				continue
+			}
+
+			if info.GetCloseTime() != nil {
+				logger.Debug("child workflow is closed, updating event")
+				childEvent.CloseTime = info.GetCloseTime()
+			}
+
+			switch info.GetStatus() {
+			case enums.WORKFLOW_EXECUTION_STATUS_COMPLETED:
+				highestEventId++
+				childEvent.Tasks = append(childEvent.Tasks, dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
+					EventId:    highestEventId,
+					EventTime:  info.GetCloseTime(),
+					EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_COMPLETED,
+					Attributes: nil,
+				}, nil))
+			case enums.WORKFLOW_EXECUTION_STATUS_FAILED:
+				resp, err := s.getEventsByWorkflowId(ctx, accountId, childWorkflowId, logger)
+				if err != nil {
+					logger.Warn(fmt.Sprintf("unable to get events by workflow id for %s: %s", childWorkflowId, err))
+					continue
+				}
+				var eventErr *mgmtv1alpha1.JobRunEventTaskError
+				for _, event := range resp.GetEvents() {
+					for _, task := range event.GetTasks() {
+						if task.GetError() != nil {
+							eventErr = task.GetError()
+							break
+						}
+					}
+				}
+				highestEventId++
+				childEvent.Tasks = append(childEvent.Tasks, dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
+					EventId:    highestEventId,
+					EventTime:  info.GetCloseTime(),
+					EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_FAILED,
+					Attributes: nil,
+				}, eventErr))
+			case enums.WORKFLOW_EXECUTION_STATUS_TIMED_OUT:
+				highestEventId++
+				childEvent.Tasks = append(childEvent.Tasks, dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
+					EventId:    highestEventId,
+					EventTime:  info.GetCloseTime(),
+					EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_TIMED_OUT,
+					Attributes: nil,
+				}, nil))
+			case enums.WORKFLOW_EXECUTION_STATUS_CANCELED:
+				highestEventId++
+				childEvent.Tasks = append(childEvent.Tasks, dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
+					EventId:    highestEventId,
+					EventTime:  info.GetCloseTime(),
+					EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_CANCELED,
+					Attributes: nil,
+				}, nil))
+			case enums.WORKFLOW_EXECUTION_STATUS_TERMINATED:
+				highestEventId++
+				childEvent.Tasks = append(childEvent.Tasks, dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
+					EventId:    highestEventId,
+					EventTime:  info.GetCloseTime(),
+					EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_TERMINATED,
+					Attributes: nil,
+				}, nil))
+			}
+		}
+	}
+
 	events := []*mgmtv1alpha1.JobRunEvent{}
 	for _, index := range activityOrder {
 		value := activityMap[index]
 		events = append(events, value)
 	}
 
-	return connect.NewResponse(&mgmtv1alpha1.GetJobRunEventsResponse{
-		Events:        events,
-		IsRunComplete: isRunComplete,
-	}), nil
+	return &mgmtv1alpha1.GetJobRunEventsResponse{Events: events, IsRunComplete: isRunComplete}, nil
 }
 
 func (s *Service) CreateJobRun(

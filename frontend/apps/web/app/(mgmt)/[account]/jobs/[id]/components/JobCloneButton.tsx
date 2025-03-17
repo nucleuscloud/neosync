@@ -54,5 +54,8 @@ function getNewJobTypeFromJob(job: Job): NewJobType {
   if (job.source?.options?.config.case === 'generate') {
     return 'generate-table';
   }
+  if (job.jobType?.jobType.case === 'piiDetect') {
+    return 'pii-detection';
+  }
   return 'data-sync';
 }

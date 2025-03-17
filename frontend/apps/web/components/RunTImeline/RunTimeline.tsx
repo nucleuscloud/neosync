@@ -41,7 +41,7 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 
 interface Props {
-  tasks: JobRunEvent[];
+  jobRunEvents: JobRunEvent[];
   jobStatus?: JobRunStatusEnum;
 }
 
@@ -51,7 +51,7 @@ const defaultRowHeight = 40;
 type RunStatus = 'running' | 'completed' | 'failed' | 'canceled' | 'terminated';
 
 export default function RunTimeline(props: Props): ReactElement {
-  const { tasks, jobStatus } = props;
+  const { jobRunEvents, jobStatus } = props;
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [selectedStatuses, setSelectedStatuses] = useState<RunStatus[]>([
     'running',
@@ -66,7 +66,7 @@ export default function RunTimeline(props: Props): ReactElement {
     let startTime = Infinity;
     let endTime = -Infinity;
 
-    tasks.forEach((t) => {
+    jobRunEvents.forEach((t) => {
       const scheduled = t.tasks.find(
         (st) =>
           st.type === 'ActivityTaskScheduled' ||
@@ -77,10 +77,10 @@ export default function RunTimeline(props: Props): ReactElement {
         convertTimestampToDate(scheduled).getTime()
       );
 
-      const errorDate = getCloseOrErrorOrCancelDate(t);
+      const closeTime = getCloseOrErrorOrCancelDate(t);
       endTime = Math.max(
         endTime,
-        errorDate.getTime(),
+        closeTime.getTime(),
         convertTimestampToDate(t.closeTime || t.startTime).getTime()
       );
     });
@@ -108,15 +108,15 @@ export default function RunTimeline(props: Props): ReactElement {
       totalDuration: adjustedDuration,
       timeLabels: labels,
     };
-  }, [tasks]);
+  }, [jobRunEvents]);
 
   // handles filtering the tasks when the tasks or filters change
-  const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
-      const status = getTaskStatus(task, jobStatus);
+  const filteredJobRunEvents = useMemo(() => {
+    return jobRunEvents.filter((jobRunEvent) => {
+      const status = getTaskStatus(jobRunEvent, jobStatus);
       return selectedStatuses.includes(status);
     });
-  }, [tasks, selectedStatuses, jobStatus]);
+  }, [jobRunEvents, selectedStatuses, jobStatus]);
 
   function handleStatusFilterChange(status: RunStatus, checked: boolean) {
     setSelectedStatuses((prev) =>
@@ -141,7 +141,7 @@ export default function RunTimeline(props: Props): ReactElement {
         <div className="flex flex-row h-full w-full">
           <div className="w-1/6">
             <LeftActivityBar
-              filteredTasks={filteredTasks}
+              filteredTasks={filteredJobRunEvents}
               toggleExpandedRowBody={toggleExpandedRowBody}
               jobStatus={jobStatus}
               expandedTaskId={expandedTaskId ?? ''}
@@ -155,11 +155,11 @@ export default function RunTimeline(props: Props): ReactElement {
               timelineStart={timelineStart}
               totalDuration={totalDuration}
             />
-            {filteredTasks.map((task, index) => {
-              const isExpanded = expandedTaskId === String(task.id);
-              const isLastItem = index === filteredTasks.length - 1;
+            {filteredJobRunEvents.map((jobRunEvent, index) => {
+              const isExpanded = expandedTaskId === String(jobRunEvent.id);
+              const isLastItem = index === filteredJobRunEvents.length - 1;
               // calcs an offset for the other rows to slide down so everything stays aligned
-              const expandedOffset = filteredTasks
+              const expandedOffset = filteredJobRunEvents
                 .slice(0, index)
                 .reduce(
                   (acc, t) =>
@@ -172,14 +172,14 @@ export default function RunTimeline(props: Props): ReactElement {
               // offset for the top header
               const topOffset = index * defaultRowHeight + 55 + expandedOffset;
               return (
-                <React.Fragment key={task.id}>
+                <React.Fragment key={jobRunEvent.id}>
                   <div
                     className="absolute left-0 right-0 border-t border-gray-200 dark:border-gray-700"
                     style={{ top: `${topOffset}px` }}
                     id="grid-lines"
                   />
                   <TimelineBar
-                    task={task}
+                    jobRunEvent={jobRunEvent}
                     index={index}
                     jobStatus={jobStatus}
                     timelineStart={timelineStart}
@@ -243,7 +243,7 @@ interface TimelineBarProps {
   index: number;
   timelineStart: Date;
   totalDuration: number;
-  task: JobRunEvent;
+  jobRunEvent: JobRunEvent;
   jobStatus: JobRunStatus | undefined;
   topOffset: number;
   expandedTaskId: string | null;
@@ -254,7 +254,7 @@ interface TimelineBarProps {
 
 function TimelineBar(props: TimelineBarProps) {
   const {
-    task,
+    jobRunEvent,
     jobStatus,
     timelineStart,
     totalDuration,
@@ -264,22 +264,22 @@ function TimelineBar(props: TimelineBarProps) {
     isLastItem,
   } = props;
 
-  const scheduled = task.tasks.find(
+  const scheduled = jobRunEvent.tasks.find(
     (st) =>
       st.type == 'ActivityTaskScheduled' ||
       st.type == 'StartChildWorkflowExecutionInitiated'
   )?.eventTime;
 
-  const failedTask = task.tasks.find((item) => item.error);
+  const failedTask = jobRunEvent.tasks.find((item) => item.error);
   const left = getPositionPercentage(
     convertTimestampToDate(scheduled),
     timelineStart,
     totalDuration
   );
-  const endTime = getCloseOrErrorOrCancelDate(task);
+  const endTime = getCloseOrErrorOrCancelDate(jobRunEvent);
   const width =
     getPositionPercentage(endTime, timelineStart, totalDuration) - left;
-  const status = getTaskStatus(task, jobStatus);
+  const status = getTaskStatus(jobRunEvent, jobStatus);
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -303,19 +303,19 @@ function TimelineBar(props: TimelineBarProps) {
             >
               <div
                 className="px-2 text-gray-900 dark:text-gray-200 text-sm w-full flex flex-row gap-4 items-center "
-                onClick={() => toggleExpandedRowBody(String(task.id))}
+                onClick={() => toggleExpandedRowBody(String(jobRunEvent.id))}
               >
                 <span className="text-xs bg-black dark:bg-gray-700 text-white px-1 py-0.5 rounded text-nowrap">
                   {formatTaskDuration(scheduled, endTime)}
                 </span>
-                <SyncLabel task={task} />
+                <SyncLabel task={jobRunEvent} />
               </div>
             </div>
             <ExpandedRow
               toggleExpandedRowBody={toggleExpandedRowBody}
               isLastItem={isLastItem}
               isExpanded={isExpanded}
-              task={task}
+              task={jobRunEvent}
             />
           </div>
         </TooltipTrigger>
@@ -323,12 +323,12 @@ function TimelineBar(props: TimelineBarProps) {
           align="center"
           className="dark:bg-gray-800 shadow-lg border dark:border-gray-700 flex flex-col gap-1"
         >
-          {isSyncActivity(task) && (
+          {isSyncActivity(jobRunEvent) && (
             <div className="flex flex-row gap-2 items-center justify-between w-full">
               <strong>Table:</strong>{' '}
               <Badge variant="default" className="w-[180px]">
                 {}
-                <SyncLabel task={task} />
+                <SyncLabel task={jobRunEvent} />
               </Badge>
             </div>
           )}
@@ -411,10 +411,10 @@ function convertTimestampToDate(timestamp: Timestamp | undefined): Date {
 
 // calculates the last time if the job is not successful so we can give the timeline an end date
 // TODO: this should be revisited
-function getCloseOrErrorOrCancelDate(task: JobRunEvent): Date {
-  const errorTask = task.tasks.find((item) => item.error);
+function getCloseOrErrorOrCancelDate(jobRunEvent: JobRunEvent): Date {
+  const errorTask = jobRunEvent.tasks.find((item) => item.error);
   const errorTime = errorTask ? errorTask.eventTime : undefined;
-  const cancelTime = task.tasks.find(
+  const cancelTime = jobRunEvent.tasks.find(
     (t) =>
       t.type === 'ActivityTaskCancelRequested' ||
       t.type === 'ActivityTaskCanceled' ||
@@ -424,11 +424,12 @@ function getCloseOrErrorOrCancelDate(task: JobRunEvent): Date {
       t.type === 'ChildWorkflowExecutionTerminated' ||
       t.type === 'ChildWorkflowExecutionTimedOut'
   )?.eventTime;
+
   return errorTime
     ? convertTimestampToDate(errorTime)
     : cancelTime
       ? convertTimestampToDate(cancelTime)
-      : convertTimestampToDate(task.closeTime);
+      : convertTimestampToDate(jobRunEvent.closeTime);
 }
 
 interface SyncLabelProps {
@@ -624,6 +625,11 @@ function getTaskStatus(
   if (isJobTerminated) return 'terminated';
   if (isCanceled) return 'canceled';
 
+  // todo: it is completed but might not have completed successfully, and we need more task info to check that.
+  if (task.closeTime) {
+    return 'completed';
+  }
+
   return 'running';
 }
 
@@ -680,7 +686,7 @@ interface ExpandedRowBodyProps {
 }
 
 function ExpandedRowBody(props: ExpandedRowBodyProps): ReactElement {
-  const { task } = props;
+  const { task: jobRunEvent } = props;
   const getLabel = (type: string) => {
     switch (type) {
       case 'ActivityTaskScheduled':
@@ -711,7 +717,7 @@ function ExpandedRowBody(props: ExpandedRowBodyProps): ReactElement {
 
   return (
     <div className="flex flex-col w-full h-[124px] p-2  text-sm border-t border-gray-200 dark:border-gray-700 gap-2">
-      {task.tasks.map((subtask, index) => (
+      {jobRunEvent.tasks.map((subtask, index) => (
         <div key={subtask.id} className="flex flex-row items-center py-1 gap-2">
           <div className="font-semibold w-[90px]">
             {getLabel(subtask.type)}:
@@ -720,7 +726,7 @@ function ExpandedRowBody(props: ExpandedRowBodyProps): ReactElement {
           <div className="text-gray-500">
             {index > 0
               ? `+${formatTaskDuration(
-                  task.tasks[index - 1].eventTime,
+                  jobRunEvent.tasks[index - 1].eventTime,
                   convertTimestampToDate(subtask.eventTime)
                 )}`
               : '-'}

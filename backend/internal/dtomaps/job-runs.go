@@ -55,9 +55,9 @@ func GetJobIdFromWorkflow(logger *slog.Logger, searchAttributes *commonpb.Search
 
 func ToJobRunEventTaskDto(event *history.HistoryEvent, taskError *mgmtv1alpha1.JobRunEventTaskError) *mgmtv1alpha1.JobRunEventTask {
 	return &mgmtv1alpha1.JobRunEventTask{
-		Id:        event.EventId,
-		Type:      event.EventType.String(),
-		EventTime: event.EventTime,
+		Id:        event.GetEventId(),
+		Type:      event.GetEventType().String(),
+		EventTime: event.GetEventTime(),
 		Error:     taskError,
 	}
 }
