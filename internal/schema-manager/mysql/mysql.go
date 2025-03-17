@@ -2,9 +2,9 @@ package schemamanager_mysql
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
+	"sync"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
@@ -12,6 +12,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	shared "github.com/nucleuscloud/neosync/internal/schema-manager/shared"
+	"golang.org/x/sync/errgroup"
 )
 
 type MysqlSchemaManager struct {
@@ -57,159 +58,93 @@ func NewMysqlSchemaManager(
 
 func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*shared.SchemaDifferences, error) {
 	d.logger.Debug("calculating schema diff")
-	diff := &shared.SchemaDifferences{
-		ExistsInSource: &shared.ExistsInSource{
-			Tables:                   []*sqlmanager_shared.SchemaTable{},
-			Columns:                  []*sqlmanager_shared.DatabaseSchemaRow{},
-			NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
-			ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
-		},
-		ExistsInDestination: &shared.ExistsInDestination{
-			Columns:                  []*sqlmanager_shared.DatabaseSchemaRow{},
-			NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
-			ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
-		},
-		ExistsInBoth: &shared.ExistsInBoth{
-			Tables: []*sqlmanager_shared.SchemaTable{},
-		},
-	}
 	tables := []*sqlmanager_shared.SchemaTable{}
 	schemaMap := map[string][]*sqlmanager_shared.SchemaTable{}
 	for _, schematable := range uniqueTables {
 		tables = append(tables, schematable)
 		schemaMap[schematable.Schema] = append(schemaMap[schematable.Schema], schematable)
 	}
-	sourceColumns, err := d.sourcedb.Db().GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve source database table schemas: %w", err)
-	}
-	destColumns, err := d.destdb.Db().GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve destination database table schemas: %w", err)
-	}
-	sourceColMap := sqlmanager_shared.GetUniqueSchemaColMappings(sourceColumns)
-	destColMap := sqlmanager_shared.GetUniqueSchemaColMappings(destColumns)
 
-	// diff constraints
-	sourceConstraints := map[string]*sqlmanager_shared.AllTableConstraints{}
-	destConstraints := map[string]*sqlmanager_shared.AllTableConstraints{}
+	sourceData := &shared.DatabaseData{}
+	destData := &shared.DatabaseData{}
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		dbData, err := getDatabaseDataForSchemaDiff(errctx, d.sourcedb, tables, schemaMap)
+		if err != nil {
+			return fmt.Errorf("failed to get database data for schema diff: %w", err)
+		}
+		sourceData = dbData
+		return nil
+	})
+	errgrp.Go(func() error {
+		dbData, err := getDatabaseDataForSchemaDiff(errctx, d.destdb, tables, schemaMap)
+		if err != nil {
+			return fmt.Errorf("failed to get database data for schema diff: %w", err)
+		}
+		destData = dbData
+		return nil
+	})
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	builder := shared.NewSchemaDifferencesBuilder(tables, sourceData, destData)
+	return builder.Build(), nil
+}
+
+func getDatabaseDataForSchemaDiff(
+	ctx context.Context,
+	db *sqlmanager.SqlConnection,
+	tables []*sqlmanager_shared.SchemaTable,
+	schemaMap map[string][]*sqlmanager_shared.SchemaTable,
+) (*shared.DatabaseData, error) {
+	columns := []*sqlmanager_shared.DatabaseSchemaRow{}
+	constraints := map[string]*sqlmanager_shared.AllTableConstraints{}
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(5)
+
+	errgrp.Go(func() error {
+		cols, err := db.Db().GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
+		if err != nil {
+			return fmt.Errorf("failed to retrieve database table schemas: %w", err)
+		}
+		columns = cols
+		return nil
+	})
+
+	mu := sync.Mutex{}
 	for schema, tables := range schemaMap {
-		tableNames := []string{}
-		for _, table := range tables {
-			tableNames = append(tableNames, table.Table)
+		tableNames := make([]string, len(tables))
+		for i, table := range tables {
+			tableNames[i] = table.Table
 		}
-		sc, err := d.sourcedb.Db().GetTableConstraintsByTables(ctx, schema, tableNames)
-		if err != nil {
-			return nil, fmt.Errorf("failed to retrieve source database table constraints: %w", err)
-		}
-		dc, err := d.destdb.Db().GetTableConstraintsByTables(ctx, schema, tableNames)
-		if err != nil {
-			return nil, fmt.Errorf("failed to retrieve destination database table constraints: %w", err)
-		}
-		sourceConstraints = sc
-		destConstraints = dc
+
+		schema, tableNames := schema, tableNames
+		errgrp.Go(func() error {
+			tableconstraints, err := db.Db().GetTableConstraintsByTables(errctx, schema, tableNames)
+			if err != nil {
+				return fmt.Errorf("failed to retrieve  database table constraints for schema %s: %w", schema, err)
+			}
+			for key, tableconstraint := range tableconstraints {
+				mu.Lock()
+				constraints[key] = tableconstraint
+				mu.Unlock()
+			}
+			return nil
+		})
 	}
 
-	jsonF, _ := json.MarshalIndent(sourceConstraints, "", " ")
-	fmt.Printf("\n\n %s \n\n", string(jsonF))
-	jsonF, _ = json.MarshalIndent(destConstraints, "", " ")
-	fmt.Printf("\n\n %s \n\n", string(jsonF))
-
-	for _, table := range tables {
-		sourceTable := sourceColMap[table.String()]
-		destTable := destColMap[table.String()]
-		if len(sourceTable) > 0 && len(destTable) == 0 {
-			diff.ExistsInSource.Tables = append(diff.ExistsInSource.Tables, table)
-		} else if len(sourceTable) > 0 && len(destTable) > 0 {
-			// table exists in both source and destination
-			diff.ExistsInBoth.Tables = append(diff.ExistsInBoth.Tables, table)
-
-			// column diff
-			for _, column := range sourceTable {
-				_, ok := destTable[column.ColumnName]
-				if !ok {
-					diff.ExistsInSource.Columns = append(diff.ExistsInSource.Columns, column)
-				}
-			}
-			for _, column := range destTable {
-				_, ok := sourceTable[column.ColumnName]
-				if !ok {
-					diff.ExistsInDestination.Columns = append(diff.ExistsInDestination.Columns, column)
-				}
-			}
-
-			// constraint diff
-			srcTableConstraints, hasSrcConstraints := sourceConstraints[table.String()]
-			dstTableConstraints, hasDstConstraints := destConstraints[table.String()]
-
-			// if there's nothing in source but something in dest => all in dest need to be dropped
-			if !hasSrcConstraints && hasDstConstraints {
-				diff.ExistsInDestination.NonForeignKeyConstraints = append(diff.ExistsInDestination.NonForeignKeyConstraints, dstTableConstraints.NonForeignKeyConstraints...)
-				diff.ExistsInDestination.ForeignKeyConstraints = append(diff.ExistsInDestination.ForeignKeyConstraints, dstTableConstraints.ForeignKeyConstraints...)
-			} else if hasSrcConstraints && !hasDstConstraints {
-				// if there's constraints in source but none in dest => all in source need to be created
-				diff.ExistsInSource.NonForeignKeyConstraints = append(diff.ExistsInSource.NonForeignKeyConstraints, srcTableConstraints.NonForeignKeyConstraints...)
-				diff.ExistsInSource.ForeignKeyConstraints = append(diff.ExistsInSource.ForeignKeyConstraints, srcTableConstraints.ForeignKeyConstraints...)
-			} else if hasSrcConstraints && hasDstConstraints {
-
-				srcNonFkMap := make(map[string]*sqlmanager_shared.NonForeignKeyConstraint)
-				for _, c := range srcTableConstraints.NonForeignKeyConstraints {
-					srcNonFkMap[c.Fingerprint] = c
-				}
-
-				dstNonFkMap := make(map[string]*sqlmanager_shared.NonForeignKeyConstraint)
-				for _, c := range dstTableConstraints.NonForeignKeyConstraints {
-					dstNonFkMap[c.Fingerprint] = c
-				}
-
-				// in source but not in destination
-				for fingerprint, cObj := range srcNonFkMap {
-					if _, ok := dstNonFkMap[fingerprint]; !ok {
-						diff.ExistsInSource.NonForeignKeyConstraints = append(diff.ExistsInSource.NonForeignKeyConstraints, cObj)
-					}
-				}
-				// in destination but not in source
-				for fingerprint, cObj := range dstNonFkMap {
-					if _, ok := srcNonFkMap[fingerprint]; !ok {
-						diff.ExistsInDestination.NonForeignKeyConstraints = append(diff.ExistsInDestination.NonForeignKeyConstraints, cObj)
-					}
-				}
-
-				srcFkMap := make(map[string]*sqlmanager_shared.ForeignKeyConstraint)
-				for _, c := range srcTableConstraints.ForeignKeyConstraints {
-					srcFkMap[c.Fingerprint] = c
-				}
-
-				dstFkMap := make(map[string]*sqlmanager_shared.ForeignKeyConstraint)
-				for _, c := range dstTableConstraints.ForeignKeyConstraints {
-					dstFkMap[c.Fingerprint] = c
-				}
-
-				// in source but not in destination
-				for fingerprint, cObj := range srcFkMap {
-					if _, ok := dstFkMap[fingerprint]; !ok {
-						diff.ExistsInSource.ForeignKeyConstraints = append(diff.ExistsInSource.ForeignKeyConstraints, cObj)
-					}
-				}
-				// in destination but not in source
-				for fingerprint, cObj := range dstFkMap {
-					if _, ok := srcFkMap[fingerprint]; !ok {
-						diff.ExistsInDestination.ForeignKeyConstraints = append(diff.ExistsInDestination.ForeignKeyConstraints, cObj)
-					}
-				}
-			}
-
-		}
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
 	}
+	columnsMap := sqlmanager_shared.GetUniqueSchemaColMappings(columns)
 
-	fmt.Println()
-	fmt.Println("DIFFERENCES")
-	jsonF, _ = json.MarshalIndent(diff.ExistsInSource.ForeignKeyConstraints, "", " ")
-	fmt.Printf("\n\n source fk constraints: %s \n\n", string(jsonF))
-	jsonF, _ = json.MarshalIndent(diff.ExistsInDestination.ForeignKeyConstraints, "", " ")
-	fmt.Printf("\n\n destination fk constraints: %s \n\n", string(jsonF))
-
-	return diff, nil
+	return &shared.DatabaseData{
+		Columns:          columnsMap,
+		TableConstraints: constraints,
+	}, nil
 }
 
 func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *shared.SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error) {
@@ -232,13 +167,11 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 		dropNonFkConstraintStatements = append(dropNonFkConstraintStatements, sqlmanager_mysql.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintType, constraint.ConstraintName))
 	}
 
-	orderedForeignKeyDropStatements, err := d.buildOrderedForeignKeyDropStatements(diff)
-	if err != nil {
-		return nil, fmt.Errorf("failed to build ordered foreign key drop statements: %w", err)
+	orderedForeignKeysToDrop := shared.BuildOrderedForeignKeyConstraintsToDrop(d.logger, diff)
+	orderedForeignKeyDropStatements := []string{}
+	for _, fk := range orderedForeignKeysToDrop {
+		orderedForeignKeyDropStatements = append(orderedForeignKeyDropStatements, sqlmanager_mysql.BuildDropConstraintStatement(fk.ReferencingSchema, fk.ReferencingTable, fk.ConstraintType, fk.ConstraintName))
 	}
-
-	jsonF, _ := json.MarshalIndent(orderedForeignKeyDropStatements, "", " ")
-	fmt.Printf("\n\n ordered fk drop statements: %s \n\n", string(jsonF))
 
 	dropColumnStatements := []string{}
 	for _, column := range diff.ExistsInDestination.Columns {
@@ -263,155 +196,6 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 			Statements: dropColumnStatements,
 		},
 	}, nil
-}
-
-func (d *MysqlSchemaManager) buildOrderedForeignKeyDropStatements(diff *shared.SchemaDifferences) ([]string, error) {
-	// 1) Collect all FKs that must be dropped
-	fksToDrop := diff.ExistsInDestination.ForeignKeyConstraints
-
-	// 2) Build a map of childTableKey -> slice of (FK objects)
-	childToFks := make(map[string][]*sqlmanager_shared.ForeignKeyConstraint)
-
-	// Also track every parent table key that appears
-	parentSet := make(map[string]bool)
-
-	for _, fk := range fksToDrop {
-		childKey := fmt.Sprintf("%s.%s", fk.ReferencingSchema, fk.ReferencingTable)
-		parentKey := fmt.Sprintf("%s.%s", fk.ReferencedSchema, fk.ReferencedTable)
-
-		childToFks[childKey] = append(childToFks[childKey], fk)
-		parentSet[parentKey] = true
-	}
-
-	// --------------------------------
-	// STEP A: Drop self-referencing constraints first
-	// --------------------------------
-	var selfReferenceDrops []string
-	for childKey, fkList := range childToFks {
-		// We'll rebuild the slice of FKs after removing self-references
-		var remainingFKs []*sqlmanager_shared.ForeignKeyConstraint
-		for _, fk := range fkList {
-			parentKey := fmt.Sprintf("%s.%s", fk.ReferencedSchema, fk.ReferencedTable)
-			if childKey == parentKey {
-				// This is self-referencing
-				dropStmt := sqlmanager_mysql.BuildDropConstraintStatement(
-					fk.ReferencingSchema,
-					fk.ReferencingTable,
-					fk.ConstraintType,
-					fk.ConstraintName,
-				)
-				selfReferenceDrops = append(selfReferenceDrops, dropStmt)
-			} else {
-				remainingFKs = append(remainingFKs, fk)
-			}
-		}
-		if len(remainingFKs) > 0 {
-			childToFks[childKey] = remainingFKs
-		} else {
-			// If no FKs remain for this child, remove the entry
-			delete(childToFks, childKey)
-		}
-	}
-
-	// Remove self-referencing from parentSet as well,
-	// by reconstructing the parentSet from whatever remains:
-	newParentSet := make(map[string]bool)
-	for _, fkList := range childToFks {
-		for _, fk := range fkList {
-			pk := fmt.Sprintf("%s.%s", fk.ReferencedSchema, fk.ReferencedTable)
-			newParentSet[pk] = true
-		}
-	}
-	parentSet = newParentSet
-
-	// --------------------------------
-	// STEP B: Topological-like approach for the rest
-	// --------------------------------
-	var orderedFkDrops []string
-
-	// First, add all the self-referencing drops at the front
-	// (or you can do so at the end, but typically you'd want them first).
-	orderedFkDrops = append(orderedFkDrops, selfReferenceDrops...)
-
-	// Keep track of how many FKs remain
-	remainingFKCount := 0
-	for _, fkList := range childToFks {
-		remainingFKCount += len(fkList)
-	}
-
-	// Keep track to avoid infinite loops in case of multi-table cycles
-	maxIterations := remainingFKCount + 10
-
-	for iteration := 0; iteration < maxIterations; iteration++ {
-		if remainingFKCount == 0 {
-			// all done
-			break
-		}
-
-		droppedAny := false
-		var childKeysToRemove []string
-
-		for childKey, fkList := range childToFks {
-			// If childKey is not in parentSet, it is effectively a "leaf"
-			if !parentSet[childKey] {
-				// We can drop all FKs for this child
-				for _, fk := range fkList {
-					stmt := sqlmanager_mysql.BuildDropConstraintStatement(
-						fk.ReferencingSchema,
-						fk.ReferencingTable,
-						fk.ConstraintType,
-						fk.ConstraintName,
-					)
-					orderedFkDrops = append(orderedFkDrops, stmt)
-				}
-				// We'll remove this child from the map
-				childKeysToRemove = append(childKeysToRemove, childKey)
-				droppedAny = true
-
-				// Decrement our total count
-				remainingFKCount -= len(fkList)
-			}
-		}
-
-		// Remove those child keys from the map
-		for _, ckey := range childKeysToRemove {
-			delete(childToFks, ckey)
-		}
-
-		// If no child was dropped in this pass, we might have a cycle
-		if !droppedAny {
-			// Log a warning or handle forcibly:
-			d.logger.Warn("Potential cycle detected while dropping FKs. Some constraints cannot be topologically sorted.")
-			// One fallback approach: just drop everything that remains
-			// or return an error. The snippet below forcibly drops them:
-			for _, fkList := range childToFks {
-				for _, fk := range fkList {
-					stmt := sqlmanager_mysql.BuildDropConstraintStatement(
-						fk.ReferencingSchema,
-						fk.ReferencingTable,
-						fk.ConstraintType,
-						fk.ConstraintName,
-					)
-					orderedFkDrops = append(orderedFkDrops, stmt)
-				}
-			}
-			// We clear them out
-			childToFks = make(map[string][]*sqlmanager_shared.ForeignKeyConstraint)
-			break
-		}
-
-		// Rebuild parentSet for next iteration from the remaining FKs
-		newParentSet := make(map[string]bool)
-		for _, fkList := range childToFks {
-			for _, fk := range fkList {
-				pk := fmt.Sprintf("%s.%s", fk.ReferencedSchema, fk.ReferencedTable)
-				newParentSet[pk] = true
-			}
-		}
-		parentSet = newParentSet
-	}
-
-	return orderedFkDrops, nil
 }
 
 func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable, schemaStatements []*sqlmanager_shared.InitSchemaStatements) ([]*shared.InitSchemaError, error) {
@@ -455,13 +239,6 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 		if len(block.Statements) == 0 {
 			continue
 		}
-		fmt.Println()
-		fmt.Println("executing statements", block.Label)
-		for _, stmt := range block.Statements {
-			fmt.Println()
-			fmt.Println(stmt)
-		}
-		fmt.Println()
 		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 		if err != nil {
 			d.logger.Error(fmt.Sprintf("unable to exec mysql %s statements: %s", block.Label, err.Error()))
