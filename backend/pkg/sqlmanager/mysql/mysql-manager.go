@@ -580,7 +580,7 @@ func (m *MysqlManager) GetTableConstraintsByTables(ctx context.Context, schema s
 			}
 		}
 		if constraint.ConstraintType == "FOREIGN KEY" {
-			allConstraints[key].ForeignKeyConstraints = append(allConstraints[key].ForeignKeyConstraints, &sqlmanager_shared.ForeignKeyConstraint{
+			fk := &sqlmanager_shared.ForeignKeyConstraint{
 				ConstraintName:     constraint.ConstraintName,
 				ConstraintType:     constraint.ConstraintType,
 				ReferencingSchema:  constraint.SchemaName,
@@ -592,20 +592,24 @@ func (m *MysqlManager) GetTableConstraintsByTables(ctx context.Context, schema s
 				NotNullable:        notNullable,
 				UpdateRule:         nullStringToPtr(constraint.UpdateRule),
 				DeleteRule:         nullStringToPtr(constraint.DeleteRule),
-			})
+			}
+			fk.Fingerprint = sqlmanager_shared.BuildForeignKeyConstraintFingerprint(fk)
+			allConstraints[key].ForeignKeyConstraints = append(allConstraints[key].ForeignKeyConstraints, fk)
 		} else {
 			checkStr, err := convertUInt8ToString(constraint.CheckClause)
 			if err != nil {
 				return nil, err
 			}
-			allConstraints[key].NonForeignKeyConstraints = append(allConstraints[key].NonForeignKeyConstraints, &sqlmanager_shared.NonForeignKeyConstraint{
+			constraint := &sqlmanager_shared.NonForeignKeyConstraint{
 				ConstraintName: constraint.ConstraintName,
 				ConstraintType: constraint.ConstraintType,
 				SchemaName:     constraint.SchemaName,
 				TableName:      constraint.TableName,
 				Columns:        constraintCols,
 				Definition:     checkStr,
-			})
+			}
+			constraint.Fingerprint = sqlmanager_shared.BuildNonForeignKeyConstraintFingerprint(constraint)
+			allConstraints[key].NonForeignKeyConstraints = append(allConstraints[key].NonForeignKeyConstraints, constraint)
 		}
 	}
 	return allConstraints, nil

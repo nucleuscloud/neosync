@@ -34,12 +34,7 @@ ALTER TABLE employees
 ALTER TABLE dependents
   ADD COLUMN added_on DATE NOT NULL DEFAULT '2020-01-01';
 
--- ============================================
--- 2) Remove a constraint (example: drop the self-reference FK on employees.manager_id)
--- NOTE: The actual constraint name might differ in your database.
--- Use SHOW CREATE TABLE employees; or SELECT * FROM information_schema.REFERENTIAL_CONSTRAINTS
--- to find the real foreign key name and replace "employees_ibfk_3" below.
--- ============================================
+
 ALTER TABLE employees
   DROP FOREIGN KEY employees_ibfk_3;
 

@@ -92,6 +92,7 @@ type AlterTableStatement struct {
 }
 
 type ForeignKeyConstraint struct {
+	Fingerprint        string
 	ConstraintName     string
 	ConstraintType     string
 	ReferencingSchema  string
@@ -105,6 +106,7 @@ type ForeignKeyConstraint struct {
 	DeleteRule         *string
 }
 type NonForeignKeyConstraint struct {
+	Fingerprint    string
 	ConstraintName string
 	ConstraintType string
 	SchemaName     string

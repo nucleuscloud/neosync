@@ -602,6 +602,9 @@ func test_mysql_schema_reconciliation(
 	require.NoError(t, err, "Received Temporal Workflow Error: mysql-schema-reconciliation-run-2")
 
 	for _, expected := range expectedResults {
+		if expected.table == "multi_col_parent" && !shouldTruncate {
+			expected.rowCount = 4
+		}
 		rowCount, err := mysql.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)
 		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mysql-schema-reconciliation-run-2 Table: %s", expected.table))

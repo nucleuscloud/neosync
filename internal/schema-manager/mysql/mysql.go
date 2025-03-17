@@ -154,46 +154,46 @@ func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTabl
 
 				srcNonFkMap := make(map[string]*sqlmanager_shared.NonForeignKeyConstraint)
 				for _, c := range srcTableConstraints.NonForeignKeyConstraints {
-					srcNonFkMap[c.ConstraintName] = c
+					srcNonFkMap[c.Fingerprint] = c
 				}
 
 				dstNonFkMap := make(map[string]*sqlmanager_shared.NonForeignKeyConstraint)
 				for _, c := range dstTableConstraints.NonForeignKeyConstraints {
-					dstNonFkMap[c.ConstraintName] = c
+					dstNonFkMap[c.Fingerprint] = c
 				}
 
 				// in source but not in destination
-				for cName, cObj := range srcNonFkMap {
-					if _, ok := dstNonFkMap[cName]; !ok {
+				for fingerprint, cObj := range srcNonFkMap {
+					if _, ok := dstNonFkMap[fingerprint]; !ok {
 						diff.ExistsInSource.NonForeignKeyConstraints = append(diff.ExistsInSource.NonForeignKeyConstraints, cObj)
 					}
 				}
 				// in destination but not in source
-				for cName, cObj := range dstNonFkMap {
-					if _, ok := srcNonFkMap[cName]; !ok {
+				for fingerprint, cObj := range dstNonFkMap {
+					if _, ok := srcNonFkMap[fingerprint]; !ok {
 						diff.ExistsInDestination.NonForeignKeyConstraints = append(diff.ExistsInDestination.NonForeignKeyConstraints, cObj)
 					}
 				}
 
 				srcFkMap := make(map[string]*sqlmanager_shared.ForeignKeyConstraint)
 				for _, c := range srcTableConstraints.ForeignKeyConstraints {
-					srcFkMap[c.ConstraintName] = c
+					srcFkMap[c.Fingerprint] = c
 				}
 
 				dstFkMap := make(map[string]*sqlmanager_shared.ForeignKeyConstraint)
 				for _, c := range dstTableConstraints.ForeignKeyConstraints {
-					dstFkMap[c.ConstraintName] = c
+					dstFkMap[c.Fingerprint] = c
 				}
 
 				// in source but not in destination
-				for cName, cObj := range srcFkMap {
-					if _, ok := dstFkMap[cName]; !ok {
+				for fingerprint, cObj := range srcFkMap {
+					if _, ok := dstFkMap[fingerprint]; !ok {
 						diff.ExistsInSource.ForeignKeyConstraints = append(diff.ExistsInSource.ForeignKeyConstraints, cObj)
 					}
 				}
 				// in destination but not in source
-				for cName, cObj := range dstFkMap {
-					if _, ok := srcFkMap[cName]; !ok {
+				for fingerprint, cObj := range dstFkMap {
+					if _, ok := srcFkMap[fingerprint]; !ok {
 						diff.ExistsInDestination.ForeignKeyConstraints = append(diff.ExistsInDestination.ForeignKeyConstraints, cObj)
 					}
 				}
@@ -204,8 +204,10 @@ func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTabl
 
 	fmt.Println()
 	fmt.Println("DIFFERENCES")
-	jsonF, _ = json.MarshalIndent(diff, "", " ")
-	fmt.Printf("\n\n %s \n\n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(diff.ExistsInSource.ForeignKeyConstraints, "", " ")
+	fmt.Printf("\n\n source fk constraints: %s \n\n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(diff.ExistsInDestination.ForeignKeyConstraints, "", " ")
+	fmt.Printf("\n\n destination fk constraints: %s \n\n", string(jsonF))
 
 	return diff, nil
 }
@@ -227,7 +229,6 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 
 	dropNonFkConstraintStatements := []string{}
 	for _, constraint := range diff.ExistsInDestination.NonForeignKeyConstraints {
-
 		dropNonFkConstraintStatements = append(dropNonFkConstraintStatements, sqlmanager_mysql.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintType, constraint.ConstraintName))
 	}
 
@@ -235,6 +236,9 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 	if err != nil {
 		return nil, fmt.Errorf("failed to build ordered foreign key drop statements: %w", err)
 	}
+
+	jsonF, _ := json.MarshalIndent(orderedForeignKeyDropStatements, "", " ")
+	fmt.Printf("\n\n ordered fk drop statements: %s \n\n", string(jsonF))
 
 	dropColumnStatements := []string{}
 	for _, column := range diff.ExistsInDestination.Columns {
@@ -259,40 +263,85 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 			Statements: dropColumnStatements,
 		},
 	}, nil
-
 }
 
 func (d *MysqlSchemaManager) buildOrderedForeignKeyDropStatements(diff *shared.SchemaDifferences) ([]string, error) {
-	// 3) Build a map of childTableKey -> slice of (FK objects)
-	//    so we know which foreign keys exist for each child table.
+	// 1) Collect all FKs that must be dropped
 	fksToDrop := diff.ExistsInDestination.ForeignKeyConstraints
+
+	// 2) Build a map of childTableKey -> slice of (FK objects)
 	childToFks := make(map[string][]*sqlmanager_shared.ForeignKeyConstraint)
 
 	// Also track every parent table key that appears
 	parentSet := make(map[string]bool)
 
-	// Construct those sets
 	for _, fk := range fksToDrop {
 		childKey := fmt.Sprintf("%s.%s", fk.ReferencingSchema, fk.ReferencingTable)
 		parentKey := fmt.Sprintf("%s.%s", fk.ReferencedSchema, fk.ReferencedTable)
 
 		childToFks[childKey] = append(childToFks[childKey], fk)
-
-		// Mark the parent key in a map
 		parentSet[parentKey] = true
 	}
 
-	// We'll accumulate the final drop statements in order
+	// --------------------------------
+	// STEP A: Drop self-referencing constraints first
+	// --------------------------------
+	var selfReferenceDrops []string
+	for childKey, fkList := range childToFks {
+		// We'll rebuild the slice of FKs after removing self-references
+		var remainingFKs []*sqlmanager_shared.ForeignKeyConstraint
+		for _, fk := range fkList {
+			parentKey := fmt.Sprintf("%s.%s", fk.ReferencedSchema, fk.ReferencedTable)
+			if childKey == parentKey {
+				// This is self-referencing
+				dropStmt := sqlmanager_mysql.BuildDropConstraintStatement(
+					fk.ReferencingSchema,
+					fk.ReferencingTable,
+					fk.ConstraintType,
+					fk.ConstraintName,
+				)
+				selfReferenceDrops = append(selfReferenceDrops, dropStmt)
+			} else {
+				remainingFKs = append(remainingFKs, fk)
+			}
+		}
+		if len(remainingFKs) > 0 {
+			childToFks[childKey] = remainingFKs
+		} else {
+			// If no FKs remain for this child, remove the entry
+			delete(childToFks, childKey)
+		}
+	}
+
+	// Remove self-referencing from parentSet as well,
+	// by reconstructing the parentSet from whatever remains:
+	newParentSet := make(map[string]bool)
+	for _, fkList := range childToFks {
+		for _, fk := range fkList {
+			pk := fmt.Sprintf("%s.%s", fk.ReferencedSchema, fk.ReferencedTable)
+			newParentSet[pk] = true
+		}
+	}
+	parentSet = newParentSet
+
+	// --------------------------------
+	// STEP B: Topological-like approach for the rest
+	// --------------------------------
 	var orderedFkDrops []string
 
-	// Keep track of how many FKs remain
-	remainingFKCount := len(fksToDrop)
+	// First, add all the self-referencing drops at the front
+	// (or you can do so at the end, but typically you'd want them first).
+	orderedFkDrops = append(orderedFkDrops, selfReferenceDrops...)
 
-	// Keep track to avoid infinite loops in case of cycles
+	// Keep track of how many FKs remain
+	remainingFKCount := 0
+	for _, fkList := range childToFks {
+		remainingFKCount += len(fkList)
+	}
+
+	// Keep track to avoid infinite loops in case of multi-table cycles
 	maxIterations := remainingFKCount + 10
 
-	// 4) Repeatedly find child tables that do NOT appear in parentSet
-	//    => they can be dropped now (nothing depends on them).
 	for iteration := 0; iteration < maxIterations; iteration++ {
 		if remainingFKCount == 0 {
 			// all done
@@ -303,8 +352,7 @@ func (d *MysqlSchemaManager) buildOrderedForeignKeyDropStatements(diff *shared.S
 		var childKeysToRemove []string
 
 		for childKey, fkList := range childToFks {
-			// If childKey is not in parentSet, it is a "leaf" table
-			// (no one depends on its constraints).
+			// If childKey is not in parentSet, it is effectively a "leaf"
 			if !parentSet[childKey] {
 				// We can drop all FKs for this child
 				for _, fk := range fkList {
@@ -316,7 +364,6 @@ func (d *MysqlSchemaManager) buildOrderedForeignKeyDropStatements(diff *shared.S
 					)
 					orderedFkDrops = append(orderedFkDrops, stmt)
 				}
-
 				// We'll remove this child from the map
 				childKeysToRemove = append(childKeysToRemove, childKey)
 				droppedAny = true
@@ -332,26 +379,38 @@ func (d *MysqlSchemaManager) buildOrderedForeignKeyDropStatements(diff *shared.S
 		}
 
 		// If no child was dropped in this pass, we might have a cycle
-		// or everything left references each other.
 		if !droppedAny {
-			// If we haven't removed all FKs but can't drop anything more,
-			// there's likely a cycle or a self-referencing FK.
-			// We can either break or try a fallback approach:
-			d.logger.Warn("Potential cycle detected while dropping FKs. A manual approach or specific ordering is needed.")
+			// Log a warning or handle forcibly:
+			d.logger.Warn("Potential cycle detected while dropping FKs. Some constraints cannot be topologically sorted.")
+			// One fallback approach: just drop everything that remains
+			// or return an error. The snippet below forcibly drops them:
+			for _, fkList := range childToFks {
+				for _, fk := range fkList {
+					stmt := sqlmanager_mysql.BuildDropConstraintStatement(
+						fk.ReferencingSchema,
+						fk.ReferencingTable,
+						fk.ConstraintType,
+						fk.ConstraintName,
+					)
+					orderedFkDrops = append(orderedFkDrops, stmt)
+				}
+			}
+			// We clear them out
+			childToFks = make(map[string][]*sqlmanager_shared.ForeignKeyConstraint)
 			break
 		}
 
-		// Rebuild parentSet for next iteration: we only want parent keys for
-		// the *remaining* child → parent links
+		// Rebuild parentSet for next iteration from the remaining FKs
 		newParentSet := make(map[string]bool)
 		for _, fkList := range childToFks {
 			for _, fk := range fkList {
-				pk := sqlmanager_shared.SchemaTable{Schema: fk.ReferencedSchema, Table: fk.ReferencedTable}.String()
+				pk := fmt.Sprintf("%s.%s", fk.ReferencedSchema, fk.ReferencedTable)
 				newParentSet[pk] = true
 			}
 		}
 		parentSet = newParentSet
 	}
+
 	return orderedFkDrops, nil
 }
 
