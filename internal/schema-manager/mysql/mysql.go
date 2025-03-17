@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
@@ -11,6 +12,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	shared "github.com/nucleuscloud/neosync/internal/schema-manager/shared"
+	"golang.org/x/sync/errgroup"
 )
 
 type MysqlSchemaManager struct {
@@ -43,7 +45,6 @@ func NewMysqlSchemaManager(
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-
 	return &MysqlSchemaManager{
 		logger:                logger,
 		sqlmanagerclient:      sqlmanagerclient,
@@ -57,47 +58,93 @@ func NewMysqlSchemaManager(
 
 func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*shared.SchemaDifferences, error) {
 	d.logger.Debug("calculating schema diff")
-	diff := &shared.SchemaDifferences{
-		Missing: &shared.Missing{
-			Tables:  []*sqlmanager_shared.SchemaTable{},
-			Columns: []*sqlmanager_shared.DatabaseSchemaRow{},
-		},
-		ExistsInBoth: &shared.ExistsInBoth{
-			Tables: []*sqlmanager_shared.SchemaTable{},
-		},
-	}
 	tables := []*sqlmanager_shared.SchemaTable{}
+	schemaMap := map[string][]*sqlmanager_shared.SchemaTable{}
 	for _, schematable := range uniqueTables {
 		tables = append(tables, schematable)
+		schemaMap[schematable.Schema] = append(schemaMap[schematable.Schema], schematable)
 	}
-	sourceColumns, err := d.sourcedb.Db().GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve source database table schemas: %w", err)
-	}
-	destColumns, err := d.destdb.Db().GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve destination database table schemas: %w", err)
-	}
-	sourceColMap := sqlmanager_shared.GetUniqueSchemaColMappings(sourceColumns)
-	destColMap := sqlmanager_shared.GetUniqueSchemaColMappings(destColumns)
 
-	for _, table := range tables {
-		sourceTable := sourceColMap[table.String()]
-		destTable := destColMap[table.String()]
-		if len(sourceTable) > 0 && len(destTable) == 0 {
-			diff.Missing.Tables = append(diff.Missing.Tables, table)
-		} else if len(sourceTable) > 0 && len(destTable) > 0 {
-			diff.ExistsInBoth.Tables = append(diff.ExistsInBoth.Tables, table)
-			for _, column := range sourceTable {
-				_, ok := destTable[column.ColumnName]
-				if !ok {
-					diff.Missing.Columns = append(diff.Missing.Columns, column)
-				}
-			}
+	sourceData := &shared.DatabaseData{}
+	destData := &shared.DatabaseData{}
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		dbData, err := getDatabaseDataForSchemaDiff(errctx, d.sourcedb, tables, schemaMap)
+		if err != nil {
+			return fmt.Errorf("failed to get database data for schema diff: %w", err)
 		}
+		sourceData = dbData
+		return nil
+	})
+	errgrp.Go(func() error {
+		dbData, err := getDatabaseDataForSchemaDiff(errctx, d.destdb, tables, schemaMap)
+		if err != nil {
+			return fmt.Errorf("failed to get database data for schema diff: %w", err)
+		}
+		destData = dbData
+		return nil
+	})
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
 	}
 
-	return diff, nil
+	builder := shared.NewSchemaDifferencesBuilder(tables, sourceData, destData)
+	return builder.Build(), nil
+}
+
+func getDatabaseDataForSchemaDiff(
+	ctx context.Context,
+	db *sqlmanager.SqlConnection,
+	tables []*sqlmanager_shared.SchemaTable,
+	schemaMap map[string][]*sqlmanager_shared.SchemaTable,
+) (*shared.DatabaseData, error) {
+	columns := []*sqlmanager_shared.DatabaseSchemaRow{}
+	constraints := map[string]*sqlmanager_shared.AllTableConstraints{}
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(5)
+
+	errgrp.Go(func() error {
+		cols, err := db.Db().GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
+		if err != nil {
+			return fmt.Errorf("failed to retrieve database table schemas: %w", err)
+		}
+		columns = cols
+		return nil
+	})
+
+	mu := sync.Mutex{}
+	for schema, tables := range schemaMap {
+		tableNames := make([]string, len(tables))
+		for i, table := range tables {
+			tableNames[i] = table.Table
+		}
+
+		schema, tableNames := schema, tableNames
+		errgrp.Go(func() error {
+			tableconstraints, err := db.Db().GetTableConstraintsByTables(errctx, schema, tableNames)
+			if err != nil {
+				return fmt.Errorf("failed to retrieve  database table constraints for schema %s: %w", schema, err)
+			}
+			for key, tableconstraint := range tableconstraints {
+				mu.Lock()
+				constraints[key] = tableconstraint
+				mu.Unlock()
+			}
+			return nil
+		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+	columnsMap := sqlmanager_shared.GetUniqueSchemaColMappings(columns)
+
+	return &shared.DatabaseData{
+		Columns:          columnsMap,
+		TableConstraints: constraints,
+	}, nil
 }
 
 func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *shared.SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error) {
@@ -107,7 +154,7 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 		return nil, nil
 	}
 	addColumnStatements := []string{}
-	for _, column := range diff.Missing.Columns {
+	for _, column := range diff.ExistsInSource.Columns {
 		stmt, err := sqlmanager_mysql.BuildAddColumnStatement(column)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build add column statement: %w", err)
@@ -115,10 +162,38 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 		addColumnStatements = append(addColumnStatements, stmt)
 	}
 
+	dropNonFkConstraintStatements := []string{}
+	for _, constraint := range diff.ExistsInDestination.NonForeignKeyConstraints {
+		dropNonFkConstraintStatements = append(dropNonFkConstraintStatements, sqlmanager_mysql.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintType, constraint.ConstraintName))
+	}
+
+	orderedForeignKeysToDrop := shared.BuildOrderedForeignKeyConstraintsToDrop(d.logger, diff)
+	orderedForeignKeyDropStatements := []string{}
+	for _, fk := range orderedForeignKeysToDrop {
+		orderedForeignKeyDropStatements = append(orderedForeignKeyDropStatements, sqlmanager_mysql.BuildDropConstraintStatement(fk.ReferencingSchema, fk.ReferencingTable, fk.ConstraintType, fk.ConstraintName))
+	}
+
+	dropColumnStatements := []string{}
+	for _, column := range diff.ExistsInDestination.Columns {
+		dropColumnStatements = append(dropColumnStatements, sqlmanager_mysql.BuildDropColumnStatement(column))
+	}
+
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{
 			Label:      sqlmanager_mysql.AddColumnsLabel,
 			Statements: addColumnStatements,
+		},
+		{
+			Label:      sqlmanager_mysql.DropForeignKeyConstraintsLabel,
+			Statements: orderedForeignKeyDropStatements,
+		},
+		{
+			Label:      sqlmanager_mysql.DropNonForeignKeyConstraintsLabel,
+			Statements: dropNonFkConstraintStatements,
+		},
+		{
+			Label:      sqlmanager_mysql.DropColumnsLabel,
+			Statements: dropColumnStatements,
 		},
 	}, nil
 }
@@ -152,6 +227,9 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 	for _, statement := range initblocks {
 		statementBlocks = append(statementBlocks, statement)
 		if statement.Label == sqlmanager_mysql.CreateTablesLabel {
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropForeignKeyConstraintsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropNonForeignKeyConstraintsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropColumnsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.AddColumnsLabel]...)
 		}
 	}

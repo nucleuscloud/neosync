@@ -118,6 +118,10 @@ func (p *PostgresManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.
 	return result, nil
 }
 
+func (p *PostgresManager) GetTableConstraintsByTables(ctx context.Context, schema string, tables []string) (map[string]*sqlmanager_shared.AllTableConstraints, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (p *PostgresManager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
 	rows, err := p.querier.GetAllSchemas(ctx, p.db)
 	if err != nil {

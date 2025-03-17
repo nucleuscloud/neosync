@@ -91,6 +91,35 @@ type AlterTableStatement struct {
 	ConstraintType ConstraintType
 }
 
+type ForeignKeyConstraint struct {
+	Fingerprint        string
+	ConstraintName     string
+	ConstraintType     string
+	ReferencingSchema  string
+	ReferencingTable   string
+	ReferencingColumns []string
+	ReferencedSchema   string
+	ReferencedTable    string
+	ReferencedColumns  []string
+	NotNullable        []bool
+	UpdateRule         *string
+	DeleteRule         *string
+}
+type NonForeignKeyConstraint struct {
+	Fingerprint    string
+	ConstraintName string
+	ConstraintType string
+	SchemaName     string
+	TableName      string
+	Columns        []string
+	Definition     string
+}
+
+type AllTableConstraints struct {
+	ForeignKeyConstraints    []*ForeignKeyConstraint
+	NonForeignKeyConstraints []*NonForeignKeyConstraint
+}
+
 type ConstraintType int
 
 const (

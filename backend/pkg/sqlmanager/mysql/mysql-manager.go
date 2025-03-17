@@ -22,9 +22,12 @@ const (
 	columnDefaultDefault = "Default"
 	columnDefaultString  = "String"
 
-	SchemasLabel      = "schemas"
-	CreateTablesLabel = "create table"
-	AddColumnsLabel   = "add columns"
+	SchemasLabel                      = "schemas"
+	CreateTablesLabel                 = "create table"
+	AddColumnsLabel                   = "add columns"
+	DropColumnsLabel                  = "drop columns"
+	DropNonForeignKeyConstraintsLabel = "drop non-foreign key constraints"
+	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
 )
 
 type MysqlManager struct {
@@ -542,6 +545,83 @@ func convertUInt8ToString(value any) (string, error) {
 	return string(convertedType), nil
 }
 
+func (m *MysqlManager) GetTableConstraintsByTables(ctx context.Context, schema string, tables []string) (map[string]*sqlmanager_shared.AllTableConstraints, error) {
+	constraints, err := m.querier.GetTableConstraints(ctx, m.pool, &mysql_queries.GetTableConstraintsParams{
+		Schema: schema,
+		Tables: tables,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get table constraints by schemas: %w", err)
+	}
+
+	allConstraints := map[string]*sqlmanager_shared.AllTableConstraints{} // key is schema.table
+	for _, constraint := range constraints {
+		constraintCols, err := jsonRawToSlice[string](constraint.ConstraintColumns)
+		if err != nil {
+			return nil, err
+		}
+		referencedCols, err := jsonRawToSlice[string](constraint.ReferencedColumnNames)
+		if err != nil {
+			return nil, err
+		}
+		notNullableInts, err := jsonRawToSlice[int](constraint.NotNullable)
+		if err != nil {
+			return nil, err
+		}
+		notNullable := []bool{}
+		for _, notNullableInt := range notNullableInts {
+			notNullable = append(notNullable, notNullableInt == 1)
+		}
+		key := sqlmanager_shared.SchemaTable{Schema: constraint.SchemaName, Table: constraint.TableName}.String()
+		if allConstraints[key] == nil {
+			allConstraints[key] = &sqlmanager_shared.AllTableConstraints{
+				ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
+				NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
+			}
+		}
+		if constraint.ConstraintType == "FOREIGN KEY" {
+			fk := &sqlmanager_shared.ForeignKeyConstraint{
+				ConstraintName:     constraint.ConstraintName,
+				ConstraintType:     constraint.ConstraintType,
+				ReferencingSchema:  constraint.SchemaName,
+				ReferencingTable:   constraint.TableName,
+				ReferencingColumns: constraintCols,
+				ReferencedSchema:   constraint.ReferencedSchemaName,
+				ReferencedTable:    constraint.ReferencedTableName,
+				ReferencedColumns:  referencedCols,
+				NotNullable:        notNullable,
+				UpdateRule:         nullStringToPtr(constraint.UpdateRule),
+				DeleteRule:         nullStringToPtr(constraint.DeleteRule),
+			}
+			fk.Fingerprint = sqlmanager_shared.BuildForeignKeyConstraintFingerprint(fk)
+			allConstraints[key].ForeignKeyConstraints = append(allConstraints[key].ForeignKeyConstraints, fk)
+		} else {
+			checkStr, err := convertUInt8ToString(constraint.CheckClause)
+			if err != nil {
+				return nil, err
+			}
+			constraint := &sqlmanager_shared.NonForeignKeyConstraint{
+				ConstraintName: constraint.ConstraintName,
+				ConstraintType: constraint.ConstraintType,
+				SchemaName:     constraint.SchemaName,
+				TableName:      constraint.TableName,
+				Columns:        constraintCols,
+				Definition:     checkStr,
+			}
+			constraint.Fingerprint = sqlmanager_shared.BuildNonForeignKeyConstraintFingerprint(constraint)
+			allConstraints[key].NonForeignKeyConstraints = append(allConstraints[key].NonForeignKeyConstraints, constraint)
+		}
+	}
+	return allConstraints, nil
+}
+
+func nullStringToPtr(str sql.NullString) *string {
+	if !str.Valid {
+		return nil
+	}
+	return &str.String
+}
+
 func BuildAddColumnStatement(column *sqlmanager_shared.DatabaseSchemaRow) (string, error) {
 	columnDefaultStr, err := EscapeMysqlDefaultColumn(column.ColumnDefault, column.ColumnDefaultType)
 	if err != nil {
@@ -557,6 +637,20 @@ func BuildAddColumnStatement(column *sqlmanager_shared.DatabaseSchemaRow) (strin
 		GeneratedExpression: *column.GeneratedExpression,
 	})
 	return fmt.Sprintf("ALTER TABLE %s.%s ADD COLUMN %s;", EscapeMysqlColumn(column.TableSchema), EscapeMysqlColumn(column.TableName), col), nil
+}
+
+func BuildDropColumnStatement(column *sqlmanager_shared.DatabaseSchemaRow) string {
+	return fmt.Sprintf("ALTER TABLE %s.%s DROP COLUMN %s;", EscapeMysqlColumn(column.TableSchema), EscapeMysqlColumn(column.TableName), EscapeMysqlColumn(column.ColumnName))
+}
+
+func BuildDropConstraintStatement(schema, table, constraintType, constraintName string) string {
+	if strings.EqualFold(constraintType, "PRIMARY KEY") {
+		return fmt.Sprintf("ALTER TABLE %s.%s DROP PRIMARY KEY;", EscapeMysqlColumn(schema), EscapeMysqlColumn(table))
+	}
+	if strings.EqualFold(constraintType, "UNIQUE") {
+		constraintType = "INDEX"
+	}
+	return fmt.Sprintf("ALTER TABLE %s.%s DROP %s %s;", EscapeMysqlColumn(schema), EscapeMysqlColumn(table), constraintType, EscapeMysqlColumn(constraintName))
 }
 
 type buildTableColRequest struct {

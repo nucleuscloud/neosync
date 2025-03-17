@@ -11,20 +11,6 @@ type InitSchemaError struct {
 	Error     string
 }
 
-type Missing struct {
-	Tables  []*sqlmanager_shared.SchemaTable
-	Columns []*sqlmanager_shared.DatabaseSchemaRow
-}
-
-type ExistsInBoth struct {
-	Tables []*sqlmanager_shared.SchemaTable
-}
-
-type SchemaDifferences struct {
-	Missing      *Missing
-	ExistsInBoth *ExistsInBoth
-}
-
 // filtered by tables found in job mappings
 func GetFilteredForeignToPrimaryTableMap(td map[string][]*sqlmanager_shared.ForeignConstraint, uniqueTables map[string]struct{}) map[string][]string {
 	dpMap := map[string][]string{}

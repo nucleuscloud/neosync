@@ -253,3 +253,145 @@ INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_i
 INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_id) VALUES (28,'Woody','Russell','Child',145);
 INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_id) VALUES (29,'Alec','Partners','Child',146);
 INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_id) VALUES (30,'Sandra','Taylor','Child',176);
+
+
+
+-- ==================================================
+-- 1) Create a 'grandparent' table
+-- ==================================================
+CREATE TABLE IF NOT EXISTS grandparent (
+  gp_id INT AUTO_INCREMENT,
+  gp_name VARCHAR(50) NOT NULL,
+  PRIMARY KEY (gp_id)
+);
+
+-- Insert a few sample rows
+INSERT INTO grandparent (gp_name) VALUES
+('Grandparent A'),
+('Grandparent B'),
+('Grandparent C');
+
+-- ==================================================
+-- 2) Create a 'parent' table referencing 'grandparent'
+-- ==================================================
+CREATE TABLE IF NOT EXISTS parent (
+  p_id INT AUTO_INCREMENT,
+  p_unique_val VARCHAR(50) NOT NULL,
+  gp_id INT NOT NULL,  -- references grandparent
+  PRIMARY KEY (p_id),
+  UNIQUE KEY ux_parent_unique (p_unique_val),
+  CONSTRAINT fk_parent_gp
+    FOREIGN KEY (gp_id)
+    REFERENCES grandparent (gp_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
+-- Insert sample data
+INSERT INTO parent (p_unique_val, gp_id) VALUES
+('Parent A - unique', 1),
+('Parent B - unique', 2),
+('Parent C - unique', 3);
+
+-- ==================================================
+-- 3) Create a 'child' table referencing BOTH 'parent' AND 'grandparent'
+--    This ensures there's a chain: grandparent -> parent -> child,
+--    plus a direct grandparent -> child.
+-- ==================================================
+CREATE TABLE IF NOT EXISTS child (
+  c_id INT AUTO_INCREMENT,
+  c_data VARCHAR(100),
+  p_id INT NOT NULL,  -- references parent
+  gp_id INT NOT NULL, -- also references grandparent
+  PRIMARY KEY (c_id),
+  CONSTRAINT fk_child_parent
+    FOREIGN KEY (p_id)
+    REFERENCES parent (p_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT fk_child_gp
+    FOREIGN KEY (gp_id)
+    REFERENCES grandparent (gp_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
+-- Sample data
+INSERT INTO child (c_data, p_id, gp_id) VALUES
+('Child of Parent A / Grandparent A', 1, 1),
+('Child of Parent B / Grandparent B', 2, 2),
+('Child of Parent C / Grandparent C', 3, 3);
+
+-- ==================================================
+-- 4) OPTIONAL: Create a 'cyclic_table' with a self-referencing FK
+--    This ensures you have a scenario of dropping a self-join FK.
+-- ==================================================
+CREATE TABLE IF NOT EXISTS cyclic_table (
+  cycle_id INT AUTO_INCREMENT,
+  cycle_name VARCHAR(50) NOT NULL,
+  manager_cycle_id INT DEFAULT NULL,
+  PRIMARY KEY (cycle_id),
+  CONSTRAINT fk_cycle_self
+    FOREIGN KEY (manager_cycle_id)
+    REFERENCES cyclic_table (cycle_id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+);
+
+-- Insert sample data
+INSERT INTO cyclic_table (cycle_name, manager_cycle_id) VALUES
+('Top Node', NULL),     -- top-level
+('Mid Node', 1),        -- managed by 'Top Node'
+('Leaf Node', 2);       -- managed by 'Mid Node'
+
+-- ==================================================
+-- 5) 'multi_col_parent' with a composite PK
+-- ==================================================
+CREATE TABLE IF NOT EXISTS multi_col_parent (
+  mcp_a INT NOT NULL,
+  mcp_b INT NOT NULL,
+  description VARCHAR(50),
+  PRIMARY KEY (mcp_a, mcp_b)  -- composite PK
+);
+
+-- Insert sample data
+INSERT INTO multi_col_parent (mcp_a, mcp_b, description) VALUES
+(1, 100, 'Multi-Col Parent #1'),
+(2, 200, 'Multi-Col Parent #2');
+
+-- ==================================================
+-- 6) 'multi_col_child' referencing multi_col_parent AND parent
+--    Also add a CHECK constraint for MySQL 8.0.16+.
+-- ==================================================
+CREATE TABLE IF NOT EXISTS multi_col_child (
+  mc_child_id INT AUTO_INCREMENT,
+  mcp_a INT NOT NULL,
+  mcp_b INT NOT NULL,
+  p_id_ref INT NOT NULL,  -- also references parent
+  some_value INT NOT NULL DEFAULT 10,
+  PRIMARY KEY (mc_child_id),
+
+  -- Foreign Key referencing the composite PK of multi_col_parent
+  CONSTRAINT fk_mcc_mcp
+    FOREIGN KEY (mcp_a, mcp_b)
+    REFERENCES multi_col_parent (mcp_a, mcp_b)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+
+  -- Another foreign key referencing 'parent'
+  CONSTRAINT fk_mcc_parent
+    FOREIGN KEY (p_id_ref)
+    REFERENCES parent (p_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+  -- Check constraint (requires 8.0.16+ to enforce)
+  CONSTRAINT chk_some_value
+    CHECK (some_value <= 50)
+);
+
+-- Insert sample data
+INSERT INTO multi_col_child (mcp_a, mcp_b, p_id_ref, some_value)
+VALUES
+ (1, 100, 1, 20),
+ (2, 200, 2, 40);
