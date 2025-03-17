@@ -72,6 +72,16 @@ function getPiiDetectionColumns(): ColumnDef<PiiDetectionRow, any>[] {
       cell({ row }) {
         return <ConfidenceCell confidence={row.original.reporterConfidence} />;
       },
+      sortingFn: (a, b) => {
+        return (
+          a.original.reporterConfidence.reduce((acc, curr) => {
+            return acc + curr;
+          }, 0) -
+          b.original.reporterConfidence.reduce((acc, curr) => {
+            return acc + curr;
+          }, 0)
+        );
+      },
     }
   );
 
