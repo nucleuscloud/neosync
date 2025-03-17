@@ -409,7 +409,6 @@ func getColumnDefaultProperties(
 		if jmTransformer != nil && isDefaultJobMappingTransformer(jmTransformer) {
 			hasDefaultTransformer = true
 		}
-
 		if !needsReset && !needsOverride && !hasDefaultTransformer {
 			continue
 		}
