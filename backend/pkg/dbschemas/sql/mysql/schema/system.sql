@@ -82,9 +82,7 @@ create table information_schema.routines (
   routine_schema text not null,
   dtd_identifier text not null,
   routine_definition longtext not null,
-  is_deterministic text not null,
-  created timestamp not null,
-  last_altered timestamp not null
+  is_deterministic text not null
 );
 
 create table information_schema.triggers (
@@ -95,8 +93,7 @@ create table information_schema.triggers (
   action_statement longtext not null,
   event_manipulation text not null,
   action_orientation text not null,
-  action_timing text not null,
-  created timestamp not null
+  action_timing text not null
 );
 
 create table information_schema.check_constraints (

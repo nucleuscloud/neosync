@@ -395,3 +395,49 @@ INSERT INTO multi_col_child (mcp_a, mcp_b, p_id_ref, some_value)
 VALUES
  (1, 100, 1, 20),
  (2, 200, 2, 40);
+
+-- trigger test
+CREATE TABLE IF NOT EXISTS astronaut (
+    astronaut_id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name   VARCHAR(100),
+    position    VARCHAR(50)
+);
+
+
+CREATE TABLE IF NOT EXISTS astronaut_log (
+    log_id      INT AUTO_INCREMENT PRIMARY KEY,
+    astronaut_id INT,
+    full_name   VARCHAR(100),
+    action      VARCHAR(20),
+    logged_at   DATETIME
+);
+
+
+CREATE TRIGGER astronaut_ai
+	AFTER UPDATE ON astronaut
+	FOR EACH ROW
+BEGIN
+	UPDATE
+		astronaut_log
+	SET
+		full_name = NEW.full_name,
+		action = 'UPDATED',
+		logged_at = NOW()
+	WHERE
+		astronaut_id = NEW.astronaut_id;
+END;
+
+INSERT INTO astronaut (full_name, position)
+VALUES
+    ('Neil Armstrong', 'Astronaut'),
+    ('Buzz Aldrin', 'Astronaut');
+
+INSERT INTO astronaut_log (
+    astronaut_id,
+    full_name,
+    action,
+    logged_at
+)
+VALUES
+    (1, 'Neil Armstrong', 'INSERTED', NOW()),
+    (2, 'Buzz Aldrin', 'INSERTED', NOW());

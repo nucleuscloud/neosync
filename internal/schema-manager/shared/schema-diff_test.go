@@ -12,12 +12,16 @@ func Test_NewSchemaDifferencesBuilder(t *testing.T) {
 		{Schema: "public", Table: "users"},
 	}
 	sourceData := &DatabaseData{
-		Columns:          map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{},
-		TableConstraints: map[string]*sqlmanager_shared.AllTableConstraints{},
+		Columns:                  map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{},
+		ForeignKeyConstraints:    map[string]map[string]*sqlmanager_shared.ForeignKeyConstraint{},
+		NonForeignKeyConstraints: map[string]map[string]*sqlmanager_shared.NonForeignKeyConstraint{},
+		Triggers:                 map[string]map[string]*sqlmanager_shared.TableTrigger{},
 	}
 	destData := &DatabaseData{
-		Columns:          map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{},
-		TableConstraints: map[string]*sqlmanager_shared.AllTableConstraints{},
+		Columns:                  map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{},
+		ForeignKeyConstraints:    map[string]map[string]*sqlmanager_shared.ForeignKeyConstraint{},
+		NonForeignKeyConstraints: map[string]map[string]*sqlmanager_shared.NonForeignKeyConstraint{},
+		Triggers:                 map[string]map[string]*sqlmanager_shared.TableTrigger{},
 	}
 
 	builder := NewSchemaDifferencesBuilder(jobmappingTables, sourceData, destData)
@@ -57,7 +61,9 @@ func Test_Build_TableColumnDifferences(t *testing.T) {
 				},
 			},
 		},
-		TableConstraints: map[string]*sqlmanager_shared.AllTableConstraints{},
+		ForeignKeyConstraints:    map[string]map[string]*sqlmanager_shared.ForeignKeyConstraint{},
+		NonForeignKeyConstraints: map[string]map[string]*sqlmanager_shared.NonForeignKeyConstraint{},
+		Triggers:                 map[string]map[string]*sqlmanager_shared.TableTrigger{},
 	}
 
 	destData := &DatabaseData{
@@ -75,7 +81,9 @@ func Test_Build_TableColumnDifferences(t *testing.T) {
 				},
 			},
 		},
-		TableConstraints: map[string]*sqlmanager_shared.AllTableConstraints{},
+		ForeignKeyConstraints:    map[string]map[string]*sqlmanager_shared.ForeignKeyConstraint{},
+		NonForeignKeyConstraints: map[string]map[string]*sqlmanager_shared.NonForeignKeyConstraint{},
+		Triggers:                 map[string]map[string]*sqlmanager_shared.TableTrigger{},
 	}
 
 	builder := NewSchemaDifferencesBuilder(jobmappingTables, sourceData, destData)
@@ -105,30 +113,31 @@ func Test_Build_TableConstraintDifferences(t *testing.T) {
 				},
 			},
 		},
-		TableConstraints: map[string]*sqlmanager_shared.AllTableConstraints{
+		NonForeignKeyConstraints: map[string]map[string]*sqlmanager_shared.NonForeignKeyConstraint{
 			"public.users": {
-				NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{
-					{
-						SchemaName:     "public",
-						TableName:      "users",
-						ConstraintName: "pk_users",
-						ConstraintType: "PRIMARY KEY",
-						Fingerprint:    "pk_users_fingerprint",
-					},
-				},
-				ForeignKeyConstraints: []*sqlmanager_shared.ForeignKeyConstraint{
-					{
-						ReferencedSchema:  "public",
-						ReferencedTable:   "roles",
-						ReferencingSchema: "public",
-						ReferencingTable:  "users",
-						ConstraintName:    "fk_users_roles",
-						ConstraintType:    "FOREIGN KEY",
-						Fingerprint:       "fk_users_roles_fingerprint",
-					},
+				"pk_users_fingerprint": {
+					SchemaName:     "public",
+					TableName:      "users",
+					ConstraintName: "pk_users",
+					ConstraintType: "PRIMARY KEY",
+					Fingerprint:    "pk_users_fingerprint",
 				},
 			},
 		},
+		ForeignKeyConstraints: map[string]map[string]*sqlmanager_shared.ForeignKeyConstraint{
+			"public.users": {
+				"fk_users_roles_fingerprint": {
+					ReferencedSchema:  "public",
+					ReferencedTable:   "roles",
+					ReferencingSchema: "public",
+					ReferencingTable:  "users",
+					ConstraintName:    "fk_users_roles",
+					ConstraintType:    "FOREIGN KEY",
+					Fingerprint:       "fk_users_roles_fingerprint",
+				},
+			},
+		},
+		Triggers: map[string]map[string]*sqlmanager_shared.TableTrigger{},
 	}
 
 	destData := &DatabaseData{
@@ -141,30 +150,31 @@ func Test_Build_TableConstraintDifferences(t *testing.T) {
 				},
 			},
 		},
-		TableConstraints: map[string]*sqlmanager_shared.AllTableConstraints{
+		NonForeignKeyConstraints: map[string]map[string]*sqlmanager_shared.NonForeignKeyConstraint{
 			"public.users": {
-				NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{
-					{
-						SchemaName:     "public",
-						TableName:      "users",
-						ConstraintName: "unique_email",
-						ConstraintType: "UNIQUE",
-						Fingerprint:    "unique_email_fingerprint",
-					},
-				},
-				ForeignKeyConstraints: []*sqlmanager_shared.ForeignKeyConstraint{
-					{
-						ReferencedSchema:  "public",
-						ReferencedTable:   "teams",
-						ReferencingSchema: "public",
-						ReferencingTable:  "users",
-						ConstraintName:    "fk_users_teams",
-						ConstraintType:    "FOREIGN KEY",
-						Fingerprint:       "fk_users_teams_fingerprint",
-					},
+				"unique_email_fingerprint": {
+					SchemaName:     "public",
+					TableName:      "users",
+					ConstraintName: "unique_email",
+					ConstraintType: "UNIQUE",
+					Fingerprint:    "unique_email_fingerprint",
 				},
 			},
 		},
+		ForeignKeyConstraints: map[string]map[string]*sqlmanager_shared.ForeignKeyConstraint{
+			"public.users": {
+				"fk_users_teams_fingerprint": {
+					ReferencedSchema:  "public",
+					ReferencedTable:   "teams",
+					ReferencingSchema: "public",
+					ReferencingTable:  "users",
+					ConstraintName:    "fk_users_teams",
+					ConstraintType:    "FOREIGN KEY",
+					Fingerprint:       "fk_users_teams_fingerprint",
+				},
+			},
+		},
+		Triggers: map[string]map[string]*sqlmanager_shared.TableTrigger{},
 	}
 
 	builder := NewSchemaDifferencesBuilder(jobmappingTables, sourceData, destData)
@@ -179,4 +189,83 @@ func Test_Build_TableConstraintDifferences(t *testing.T) {
 	require.Equal(t, "unique_email", diff.ExistsInDestination.NonForeignKeyConstraints[0].ConstraintName)
 	require.Len(t, diff.ExistsInDestination.ForeignKeyConstraints, 1)
 	require.Equal(t, "fk_users_teams", diff.ExistsInDestination.ForeignKeyConstraints[0].ConstraintName)
+}
+
+func Test_Build_TableTriggerDifferences(t *testing.T) {
+	jobmappingTables := []*sqlmanager_shared.SchemaTable{
+		{Schema: "public", Table: "users"},
+	}
+
+	sourceData := &DatabaseData{
+		Columns: map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+			"public.users": {
+				"id": {
+					TableSchema: "public",
+					TableName:   "users",
+					ColumnName:  "id",
+				},
+			},
+		},
+		ForeignKeyConstraints:    map[string]map[string]*sqlmanager_shared.ForeignKeyConstraint{},
+		NonForeignKeyConstraints: map[string]map[string]*sqlmanager_shared.NonForeignKeyConstraint{},
+		Triggers: map[string]map[string]*sqlmanager_shared.TableTrigger{
+			"public.users": {
+				"users_trigger_fingerprint": {
+					Schema:      "public",
+					Table:       "users",
+					TriggerName: "users_trigger",
+					Definition:  "CREATE TRIGGER users_trigger...",
+					Fingerprint: "users_trigger_fingerprint",
+				},
+				"insert_users_trigger_fingerprint": {
+					Schema:      "public",
+					Table:       "users",
+					TriggerName: "insert_users_trigger",
+					Definition:  "CREATE TRIGGER insert_users_trigger...",
+					Fingerprint: "insert_users_trigger_fingerprint",
+				},
+			},
+		},
+	}
+
+	destData := &DatabaseData{
+		Columns: map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{"public.users": {
+			"id": {
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "id",
+			},
+		}},
+		ForeignKeyConstraints:    map[string]map[string]*sqlmanager_shared.ForeignKeyConstraint{},
+		NonForeignKeyConstraints: map[string]map[string]*sqlmanager_shared.NonForeignKeyConstraint{},
+		Triggers: map[string]map[string]*sqlmanager_shared.TableTrigger{
+			"public.users": {
+				"update_users_trigger_fingerprint": {
+					Schema:      "public",
+					Table:       "users",
+					TriggerName: "users_trigger",
+					Definition:  "CREATE TRIGGER update_users_trigger...",
+					Fingerprint: "update_users_trigger_fingerprint",
+				},
+				"delete_users_trigger_fingerprint": {
+					Schema:      "public",
+					Table:       "users",
+					TriggerName: "delete_users_trigger",
+					Definition:  "CREATE TRIGGER delete_users_trigger...",
+					Fingerprint: "delete_users_trigger_fingerprint",
+				},
+			},
+		},
+	}
+
+	builder := NewSchemaDifferencesBuilder(jobmappingTables, sourceData, destData)
+	diff := builder.Build()
+
+	require.NotNil(t, diff)
+	require.Len(t, diff.ExistsInSource.Triggers, 2)
+	require.Equal(t, "users_trigger", diff.ExistsInSource.Triggers[0].TriggerName)
+	require.Equal(t, "insert_users_trigger", diff.ExistsInSource.Triggers[1].TriggerName)
+	require.Len(t, diff.ExistsInDestination.Triggers, 2)
+	require.Equal(t, "users_trigger", diff.ExistsInDestination.Triggers[0].TriggerName)
+	require.Equal(t, "delete_users_trigger", diff.ExistsInDestination.Triggers[1].TriggerName)
 }

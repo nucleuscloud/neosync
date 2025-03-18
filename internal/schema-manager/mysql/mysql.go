@@ -128,7 +128,7 @@ func getDatabaseDataForSchemaDiff(
 			if triggers[key] == nil {
 				triggers[key] = make(map[string]*sqlmanager_shared.TableTrigger)
 			}
-			triggers[key][tabletrigger.TriggerName] = tabletrigger
+			triggers[key][tabletrigger.Fingerprint] = tabletrigger
 			trigmu.Unlock()
 		}
 		return nil

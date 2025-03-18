@@ -7,9 +7,11 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
+	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	testutil_testdata "github.com/nucleuscloud/neosync/internal/testutil/testdata"
@@ -525,7 +527,7 @@ func test_mysql_schema_reconciliation(
 	shouldTruncate bool,
 ) {
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
-	schema := fmt.Sprintf("reconcile-%v", shouldTruncate)
+	schema := fmt.Sprintf("reconcile_%v", shouldTruncate)
 
 	err := mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"schema-init/create-tables.sql"}, schema)
 	require.NoError(t, err)
@@ -573,6 +575,8 @@ func test_mysql_schema_reconciliation(
 		{schema: schema, table: "multi_col_parent", rowCount: 2},
 		{schema: schema, table: "multi_col_child", rowCount: 2},
 		{schema: schema, table: "cyclic_table", rowCount: 3},
+		{schema: schema, table: "astronaut", rowCount: 2},
+		{schema: schema, table: "astronaut_log", rowCount: 2},
 	}
 
 	for _, expected := range expectedResults {
@@ -616,9 +620,74 @@ func test_mysql_schema_reconciliation(
 
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "emails", sqlmanager_shared.MysqlDriver, []string{"email_identity"})
 
+	tables := []string{}
+	for _, expected := range expectedResults {
+		tables = append(tables, expected.table)
+	}
+
+	test_mysql_schema_reconciliation_compare_schemas(t, ctx, mysql, schema, tables)
+
 	// tear down
 	err = cleanupMysqlDatabases(ctx, mysql, []string{schema})
 	require.NoError(t, err)
+}
+
+func test_mysql_schema_reconciliation_compare_schemas(
+	t *testing.T,
+	ctx context.Context,
+	mysql *tcmysql.MysqlTestSyncContainer,
+	schema string,
+	tables []string,
+) {
+	srcManager := sqlmanager_mysql.NewManager(mysql_queries.New(), mysql.Source.DB, func() {})
+	destManager := sqlmanager_mysql.NewManager(mysql_queries.New(), mysql.Target.DB, func() {})
+
+	t.Logf("checking triggers are the same in source and destination")
+	srcTriggers, err := srcManager.GetSchemaTableTriggers(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "astronaut"}})
+	require.NoError(t, err, "failed to get source triggers")
+	destTriggers, err := destManager.GetSchemaTableTriggers(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "astronaut"}})
+	require.NoError(t, err, "failed to get destination triggers")
+
+	require.Len(t, srcTriggers, len(destTriggers), "source and destination have different number of triggers")
+	destTriggersMap := make(map[string]*sqlmanager_shared.TableTrigger)
+	for _, trigger := range destTriggers {
+		destTriggersMap[trigger.Fingerprint] = trigger
+	}
+	for _, trigger := range srcTriggers {
+		destTrigger, ok := destTriggersMap[trigger.Fingerprint]
+		require.True(t, ok, "destination missing trigger with fingerprint %s", trigger.Fingerprint)
+		require.Equal(t, trigger.Definition, destTrigger.Definition, "trigger definitions do not match for fingerprint %s", trigger.Fingerprint)
+	}
+
+	t.Logf("checking table constraints are the same in source and destination")
+	srcConstraints, err := srcManager.GetTableConstraintsByTables(ctx, schema, tables)
+	require.NoError(t, err, "failed to get source table constraints")
+	destConstraints, err := destManager.GetTableConstraintsByTables(ctx, schema, tables)
+	require.NoError(t, err, "failed to get destination table constraints")
+
+	require.Len(t, srcConstraints, len(destConstraints), "source and destination have different number of tables with constraints")
+	for table, constraint := range srcConstraints {
+		srcfk := constraint.ForeignKeyConstraints
+		srcNonFk := constraint.NonForeignKeyConstraints
+		destfk := destConstraints[table].ForeignKeyConstraints
+		destNonFk := destConstraints[table].NonForeignKeyConstraints
+		require.Equal(t, srcfk, destfk, "foreign key constraints do not match for table %s", table)
+		require.Equal(t, srcNonFk, destNonFk, "non-foreign key constraints do not match for table %s", table)
+
+		for _, fk := range srcfk {
+			require.Contains(t, destfk, fk, "destination missing foreign key constraint in table %s", table)
+		}
+		for _, fk := range destfk {
+			require.Contains(t, srcfk, fk, "source missing foreign key constraint in table %s", table)
+		}
+
+		for _, nonFk := range srcNonFk {
+			require.Contains(t, destNonFk, nonFk, "destination missing non-foreign key constraint in table %s", table)
+		}
+		for _, nonFk := range destNonFk {
+			require.Contains(t, srcNonFk, nonFk, "source missing non-foreign key constraint in table %s", table)
+		}
+	}
 }
 
 func test_mysql_schema_reconciliation_column_values(

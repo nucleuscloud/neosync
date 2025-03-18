@@ -827,14 +827,15 @@ func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sql
 			if _, ok := fullTableNames[sqlmanager_shared.BuildTable(row.SchemaName, row.TableName)]; !ok {
 				continue
 			}
-			output = append(output, &sqlmanager_shared.TableTrigger{
-				Fingerprint:   sqlmanager_shared.BuildFingerprint(row.SchemaName, row.TableName, row.TriggerName, row.CreatedAt.String()),
+			trigger := &sqlmanager_shared.TableTrigger{
 				Schema:        row.SchemaName,
 				Table:         row.TableName,
 				TriggerSchema: &row.TriggerSchema,
 				TriggerName:   row.TriggerName,
 				Definition:    wrapIdempotentTrigger(row.SchemaName, row.TableName, row.TriggerName, row.TriggerSchema, row.Timing, row.EventType, row.Orientation, row.Statement),
-			})
+			}
+			trigger.Fingerprint = sqlmanager_shared.BuildTriggerFingerprint(trigger)
+			output = append(output, trigger)
 		}
 	}
 	return output, nil

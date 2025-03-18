@@ -286,13 +286,14 @@ func (p *PostgresManager) GetSchemaTableTriggers(ctx context.Context, tables []*
 
 	output := make([]*sqlmanager_shared.TableTrigger, 0, len(rows))
 	for _, row := range rows {
-		output = append(output, &sqlmanager_shared.TableTrigger{
-			Fingerprint: sqlmanager_shared.BuildFingerprint(row.SchemaName, row.TableName, row.TriggerName, row.Definition),
+		trigger := &sqlmanager_shared.TableTrigger{
 			Schema:      row.SchemaName,
 			Table:       row.TableName,
 			TriggerName: row.TriggerName,
 			Definition:  wrapPgIdempotentTrigger(row.SchemaName, row.TableName, row.TriggerName, row.Definition),
-		})
+		}
+		trigger.Fingerprint = sqlmanager_shared.BuildTriggerFingerprint(trigger)
+		output = append(output, trigger)
 	}
 	return output, nil
 }

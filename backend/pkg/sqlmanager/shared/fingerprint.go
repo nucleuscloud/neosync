@@ -62,9 +62,22 @@ func BuildNonForeignKeyConstraintFingerprint(nf *NonForeignKeyConstraint) string
 	return sha256Hex(input)
 }
 
-func BuildFingerprint(inputs ...string) string {
-	sort.Strings(inputs)
-	return sha256Hex(strings.Join(inputs, "|"))
+// BuildFingerprint creates a stable hash for a table trigger that includes
+// schema, table, trigger name, and trigger definition.
+func BuildTriggerFingerprint(trigger *TableTrigger) string {
+	parts := []string{
+		trigger.Schema,
+		trigger.Table,
+		trigger.TriggerName,
+		trigger.Definition,
+	}
+
+	if trigger.TriggerSchema != nil && *trigger.TriggerSchema != "" {
+		parts = append(parts, *trigger.TriggerSchema)
+	}
+
+	input := strings.Join(parts, "|")
+	return sha256Hex(input)
 }
 
 // ptrOrEmpty returns the pointer's value if not nil, otherwise "".

@@ -200,8 +200,7 @@ SELECT
     ACTION_STATEMENT AS statement,
     EVENT_MANIPULATION AS event_type,
     ACTION_ORIENTATION AS orientation,
-    ACTION_TIMING AS timing,
-    CREATED as created_at
+    ACTION_TIMING AS timing
 FROM
     information_schema.TRIGGERS
 WHERE
@@ -268,9 +267,7 @@ SELECT
     ROUTINE_SCHEMA as schema_name,
     DTD_IDENTIFIER as return_data_type,
     ROUTINE_DEFINITION as definition,
-    CASE WHEN IS_DETERMINISTIC = 'YES' THEN 1 ELSE 0 END as is_deterministic,
-    CREATED as created_at,
-    LAST_ALTERED as updated_at
+    CASE WHEN IS_DETERMINISTIC = 'YES' THEN 1 ELSE 0 END as is_deterministic
 FROM
     INFORMATION_SCHEMA.ROUTINES
 WHERE

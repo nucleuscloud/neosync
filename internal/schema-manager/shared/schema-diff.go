@@ -1,6 +1,8 @@
 package schemamanager_shared
 
-import sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+import (
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+)
 
 type ExistsInSource struct {
 	Tables                   []*sqlmanager_shared.SchemaTable
@@ -60,11 +62,13 @@ func NewSchemaDifferencesBuilder(
 				Columns:                  []*sqlmanager_shared.DatabaseSchemaRow{},
 				NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
 				ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
+				Triggers:                 []*sqlmanager_shared.TableTrigger{},
 			},
 			ExistsInDestination: &ExistsInDestination{
 				Columns:                  []*sqlmanager_shared.DatabaseSchemaRow{},
 				NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
 				ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
+				Triggers:                 []*sqlmanager_shared.TableTrigger{},
 			},
 			ExistsInBoth: &ExistsInBoth{
 				Tables: []*sqlmanager_shared.SchemaTable{},

@@ -204,3 +204,18 @@ ALTER TABLE parent
 ALTER TABLE parent
   DROP INDEX ux_parent_unique;
 
+DROP TRIGGER IF EXISTS astronaut_ai;
+
+CREATE TRIGGER astronaut_ai
+	AFTER UPDATE ON astronaut
+	FOR EACH ROW
+BEGIN
+	UPDATE
+		astronaut_log
+	SET
+		full_name = CONCAT(NEW.full_name, ' (', NEW.position, ')'),  -- Updated logic
+		action = 'UPDATED',
+		logged_at = NOW()
+	WHERE
+		astronaut_id = NEW.astronaut_id;
+END;
