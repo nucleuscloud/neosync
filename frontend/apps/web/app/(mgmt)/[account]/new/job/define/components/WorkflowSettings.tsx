@@ -36,6 +36,8 @@ export default function SyncActivityOptionsForm({
           htmlFor="startToCloseTimeout"
           title={startToCloseTitle}
           description={startToCloseDescription}
+          isRequired={true}
+          isErrored={!!errors?.startToCloseTimeout}
         />
         <Input
           type="number"
@@ -54,6 +56,7 @@ export default function SyncActivityOptionsForm({
           htmlFor="scheduleToCloseTimeout"
           title={scheduleToCloseTitle}
           description={scheduleToCloseDescription}
+          isErrored={!!errors?.scheduleToCloseTimeout}
         />
         <Input
           type="number"
@@ -72,6 +75,7 @@ export default function SyncActivityOptionsForm({
           htmlFor="retryPolicy.maximumAttempts"
           title={retryPolicyTitle}
           description={retryPolicyDescription}
+          isErrored={!!errors?.retryPolicy?.maximumAttempts}
         />
         <Input
           type="number"
