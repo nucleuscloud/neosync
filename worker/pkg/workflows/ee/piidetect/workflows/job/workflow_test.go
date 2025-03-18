@@ -54,9 +54,9 @@ func Test_JobPiiDetect(t *testing.T) {
 
 		// Setup GetTablesToPiiScan activity expectations
 		env.OnActivity(activities.GetTablesToPiiScan, mock.Anything, mock.Anything).Return(&piidetect_job_activities.GetTablesToPiiScanResponse{
-			Tables: []piidetect_job_activities.TableIdentifier{
-				{Schema: "public", Table: "users"},
-				{Schema: "public", Table: "orders"},
+			Tables: []piidetect_job_activities.TableIdentifierWithFingerprint{
+				{TableIdentifier: piidetect_job_activities.TableIdentifier{Schema: "public", Table: "users"}, Fingerprint: "fingerprint1"},
+				{TableIdentifier: piidetect_job_activities.TableIdentifier{Schema: "public", Table: "orders"}, Fingerprint: "fingerprint2"},
 			},
 		}, nil)
 
@@ -140,8 +140,8 @@ func Test_JobPiiDetect(t *testing.T) {
 
 		// Setup GetTablesToPiiScan to return filtered tables
 		env.OnActivity(activities.GetTablesToPiiScan, mock.Anything, mock.Anything).Return(&piidetect_job_activities.GetTablesToPiiScanResponse{
-			Tables: []piidetect_job_activities.TableIdentifier{
-				{Schema: "public", Table: "users"},
+			Tables: []piidetect_job_activities.TableIdentifierWithFingerprint{
+				{TableIdentifier: piidetect_job_activities.TableIdentifier{Schema: "public", Table: "users"}, Fingerprint: "fingerprint1"},
 			},
 		}, nil)
 
@@ -228,9 +228,9 @@ func Test_JobPiiDetect(t *testing.T) {
 
 		// Setup GetTablesToPiiScan
 		env.OnActivity(activities.GetTablesToPiiScan, mock.Anything, mock.Anything).Return(&piidetect_job_activities.GetTablesToPiiScanResponse{
-			Tables: []piidetect_job_activities.TableIdentifier{
-				{Schema: "public", Table: "users"},
-				{Schema: "public", Table: "orders"},
+			Tables: []piidetect_job_activities.TableIdentifierWithFingerprint{
+				{TableIdentifier: piidetect_job_activities.TableIdentifier{Schema: "public", Table: "users"}, Fingerprint: "fingerprint1"},
+				{TableIdentifier: piidetect_job_activities.TableIdentifier{Schema: "public", Table: "orders"}, Fingerprint: "fingerprint2"},
 			},
 		}, nil)
 

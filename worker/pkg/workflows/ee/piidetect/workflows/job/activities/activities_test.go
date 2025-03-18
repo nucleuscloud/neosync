@@ -9,6 +9,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/connectiondata"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	tmprl_mocks "go.temporal.io/sdk/mocks"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -19,8 +20,9 @@ func Test_GetPiiDetectJobDetails(t *testing.T) {
 	jobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	connClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	connBuilder := connectiondata.NewMockConnectionDataBuilder(t)
+	tmprlScheduleClient := tmprl_mocks.NewScheduleClient(t)
 
-	activities := New(jobClient, connClient, connBuilder)
+	activities := New(jobClient, connClient, connBuilder, tmprlScheduleClient)
 	env.RegisterActivity(activities.GetPiiDetectJobDetails)
 
 	t.Run("successfully gets pii detect job details", func(t *testing.T) {
@@ -76,8 +78,8 @@ func Test_GetTablesToPiiScan(t *testing.T) {
 	connClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	connBuilder := connectiondata.NewMockConnectionDataBuilder(t)
 	dataConn := connectiondata.NewMockConnectionDataService(t)
-
-	activities := New(jobClient, connClient, connBuilder)
+	tmprlScheduleClient := tmprl_mocks.NewScheduleClient(t)
+	activities := New(jobClient, connClient, connBuilder, tmprlScheduleClient)
 	env.RegisterActivity(activities.GetTablesToPiiScan)
 
 	t.Run("successfully gets tables with include filter", func(t *testing.T) {
@@ -133,16 +135,21 @@ func Test_SaveJobPiiDetectReport(t *testing.T) {
 	jobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	connClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	connBuilder := connectiondata.NewMockConnectionDataBuilder(t)
+	tmprlScheduleClient := tmprl_mocks.NewScheduleClient(t)
 
-	activities := New(jobClient, connClient, connBuilder)
+	activities := New(jobClient, connClient, connBuilder, tmprlScheduleClient)
 	env.RegisterActivity(activities.SaveJobPiiDetectReport)
 
 	t.Run("successfully saves pii detect report", func(t *testing.T) {
 		accountId := "test-account-id"
 		jobId := "test-job-id"
 		report := &JobPiiDetectReport{
-			SuccessfulTableKeys: []*mgmtv1alpha1.RunContextKey{
-				{AccountId: accountId, JobRunId: "run1"},
+			SuccessfulTableReports: []*TableReport{
+				{
+					TableSchema: "schema1",
+					TableName:   "table1",
+					ReportKey:   &mgmtv1alpha1.RunContextKey{AccountId: accountId, JobRunId: "run1"},
+				},
 			},
 		}
 

@@ -9,6 +9,7 @@ import (
 	piidetect_table_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table"
 	piidetect_table_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table/activities"
 	"github.com/openai/openai-go"
+	tmprl "go.temporal.io/sdk/client"
 )
 
 type Worker interface {
@@ -23,6 +24,7 @@ func Register(
 	openaiclient *openai.Client,
 	connectiondatabuilder connectiondata.ConnectionDataBuilder,
 	eelicense license.EEInterface,
+	tmprlScheduleClient tmprl.ScheduleClient,
 ) {
 	tablePiiDetectWorkflow := piidetect_table_workflow.New()
 	jobPiiDetectWorkflow := piidetect_job_workflow.New(eelicense)
@@ -36,7 +38,7 @@ func Register(
 	w.RegisterActivity(tablePiiDetectActivitites.DetectPiiLLM)
 	w.RegisterActivity(tablePiiDetectActivitites.SaveTablePiiDetectReport)
 
-	jobPiiDetectActivitites := piidetect_job_activities.New(jobclient, connclient, connectiondatabuilder)
+	jobPiiDetectActivitites := piidetect_job_activities.New(jobclient, connclient, connectiondatabuilder, tmprlScheduleClient)
 	w.RegisterActivity(jobPiiDetectActivitites.GetPiiDetectJobDetails)
 	w.RegisterActivity(jobPiiDetectActivitites.GetTablesToPiiScan)
 	w.RegisterActivity(jobPiiDetectActivitites.SaveJobPiiDetectReport)
