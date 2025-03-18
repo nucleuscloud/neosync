@@ -444,6 +444,13 @@ type TableReport struct {
 	ScanFingerprint string                      `json:"scanFingerprint"`
 }
 
+func (t *TableReport) ToTableIdentifier() TableIdentifier {
+	return TableIdentifier{
+		Schema: t.TableSchema,
+		Table:  t.TableName,
+	}
+}
+
 func (a *Activities) SaveJobPiiDetectReport(ctx context.Context, req *SaveJobPiiDetectReportRequest) (*SaveJobPiiDetectReportResponse, error) {
 	info := activity.GetInfo(ctx)
 	jobRunId := info.WorkflowExecution.ID

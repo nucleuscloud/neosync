@@ -191,31 +191,28 @@ func executeWorkflow(
 	}, nil
 }
 
+// buildFinalReport builds the final report by combining the previous reports with the new report
 func buildFinalReport(
 	previousReports []*piidetect_job_activities.TableReport,
 	newReport *piidetect_job_activities.JobPiiDetectReport,
 ) *piidetect_job_activities.JobPiiDetectReport {
 	fullSuccessfulTableReports := map[piidetect_job_activities.TableIdentifier]*piidetect_job_activities.TableReport{}
-	for _, report := range previousReports {
-		fullSuccessfulTableReports[piidetect_job_activities.TableIdentifier{Schema: report.TableSchema, Table: report.TableName}] = report
-	}
 	for _, report := range newReport.SuccessfulTableReports {
-		tableIdentifier := piidetect_job_activities.TableIdentifier{Schema: report.TableSchema, Table: report.TableName}
-		// if exists, the table was re-scanned, so we need to update the report key and scan fingerprint
-		if existingReport, ok := fullSuccessfulTableReports[tableIdentifier]; ok {
-			existingReport.ReportKey = report.ReportKey
-			existingReport.ScanFingerprint = report.ScanFingerprint
-		} else {
-			// this is a new table, so we just add it to the map
-			fullSuccessfulTableReports[tableIdentifier] = report
+		fullSuccessfulTableReports[report.ToTableIdentifier()] = report
+	}
+
+	for _, report := range previousReports {
+		if _, ok := fullSuccessfulTableReports[report.ToTableIdentifier()]; !ok {
+			fullSuccessfulTableReports[report.ToTableIdentifier()] = report
 		}
 	}
-	fullSuccessfulTableReportsArray := make([]*piidetect_job_activities.TableReport, 0, len(fullSuccessfulTableReports))
+
+	successfulTableReports := make([]*piidetect_job_activities.TableReport, 0, len(fullSuccessfulTableReports))
 	for _, report := range fullSuccessfulTableReports {
-		fullSuccessfulTableReportsArray = append(fullSuccessfulTableReportsArray, report)
+		successfulTableReports = append(successfulTableReports, report)
 	}
 	return &piidetect_job_activities.JobPiiDetectReport{
-		SuccessfulTableReports: fullSuccessfulTableReportsArray,
+		SuccessfulTableReports: successfulTableReports,
 	}
 }
 
@@ -229,8 +226,6 @@ func orchestrateTables(
 	userPrompt string,
 	logger log.Logger,
 ) (*piidetect_job_activities.JobPiiDetectReport, error) {
-	// todo: retrieve previous report
-
 	workselector := workflow.NewNamedSelector(ctx, "job_pii_detect")
 
 	maxConcurrency := getTablePiiDetectMaxConcurrency()
