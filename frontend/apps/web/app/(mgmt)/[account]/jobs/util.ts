@@ -432,6 +432,7 @@ export function toPiiDetectJobTypeConfig(
     dataSampling: values.dataSampling,
     userPrompt: values.userPrompt,
     tableScanFilter: toPiiDetectTableScanFilter(values.tableScanFilter),
+    incremental: values.incremental,
   });
 }
 
