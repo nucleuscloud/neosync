@@ -42,6 +42,7 @@ import { JobService } from '@neosync/sdk';
 import { usePostHog } from 'posthog-js/react';
 import { DEFAULT_CRON_STRING } from '../../../jobs/[id]/components/ScheduleCard';
 import { getNewJobSessionKeys } from '../../../jobs/util';
+import SyncActivityOptionsForm from './components/WorkflowSettings';
 
 export default function Page(props: PageProps): ReactElement {
   const searchParams = use(props.searchParams);
@@ -253,94 +254,14 @@ export default function Page(props: PageProps): ReactElement {
                       </FormItem>
                     )}
                   />
-                  <div className="flex flex-col">
-                    <FormField
-                      control={form.control}
-                      name="syncActivityOptions.startToCloseTimeout"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Table Sync Timeout</FormLabel>
-                          <FormDescription>
-                            The maximum amount of time (in minutes) a single
-                            table synchronization may run before it times out.
-                            This may need tuning depending on your datasize, and
-                            should be able to contain the table that contains
-                            the largest amount of data. This timeout is applied
-                            per retry.
-                          </FormDescription>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              {...field}
-                              value={field.value || 0}
-                              onChange={(e) => {
-                                field.onChange(e.target.valueAsNumber);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="syncActivityOptions.scheduleToCloseTimeout"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Max Table Timeout including retries
-                          </FormLabel>
-                          <FormDescription>
-                            The total time (in minutes) that a single table sync
-                            is allowed to run,{' '}
-                            <strong>
-                              <u>including</u>
-                            </strong>{' '}
-                            retries. 0 means no timeout.
-                          </FormDescription>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              {...field}
-                              value={field.value || 0}
-                              onChange={(e) => {
-                                field.onChange(e.target.valueAsNumber);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div>
-                    <FormField
-                      control={form.control}
-                      name="syncActivityOptions.retryPolicy.maximumAttempts"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Maximum Retry Attempts</FormLabel>
-                          <FormDescription>
-                            {`When exceeded, the retries stop even if they're not
-                            expired yet. If not set or set to 0, it means
-                            unlimited retry attemps and we rely on the max table
-                            timeout including retries to know when to stop.`}
-                          </FormDescription>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              {...field}
-                              value={field.value || 0}
-                              onChange={(e) => {
-                                field.onChange(e.target.valueAsNumber);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <SyncActivityOptionsForm
+                    value={form.watch('syncActivityOptions') ?? {}}
+                    setValue={(value) => {
+                      form.setValue('syncActivityOptions', value);
+                    }}
+                    errors={form.formState.errors?.syncActivityOptions}
+                    jobtype={newJobType}
+                  />
                 </div>
               </AccordionContent>
             </AccordionItem>
