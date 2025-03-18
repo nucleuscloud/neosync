@@ -207,7 +207,6 @@ func (a *Activities) GetTablesToPiiScan(ctx context.Context, req *GetTablesToPii
 		filteredTables = filterTablesByFingerprint(filteredTables, getFingerprintsFromReports(tableReports))
 		newTableCount := len(filteredTables)
 		logger.Debug("filtered tables in incremental scan", "oldTableCount", oldTableCount, "newTableCount", newTableCount)
-		// might need to return unfiltered and filtered if we want to store the fingerprints in the job report
 	}
 
 	previousReportsArray := make([]*TableReport, 0, len(previousReports))
