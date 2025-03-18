@@ -560,7 +560,18 @@ message JobTypeConfig {
     // The user prompt to use for PII detection to help influence the LLM
     optional string user_prompt = 3;
 
+    // The configuration for incremental PII detection
+    optional Incremental incremental = 4;
+
+    // The configuration for incremental PII detection
+    message Incremental {
+      // Whether to enable incremental PII detection
+      bool is_enabled = 1;
+    }
+
+    // The configuration for data sampling
     message DataSampling {
+      // Whether to enable data sampling
       bool is_enabled = 1;
     }
 

@@ -12625,18 +12625,18 @@ components:
       allOf:
         - anyOf:
             - required:
+                - incremental
+            - not:
+                anyOf:
+                  - required:
+                      - incremental
+        - anyOf:
+            - required:
                 - userPrompt
             - not:
                 anyOf:
                   - required:
                       - userPrompt
-      anyOf:
-        - required:
-            - userPrompt
-        - not:
-            anyOf:
-              - required:
-                  - userPrompt
       properties:
         dataSampling:
           allOf:
@@ -12654,6 +12654,12 @@ components:
           type: string
           title: user_prompt
           description: The user prompt to use for PII detection to help influence the LLM
+        incremental:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.Incremental
+          title: incremental
+          description: The configuration for incremental PII detection
       title: JobTypePiiDetect
       additionalProperties: false
     mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling:
@@ -12662,13 +12668,25 @@ components:
         isEnabled:
           type: boolean
           title: is_enabled
+          description: Whether to enable data sampling
       title: DataSampling
       additionalProperties: false
+      description: The configuration for data sampling
     mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.IncludeAll:
       type: object
       title: IncludeAll
       additionalProperties: false
       description: Configuration to include all tables
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.Incremental:
+      type: object
+      properties:
+        isEnabled:
+          type: boolean
+          title: is_enabled
+          description: Whether to enable incremental PII detection
+      title: Incremental
+      additionalProperties: false
+      description: The configuration for incremental PII detection
     mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableIdentifier:
       type: object
       properties:
