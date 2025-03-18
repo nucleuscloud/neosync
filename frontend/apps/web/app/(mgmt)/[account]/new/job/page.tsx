@@ -24,7 +24,7 @@ import {
   useSearchParams,
 } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, ReactNode, use, useEffect, useState } from 'react';
+import { ReactElement, ReactNode, use, useState } from 'react';
 import { AiOutlineExperiment } from 'react-icons/ai';
 import { NewJobType } from './job-form-validations';
 
@@ -158,15 +158,10 @@ function useGetJobData(
   params: Record<string, string>,
   searchParams: ReadonlyURLSearchParams
 ): JobData[] {
-  const [sessionToken, setSessionToken] = useState<string>('');
+  const [sessionToken] = useState<string>(params?.sessionId ?? nanoid());
   const { account } = useAccount();
   const { data: systemAppConfig } = useGetSystemAppConfig();
   const { resolvedTheme } = useTheme();
-
-  useEffect(() => {
-    // Generate the session token only on the client side
-    setSessionToken(params?.sessionId ?? nanoid());
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const dataSyncParams = new URLSearchParams(searchParams);
   dataSyncParams.set('jobType', 'data-sync');
