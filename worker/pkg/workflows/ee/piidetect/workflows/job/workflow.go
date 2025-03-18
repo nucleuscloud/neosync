@@ -137,6 +137,8 @@ func executeWorkflow(
 		}),
 		activities.GetTablesToPiiScan,
 		&piidetect_job_activities.GetTablesToPiiScanRequest{
+			AccountId:          jobDetailsResp.AccountId,
+			JobId:              req.JobId,
 			SourceConnectionId: jobDetailsResp.SourceConnectionId,
 			Filter:             filter,
 			IncrementalConfig:  incrementalConfig,

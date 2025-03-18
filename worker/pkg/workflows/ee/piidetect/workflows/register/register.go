@@ -42,4 +42,5 @@ func Register(
 	w.RegisterActivity(jobPiiDetectActivitites.GetPiiDetectJobDetails)
 	w.RegisterActivity(jobPiiDetectActivitites.GetTablesToPiiScan)
 	w.RegisterActivity(jobPiiDetectActivitites.SaveJobPiiDetectReport)
+	w.RegisterActivity(jobPiiDetectActivitites.GetLastSuccessfulWorkflowId)
 }

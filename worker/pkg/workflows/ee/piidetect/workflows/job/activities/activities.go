@@ -319,7 +319,7 @@ func (a *Activities) getJobPiiDetectReport(ctx context.Context, accountId, workf
 		if isConnectNotFoundError(err) {
 			return nil, false, nil
 		}
-		return nil, false, fmt.Errorf("unable to get run context: %w", err)
+		return nil, false, fmt.Errorf("unable to get run context for job pii detect report: %w", err)
 	}
 	runCtxBytes := runCtxResp.Msg.GetValue()
 	var runCtx JobPiiDetectReport
