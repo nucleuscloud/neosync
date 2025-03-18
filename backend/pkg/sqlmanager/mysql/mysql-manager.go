@@ -26,6 +26,7 @@ const (
 	CreateTablesLabel                 = "create table"
 	AddColumnsLabel                   = "add columns"
 	DropColumnsLabel                  = "drop columns"
+	DropTriggersLabel                 = "drop triggers"
 	DropNonForeignKeyConstraintsLabel = "drop non-foreign key constraints"
 	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
 )
@@ -653,6 +654,13 @@ func BuildDropConstraintStatement(schema, table, constraintType, constraintName 
 	return fmt.Sprintf("ALTER TABLE %s.%s DROP %s %s;", EscapeMysqlColumn(schema), EscapeMysqlColumn(table), constraintType, EscapeMysqlColumn(constraintName))
 }
 
+func BuildDropTriggerStatement(schema *string, triggerName string) string {
+	if schema == nil {
+		return fmt.Sprintf("DROP TRIGGER IF EXISTS %s;", EscapeMysqlColumn(triggerName))
+	}
+	return fmt.Sprintf("DROP TRIGGER IF EXISTS %s.%s;", EscapeMysqlColumn(*schema), EscapeMysqlColumn(triggerName))
+}
+
 type buildTableColRequest struct {
 	ColumnName          string
 	ColumnDefault       string
@@ -820,11 +828,12 @@ func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sql
 				continue
 			}
 			output = append(output, &sqlmanager_shared.TableTrigger{
-				Fingerprint: sqlmanager_shared.BuildFingerprint(row.SchemaName, row.TableName, row.TriggerName, row.CreatedAt.String()),
-				Schema:      row.SchemaName,
-				Table:       row.TableName,
-				TriggerName: row.TriggerName,
-				Definition:  wrapIdempotentTrigger(row.SchemaName, row.TableName, row.TriggerName, row.TriggerSchema, row.Timing, row.EventType, row.Orientation, row.Statement),
+				Fingerprint:   sqlmanager_shared.BuildFingerprint(row.SchemaName, row.TableName, row.TriggerName, row.CreatedAt.String()),
+				Schema:        row.SchemaName,
+				Table:         row.TableName,
+				TriggerSchema: &row.TriggerSchema,
+				TriggerName:   row.TriggerName,
+				Definition:    wrapIdempotentTrigger(row.SchemaName, row.TableName, row.TriggerName, row.TriggerSchema, row.Timing, row.EventType, row.Orientation, row.Statement),
 			})
 		}
 	}

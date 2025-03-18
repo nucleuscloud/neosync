@@ -31,9 +31,10 @@ type SchemaDifferences struct {
 }
 
 type DatabaseData struct {
-	Columns          map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // map of schema.table -> column name -> column info
-	TableConstraints map[string]*sqlmanager_shared.AllTableConstraints          // map of schema.table -> constraints
-	Triggers         map[string]map[string]*sqlmanager_shared.TableTrigger      // map of schema.table -> fingerprint -> trigger
+	Columns                  map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow       // map of schema.table -> column name -> column info
+	ForeignKeyConstraints    map[string]map[string]*sqlmanager_shared.ForeignKeyConstraint    // map of schema.table -> fingerprint -> foreign key constraint
+	NonForeignKeyConstraints map[string]map[string]*sqlmanager_shared.NonForeignKeyConstraint // map of schema.table -> fingerprint -> non foreign key constraint
+	Triggers                 map[string]map[string]*sqlmanager_shared.TableTrigger            // map of schema.table -> fingerprint -> trigger
 }
 
 type SchemaDifferencesBuilder struct {
@@ -74,7 +75,8 @@ func NewSchemaDifferencesBuilder(
 
 func (b *SchemaDifferencesBuilder) Build() *SchemaDifferences {
 	b.buildTableColumnDifferences()
-	b.buildTableConstraintDifferences()
+	b.buildTableForeignKeyConstraintDifferences()
+	b.buildTableNonForeignKeyConstraintDifferences()
 	b.buildTableTriggerDifferences()
 	return b.diff
 }
@@ -106,76 +108,44 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 	}
 }
 
-func (b *SchemaDifferencesBuilder) buildTableConstraintDifferences() {
+func (b *SchemaDifferencesBuilder) buildTableForeignKeyConstraintDifferences() {
 	for _, table := range b.diff.ExistsInBoth.Tables {
-		srcTableConstraints := b.source.TableConstraints[table.String()]
-		dstTableConstraints := b.destination.TableConstraints[table.String()]
+		srcTableFkConstraints := b.source.ForeignKeyConstraints[table.String()]
+		dstTableFkConstraints := b.destination.ForeignKeyConstraints[table.String()]
 
-		b.buildNonFkDifferences(srcTableConstraints, dstTableConstraints)
-		b.buildTableFkDifferences(srcTableConstraints, dstTableConstraints)
-
-		// if !hasSrcConstraints && hasDstConstraints {
-		// 	// if there's nothing in source but something in dest => all in dest need to be dropped
-		// 	b.diff.ExistsInDestination.NonForeignKeyConstraints = append(b.diff.ExistsInDestination.NonForeignKeyConstraints, dstTableConstraints.NonForeignKeyConstraints...)
-		// 	b.diff.ExistsInDestination.ForeignKeyConstraints = append(b.diff.ExistsInDestination.ForeignKeyConstraints, dstTableConstraints.ForeignKeyConstraints...)
-		// } else if hasSrcConstraints && !hasDstConstraints {
-		// 	// if there's constraints in source but none in dest => all in source need to be created
-		// 	b.diff.ExistsInSource.NonForeignKeyConstraints = append(b.diff.ExistsInSource.NonForeignKeyConstraints, srcTableConstraints.NonForeignKeyConstraints...)
-		// 	b.diff.ExistsInSource.ForeignKeyConstraints = append(b.diff.ExistsInSource.ForeignKeyConstraints, srcTableConstraints.ForeignKeyConstraints...)
-		// } else if hasSrcConstraints && hasDstConstraints {
-		// 	// if there's constraints in both source and destination compare them
-		// 	b.buildNonFkDifferences(srcTableConstraints, dstTableConstraints)
-		// 	b.buildTableFkDifferences(srcTableConstraints, dstTableConstraints)
-		// }
-	}
-}
-
-func (b *SchemaDifferencesBuilder) buildTableFkDifferences(srcTableConstraints, dstTableConstraints *sqlmanager_shared.AllTableConstraints) {
-	srcFkMap := make(map[string]*sqlmanager_shared.ForeignKeyConstraint)
-	for _, c := range srcTableConstraints.ForeignKeyConstraints {
-		srcFkMap[c.Fingerprint] = c
-	}
-
-	dstFkMap := make(map[string]*sqlmanager_shared.ForeignKeyConstraint)
-	for _, c := range dstTableConstraints.ForeignKeyConstraints {
-		dstFkMap[c.Fingerprint] = c
-	}
-
-	// in source but not in destination
-	for fingerprint, cObj := range srcFkMap {
-		if _, ok := dstFkMap[fingerprint]; !ok {
-			b.diff.ExistsInSource.ForeignKeyConstraints = append(b.diff.ExistsInSource.ForeignKeyConstraints, cObj)
+		for _, fkConstraint := range srcTableFkConstraints {
+			_, ok := dstTableFkConstraints[fkConstraint.Fingerprint]
+			if !ok {
+				b.diff.ExistsInSource.ForeignKeyConstraints = append(b.diff.ExistsInSource.ForeignKeyConstraints, fkConstraint)
+			}
 		}
-	}
-	// in destination but not in source
-	for fingerprint, cObj := range dstFkMap {
-		if _, ok := srcFkMap[fingerprint]; !ok {
-			b.diff.ExistsInDestination.ForeignKeyConstraints = append(b.diff.ExistsInDestination.ForeignKeyConstraints, cObj)
+
+		for _, fkConstraint := range dstTableFkConstraints {
+			_, ok := srcTableFkConstraints[fkConstraint.Fingerprint]
+			if !ok {
+				b.diff.ExistsInDestination.ForeignKeyConstraints = append(b.diff.ExistsInDestination.ForeignKeyConstraints, fkConstraint)
+			}
 		}
 	}
 }
 
-func (b *SchemaDifferencesBuilder) buildNonFkDifferences(srcTableConstraints, dstTableConstraints *sqlmanager_shared.AllTableConstraints) {
-	srcNonFkMap := make(map[string]*sqlmanager_shared.NonForeignKeyConstraint)
-	for _, c := range srcTableConstraints.NonForeignKeyConstraints {
-		srcNonFkMap[c.Fingerprint] = c
-	}
+func (b *SchemaDifferencesBuilder) buildTableNonForeignKeyConstraintDifferences() {
+	for _, table := range b.diff.ExistsInBoth.Tables {
+		srcTableNonFkConstraints := b.source.NonForeignKeyConstraints[table.String()]
+		dstTableNonFkConstraints := b.destination.NonForeignKeyConstraints[table.String()]
 
-	dstNonFkMap := make(map[string]*sqlmanager_shared.NonForeignKeyConstraint)
-	for _, c := range dstTableConstraints.NonForeignKeyConstraints {
-		dstNonFkMap[c.Fingerprint] = c
-	}
-
-	// in source but not in destination
-	for fingerprint, cObj := range srcNonFkMap {
-		if _, ok := dstNonFkMap[fingerprint]; !ok {
-			b.diff.ExistsInSource.NonForeignKeyConstraints = append(b.diff.ExistsInSource.NonForeignKeyConstraints, cObj)
+		for _, nonFkConstraint := range srcTableNonFkConstraints {
+			_, ok := dstTableNonFkConstraints[nonFkConstraint.Fingerprint]
+			if !ok {
+				b.diff.ExistsInSource.NonForeignKeyConstraints = append(b.diff.ExistsInSource.NonForeignKeyConstraints, nonFkConstraint)
+			}
 		}
-	}
-	// in destination but not in source
-	for fingerprint, cObj := range dstNonFkMap {
-		if _, ok := srcNonFkMap[fingerprint]; !ok {
-			b.diff.ExistsInDestination.NonForeignKeyConstraints = append(b.diff.ExistsInDestination.NonForeignKeyConstraints, cObj)
+
+		for _, nonFkConstraint := range dstTableNonFkConstraints {
+			_, ok := srcTableNonFkConstraints[nonFkConstraint.Fingerprint]
+			if !ok {
+				b.diff.ExistsInDestination.NonForeignKeyConstraints = append(b.diff.ExistsInDestination.NonForeignKeyConstraints, nonFkConstraint)
+			}
 		}
 	}
 }
