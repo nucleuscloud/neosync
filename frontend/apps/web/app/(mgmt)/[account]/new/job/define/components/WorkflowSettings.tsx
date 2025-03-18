@@ -123,7 +123,7 @@ function useScheduleToCloseTimeoutLabels(jobtype: NewJobType): Labels {
     switch (jobtype) {
       case 'pii-detection':
         return {
-          title: 'Max Table Timeout including retries',
+          title: 'Max PII Detection Timeout including retries',
           description:
             'The total time (in minutes) that a single table detection is allowed to run, including retries. 0 means no timeout.',
         };
