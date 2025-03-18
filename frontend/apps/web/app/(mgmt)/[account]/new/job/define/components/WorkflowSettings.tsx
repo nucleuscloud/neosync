@@ -110,7 +110,7 @@ function useStartToCloseTimeoutLabels(jobtype: NewJobType): Labels {
         };
       default:
         return {
-          title: 'Table Sync Timeout',
+          title: 'Table Page Sync Timeout',
           description:
             'The maximum amount of time (in minutes) a single table page synchronization may run before it times out. This may need tuning depending on your datasize and how well optimized the indices on the table. This is applied to every table page sync and generate. This timeout is applied per retry.',
         };
@@ -144,13 +144,13 @@ function useRetryPolicyLabels(jobtype: NewJobType): Labels {
         return {
           title: 'Maximum Retry Attempts',
           description:
-            'The maximum number of times a table detection may retry before giving up.',
+            'The maximum number of times a table detection may retry before giving up.  If not set or set to 0, it means unlimited retry attempts and the max table timeout including retries will be used to know when to stop.',
         };
       default:
         return {
           title: 'Maximum Retry Attempts',
           description:
-            'The maximum number of times a table sync may retry before giving up.',
+            'The maximum number of times a table sync may retry before giving up.  If not set or set to 0, it means unlimited retry attempts and the max table timeout including retries will be used to know when to stop.',
         };
     }
   }, [jobtype]);
