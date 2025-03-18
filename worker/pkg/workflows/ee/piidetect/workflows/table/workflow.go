@@ -107,6 +107,11 @@ func (w *Workflow) TablePiiDetect(ctx workflow.Context, req *TablePiiDetectReque
 
 	report := buildFinalReport(regexResp, llmResp)
 
+	scannedColumns := make([]string, 0, len(columDataResp.ColumnData))
+	for _, col := range columDataResp.ColumnData {
+		scannedColumns = append(scannedColumns, col.Column)
+	}
+
 	var saveResp *piidetect_table_activities.SaveTablePiiDetectReportResponse
 	err = workflow.ExecuteActivity(
 		workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
@@ -117,11 +122,12 @@ func (w *Workflow) TablePiiDetect(ctx workflow.Context, req *TablePiiDetectReque
 		}),
 		activities.SaveTablePiiDetectReport,
 		&piidetect_table_activities.SaveTablePiiDetectReportRequest{
-			ParentRunId: req.ParentExecutionId,
-			AccountId:   req.AccountId,
-			TableSchema: req.TableSchema,
-			TableName:   req.TableName,
-			Report:      report,
+			ParentRunId:    req.ParentExecutionId,
+			AccountId:      req.AccountId,
+			TableSchema:    req.TableSchema,
+			TableName:      req.TableName,
+			Report:         report,
+			ScannedColumns: scannedColumns,
 		},
 	).Get(ctx, &saveResp)
 	if err != nil {
