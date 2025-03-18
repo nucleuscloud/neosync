@@ -287,6 +287,7 @@ func (p *PostgresManager) GetSchemaTableTriggers(ctx context.Context, tables []*
 	output := make([]*sqlmanager_shared.TableTrigger, 0, len(rows))
 	for _, row := range rows {
 		output = append(output, &sqlmanager_shared.TableTrigger{
+			Fingerprint: sqlmanager_shared.BuildFingerprint(row.SchemaName, row.TableName, row.TriggerName, row.Definition),
 			Schema:      row.SchemaName,
 			Table:       row.TableName,
 			TriggerName: row.TriggerName,

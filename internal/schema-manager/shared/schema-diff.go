@@ -7,6 +7,7 @@ type ExistsInSource struct {
 	Columns                  []*sqlmanager_shared.DatabaseSchemaRow
 	NonForeignKeyConstraints []*sqlmanager_shared.NonForeignKeyConstraint
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
+	Triggers                 []*sqlmanager_shared.TableTrigger
 }
 
 type ExistsInBoth struct {
@@ -17,6 +18,7 @@ type ExistsInDestination struct {
 	Columns                  []*sqlmanager_shared.DatabaseSchemaRow
 	NonForeignKeyConstraints []*sqlmanager_shared.NonForeignKeyConstraint
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
+	Triggers                 []*sqlmanager_shared.TableTrigger
 }
 
 type SchemaDifferences struct {
@@ -29,8 +31,9 @@ type SchemaDifferences struct {
 }
 
 type DatabaseData struct {
-	Columns          map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow
-	TableConstraints map[string]*sqlmanager_shared.AllTableConstraints
+	Columns          map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // map of schema.table -> column name -> column info
+	TableConstraints map[string]*sqlmanager_shared.AllTableConstraints          // map of schema.table -> constraints
+	Triggers         map[string]map[string]*sqlmanager_shared.TableTrigger      // map of schema.table -> fingerprint -> trigger
 }
 
 type SchemaDifferencesBuilder struct {
@@ -72,6 +75,7 @@ func NewSchemaDifferencesBuilder(
 func (b *SchemaDifferencesBuilder) Build() *SchemaDifferences {
 	b.buildTableColumnDifferences()
 	b.buildTableConstraintDifferences()
+	b.buildTableTriggerDifferences()
 	return b.diff
 }
 
@@ -104,22 +108,25 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 
 func (b *SchemaDifferencesBuilder) buildTableConstraintDifferences() {
 	for _, table := range b.diff.ExistsInBoth.Tables {
-		srcTableConstraints, hasSrcConstraints := b.source.TableConstraints[table.String()]
-		dstTableConstraints, hasDstConstraints := b.destination.TableConstraints[table.String()]
+		srcTableConstraints := b.source.TableConstraints[table.String()]
+		dstTableConstraints := b.destination.TableConstraints[table.String()]
 
-		// if there's nothing in source but something in dest => all in dest need to be dropped
-		if !hasSrcConstraints && hasDstConstraints {
-			b.diff.ExistsInDestination.NonForeignKeyConstraints = append(b.diff.ExistsInDestination.NonForeignKeyConstraints, dstTableConstraints.NonForeignKeyConstraints...)
-			b.diff.ExistsInDestination.ForeignKeyConstraints = append(b.diff.ExistsInDestination.ForeignKeyConstraints, dstTableConstraints.ForeignKeyConstraints...)
-		} else if hasSrcConstraints && !hasDstConstraints {
-			// if there's constraints in source but none in dest => all in source need to be created
-			b.diff.ExistsInSource.NonForeignKeyConstraints = append(b.diff.ExistsInSource.NonForeignKeyConstraints, srcTableConstraints.NonForeignKeyConstraints...)
-			b.diff.ExistsInSource.ForeignKeyConstraints = append(b.diff.ExistsInSource.ForeignKeyConstraints, srcTableConstraints.ForeignKeyConstraints...)
-		} else if hasSrcConstraints && hasDstConstraints {
-			// if there's constraints in both source and destination compare them
-			b.buildNonFkDifferences(srcTableConstraints, dstTableConstraints)
-			b.buildTableFkDifferences(srcTableConstraints, dstTableConstraints)
-		}
+		b.buildNonFkDifferences(srcTableConstraints, dstTableConstraints)
+		b.buildTableFkDifferences(srcTableConstraints, dstTableConstraints)
+
+		// if !hasSrcConstraints && hasDstConstraints {
+		// 	// if there's nothing in source but something in dest => all in dest need to be dropped
+		// 	b.diff.ExistsInDestination.NonForeignKeyConstraints = append(b.diff.ExistsInDestination.NonForeignKeyConstraints, dstTableConstraints.NonForeignKeyConstraints...)
+		// 	b.diff.ExistsInDestination.ForeignKeyConstraints = append(b.diff.ExistsInDestination.ForeignKeyConstraints, dstTableConstraints.ForeignKeyConstraints...)
+		// } else if hasSrcConstraints && !hasDstConstraints {
+		// 	// if there's constraints in source but none in dest => all in source need to be created
+		// 	b.diff.ExistsInSource.NonForeignKeyConstraints = append(b.diff.ExistsInSource.NonForeignKeyConstraints, srcTableConstraints.NonForeignKeyConstraints...)
+		// 	b.diff.ExistsInSource.ForeignKeyConstraints = append(b.diff.ExistsInSource.ForeignKeyConstraints, srcTableConstraints.ForeignKeyConstraints...)
+		// } else if hasSrcConstraints && hasDstConstraints {
+		// 	// if there's constraints in both source and destination compare them
+		// 	b.buildNonFkDifferences(srcTableConstraints, dstTableConstraints)
+		// 	b.buildTableFkDifferences(srcTableConstraints, dstTableConstraints)
+		// }
 	}
 }
 
@@ -169,6 +176,26 @@ func (b *SchemaDifferencesBuilder) buildNonFkDifferences(srcTableConstraints, ds
 	for fingerprint, cObj := range dstNonFkMap {
 		if _, ok := srcNonFkMap[fingerprint]; !ok {
 			b.diff.ExistsInDestination.NonForeignKeyConstraints = append(b.diff.ExistsInDestination.NonForeignKeyConstraints, cObj)
+		}
+	}
+}
+
+func (b *SchemaDifferencesBuilder) buildTableTriggerDifferences() {
+	for _, table := range b.diff.ExistsInBoth.Tables {
+		srcTriggers := b.source.Triggers[table.String()]
+		dstTriggers := b.destination.Triggers[table.String()]
+		for _, trigger := range srcTriggers {
+			_, ok := dstTriggers[trigger.Fingerprint]
+			if !ok {
+				b.diff.ExistsInSource.Triggers = append(b.diff.ExistsInSource.Triggers, trigger)
+			}
+		}
+
+		for _, trigger := range dstTriggers {
+			_, ok := srcTriggers[trigger.Fingerprint]
+			if !ok {
+				b.diff.ExistsInDestination.Triggers = append(b.diff.ExistsInDestination.Triggers, trigger)
+			}
 		}
 	}
 }

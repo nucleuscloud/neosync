@@ -101,6 +101,7 @@ func getDatabaseDataForSchemaDiff(
 ) (*shared.DatabaseData, error) {
 	columns := []*sqlmanager_shared.DatabaseSchemaRow{}
 	constraints := map[string]*sqlmanager_shared.AllTableConstraints{}
+	triggers := map[string]map[string]*sqlmanager_shared.TableTrigger{}
 
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.SetLimit(5)
@@ -111,6 +112,21 @@ func getDatabaseDataForSchemaDiff(
 			return fmt.Errorf("failed to retrieve database table schemas: %w", err)
 		}
 		columns = cols
+		return nil
+	})
+
+	trigmu := sync.Mutex{}
+	errgrp.Go(func() error {
+		tabletriggers, err := db.Db().GetSchemaTableTriggers(ctx, tables)
+		if err != nil {
+			return fmt.Errorf("failed to retrieve database table triggers: %w", err)
+		}
+		for _, tabletrigger := range tabletriggers {
+			key := sqlmanager_shared.SchemaTable{Schema: tabletrigger.Schema, Table: tabletrigger.Table}.String()
+			trigmu.Lock()
+			triggers[key][tabletrigger.TriggerName] = tabletrigger
+			trigmu.Unlock()
+		}
 		return nil
 	})
 
@@ -144,6 +160,7 @@ func getDatabaseDataForSchemaDiff(
 	return &shared.DatabaseData{
 		Columns:          columnsMap,
 		TableConstraints: constraints,
+		Triggers:         triggers,
 	}, nil
 }
 

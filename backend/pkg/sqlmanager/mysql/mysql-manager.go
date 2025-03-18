@@ -820,6 +820,7 @@ func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sql
 				continue
 			}
 			output = append(output, &sqlmanager_shared.TableTrigger{
+				Fingerprint: sqlmanager_shared.BuildFingerprint(row.SchemaName, row.TableName, row.TriggerName, row.CreatedAt.String()),
 				Schema:      row.SchemaName,
 				Table:       row.TableName,
 				TriggerName: row.TriggerName,

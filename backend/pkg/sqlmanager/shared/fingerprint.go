@@ -62,6 +62,11 @@ func BuildNonForeignKeyConstraintFingerprint(nf *NonForeignKeyConstraint) string
 	return sha256Hex(input)
 }
 
+func BuildFingerprint(inputs ...string) string {
+	sort.Strings(inputs)
+	return sha256Hex(strings.Join(inputs, "|"))
+}
+
 // ptrOrEmpty returns the pointer's value if not nil, otherwise "".
 func ptrOrEmpty(s *string) string {
 	if s == nil {

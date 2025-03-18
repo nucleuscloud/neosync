@@ -10,6 +10,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"strings"
+	"time"
 )
 
 const getAllSchemas = `-- name: GetAllSchemas :many
@@ -96,7 +97,9 @@ SELECT
     ROUTINE_SCHEMA as schema_name,
     DTD_IDENTIFIER as return_data_type,
     ROUTINE_DEFINITION as definition,
-    CASE WHEN IS_DETERMINISTIC = 'YES' THEN 1 ELSE 0 END as is_deterministic
+    CASE WHEN IS_DETERMINISTIC = 'YES' THEN 1 ELSE 0 END as is_deterministic,
+    CREATED as created_at,
+    LAST_ALTERED as updated_at
 FROM
     INFORMATION_SCHEMA.ROUTINES
 WHERE
@@ -110,6 +113,8 @@ type GetCustomFunctionsBySchemasRow struct {
 	ReturnDataType  string
 	Definition      string
 	IsDeterministic int32
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 func (q *Queries) GetCustomFunctionsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetCustomFunctionsBySchemasRow, error) {
@@ -137,6 +142,8 @@ func (q *Queries) GetCustomFunctionsBySchemas(ctx context.Context, db DBTX, sche
 			&i.ReturnDataType,
 			&i.Definition,
 			&i.IsDeterministic,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -160,7 +167,8 @@ SELECT
     ACTION_STATEMENT AS statement,
     EVENT_MANIPULATION AS event_type,
     ACTION_ORIENTATION AS orientation,
-    ACTION_TIMING AS timing
+    ACTION_TIMING AS timing,
+    CREATED as created_at
 FROM
     information_schema.TRIGGERS
 WHERE
@@ -181,6 +189,7 @@ type GetCustomTriggersBySchemaAndTablesRow struct {
 	EventType     string
 	Orientation   string
 	Timing        string
+	CreatedAt     time.Time
 }
 
 // sqlc is broken for mysql so can't do CONCAT(EVENT_OBJECT_SCHEMA, '.', EVENT_OBJECT_TABLE) IN (sqlc.slice('schematables'))
@@ -213,6 +222,7 @@ func (q *Queries) GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBT
 			&i.EventType,
 			&i.Orientation,
 			&i.Timing,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
