@@ -35,10 +35,11 @@ export default function NewJob(props: PageProps): ReactElement {
 
   const jobData = useGetJobData(params, searchParams);
 
-  const [selectedJobType, setSelectedJobType] =
-    useState<NewJobType>('data-sync');
+  const [selectedJobType, setSelectedJobType] = useState<NewJobType>(
+    jobData[0].type
+  );
 
-  const [href, setHref] = useState<string | undefined>();
+  const [href, setHref] = useState<string | undefined>(jobData[0].href);
 
   const handleJobSelection = (jobType: NewJobType, href: string) => {
     setSelectedJobType(jobType);
