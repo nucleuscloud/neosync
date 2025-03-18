@@ -100,9 +100,9 @@ func getDatabaseDataForSchemaDiff(
 	schemaMap map[string][]*sqlmanager_shared.SchemaTable,
 ) (*shared.DatabaseData, error) {
 	columns := []*sqlmanager_shared.DatabaseSchemaRow{}
-	nonFkConstraints := map[string]map[string]*sqlmanager_shared.NonForeignKeyConstraint{}
-	fkConstraints := map[string]map[string]*sqlmanager_shared.ForeignKeyConstraint{}
-	triggers := map[string]map[string]*sqlmanager_shared.TableTrigger{}
+	nonFkConstraints := map[string]*sqlmanager_shared.NonForeignKeyConstraint{}
+	fkConstraints := map[string]*sqlmanager_shared.ForeignKeyConstraint{}
+	triggers := map[string]*sqlmanager_shared.TableTrigger{}
 
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.SetLimit(5)
@@ -123,12 +123,8 @@ func getDatabaseDataForSchemaDiff(
 			return fmt.Errorf("failed to retrieve database table triggers: %w", err)
 		}
 		for _, tabletrigger := range tabletriggers {
-			key := sqlmanager_shared.SchemaTable{Schema: tabletrigger.Schema, Table: tabletrigger.Table}.String()
 			trigmu.Lock()
-			if triggers[key] == nil {
-				triggers[key] = make(map[string]*sqlmanager_shared.TableTrigger)
-			}
-			triggers[key][tabletrigger.Fingerprint] = tabletrigger
+			triggers[tabletrigger.Fingerprint] = tabletrigger
 			trigmu.Unlock()
 		}
 		return nil
@@ -147,21 +143,15 @@ func getDatabaseDataForSchemaDiff(
 			if err != nil {
 				return fmt.Errorf("failed to retrieve  database table constraints for schema %s: %w", schema, err)
 			}
-			for key, tableconstraint := range tableconstraints {
+			for _, tableconstraint := range tableconstraints {
 				for _, nonFkConstraint := range tableconstraint.NonForeignKeyConstraints {
 					mu.Lock()
-					if nonFkConstraints[key] == nil {
-						nonFkConstraints[key] = make(map[string]*sqlmanager_shared.NonForeignKeyConstraint)
-					}
-					nonFkConstraints[key][nonFkConstraint.Fingerprint] = nonFkConstraint
+					nonFkConstraints[nonFkConstraint.Fingerprint] = nonFkConstraint
 					mu.Unlock()
 				}
 				for _, fkConstraint := range tableconstraint.ForeignKeyConstraints {
 					mu.Lock()
-					if fkConstraints[key] == nil {
-						fkConstraints[key] = make(map[string]*sqlmanager_shared.ForeignKeyConstraint)
-					}
-					fkConstraints[key][fkConstraint.Fingerprint] = fkConstraint
+					fkConstraints[fkConstraint.Fingerprint] = fkConstraint
 					mu.Unlock()
 				}
 			}
