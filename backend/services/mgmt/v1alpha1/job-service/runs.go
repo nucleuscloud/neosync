@@ -10,9 +10,11 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
@@ -22,6 +24,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
+	piidetect_job_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/job/activities"
 	piidetect_table_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table"
 	piidetect_table_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table/activities"
 	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
@@ -29,6 +32,7 @@ import (
 	"go.temporal.io/api/history/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -1066,15 +1070,27 @@ func (s *Service) GetPiiDetectionReport(
 		return nil, err
 	}
 
-	tableRunContexts, err := s.db.Q.GetRunContextsByExternalIdSuffix(ctx, s.db.Db, db_queries.GetRunContextsByExternalIdSuffixParams{
-		WorkflowId:       jobRun.GetId(),
-		ExternalIdSuffix: piidetect_table_activities.PiiTableReportSuffix,
-		AccountId:        accountUuid,
-	})
-	if err != nil && !neosyncdb.IsNoRows(err) {
-		return nil, fmt.Errorf("unable to retrieve run contexts: %w", err)
-	} else if err != nil && neosyncdb.IsNoRows(err) {
-		return connect.NewResponse(&mgmtv1alpha1.GetPiiDetectionReportResponse{}), nil
+	tableRunContexts, err := s.getTableRunContextsFromJobReport(ctx, jobRun, accountUuid)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get table run contexts from job report: %w", err)
+	}
+
+	// this can happen if the run is currently running and the job report hasn't been updated yet
+	// this allows us to effectively stream in the latest reports while the job is running
+	if len(tableRunContexts) == 0 {
+		logger.Debug("no table run contexts found in job report, fetching table level reports")
+		runContexts, err := s.db.Q.GetRunContextsByExternalIdSuffix(ctx, s.db.Db, db_queries.GetRunContextsByExternalIdSuffixParams{
+			WorkflowId:       jobRun.GetId(),
+			ExternalIdSuffix: piidetect_table_activities.PiiTableReportSuffix,
+			AccountId:        accountUuid,
+		})
+		if err != nil && !neosyncdb.IsNoRows(err) {
+			return nil, fmt.Errorf("unable to retrieve run contexts: %w", err)
+		}
+
+		for i := range runContexts {
+			tableRunContexts = append(tableRunContexts, &runContexts[i])
+		}
 	}
 
 	reports, err := getReportsFromTableContexts(tableRunContexts)
@@ -1093,7 +1109,70 @@ func (s *Service) GetPiiDetectionReport(
 	}), nil
 }
 
-func getReportsFromTableContexts(tableContexts []db_queries.NeosyncApiRuncontext) ([]*piidetect_table_activities.TableReport, error) {
+func (s *Service) getTableRunContextsFromJobReport(ctx context.Context, jobRun *mgmtv1alpha1.JobRun, accountUuid pgtype.UUID) ([]*db_queries.NeosyncApiRuncontext, error) {
+	runContext, err := s.db.Q.GetRunContextByKey(ctx, s.db.Db, db_queries.GetRunContextByKeyParams{
+		WorkflowId: jobRun.GetId(),
+		ExternalId: piidetect_job_activities.BuildJobReportExternalId(jobRun.GetJobId()),
+		AccountId:  accountUuid,
+	})
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, fmt.Errorf("unable to retrieve run context: %w", err)
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return nil, nil
+	}
+	var jobReport piidetect_job_activities.JobPiiDetectReport
+	err = json.Unmarshal(runContext.Value, &jobReport)
+	if err != nil {
+		return nil, fmt.Errorf("unable to unmarshal run context for job pii detect report: %w", err)
+	}
+	tableRunContextKeys := make([]*mgmtv1alpha1.RunContextKey, 0, len(jobReport.SuccessfulTableReports))
+	for _, tableReport := range jobReport.SuccessfulTableReports {
+		tableRunContextKeys = append(tableRunContextKeys, tableReport.ReportKey)
+	}
+	tableRunContexts, err := s.getDbRunContextsFromKeys(ctx, tableRunContextKeys)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get table run contexts from job report: %w", err)
+	}
+	return tableRunContexts, nil
+}
+
+func (s *Service) getDbRunContextsFromKeys(ctx context.Context, keys []*mgmtv1alpha1.RunContextKey) ([]*db_queries.NeosyncApiRuncontext, error) {
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(10)
+	runContexts := []*db_queries.NeosyncApiRuncontext{}
+	mu := sync.Mutex{}
+	// this could be further optimized by fetching all the run contexts in a single query
+	// where the account id and workflow id are the same
+	// there are cases where they may not be the same because of incremental syncs.
+	// run contexts for incremental syncs will contain workflow ids that are outside of the current run (due to being saved from a previous run)
+	for _, key := range keys {
+		key := key
+		errgrp.Go(func() error {
+			accountUuid, err := neosyncdb.ToUuid(key.GetAccountId())
+			if err != nil {
+				return fmt.Errorf("unable to convert account id to uuid: %w", err)
+			}
+			runContext, err := s.db.Q.GetRunContextByKey(errctx, s.db.Db, db_queries.GetRunContextByKeyParams{
+				WorkflowId: key.GetJobRunId(),
+				ExternalId: key.GetExternalId(),
+				AccountId:  accountUuid,
+			})
+			if err != nil {
+				return fmt.Errorf("unable to get run context: %w", err)
+			}
+			mu.Lock()
+			defer mu.Unlock()
+			runContexts = append(runContexts, &runContext)
+			return nil
+		})
+	}
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+	return runContexts, nil
+}
+
+func getReportsFromTableContexts(tableContexts []*db_queries.NeosyncApiRuncontext) ([]*piidetect_table_activities.TableReport, error) {
 	reports := make([]*piidetect_table_activities.TableReport, len(tableContexts))
 	for i := range tableContexts {
 		runContext := tableContexts[i]

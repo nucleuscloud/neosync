@@ -312,7 +312,7 @@ func (a *Activities) getJobPiiDetectReport(ctx context.Context, accountId, workf
 		Id: &mgmtv1alpha1.RunContextKey{
 			AccountId:  accountId,
 			JobRunId:   workflowId,
-			ExternalId: fmt.Sprintf("%s--job-pii-report", jobId),
+			ExternalId: BuildJobReportExternalId(jobId),
 		},
 	}))
 	if err != nil {
@@ -477,7 +477,7 @@ func (a *Activities) SaveJobPiiDetectReport(ctx context.Context, req *SaveJobPii
 	key := &mgmtv1alpha1.RunContextKey{
 		AccountId:  req.AccountId,
 		JobRunId:   jobRunId,
-		ExternalId: fmt.Sprintf("%s--job-pii-report", req.JobId),
+		ExternalId: BuildJobReportExternalId(req.JobId),
 	}
 
 	reportBytes, err := json.Marshal(req.Report)
@@ -493,4 +493,12 @@ func (a *Activities) SaveJobPiiDetectReport(ctx context.Context, req *SaveJobPii
 		return nil, err
 	}
 	return &SaveJobPiiDetectReportResponse{Key: key}, nil
+}
+
+const (
+	PiiJobReportSuffix = "--job-pii-report"
+)
+
+func BuildJobReportExternalId(jobId string) string {
+	return fmt.Sprintf("%s%s", jobId, PiiJobReportSuffix)
 }
