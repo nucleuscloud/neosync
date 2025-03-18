@@ -253,35 +253,10 @@ func (a *Activities) getTableReportsFromPreviousRun(ctx context.Context, account
 	successfulTables := runCtx.SuccessfulTableReports
 	logger.Debug("found successful tables", "tables", successfulTables)
 
-	// errgrp, errctx := errgroup.WithContext(ctx)
-	// errgrp.SetLimit(5)
-
 	tableReports := map[TableIdentifier]*TableReport{}
 	for _, tableReport := range successfulTables {
 		tableReports[TableIdentifier{Schema: tableReport.TableSchema, Table: tableReport.TableName}] = tableReport
 	}
-	// mu := sync.Mutex{}
-	// for _, table := range successfulTables {
-	// 	table := table
-	// 	errgrp.Go(func() error {
-	// 		tableReport, found, err := a.getTableReport(errctx, table)
-	// 		if err != nil {
-	// 			return fmt.Errorf("unable to get table report: %w", err)
-	// 		}
-	// 		if !found {
-	// 			return nil
-	// 		}
-	// 		mu.Lock()
-	// 		tableFingerprints[TableIdentifier{Schema: tableReport.TableSchema, Table: tableReport.TableName}] = getTableColumnFingerprint(tableReport.TableSchema, tableReport.TableName, tableReport.ScannedColumns)
-	// 		mu.Unlock()
-	// 		return nil
-	// 	})
-	// }
-	// err = errgrp.Wait()
-	// if err != nil {
-	// 	return nil, fmt.Errorf("unable to get table reports: %w", err)
-	// }
-
 	return tableReports, nil
 }
 
