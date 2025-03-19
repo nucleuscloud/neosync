@@ -195,6 +195,10 @@ func (m *Manager) GetTableConstraintsByTables(ctx context.Context, schema string
 	return nil, errors.ErrUnsupported
 }
 
+func (m *Manager) GetFunctionsBySchemas(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (m *Manager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
 	rows, err := m.querier.GetAllSchemas(ctx, m.db)
 	if err != nil {

@@ -253,9 +253,18 @@ func Test_Build_TableTriggerDifferences(t *testing.T) {
 
 	require.NotNil(t, diff)
 	require.Len(t, diff.ExistsInSource.Triggers, 2)
-	require.Equal(t, "users_trigger", diff.ExistsInSource.Triggers[0].TriggerName)
-	require.Equal(t, "insert_users_trigger", diff.ExistsInSource.Triggers[1].TriggerName)
+	sourceTriggerNames := []string{
+		diff.ExistsInSource.Triggers[0].TriggerName,
+		diff.ExistsInSource.Triggers[1].TriggerName,
+	}
+	require.Contains(t, sourceTriggerNames, "users_trigger")
+	require.Contains(t, sourceTriggerNames, "insert_users_trigger")
+
 	require.Len(t, diff.ExistsInDestination.Triggers, 2)
-	require.Equal(t, "users_trigger", diff.ExistsInDestination.Triggers[0].TriggerName)
-	require.Equal(t, "delete_users_trigger", diff.ExistsInDestination.Triggers[1].TriggerName)
+	destTriggerNames := []string{
+		diff.ExistsInDestination.Triggers[0].TriggerName,
+		diff.ExistsInDestination.Triggers[1].TriggerName,
+	}
+	require.Contains(t, destTriggerNames, "users_trigger")
+	require.Contains(t, destTriggerNames, "delete_users_trigger")
 }

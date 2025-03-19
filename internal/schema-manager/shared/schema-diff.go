@@ -10,6 +10,7 @@ type ExistsInSource struct {
 	NonForeignKeyConstraints []*sqlmanager_shared.NonForeignKeyConstraint
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
 	Triggers                 []*sqlmanager_shared.TableTrigger
+	Functions                []*sqlmanager_shared.DataType
 }
 
 type ExistsInBoth struct {
@@ -22,6 +23,7 @@ type ExistsInDestination struct {
 	NonForeignKeyConstraints []*sqlmanager_shared.NonForeignKeyConstraint
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
 	Triggers                 []*sqlmanager_shared.TableTrigger
+	Functions                []*sqlmanager_shared.DataType
 }
 
 type SchemaDifferences struct {
@@ -38,6 +40,7 @@ type DatabaseData struct {
 	ForeignKeyConstraints    map[string]*sqlmanager_shared.ForeignKeyConstraint    // map of fingerprint -> foreign key constraint
 	NonForeignKeyConstraints map[string]*sqlmanager_shared.NonForeignKeyConstraint // map of fingerprint -> non foreign key constraint
 	Triggers                 map[string]*sqlmanager_shared.TableTrigger            // map of fingerprint -> trigger
+	Functions                map[string]*sqlmanager_shared.DataType                // map of fingerprint -> function
 }
 
 type SchemaDifferencesBuilder struct {
@@ -64,12 +67,14 @@ func NewSchemaDifferencesBuilder(
 				NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
 				ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
 				Triggers:                 []*sqlmanager_shared.TableTrigger{},
+				Functions:                []*sqlmanager_shared.DataType{},
 			},
 			ExistsInDestination: &ExistsInDestination{
 				Columns:                  []*sqlmanager_shared.TableColumn{},
 				NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
 				ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
 				Triggers:                 []*sqlmanager_shared.TableTrigger{},
+				Functions:                []*sqlmanager_shared.DataType{},
 			},
 			ExistsInBoth: &ExistsInBoth{
 				Tables: []*sqlmanager_shared.SchemaTable{},
@@ -83,6 +88,7 @@ func (b *SchemaDifferencesBuilder) Build() *SchemaDifferences {
 	b.buildTableForeignKeyConstraintDifferences()
 	b.buildTableNonForeignKeyConstraintDifferences()
 	b.buildTableTriggerDifferences()
+	b.buildSchemaFunctionDifferences()
 	return b.diff
 }
 
@@ -142,9 +148,15 @@ func (b *SchemaDifferencesBuilder) buildTableTriggerDifferences() {
 	b.diff.ExistsInDestination.Triggers = existsInDestination
 }
 
+func (b *SchemaDifferencesBuilder) buildSchemaFunctionDifferences() {
+	existsInSource, existsInDestination := buildDifferencesByFingerprint(b.source.Functions, b.destination.Functions)
+	b.diff.ExistsInSource.Functions = existsInSource
+	b.diff.ExistsInDestination.Functions = existsInDestination
+}
+
 // buildDifferencesForMap compares two maps keyed by fingerprint.
 // It appends items in `src` that are not in `dest` to `existsInSource`,
-// and items in `dest` not in `src` to `existsInSource`.
+// and items in `dest` not in `src` to `existsInDestination`.
 func buildDifferencesByFingerprint[T any](
 	src, dest map[string]*T,
 ) (existsInSource, existsInDestination []*T) {

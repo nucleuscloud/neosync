@@ -86,7 +86,57 @@ func Test_PtrOrEmpty(t *testing.T) {
 	require.Equal(t, "", result)
 }
 
-func Test_Sha256Hex(t *testing.T) {
-	result := sha256Hex("test")
+func Test_BuildFingerprint(t *testing.T) {
+	result := BuildFingerprint("test")
 	require.Equal(t, "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08", result)
+}
+
+func Test_BuildTriggerFingerprint(t *testing.T) {
+	// Test basic trigger fingerprint
+	trigger := &TableTrigger{
+		Schema:      "public",
+		Table:       "users",
+		TriggerName: "users_audit",
+		Definition:  "BEGIN INSERT INTO audit_log VALUES (NEW.*); END;",
+	}
+
+	result := BuildTriggerFingerprint(trigger)
+	require.NotEmpty(t, result)
+
+	// Test that same trigger details produce same fingerprint
+	trigger2 := &TableTrigger{
+		Schema:      "public",
+		Table:       "users",
+		TriggerName: "users_audit",
+		Definition:  "BEGIN INSERT INTO audit_log VALUES (NEW.*); END;",
+	}
+
+	result2 := BuildTriggerFingerprint(trigger2)
+	require.Equal(t, result, result2)
+
+	// Test with trigger schema
+	triggerSchema := "triggers"
+	trigger3 := &TableTrigger{
+		Schema:        "public",
+		Table:         "users",
+		TriggerName:   "users_audit",
+		Definition:    "BEGIN INSERT INTO audit_log VALUES (NEW.*); END;",
+		TriggerSchema: &triggerSchema,
+	}
+
+	result3 := BuildTriggerFingerprint(trigger3)
+	require.NotEqual(t, result, result3)
+
+	// Test that empty trigger schema is handled
+	emptySchema := ""
+	trigger4 := &TableTrigger{
+		Schema:        "public",
+		Table:         "users",
+		TriggerName:   "users_audit",
+		Definition:    "BEGIN INSERT INTO audit_log VALUES (NEW.*); END;",
+		TriggerSchema: &emptySchema,
+	}
+
+	result4 := BuildTriggerFingerprint(trigger4)
+	require.Equal(t, result, result4)
 }

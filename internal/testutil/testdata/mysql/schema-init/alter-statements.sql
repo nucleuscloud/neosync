@@ -220,6 +220,28 @@ BEGIN
 		astronaut_id = NEW.astronaut_id;
 END;
 
+-- functions
+
+DROP FUNCTION IF EXISTS get_employee_count;
+DROP FUNCTION IF EXISTS get_employee_full_name;
+
+CREATE FUNCTION get_employee_count (dept_id INT)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE emp_count INT;
+    
+    IF dept_id IS NULL OR dept_id = 0 THEN
+        SELECT COUNT(*) INTO emp_count FROM employees;
+    ELSE
+        SELECT COUNT(*) INTO emp_count
+        FROM employees
+        WHERE department_id = dept_id;
+    END IF;
+    
+    RETURN emp_count;
+END;
+
 -- modify columns
 
 ALTER TABLE regions

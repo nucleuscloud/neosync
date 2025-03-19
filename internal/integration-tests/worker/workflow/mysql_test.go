@@ -2,6 +2,7 @@ package integrationtest
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"slices"
 	"testing"
@@ -21,6 +22,7 @@ import (
 	mysql_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/edgecases"
 	mysql_human_resources "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/humanresources"
 	mysql_schemainit "github.com/nucleuscloud/neosync/internal/testutil/testdata/mysql/schema-init"
+	reconcileschema_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/schemainit/activities/reconcile-schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
@@ -548,6 +550,7 @@ func test_mysql_schema_reconciliation(
 			OnConflictDoUpdate: !shouldTruncate,
 		},
 	})
+	destinationId := job.GetDestinations()[0].GetId()
 
 	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(100), WithPageLimit(1000))
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
@@ -585,9 +588,17 @@ func test_mysql_schema_reconciliation(
 		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mysql-schema-reconciliation Table: %s", expected.table))
 	}
 
+	tables := []string{}
+	for _, expected := range expectedResults {
+		tables = append(tables, expected.table)
+	}
+
 	t.Logf("verifying destination data")
 	test_mysql_schema_reconciliation_column_values(t, ctx, mysql, schema)
 	t.Logf("finished verifying destination data")
+
+	test_mysql_schema_reconciliation_compare_schemas(t, ctx, mysql, schema, tables)
+	test_schema_reconciliation_run_context(t, ctx, jobclient, job.GetId(), destinationId, accountId)
 
 	t.Logf("running alter statements")
 	err = mysql.Source.RunCreateStmtsInDatabase(ctx, mysqlTestdataFolder, []string{"schema-init/alter-statements.sql"}, schema)
@@ -620,16 +631,35 @@ func test_mysql_schema_reconciliation(
 
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "emails", sqlmanager_shared.MysqlDriver, []string{"email_identity"})
 
-	tables := []string{}
-	for _, expected := range expectedResults {
-		tables = append(tables, expected.table)
-	}
-
 	test_mysql_schema_reconciliation_compare_schemas(t, ctx, mysql, schema, tables)
+	test_schema_reconciliation_run_context(t, ctx, jobclient, job.GetId(), destinationId, accountId)
 
 	// tear down
 	err = cleanupMysqlDatabases(ctx, mysql, []string{schema})
 	require.NoError(t, err)
+}
+
+func test_schema_reconciliation_run_context(
+	t *testing.T,
+	ctx context.Context,
+	jobclient mgmtv1alpha1connect.JobServiceClient,
+	jobId string,
+	destinationId string,
+	accountId string,
+) {
+	runContext, err := jobclient.GetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
+		Id: &mgmtv1alpha1.RunContextKey{
+			JobRunId:   jobId,
+			ExternalId: fmt.Sprintf("reconcile-schema-report-%s", destinationId),
+			AccountId:  accountId,
+		},
+	}))
+	require.NoError(t, err)
+
+	var context *reconcileschema_activity.ReconcileSchemaRunContext
+	err = json.Unmarshal(runContext.Msg.Value, &context)
+	require.NoError(t, err)
+	assert.Len(t, context.Errors, 0)
 }
 
 func test_mysql_schema_reconciliation_compare_schemas(
@@ -687,6 +717,20 @@ func test_mysql_schema_reconciliation_compare_schemas(
 		for _, nonFk := range destNonFk {
 			require.Contains(t, srcNonFk, nonFk, "source missing non-foreign key constraint in table %s", table)
 		}
+	}
+
+	t.Logf("checking functions are the same in source and destination")
+	srcFunctions, err := srcManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get source functions")
+	destFunctions, err := destManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get destination functions")
+
+	require.Len(t, srcFunctions.Functions, len(destFunctions.Functions), "source and destination have different number of functions")
+	for _, function := range srcFunctions.Functions {
+		require.Contains(t, destFunctions.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
+	}
+	for _, function := range destFunctions.Functions {
+		require.Contains(t, srcFunctions.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
 	}
 }
 

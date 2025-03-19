@@ -103,6 +103,7 @@ func getDatabaseDataForSchemaDiff(
 	nonFkConstraints := map[string]*sqlmanager_shared.NonForeignKeyConstraint{}
 	fkConstraints := map[string]*sqlmanager_shared.ForeignKeyConstraint{}
 	triggers := map[string]*sqlmanager_shared.TableTrigger{}
+	functions := map[string]*sqlmanager_shared.DataType{}
 
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.SetLimit(5)
@@ -113,6 +114,17 @@ func getDatabaseDataForSchemaDiff(
 			return fmt.Errorf("failed to retrieve database table schemas: %w", err)
 		}
 		columns = cols
+		return nil
+	})
+
+	errgrp.Go(func() error {
+		datatypes, err := db.Db().GetSchemaTableDataTypes(ctx, tables)
+		if err != nil {
+			return fmt.Errorf("failed to retrieve database table functions: %w", err)
+		}
+		for _, tablefunction := range datatypes.Functions {
+			functions[tablefunction.Fingerprint] = tablefunction
+		}
 		return nil
 	})
 
@@ -164,6 +176,7 @@ func getDatabaseDataForSchemaDiff(
 		NonForeignKeyConstraints: nonFkConstraints,
 		ForeignKeyConstraints:    fkConstraints,
 		Triggers:                 triggers,
+		Functions:                functions,
 	}, nil
 }
 
@@ -212,7 +225,16 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 		updateColumnStatements = append(updateColumnStatements, stmt)
 	}
 
+	dropFunctionStatements := []string{}
+	for _, function := range diff.ExistsInDestination.Functions {
+		dropFunctionStatements = append(dropFunctionStatements, sqlmanager_mysql.BuildDropFunctionStatement(function.Schema, function.Name))
+	}
+
 	return []*sqlmanager_shared.InitSchemaStatements{
+		{
+			Label:      sqlmanager_mysql.DropFunctionsLabel,
+			Statements: dropFunctionStatements,
+		},
 		{
 			Label:      sqlmanager_mysql.DropTriggersLabel,
 			Statements: dropTriggerStatements,
@@ -268,6 +290,9 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 	statementBlocks := []*sqlmanager_shared.InitSchemaStatements{}
 	for _, statement := range initblocks {
 		statementBlocks = append(statementBlocks, statement)
+		if statement.Label == sqlmanager_mysql.SchemasLabel {
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropFunctionsLabel]...)
+		}
 		if statement.Label == sqlmanager_mysql.CreateTablesLabel {
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropTriggersLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropForeignKeyConstraintsLabel]...)
