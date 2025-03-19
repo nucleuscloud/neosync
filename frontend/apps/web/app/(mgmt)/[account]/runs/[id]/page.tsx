@@ -523,12 +523,18 @@ function StatCard(props: StatCardProps): ReactElement {
 
 function getDuration(completedAt?: Date, startedAt?: Date): string {
   if (!startedAt || !completedAt) {
-    return '';
+    return '-';
   }
 
   const duration = intervalToDuration({ start: startedAt, end: completedAt });
 
-  return formatDuration(duration, { format: ['hours', 'minutes', 'seconds'] });
+  const formattedDuration = formatDuration(duration, {
+    format: ['hours', 'minutes', 'seconds'],
+  });
+  if (!formattedDuration) {
+    return '-';
+  }
+  return formattedDuration;
 }
 interface AlertProps {
   title: string;

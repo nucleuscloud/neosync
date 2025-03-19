@@ -593,7 +593,12 @@ class JobTypeConfig(_message.Message):
         __slots__ = ()
         def __init__(self) -> None: ...
     class JobTypePiiDetect(_message.Message):
-        __slots__ = ("data_sampling", "table_scan_filter", "user_prompt")
+        __slots__ = ("data_sampling", "table_scan_filter", "user_prompt", "incremental")
+        class Incremental(_message.Message):
+            __slots__ = ("is_enabled",)
+            IS_ENABLED_FIELD_NUMBER: _ClassVar[int]
+            is_enabled: bool
+            def __init__(self, is_enabled: bool = ...) -> None: ...
         class DataSampling(_message.Message):
             __slots__ = ("is_enabled",)
             IS_ENABLED_FIELD_NUMBER: _ClassVar[int]
@@ -628,10 +633,12 @@ class JobTypeConfig(_message.Message):
         DATA_SAMPLING_FIELD_NUMBER: _ClassVar[int]
         TABLE_SCAN_FILTER_FIELD_NUMBER: _ClassVar[int]
         USER_PROMPT_FIELD_NUMBER: _ClassVar[int]
+        INCREMENTAL_FIELD_NUMBER: _ClassVar[int]
         data_sampling: JobTypeConfig.JobTypePiiDetect.DataSampling
         table_scan_filter: JobTypeConfig.JobTypePiiDetect.TableScanFilter
         user_prompt: str
-        def __init__(self, data_sampling: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.DataSampling, _Mapping]] = ..., table_scan_filter: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.TableScanFilter, _Mapping]] = ..., user_prompt: _Optional[str] = ...) -> None: ...
+        incremental: JobTypeConfig.JobTypePiiDetect.Incremental
+        def __init__(self, data_sampling: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.DataSampling, _Mapping]] = ..., table_scan_filter: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.TableScanFilter, _Mapping]] = ..., user_prompt: _Optional[str] = ..., incremental: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.Incremental, _Mapping]] = ...) -> None: ...
     SYNC_FIELD_NUMBER: _ClassVar[int]
     PII_DETECT_FIELD_NUMBER: _ClassVar[int]
     sync: JobTypeConfig.JobTypeSync

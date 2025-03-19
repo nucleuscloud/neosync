@@ -535,11 +535,12 @@ func (a *Activities) getDataRecordsForLLM(
 }
 
 type SaveTablePiiDetectReportRequest struct {
-	ParentRunId *string
-	AccountId   string
-	TableSchema string
-	TableName   string
-	Report      map[string]CombinedPiiDetectReport
+	ParentRunId    *string
+	AccountId      string
+	TableSchema    string
+	TableName      string
+	Report         map[string]CombinedPiiDetectReport
+	ScannedColumns []string
 }
 
 type SaveTablePiiDetectReportResponse struct {
@@ -555,6 +556,8 @@ type TableReport struct {
 	TableSchema   string         `json:"table_schema"`
 	TableName     string         `json:"table_name"`
 	ColumnReports []ColumnReport `json:"column_reports"`
+	// Denotes all of the scanned columns as ColumnReports only includes columns that were detected as PII
+	ScannedColumns []string `json:"scanned_columns,omitempty"`
 }
 
 func (a *Activities) SaveTablePiiDetectReport(
@@ -577,9 +580,10 @@ func (a *Activities) SaveTablePiiDetectReport(
 	}
 
 	finalReport := &TableReport{
-		TableSchema:   req.TableSchema,
-		TableName:     req.TableName,
-		ColumnReports: columnReports,
+		TableSchema:    req.TableSchema,
+		TableName:      req.TableName,
+		ColumnReports:  columnReports,
+		ScannedColumns: req.ScannedColumns,
 	}
 
 	reportBytes, err := json.Marshal(finalReport)

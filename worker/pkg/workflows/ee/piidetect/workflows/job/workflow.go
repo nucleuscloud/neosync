@@ -93,6 +93,40 @@ func executeWorkflow(
 		filter = jobDetailsResp.PiiDetectConfig.TableScanFilter
 	}
 
+	piiDetectConfig := jobDetailsResp.PiiDetectConfig
+	if piiDetectConfig == nil {
+		piiDetectConfig = &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect{}
+	}
+
+	var incrementalConfig *piidetect_job_activities.GetIncrementalTablesConfig
+	if piiDetectConfig.GetIncremental().GetIsEnabled() {
+		var lastSuccessfulWorkflowIdResp *piidetect_job_activities.GetLastSuccessfulWorkflowIdResponse
+		err := workflow.ExecuteActivity(
+			workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+				StartToCloseTimeout: 1 * time.Minute,
+				RetryPolicy: &temporal.RetryPolicy{
+					MaximumAttempts: 3,
+				},
+			}),
+			activities.GetLastSuccessfulWorkflowId,
+			&piidetect_job_activities.GetLastSuccessfulWorkflowIdRequest{
+				AccountId: jobDetailsResp.AccountId,
+				JobId:     req.JobId,
+			},
+		).Get(ctx, &lastSuccessfulWorkflowIdResp)
+		if err != nil {
+			return nil, fmt.Errorf("unable to get last successful workflow id: %w", err)
+		}
+		if lastSuccessfulWorkflowIdResp.WorkflowId != nil {
+			logger.Debug("using last successful workflow id", "workflowId", *lastSuccessfulWorkflowIdResp.WorkflowId)
+			incrementalConfig = &piidetect_job_activities.GetIncrementalTablesConfig{
+				LastWorkflowId: *lastSuccessfulWorkflowIdResp.WorkflowId,
+			}
+		} else {
+			logger.Debug("no last successful workflow id found, skipping incremental pii detect")
+		}
+	}
+
 	var tablesToScanResp *piidetect_job_activities.GetTablesToPiiScanResponse
 	err := workflow.ExecuteActivity(
 		workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
@@ -103,23 +137,21 @@ func executeWorkflow(
 		}),
 		activities.GetTablesToPiiScan,
 		&piidetect_job_activities.GetTablesToPiiScanRequest{
+			AccountId:          jobDetailsResp.AccountId,
+			JobId:              req.JobId,
 			SourceConnectionId: jobDetailsResp.SourceConnectionId,
 			Filter:             filter,
+			IncrementalConfig:  incrementalConfig,
 		},
 	).Get(ctx, &tablesToScanResp)
 	if err != nil {
 		return nil, err
 	}
 
-	piiDetectConfig := jobDetailsResp.PiiDetectConfig
-	if piiDetectConfig == nil {
-		piiDetectConfig = &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect{}
-	}
-
 	report, err := orchestrateTables(
 		ctx,
 		jobDetailsResp.AccountId,
-		tablesToScanResp.Tables,
+		tablesToScanResp,
 		req.JobId,
 		jobDetailsResp.SourceConnectionId,
 		piiDetectConfig.GetDataSampling().GetIsEnabled(),
@@ -129,6 +161,8 @@ func executeWorkflow(
 	if err != nil {
 		return nil, fmt.Errorf("unable to orchestrate tables: %w", err)
 	}
+
+	report = buildFinalReport(tablesToScanResp.PreviousReports, report)
 
 	logger.Debug("saving job pii detect report")
 
@@ -157,18 +191,41 @@ func executeWorkflow(
 	}, nil
 }
 
+// buildFinalReport builds the final report by combining the previous reports with the new report
+func buildFinalReport(
+	previousReports []*piidetect_job_activities.TableReport,
+	newReport *piidetect_job_activities.JobPiiDetectReport,
+) *piidetect_job_activities.JobPiiDetectReport {
+	fullSuccessfulTableReports := map[piidetect_job_activities.TableIdentifier]*piidetect_job_activities.TableReport{}
+	for _, report := range newReport.SuccessfulTableReports {
+		fullSuccessfulTableReports[report.ToTableIdentifier()] = report
+	}
+
+	for _, report := range previousReports {
+		if _, ok := fullSuccessfulTableReports[report.ToTableIdentifier()]; !ok {
+			fullSuccessfulTableReports[report.ToTableIdentifier()] = report
+		}
+	}
+
+	successfulTableReports := make([]*piidetect_job_activities.TableReport, 0, len(fullSuccessfulTableReports))
+	for _, report := range fullSuccessfulTableReports {
+		successfulTableReports = append(successfulTableReports, report)
+	}
+	return &piidetect_job_activities.JobPiiDetectReport{
+		SuccessfulTableReports: successfulTableReports,
+	}
+}
+
 func orchestrateTables(
 	ctx workflow.Context,
 	accountId string,
-	tables []piidetect_job_activities.TableIdentifier,
+	tablesToScanResp *piidetect_job_activities.GetTablesToPiiScanResponse,
 	jobId string,
 	connectionId string,
 	shouldSampleData bool,
 	userPrompt string,
 	logger log.Logger,
 ) (*piidetect_job_activities.JobPiiDetectReport, error) {
-	// todo: retrieve previous report
-
 	workselector := workflow.NewNamedSelector(ctx, "job_pii_detect")
 
 	maxConcurrency := getTablePiiDetectMaxConcurrency()
@@ -177,12 +234,16 @@ func orchestrateTables(
 	tableWf := piidetect_table_workflow.New()
 	wfInfo := workflow.GetInfo(ctx)
 
-	tableResultKeys := []*mgmtv1alpha1.RunContextKey{}
+	tableResultKeys := []*piidetect_job_activities.TableReport{}
 	mu := workflow.NewMutex(ctx)
 
-	processTable := func(table piidetect_job_activities.TableIdentifier) error {
+	processTable := func(table piidetect_job_activities.TableIdentifierWithFingerprint, previousReport *piidetect_job_activities.TableReport) error {
 		if err := inFlightLimiter.Acquire(ctx, 1); err != nil {
 			return fmt.Errorf("unable to acquire semaphore: %w", err)
+		}
+		var previousResultsKey *mgmtv1alpha1.RunContextKey
+		if previousReport != nil {
+			previousResultsKey = previousReport.ReportKey
 		}
 		workselector.AddFuture(
 			workflow.ExecuteChildWorkflow(
@@ -209,7 +270,7 @@ func orchestrateTables(
 					ParentExecutionId:  &wfInfo.WorkflowExecution.ID,
 					ShouldSampleData:   shouldSampleData,
 					UserPrompt:         userPrompt,
-					PreviousResultsKey: nil, // todo: retrieve previous report
+					PreviousResultsKey: previousResultsKey,
 				},
 			),
 			func(f workflow.Future) {
@@ -227,27 +288,38 @@ func orchestrateTables(
 					return
 				}
 				defer mu.Unlock()
-				tableResultKeys = append(tableResultKeys, wfResult.ResultKey)
+				tableResultKeys = append(tableResultKeys, &piidetect_job_activities.TableReport{
+					TableSchema:     table.Schema,
+					TableName:       table.Table,
+					ScanFingerprint: table.Fingerprint,
+					ReportKey:       wfResult.ResultKey,
+				})
 			},
 		)
 		return nil
 	}
 
-	for _, table := range tables {
-		if err := processTable(table); err != nil {
+	previousReportsMap := make(map[piidetect_job_activities.TableIdentifier]*piidetect_job_activities.TableReport)
+	for _, report := range tablesToScanResp.PreviousReports {
+		previousReportsMap[piidetect_job_activities.TableIdentifier{Schema: report.TableSchema, Table: report.TableName}] = report
+	}
+
+	for _, table := range tablesToScanResp.Tables {
+		previousReport := previousReportsMap[table.TableIdentifier]
+		if err := processTable(table, previousReport); err != nil {
 			return nil, err
 		}
 	}
 
 	logger.Debug("waiting for all table pii detect workflows to complete")
 
-	for range tables {
+	for range tablesToScanResp.Tables {
 		workselector.Select(ctx)
 	}
 
 	logger.Debug("all tables processed")
 	return &piidetect_job_activities.JobPiiDetectReport{
-		SuccessfulTableKeys: tableResultKeys,
+		SuccessfulTableReports: tableResultKeys,
 	}, nil
 }
 

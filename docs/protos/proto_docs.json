@@ -14619,6 +14619,18 @@
               "isoneof": true,
               "oneofdecl": "_user_prompt",
               "defaultValue": ""
+            },
+            {
+              "name": "incremental",
+              "description": "The configuration for incremental PII detection",
+              "label": "optional",
+              "type": "Incremental",
+              "longType": "JobTypeConfig.JobTypePiiDetect.Incremental",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.Incremental",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_incremental",
+              "defaultValue": ""
             }
           ]
         },
@@ -14626,7 +14638,7 @@
           "name": "DataSampling",
           "longName": "JobTypeConfig.JobTypePiiDetect.DataSampling",
           "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling",
-          "description": "",
+          "description": "The configuration for data sampling",
           "hasExtensions": false,
           "hasFields": true,
           "hasOneofs": false,
@@ -14634,7 +14646,7 @@
           "fields": [
             {
               "name": "is_enabled",
-              "description": "",
+              "description": "Whether to enable data sampling",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -14656,6 +14668,30 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "Incremental",
+          "longName": "JobTypeConfig.JobTypePiiDetect.Incremental",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.Incremental",
+          "description": "The configuration for incremental PII detection",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_enabled",
+              "description": "Whether to enable incremental PII detection",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "TableIdentifier",

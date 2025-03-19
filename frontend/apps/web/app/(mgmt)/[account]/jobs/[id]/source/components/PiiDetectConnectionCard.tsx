@@ -1,6 +1,7 @@
 import { EditPiiDetectionJobFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import {
   DataSampling,
+  Incremental,
   SourceConnectionId,
   TableScanFilterMode,
   TableScanFilterPatterns,
@@ -147,6 +148,11 @@ export default function PiiDetectConnectionCard({
       <DataSampling
         value={formData.dataSampling}
         onChange={(value) => setFormData({ ...formData, dataSampling: value })}
+        errors={errors}
+      />
+      <Incremental
+        value={formData.incremental}
+        onChange={(value) => setFormData({ ...formData, incremental: value })}
         errors={errors}
       />
       <TableScanFilterMode

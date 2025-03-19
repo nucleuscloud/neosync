@@ -24,8 +24,9 @@ import {
   useSearchParams,
 } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, ReactNode, use, useEffect, useState } from 'react';
+import { ReactElement, ReactNode, use, useState } from 'react';
 import { AiOutlineExperiment } from 'react-icons/ai';
+import { PiDetective } from 'react-icons/pi';
 import { NewJobType } from './job-form-validations';
 
 export default function NewJob(props: PageProps): ReactElement {
@@ -35,10 +36,11 @@ export default function NewJob(props: PageProps): ReactElement {
 
   const jobData = useGetJobData(params, searchParams);
 
-  const [selectedJobType, setSelectedJobType] =
-    useState<NewJobType>('data-sync');
+  const [selectedJobType, setSelectedJobType] = useState<NewJobType>(
+    jobData[0].type
+  );
 
-  const [href, setHref] = useState<string | undefined>();
+  const [href, setHref] = useState<string | undefined>(jobData[0].href);
 
   const handleJobSelection = (jobType: NewJobType, href: string) => {
     setSelectedJobType(jobType);
@@ -157,15 +159,10 @@ function useGetJobData(
   params: Record<string, string>,
   searchParams: ReadonlyURLSearchParams
 ): JobData[] {
-  const [sessionToken, setSessionToken] = useState<string>('');
+  const [sessionToken] = useState<string>(params?.sessionId ?? nanoid());
   const { account } = useAccount();
   const { data: systemAppConfig } = useGetSystemAppConfig();
   const { resolvedTheme } = useTheme();
-
-  useEffect(() => {
-    // Generate the session token only on the client side
-    setSessionToken(params?.sessionId ?? nanoid());
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const dataSyncParams = new URLSearchParams(searchParams);
   dataSyncParams.set('jobType', 'data-sync');
@@ -237,13 +234,13 @@ function useGetJobData(
       description:
         'Scan your database for PII and sensitive data to identify security risks.',
       href: `/${account?.name}/new/job/define?${piiDetectionParams.toString()}`,
-      icon: <MagicWandIcon />,
+      icon: <PiDetective />,
       type: 'pii-detection',
       experimental: true,
       image:
         resolvedTheme === 'light'
-          ? 'https://assets.nucleuscloud.com/neosync/app/jobsynclight.svg'
-          : 'https://assets.nucleuscloud.com/neosync/app/prodsync-dark.svg',
+          ? 'https://assets.nucleuscloud.com/neosync/app/pii-detect-light.svg'
+          : 'https://assets.nucleuscloud.com/neosync/app/pii-detect-dark.svg',
     });
   }
 

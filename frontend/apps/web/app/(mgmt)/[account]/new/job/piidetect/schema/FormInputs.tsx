@@ -30,6 +30,7 @@ import ConnectionSelectContent from '../../connect/ConnectionSelectContent';
 import {
   DataSamplingFormValue,
   FilterPatternTableIdentifier,
+  IncrementalFormValue,
   TableScanFilterModeFormValue,
   TableScanFilterPatternsFormValue,
 } from '../../job-form-validations';
@@ -118,7 +119,7 @@ export function UserPrompt(props: UserPromptProps): ReactElement {
       <Textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Example: Non-PII columns: created_at, updated_at"
+        placeholder="Do NOT classify the following columns as PII or personally identifiable information: id, created_at, updated_at"
       />
       <FormErrorMessage message={error} />
     </div>
@@ -139,6 +140,39 @@ export function DataSampling(props: DataSamplingProps): ReactElement {
       <FormHeader
         title="Data Sampling"
         description="Allow the job to sample data from the source. If disabled, only the table DDLs will be used to detect PII. For more accurate results, enable data sampling."
+        isErrored={!!errors?.['isEnabled']}
+        labelClassName="text-lg"
+      />
+      <ToggleGroup
+        className="flex justify-start"
+        type="single"
+        onValueChange={(value) => {
+          onChange({ isEnabled: value === 'enabled' });
+        }}
+        value={value.isEnabled ? 'enabled' : 'disabled'}
+      >
+        <ToggleGroupItem value="enabled">Enabled</ToggleGroupItem>
+        <ToggleGroupItem value="disabled">Disabled</ToggleGroupItem>
+      </ToggleGroup>
+      <FormErrorMessage message={errors?.['isEnabled']} />
+    </div>
+  );
+}
+
+interface IncrementalProps {
+  errors?: Record<string, string>;
+  value: IncrementalFormValue;
+  onChange(value: IncrementalFormValue): void;
+}
+
+export function Incremental(props: IncrementalProps): ReactElement {
+  const { errors, value, onChange } = props;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <FormHeader
+        title="Incremental Scans"
+        description="Allow the job to incrementally detect PII for new or changed tables. This will only scan tables that have been added or updated since the last successful run. New table detection is dependent on the scan mode and patterns selected below."
         isErrored={!!errors?.['isEnabled']}
         labelClassName="text-lg"
       />
