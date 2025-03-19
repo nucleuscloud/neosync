@@ -24,7 +24,7 @@ func BuildForeignKeyConstraintFingerprint(fk *ForeignKeyConstraint) string {
 	// referencing_schema, referencing_table, referencing_columns,
 	// referenced_schema, referenced_table, referenced_columns,
 	// constraint_type, notNullable, updateRule, deleteRule
-	input := strings.Join([]string{
+	parts := []string{
 		fk.ReferencingSchema,
 		fk.ReferencingTable,
 		strings.Join(referencingCols, ","),
@@ -35,9 +35,9 @@ func BuildForeignKeyConstraintFingerprint(fk *ForeignKeyConstraint) string {
 		notNullableStr,
 		ptrOrEmpty(fk.UpdateRule),
 		ptrOrEmpty(fk.DeleteRule),
-	}, "|")
+	}
 
-	return sha256Hex(input)
+	return BuildFingerprint(parts...)
 }
 
 // buildNonForeignKeyConstraintFingerprint creates a stable hash that
@@ -51,15 +51,15 @@ func BuildNonForeignKeyConstraintFingerprint(nf *NonForeignKeyConstraint) string
 	// For PK/Unique, the definition might be empty or irrelevant.
 	// For CHECK constraints, definition typically is the check expression.
 	// So we include definition as well, if present.
-	input := strings.Join([]string{
+	parts := []string{
 		nf.ConstraintType,
 		nf.SchemaName,
 		nf.TableName,
 		strings.Join(sortedCols, ","),
 		nf.Definition,
-	}, "|")
+	}
 
-	return sha256Hex(input)
+	return BuildFingerprint(parts...)
 }
 
 // BuildFingerprint creates a stable hash for a table trigger that includes
@@ -76,13 +76,15 @@ func BuildTriggerFingerprint(trigger *TableTrigger) string {
 		parts = append(parts, *trigger.TriggerSchema)
 	}
 
-	input := strings.Join(parts, "|")
-	return sha256Hex(input)
+	return BuildFingerprint(parts...)
 }
 
-func BuildFingerprint(parts ...string) string {
-	input := strings.Join(parts, "|")
-	return sha256Hex(input)
+func BuildFingerprint(input ...string) string {
+	h := sha256.New()
+	for _, i := range input {
+		h.Write([]byte(i))
+	}
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 // ptrOrEmpty returns the pointer's value if not nil, otherwise "".
@@ -111,10 +113,4 @@ func boolSliceToString(vals []bool) string {
 		}
 	}
 	return sb.String()
-}
-
-func sha256Hex(input string) string {
-	h := sha256.New()
-	h.Write([]byte(input))
-	return hex.EncodeToString(h.Sum(nil))
 }
