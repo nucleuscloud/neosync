@@ -97,14 +97,14 @@ func (a *Activities) GetLastSuccessfulWorkflowId(ctx context.Context, req *GetLa
 	workflowIds, err := getRecentRunsFromHandle(ctx, a.tmprlScheduleClient.GetHandle(ctx, req.JobId))
 	if err != nil {
 		logger.Error("unable to get recent runs from handle", "error", err)
-		return &GetLastSuccessfulWorkflowIdResponse{WorkflowId: nil}, err
+		return &GetLastSuccessfulWorkflowIdResponse{WorkflowId: nil}, nil
 	}
 	logger.Debug("retrieved workflow ids", "workflowIds", workflowIds)
 
 	lastSuccessfulRun, err := a.getMostRecentSuccessfulRun(ctx, req.AccountId, req.JobId, workflowIds, logger)
 	if err != nil {
 		logger.Error("unable to get most recent successful run", "error", err)
-		return &GetLastSuccessfulWorkflowIdResponse{WorkflowId: nil}, err
+		return &GetLastSuccessfulWorkflowIdResponse{WorkflowId: nil}, nil
 	}
 
 	logger.Debug("retrieved last workflow id", "workflowId", lastSuccessfulRun)

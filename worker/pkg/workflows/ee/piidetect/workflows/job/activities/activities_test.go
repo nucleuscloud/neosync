@@ -1,7 +1,9 @@
 package piidetect_job_activities
 
 import (
+	"errors"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -9,6 +11,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/connectiondata"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	tmprl "go.temporal.io/sdk/client"
 	tmprl_mocks "go.temporal.io/sdk/mocks"
 	"go.temporal.io/sdk/testsuite"
 )
@@ -174,5 +177,168 @@ func Test_SaveJobPiiDetectReport(t *testing.T) {
 		require.Equal(t, "test-job-id--job-pii-report", resp.Key.ExternalId)
 
 		jobClient.AssertExpectations(t)
+	})
+}
+
+func Test_GetLastSuccessfulWorkflowId(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	jobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	connClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+	connBuilder := connectiondata.NewMockConnectionDataBuilder(t)
+	tmprlScheduleClient := tmprl_mocks.NewScheduleClient(t)
+	scheduleHandle := tmprl_mocks.NewScheduleHandle(t)
+
+	activities := New(jobClient, connClient, connBuilder, tmprlScheduleClient)
+	env.RegisterActivity(activities.GetLastSuccessfulWorkflowId)
+
+	t.Run("successfully gets last successful workflow id", func(t *testing.T) {
+		accountId := "test-account-id"
+		jobId := "test-job-id"
+		workflowId1 := "workflow-1"
+		workflowId2 := "workflow-2"
+
+		// Mock schedule handle to return workflow IDs
+		tmprlScheduleClient.On("GetHandle", mock.Anything, jobId).Return(scheduleHandle).Once()
+		scheduleHandle.On("Describe", mock.Anything).Return(&tmprl.ScheduleDescription{
+			Info: tmprl.ScheduleInfo{
+				RecentActions: []tmprl.ScheduleActionResult{
+					{
+						StartWorkflowResult: &tmprl.ScheduleWorkflowExecution{
+							WorkflowID: workflowId1,
+						},
+						ActualTime: time.Now(),
+					},
+					{
+						StartWorkflowResult: &tmprl.ScheduleWorkflowExecution{
+							WorkflowID: workflowId2,
+						},
+						ActualTime: time.Now().Add(-1 * time.Hour),
+					},
+				},
+			},
+		}, nil).Once()
+
+		// Mock successful job report for first workflow
+		jobClient.EXPECT().GetRunContext(mock.Anything, connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
+			Id: &mgmtv1alpha1.RunContextKey{
+				AccountId:  accountId,
+				JobRunId:   workflowId1,
+				ExternalId: "test-job-id--job-pii-report",
+			},
+		})).Return(connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+			Value: []byte(`{"successfulTableReports":[{"tableSchema":"schema1","tableName":"table1"}]}`),
+		}), nil).Once()
+
+		val, err := env.ExecuteActivity(activities.GetLastSuccessfulWorkflowId, &GetLastSuccessfulWorkflowIdRequest{
+			AccountId: accountId,
+			JobId:     jobId,
+		})
+
+		require.NoError(t, err)
+		resp := &GetLastSuccessfulWorkflowIdResponse{}
+		err = val.Get(resp)
+		require.NoError(t, err)
+		require.NotNil(t, resp.WorkflowId)
+		require.Equal(t, workflowId1, *resp.WorkflowId)
+	})
+
+	t.Run("returns nil when no successful runs found", func(t *testing.T) {
+		accountId := "test-account-id"
+		jobId := "test-job-id"
+		workflowId := "workflow-1"
+
+		// Mock schedule handle to return workflow IDs
+		tmprlScheduleClient.On("GetHandle", mock.Anything, jobId).Return(scheduleHandle).Once()
+		scheduleHandle.On("Describe", mock.Anything).Return(&tmprl.ScheduleDescription{
+			Info: tmprl.ScheduleInfo{
+				RecentActions: []tmprl.ScheduleActionResult{
+					{
+						StartWorkflowResult: &tmprl.ScheduleWorkflowExecution{
+							WorkflowID: workflowId,
+						},
+						ActualTime: time.Now(),
+					},
+				},
+			},
+		}, nil).Once()
+
+		// Mock job report with empty value to simulate no successful tables
+		jobClient.EXPECT().GetRunContext(mock.Anything, connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
+			Id: &mgmtv1alpha1.RunContextKey{
+				AccountId:  accountId,
+				JobRunId:   workflowId,
+				ExternalId: "test-job-id--job-pii-report",
+			},
+		})).Return(connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+			Value: []byte(`{"successfulTableReports":[]}`),
+		}), nil).Once()
+
+		val, err := env.ExecuteActivity(activities.GetLastSuccessfulWorkflowId, &GetLastSuccessfulWorkflowIdRequest{
+			AccountId: accountId,
+			JobId:     jobId,
+		})
+
+		require.NoError(t, err)
+		resp := &GetLastSuccessfulWorkflowIdResponse{}
+		err = val.Get(resp)
+		require.NoError(t, err)
+		require.Nil(t, resp.WorkflowId)
+	})
+
+	t.Run("handles error when getting recent runs", func(t *testing.T) {
+		accountId := "test-account-id"
+		jobId := "test-job-id"
+
+		// Mock schedule handle to return error
+		tmprlScheduleClient.On("GetHandle", mock.Anything, jobId).Return(scheduleHandle).Once()
+		scheduleHandle.On("Describe", mock.Anything).Return(nil, errors.New("schedule error")).Once()
+
+		val, err := env.ExecuteActivity(activities.GetLastSuccessfulWorkflowId, &GetLastSuccessfulWorkflowIdRequest{
+			AccountId: accountId,
+			JobId:     jobId,
+		})
+
+		require.NoError(t, err)
+		resp := &GetLastSuccessfulWorkflowIdResponse{}
+		err = val.Get(resp)
+		require.NoError(t, err)
+		require.Nil(t, resp.WorkflowId)
+	})
+
+	t.Run("handles error when getting job report", func(t *testing.T) {
+		accountId := "test-account-id"
+		jobId := "test-job-id"
+		workflowId := "workflow-1"
+
+		// Mock schedule handle to return workflow IDs
+		tmprlScheduleClient.On("GetHandle", mock.Anything, jobId).Return(scheduleHandle).Once()
+		scheduleHandle.On("Describe", mock.Anything).Return(&tmprl.ScheduleDescription{
+			Info: tmprl.ScheduleInfo{
+				RecentActions: []tmprl.ScheduleActionResult{
+					{
+						StartWorkflowResult: &tmprl.ScheduleWorkflowExecution{
+							WorkflowID: workflowId,
+						},
+						ActualTime: time.Now(),
+					},
+				},
+			},
+		}, nil).Once()
+
+		// Mock job report to return error
+		jobClient.EXPECT().GetRunContext(mock.Anything, mock.Anything).Return(nil, errors.New("report error")).Once()
+
+		val, err := env.ExecuteActivity(activities.GetLastSuccessfulWorkflowId, &GetLastSuccessfulWorkflowIdRequest{
+			AccountId: accountId,
+			JobId:     jobId,
+		})
+
+		require.NoError(t, err)
+		resp := &GetLastSuccessfulWorkflowIdResponse{}
+		err = val.Get(resp)
+		require.NoError(t, err)
+		require.Nil(t, resp.WorkflowId)
 	})
 }
