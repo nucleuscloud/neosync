@@ -618,6 +618,186 @@ func (msg *JobTypeConfig_JobTypeSync) UnmarshalJSON(b []byte) error {
 }
 
 // MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_SchemaChange) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_SchemaChange) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_SchemaStrategy) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_SchemaStrategy) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_SchemaStrategy_MapAllSchemas) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_SchemaStrategy_MapAllSchemas) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_SchemaStrategy_MapDefinedSchemas) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_SchemaStrategy_MapDefinedSchemas) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_TableStrategy) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_TableStrategy) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_TableStrategy_MapAllTables) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_TableStrategy_MapAllTables) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_TableStrategy_MapDefinedTables) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_TableStrategy_MapDefinedTables) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_NewColumnAdditionStrategy) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_NewColumnAdditionStrategy) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_NewColumnAdditionStrategy_HaltJob) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_NewColumnAdditionStrategy_HaltJob) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_NewColumnAdditionStrategy_AutoMap) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_NewColumnAdditionStrategy_AutoMap) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_HaltJob) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_HaltJob) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_ContinueJob) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_ContinueJob) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_SchemaMapping) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_SchemaMapping) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_SchemaMapping_TableMapping) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_SchemaMapping_TableMapping) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_SchemaMapping_TableMapping_ColumnMapping) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_SchemaMapping_TableMapping_ColumnMapping) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
 func (msg *JobTypeConfig_JobTypePiiDetect) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
