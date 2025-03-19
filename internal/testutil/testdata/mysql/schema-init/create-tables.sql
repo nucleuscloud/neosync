@@ -255,6 +255,35 @@ INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_i
 INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_id) VALUES (30,'Sandra','Taylor','Child',176);
 
 
+-- functions
+
+CREATE FUNCTION get_employee_count (dept_id INT)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE emp_count INT;
+    
+    SELECT COUNT(*) INTO emp_count
+    FROM employees
+    WHERE department_id = dept_id;
+    
+    RETURN emp_count;
+END;
+
+
+CREATE FUNCTION get_employee_full_name(emp_id INT)
+RETURNS VARCHAR(120)
+DETERMINISTIC
+BEGIN
+    DECLARE full_name VARCHAR(120);
+    
+    SELECT CONCAT(first_name, ' ', last_name) 
+    INTO full_name
+    FROM employees
+    WHERE employee_id = emp_id;
+    
+    RETURN full_name;
+END;
 
 -- ==================================================
 -- 1) Create a 'grandparent' table
