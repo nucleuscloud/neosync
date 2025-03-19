@@ -912,6 +912,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
               }}
               onApplyDefaultClick={onApplyDefaultClick}
               onTransformerBulkUpdate={onTransformerBulkUpdate}
+              hasMissingSourceColumnMappings={missingSourceColumns.length > 0}
+              onRemoveMissingSourceColumnMappings={onRemoveMissingSourceColumns}
             />
           )}
 
