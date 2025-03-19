@@ -1093,6 +1093,12 @@ func (s *Service) GetPiiDetectionReport(
 		}
 	}
 
+	// Sort tableRunContexts by UpdatedAt in descending order (newest first)
+	sort.Slice(tableRunContexts, func(i, j int) bool {
+		// Compare timestamps, return true if i should come before j
+		return tableRunContexts[i].UpdatedAt.Time.After(tableRunContexts[j].UpdatedAt.Time)
+	})
+
 	reports, err := getReportsFromTableContexts(tableRunContexts)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get reports from table contexts: %w", err)

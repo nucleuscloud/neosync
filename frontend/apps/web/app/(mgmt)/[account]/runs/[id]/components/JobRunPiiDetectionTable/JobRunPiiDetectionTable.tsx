@@ -4,13 +4,14 @@ import { Button } from '@/components/ui/button';
 import { refreshWhenJobRunning } from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
 import { JobService, PiiDetectionReport_TableReport } from '@neosync/sdk';
-import { ReloadIcon } from '@radix-ui/react-icons';
+import { DownloadIcon, ReloadIcon } from '@radix-ui/react-icons';
 import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import Papa from 'papaparse';
 import { ReactElement, useMemo } from 'react';
 import { PII_DETECTION_COLUMNS, PiiDetectionRow } from './columns';
 
@@ -68,13 +69,46 @@ export default function JobRunPiiDetectionTable(props: Props): ReactElement {
     }
   }
 
+  function onDownloadClick(): void {
+    if (!data.length) {
+      return;
+    }
+
+    // Create CSV content
+    const csvRows = data.map((row) => {
+      return {
+        schema: row.schema,
+        table: row.table,
+        column: row.column,
+        categories: row.reporterCategory,
+        confidence: row.reporterConfidence,
+        reporters: row.reporterType,
+      };
+    });
+    const csvContent = Papa.unparse(csvRows, {
+      escapeFormulae: true,
+      header: true,
+    });
+
+    // Create and download the CSV file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `pii-detection-report-${jobRunId}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-row gap-2 items-center">
         <div className="text-xl font-semibold tracking-tight">
           PII Detection Report
         </div>
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row gap-1">
           <Button
             variant="ghost"
             size="icon"
@@ -82,6 +116,14 @@ export default function JobRunPiiDetectionTable(props: Props): ReactElement {
             className={isFetchingReport ? 'animate-spin' : ''}
           >
             <ReloadIcon className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDownloadClick()}
+            disabled={!data.length}
+          >
+            <DownloadIcon className="h-4 w-4" />
           </Button>
         </div>
       </div>
