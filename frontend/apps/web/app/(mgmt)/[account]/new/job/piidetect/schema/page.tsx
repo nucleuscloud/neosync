@@ -30,6 +30,7 @@ import JobsProgressSteps, {
 } from '../../JobsProgressSteps';
 import {
   DataSampling,
+  Incremental,
   TableScanFilterMode,
   TableScanFilterPatterns,
   UserPrompt,
@@ -183,6 +184,13 @@ export default function Page(props: PageProps): ReactElement {
             value={formData.dataSampling}
             onChange={(value) =>
               setFormData({ ...formData, dataSampling: value })
+            }
+            errors={errors}
+          />
+          <Incremental
+            value={formData.incremental}
+            onChange={(value) =>
+              setFormData({ ...formData, incremental: value })
             }
             errors={errors}
           />

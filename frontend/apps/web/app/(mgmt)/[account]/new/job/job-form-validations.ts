@@ -358,8 +358,14 @@ const DataSamplingFormValue = Yup.object().shape({
 });
 export type DataSamplingFormValue = Yup.InferType<typeof DataSamplingFormValue>;
 
+const IncrementalFormValue = Yup.object().shape({
+  isEnabled: Yup.boolean().required().default(false),
+});
+export type IncrementalFormValue = Yup.InferType<typeof IncrementalFormValue>;
+
 export const PiiDetectionSchemaFormValues = Yup.object().shape({
   dataSampling: DataSamplingFormValue,
+  incremental: IncrementalFormValue,
   tableScanFilter: TableScanFilterFormValue,
   userPrompt: Yup.string(),
 });

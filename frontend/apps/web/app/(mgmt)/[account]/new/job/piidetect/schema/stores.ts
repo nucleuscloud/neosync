@@ -22,6 +22,9 @@ function getInitialFormState(): PiiDetectionSchemaFormValues {
       },
     },
     userPrompt: '',
+    incremental: {
+      isEnabled: false,
+    },
   };
 }
 
@@ -154,6 +157,9 @@ function getFormStateFromJob(job: Job): PiiDetectionSchemaFormValues {
         patterns: { schemas: [], tables: [] },
       },
       userPrompt: '',
+      incremental: {
+        isEnabled: false,
+      },
     };
   }
 
@@ -184,5 +190,8 @@ function getFormStateFromJob(job: Job): PiiDetectionSchemaFormValues {
     },
     tableScanFilter: tableScanFilter,
     userPrompt: jobTypeConfig.userPrompt ?? '',
+    incremental: {
+      isEnabled: jobTypeConfig.incremental?.isEnabled ?? false,
+    },
   };
 }
