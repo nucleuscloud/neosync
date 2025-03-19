@@ -177,9 +177,10 @@ type TableConstraints struct {
 }
 
 type DataType struct {
-	Schema     string
-	Name       string
-	Definition string
+	Fingerprint string
+	Schema      string
+	Name        string
+	Definition  string
 }
 
 type ExtensionDataType struct {

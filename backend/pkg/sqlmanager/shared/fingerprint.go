@@ -80,6 +80,11 @@ func BuildTriggerFingerprint(trigger *TableTrigger) string {
 	return sha256Hex(input)
 }
 
+func BuildFingerprint(parts ...string) string {
+	input := strings.Join(parts, "|")
+	return sha256Hex(input)
+}
+
 // ptrOrEmpty returns the pointer's value if not nil, otherwise "".
 func ptrOrEmpty(s *string) string {
 	if s == nil {

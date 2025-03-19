@@ -92,24 +92,38 @@ func (q *Queries) GetAllTables(ctx context.Context, db DBTX) ([]*GetAllTablesRow
 
 const getCustomFunctionsBySchemas = `-- name: GetCustomFunctionsBySchemas :many
 SELECT
-    ROUTINE_NAME as function_name,
-    ROUTINE_SCHEMA as schema_name,
-    DTD_IDENTIFIER as return_data_type,
-    ROUTINE_DEFINITION as definition,
-    CASE WHEN IS_DETERMINISTIC = 'YES' THEN 1 ELSE 0 END as is_deterministic
-FROM
-    INFORMATION_SCHEMA.ROUTINES
+    r.ROUTINE_NAME AS function_name,
+    r.ROUTINE_SCHEMA AS schema_name,
+    r.DTD_IDENTIFIER AS return_data_type,
+    r.ROUTINE_DEFINITION AS definition,
+    CASE WHEN IS_DETERMINISTIC = 'YES' THEN 1 ELSE 0 END as is_deterministic,
+    IFNULL(GROUP_CONCAT(CONCAT_WS(' ', p.PARAMETER_NAME, IFNULL(p.DTD_IDENTIFIER, p.DATA_TYPE))
+		ORDER BY
+			p.ORDINAL_POSITION SEPARATOR ', '), '') AS function_signature
+FROM INFORMATION_SCHEMA.ROUTINES r
+LEFT JOIN INFORMATION_SCHEMA.PARAMETERS p
+    ON  r.ROUTINE_SCHEMA = p.SPECIFIC_SCHEMA
+    AND r.ROUTINE_NAME   = p.SPECIFIC_NAME
+    AND p.PARAMETER_MODE = 'IN'
 WHERE
-    ROUTINE_TYPE = 'FUNCTION'
-    AND ROUTINE_SCHEMA in (/*SLICE:schemas*/?)
+    r.ROUTINE_TYPE = 'FUNCTION'
+    AND r.ROUTINE_SCHEMA IN (/*SLICE:schemas*/?)
+GROUP BY
+    r.ROUTINE_NAME,
+    r.ROUTINE_SCHEMA,
+    r.DTD_IDENTIFIER,
+    r.ROUTINE_DEFINITION,
+    r.IS_DETERMINISTIC
+ORDER BY r.ROUTINE_NAME
 `
 
 type GetCustomFunctionsBySchemasRow struct {
-	FunctionName    string
-	SchemaName      string
-	ReturnDataType  string
-	Definition      string
-	IsDeterministic int32
+	FunctionName      string
+	SchemaName        string
+	ReturnDataType    string
+	Definition        string
+	IsDeterministic   int32
+	FunctionSignature interface{}
 }
 
 func (q *Queries) GetCustomFunctionsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetCustomFunctionsBySchemasRow, error) {
@@ -137,6 +151,7 @@ func (q *Queries) GetCustomFunctionsBySchemas(ctx context.Context, db DBTX, sche
 			&i.ReturnDataType,
 			&i.Definition,
 			&i.IsDeterministic,
+			&i.FunctionSignature,
 		); err != nil {
 			return nil, err
 		}

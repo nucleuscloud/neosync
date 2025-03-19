@@ -27,6 +27,7 @@ const (
 	AddColumnsLabel                   = "add columns"
 	DropColumnsLabel                  = "drop columns"
 	DropTriggersLabel                 = "drop triggers"
+	DropFunctionsLabel                = "drop functions"
 	DropNonForeignKeyConstraintsLabel = "drop non-foreign key constraints"
 	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
 )
@@ -661,6 +662,10 @@ func BuildDropTriggerStatement(schema *string, triggerName string) string {
 	return fmt.Sprintf("DROP TRIGGER IF EXISTS %s.%s;", EscapeMysqlColumn(*schema), EscapeMysqlColumn(triggerName))
 }
 
+func BuildDropFunctionStatement(schema, functionName string) string {
+	return fmt.Sprintf("DROP FUNCTION IF EXISTS %s.%s;", EscapeMysqlColumn(schema), EscapeMysqlColumn(functionName))
+}
+
 type buildTableColRequest struct {
 	ColumnName          string
 	ColumnDefault       string
@@ -771,7 +776,7 @@ func (m *MysqlManager) GetSchemaTableDataTypes(ctx context.Context, tables []*sq
 	}
 
 	output := &sqlmanager_shared.SchemaTableDataTypeResponse{}
-	funcs, err := m.getFunctionsByTables(ctx, schemas)
+	funcs, err := m.getFunctionsBySchemas(ctx, schemas)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get postgres custom functions by tables: %w", err)
 	}
@@ -860,6 +865,16 @@ func (m *MysqlManager) GetSchemaInitStatements(
 		return nil
 	})
 
+	dataTypeStmts := []string{}
+	errgrp.Go(func() error {
+		datatypeCfg, err := m.GetSchemaTableDataTypes(errctx, tables)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve mysql schema table data types: %w", err)
+		}
+		dataTypeStmts = datatypeCfg.GetStatements()
+		return nil
+	})
+
 	tableTriggerStmts := []string{}
 	errgrp.Go(func() error {
 		tableTriggers, err := m.GetSchemaTableTriggers(errctx, tables)
@@ -901,7 +916,7 @@ func (m *MysqlManager) GetSchemaInitStatements(
 
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{Label: SchemasLabel, Statements: schemaStmts},
-		{Label: "data types"},
+		{Label: "data types", Statements: dataTypeStmts},
 		{Label: CreateTablesLabel, Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
 		{Label: "table index", Statements: idxStmts},
@@ -910,7 +925,7 @@ func (m *MysqlManager) GetSchemaInitStatements(
 	}, nil
 }
 
-func (m *MysqlManager) getFunctionsByTables(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
+func (m *MysqlManager) getFunctionsBySchemas(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
 	rows, err := m.querier.GetCustomFunctionsBySchemas(ctx, m.pool, schemas)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
@@ -920,13 +935,31 @@ func (m *MysqlManager) getFunctionsByTables(ctx context.Context, schemas []strin
 
 	output := make([]*sqlmanager_shared.DataType, 0, len(rows))
 	for _, row := range rows {
-		output = append(output, &sqlmanager_shared.DataType{
+		functionSignatureStr, err := convertUInt8ToString(row.FunctionSignature)
+		if err != nil {
+			return nil, err
+		}
+		function := &sqlmanager_shared.DataType{
 			Schema:     row.SchemaName,
 			Name:       row.FunctionName,
-			Definition: wrapIdempotentFunction(row.FunctionName, row.ReturnDataType, row.Definition, row.IsDeterministic == 1),
-		})
+			Definition: wrapIdempotentFunction(row.FunctionName, functionSignatureStr, row.ReturnDataType, row.Definition, row.IsDeterministic == 1),
+		}
+		function.Fingerprint = sqlmanager_shared.BuildFingerprint(function.Schema, function.Name, function.Definition)
+		output = append(output, function)
 	}
 	return output, nil
+}
+
+func (m *MysqlManager) GetFunctionsByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DataType, error) {
+	schemaMap := map[string]struct{}{}
+	for _, t := range tables {
+		schemaMap[t.Schema] = struct{}{}
+	}
+	schemas := []string{}
+	for s := range schemaMap {
+		schemas = append(schemas, s)
+	}
+	return m.getFunctionsBySchemas(ctx, schemas)
 }
 
 func wrapIdempotentConstraint(
@@ -1015,6 +1048,7 @@ DROP PROCEDURE %[1]s;
 
 func wrapIdempotentFunction(
 	funcName,
+	functionSignature,
 	returnDataType,
 	definition string,
 	isDeterministic bool,
@@ -1028,7 +1062,7 @@ CREATE FUNCTION IF NOT EXISTS %s(%s)
 RETURNS %s
 %s
 %s;
-`, funcName, returnDataType, returnDataType, deterministic, definition)
+`, funcName, functionSignature, returnDataType, deterministic, definition)
 	return strings.TrimSpace(stmt)
 }
 

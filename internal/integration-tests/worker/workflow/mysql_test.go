@@ -2,6 +2,7 @@ package integrationtest
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"slices"
 	"testing"
@@ -687,6 +688,25 @@ func test_mysql_schema_reconciliation_compare_schemas(
 		for _, nonFk := range destNonFk {
 			require.Contains(t, srcNonFk, nonFk, "source missing non-foreign key constraint in table %s", table)
 		}
+	}
+
+	t.Logf("checking functions are the same in source and destination")
+	srcFunctions, err := srcManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get source functions")
+	destFunctions, err := destManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get destination functions")
+
+	jsonF, _ := json.MarshalIndent(srcFunctions, "", " ")
+	fmt.Printf("\n\n source: %s \n\n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(destFunctions, "", " ")
+	fmt.Printf("\n\n destination: %s \n\n", string(jsonF))
+
+	require.Len(t, srcFunctions.Functions, len(destFunctions.Functions), "source and destination have different number of functions")
+	for _, function := range srcFunctions.Functions {
+		require.Contains(t, destFunctions.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
+	}
+	for _, function := range destFunctions.Functions {
+		require.Contains(t, srcFunctions.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
 	}
 }
 

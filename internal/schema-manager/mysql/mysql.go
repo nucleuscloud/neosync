@@ -102,6 +102,7 @@ func getDatabaseDataForSchemaDiff(
 	nonFkConstraints := map[string]*sqlmanager_shared.NonForeignKeyConstraint{}
 	fkConstraints := map[string]*sqlmanager_shared.ForeignKeyConstraint{}
 	triggers := map[string]*sqlmanager_shared.TableTrigger{}
+	functions := map[string]*sqlmanager_shared.DataType{}
 
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.SetLimit(5)
@@ -112,6 +113,17 @@ func getDatabaseDataForSchemaDiff(
 			return fmt.Errorf("failed to retrieve database table schemas: %w", err)
 		}
 		columns = cols
+		return nil
+	})
+
+	errgrp.Go(func() error {
+		datatypes, err := db.Db().GetSchemaTableDataTypes(ctx, tables)
+		if err != nil {
+			return fmt.Errorf("failed to retrieve database table functions: %w", err)
+		}
+		for _, tablefunction := range datatypes.Functions {
+			functions[tablefunction.Fingerprint] = tablefunction
+		}
 		return nil
 	})
 
@@ -199,7 +211,16 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 		dropTriggerStatements = append(dropTriggerStatements, sqlmanager_mysql.BuildDropTriggerStatement(trigger.TriggerSchema, trigger.TriggerName))
 	}
 
+	dropFunctionStatements := []string{}
+	for _, function := range diff.ExistsInDestination.Functions {
+		dropFunctionStatements = append(dropFunctionStatements, sqlmanager_mysql.BuildDropFunctionStatement(function.Schema, function.Name))
+	}
+
 	return []*sqlmanager_shared.InitSchemaStatements{
+		{
+			Label:      sqlmanager_mysql.DropFunctionsLabel,
+			Statements: dropFunctionStatements,
+		},
 		{
 			Label:      sqlmanager_mysql.DropTriggersLabel,
 			Statements: dropTriggerStatements,
@@ -252,6 +273,7 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 	for _, statement := range initblocks {
 		statementBlocks = append(statementBlocks, statement)
 		if statement.Label == sqlmanager_mysql.CreateTablesLabel {
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropFunctionsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropTriggersLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropForeignKeyConstraintsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropNonForeignKeyConstraintsLabel]...)
@@ -265,6 +287,14 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 		if len(block.Statements) == 0 {
 			continue
 		}
+		fmt.Println()
+		fmt.Println(block.Label)
+		fmt.Println()
+		for _, stmt := range block.Statements {
+			fmt.Println(stmt)
+			fmt.Println()
+		}
+		fmt.Println()
 		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 		if err != nil {
 			d.logger.Error(fmt.Sprintf("unable to exec mysql %s statements: %s", block.Label, err.Error()))
@@ -274,6 +304,10 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 			for _, stmt := range block.Statements {
 				err = d.destdb.Db().BatchExec(ctx, 1, []string{stmt}, &sqlmanager_shared.BatchExecOpts{})
 				if err != nil {
+					fmt.Println()
+					fmt.Println(stmt)
+					fmt.Println(err.Error())
+					fmt.Println()
 					initErrors = append(initErrors, &shared.InitSchemaError{
 						Statement: stmt,
 						Error:     err.Error(),

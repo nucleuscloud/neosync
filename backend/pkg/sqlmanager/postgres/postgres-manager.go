@@ -372,11 +372,13 @@ func (p *PostgresManager) GetSequencesByTables(ctx context.Context, schema strin
 
 	output := make([]*sqlmanager_shared.DataType, 0, len(rows))
 	for _, row := range rows {
-		output = append(output, &sqlmanager_shared.DataType{
+		seq := &sqlmanager_shared.DataType{
 			Schema:     row.SchemaName,
 			Name:       row.SequenceName,
 			Definition: wrapPgIdempotentSequence(row.SchemaName, row.SequenceName, row.Definition),
-		})
+		}
+		seq.Fingerprint = sqlmanager_shared.BuildFingerprint(seq.Schema, seq.Name, seq.Definition)
+		output = append(output, seq)
 	}
 	return output, nil
 }
@@ -423,11 +425,13 @@ func (p *PostgresManager) getFunctionsByTables(ctx context.Context, schema strin
 
 	output := make([]*sqlmanager_shared.DataType, 0, len(rows))
 	for _, row := range rows {
-		output = append(output, &sqlmanager_shared.DataType{
+		function := &sqlmanager_shared.DataType{
 			Schema:     row.SchemaName,
 			Name:       row.FunctionName,
 			Definition: wrapPgIdempotentFunction(row.SchemaName, row.FunctionName, row.FunctionSignature, row.Definition),
-		})
+		}
+		function.Fingerprint = sqlmanager_shared.BuildFingerprint(function.Schema, function.Name, function.Definition)
+		output = append(output, function)
 	}
 	return output, nil
 }
@@ -457,6 +461,7 @@ func (p *PostgresManager) getDataTypesByTables(ctx context.Context, schema strin
 			Name:       row.TypeName,
 			Definition: wrapPgIdempotentDataType(row.SchemaName, row.TypeName, row.Definition),
 		}
+		dt.Fingerprint = sqlmanager_shared.BuildFingerprint(dt.Schema, dt.Name, dt.Definition)
 		switch row.Type {
 		case "composite":
 			output.Composites = append(output.Composites, dt)
