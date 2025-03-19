@@ -942,7 +942,7 @@ func (m *MysqlManager) getFunctionsBySchemas(ctx context.Context, schemas []stri
 		function := &sqlmanager_shared.DataType{
 			Schema:     row.SchemaName,
 			Name:       row.FunctionName,
-			Definition: wrapIdempotentFunction(row.FunctionName, functionSignatureStr, row.ReturnDataType, row.Definition, row.IsDeterministic == 1),
+			Definition: wrapIdempotentFunction(row.SchemaName, row.FunctionName, functionSignatureStr, row.ReturnDataType, row.Definition, row.IsDeterministic == 1),
 		}
 		function.Fingerprint = sqlmanager_shared.BuildFingerprint(function.Schema, function.Name, function.Definition)
 		output = append(output, function)
@@ -1047,6 +1047,7 @@ DROP PROCEDURE %[1]s;
 }
 
 func wrapIdempotentFunction(
+	schema,
 	funcName,
 	functionSignature,
 	returnDataType,
@@ -1058,11 +1059,11 @@ func wrapIdempotentFunction(
 		deterministic = "NOT DETERMINISTIC"
 	}
 	stmt := fmt.Sprintf(`
-CREATE FUNCTION IF NOT EXISTS %s(%s)
+CREATE FUNCTION IF NOT EXISTS %s.%s(%s)
 RETURNS %s
 %s
 %s;
-`, funcName, functionSignature, returnDataType, deterministic, definition)
+`, EscapeMysqlColumn(schema), EscapeMysqlColumn(funcName), functionSignature, returnDataType, deterministic, definition)
 	return strings.TrimSpace(stmt)
 }
 

@@ -176,6 +176,7 @@ func getDatabaseDataForSchemaDiff(
 		NonForeignKeyConstraints: nonFkConstraints,
 		ForeignKeyConstraints:    fkConstraints,
 		Triggers:                 triggers,
+		Functions:                functions,
 	}, nil
 }
 
@@ -276,8 +277,10 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 	statementBlocks := []*sqlmanager_shared.InitSchemaStatements{}
 	for _, statement := range initblocks {
 		statementBlocks = append(statementBlocks, statement)
-		if statement.Label == sqlmanager_mysql.CreateTablesLabel {
+		if statement.Label == sqlmanager_mysql.SchemasLabel {
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropFunctionsLabel]...)
+		}
+		if statement.Label == sqlmanager_mysql.CreateTablesLabel {
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropTriggersLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropForeignKeyConstraintsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropNonForeignKeyConstraintsLabel]...)
@@ -291,27 +294,12 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 		if len(block.Statements) == 0 {
 			continue
 		}
-		fmt.Println()
-		fmt.Println(block.Label)
-		fmt.Println()
-		for _, stmt := range block.Statements {
-			fmt.Println(stmt)
-			fmt.Println()
-		}
-		fmt.Println()
 		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 		if err != nil {
 			d.logger.Error(fmt.Sprintf("unable to exec mysql %s statements: %s", block.Label, err.Error()))
-			if block.Label != sqlmanager_mysql.SchemasLabel {
-				return nil, fmt.Errorf("unable to exec mysql %s statements: %w", block.Label, err)
-			}
 			for _, stmt := range block.Statements {
 				err = d.destdb.Db().BatchExec(ctx, 1, []string{stmt}, &sqlmanager_shared.BatchExecOpts{})
 				if err != nil {
-					fmt.Println()
-					fmt.Println(stmt)
-					fmt.Println(err.Error())
-					fmt.Println()
 					initErrors = append(initErrors, &shared.InitSchemaError{
 						Statement: stmt,
 						Error:     err.Error(),
