@@ -77,6 +77,8 @@ interface Props {
   ): TransformerResult;
   getTransformerFromFieldValue(value: JobMappingTransformerForm): Transformer;
   onApplyDefaultClick(override: boolean): void;
+  hasMissingSourceColumnMappings: boolean;
+  onRemoveMissingSourceColumnMappings(): void;
 }
 
 export function SchemaTable(props: Props): ReactElement {
@@ -101,6 +103,8 @@ export function SchemaTable(props: Props): ReactElement {
     getTransformerFromFieldValue,
     onApplyDefaultClick,
     onTransformerBulkUpdate,
+    hasMissingSourceColumnMappings,
+    onRemoveMissingSourceColumnMappings,
   } = props;
   const tableData = useMemo((): JobMappingRow[] => {
     return data.map((d): JobMappingRow => {
@@ -256,6 +260,10 @@ export function SchemaTable(props: Props): ReactElement {
                 console.warn('getAvailableCollections is not implemented');
                 return [];
               }}
+              hasMissingSourceColumnMappings={hasMissingSourceColumnMappings}
+              onRemoveMissingSourceColumnMappings={
+                onRemoveMissingSourceColumnMappings
+              }
             />
           </TabsContent>
           <TabsContent value="virtualforeignkeys">
@@ -298,6 +306,10 @@ export function SchemaTable(props: Props): ReactElement {
             console.warn('getAvailableCollections is not implemented');
             return [];
           }}
+          hasMissingSourceColumnMappings={hasMissingSourceColumnMappings}
+          onRemoveMissingSourceColumnMappings={
+            onRemoveMissingSourceColumnMappings
+          }
         />
       )}
     </div>
@@ -369,14 +381,14 @@ export function getAllFormErrors(
   const colWarnings = validationErrors.columnWarnings.map((e) => {
     return {
       path: `${e.schema}.${e.table}.${e.column}`,
-      message: e.warnings.join('. '),
+      message: e.warningReports.map((w) => w.message).join('. '),
       level: 'warning' as ErrorLevel,
     };
   });
-  const dbErr = validationErrors.databaseErrors?.errors.map((e) => {
+  const dbErr = validationErrors.databaseErrors?.errorReports.map((e) => {
     return {
       path: '',
-      message: e,
+      message: e.message,
       level: 'error' as ErrorLevel,
     };
   });

@@ -47,6 +47,8 @@ interface Props<TData, TValue> {
   canRenameColumn(index: number, newColumn: string): boolean;
   onRowUpdate(index: number, newValue: TData): void;
   getAvailableCollectionsByRow(index: number): string[];
+  hasMissingSourceColumnMappings: boolean;
+  onRemoveMissingSourceColumnMappings(): void;
 }
 
 declare module '@tanstack/react-table' {
@@ -91,6 +93,8 @@ export default function JobMappingTable<TData, TValue>(
     canRenameColumn,
     onRowUpdate,
     getAvailableCollectionsByRow,
+    hasMissingSourceColumnMappings,
+    onRemoveMissingSourceColumnMappings,
   } = props;
 
   const table = useReactTable({
@@ -142,6 +146,10 @@ export default function JobMappingTable<TData, TValue>(
             )
           }
           onImportMappingsClick={onImportMappingsClick}
+          hasMissingSourceColumnMappings={hasMissingSourceColumnMappings}
+          onRemoveMissingSourceColumnMappings={
+            onRemoveMissingSourceColumnMappings
+          }
         />
       </div>
 

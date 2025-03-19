@@ -56,6 +56,7 @@ import {
 } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  ColumnWarning_ColumnWarningCode,
   Connection,
   ConnectionDataService,
   ConnectionSchema,
@@ -602,6 +603,51 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     },
   });
 
+  const missingSourceColumns = useMemo(() => {
+    if (!validateMappingsResponse?.columnWarnings) {
+      return [];
+    }
+    return (
+      validateMappingsResponse?.columnWarnings
+        .map((w) => {
+          const isNotFoundInSource = w.warningReports.some(
+            (wr) =>
+              wr.code === ColumnWarning_ColumnWarningCode.NOT_FOUND_IN_SOURCE
+          );
+          return isNotFoundInSource
+            ? {
+                schema: w.schema,
+                table: w.table,
+                column: w.column,
+              }
+            : null;
+        })
+        .filter((x) => !!x) ?? []
+    );
+  }, [validateMappingsResponse?.columnWarnings]);
+
+  function onRemoveMissingSourceColumns(): void {
+    if (missingSourceColumns.length === 0) {
+      return;
+    }
+    // this will be slow for large datasets
+    const colsMap = new Map(
+      formMappings.map((fm, idx) => [
+        `${fm.schema}.${fm.table}.${fm.column}`,
+        idx,
+      ])
+    );
+    const indicesToRemove = missingSourceColumns
+      .map((c) => colsMap.get(`${c.schema}.${c.table}.${c.column}`))
+      .filter((x) => x != null);
+    if (indicesToRemove.length > 0) {
+      remove(indicesToRemove);
+      setTimeout(() => {
+        validateMappings(form.getValues('mappings')); // using form.getValues as it's more up to date for some reason (bug?)
+      }, 0);
+    }
+  }
+
   if (
     isConnectionsLoading ||
     isSchemaDataMapLoading ||
@@ -911,6 +957,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
               }}
               onApplyDefaultClick={onApplyDefaultClick}
               onTransformerBulkUpdate={onTransformerBulkUpdate}
+              hasMissingSourceColumnMappings={missingSourceColumns.length > 0}
+              onRemoveMissingSourceColumnMappings={onRemoveMissingSourceColumns}
             />
           )}
           <div className="flex flex-row items-center justify-end w-full mt-4">
