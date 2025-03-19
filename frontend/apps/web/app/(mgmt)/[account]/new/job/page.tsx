@@ -26,6 +26,7 @@ import {
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, ReactNode, use, useState } from 'react';
 import { AiOutlineExperiment } from 'react-icons/ai';
+import { PiDetective } from 'react-icons/pi';
 import { NewJobType } from './job-form-validations';
 
 export default function NewJob(props: PageProps): ReactElement {
@@ -233,13 +234,13 @@ function useGetJobData(
       description:
         'Scan your database for PII and sensitive data to identify security risks.',
       href: `/${account?.name}/new/job/define?${piiDetectionParams.toString()}`,
-      icon: <MagicWandIcon />,
+      icon: <PiDetective />,
       type: 'pii-detection',
       experimental: true,
       image:
         resolvedTheme === 'light'
-          ? 'https://assets.nucleuscloud.com/neosync/app/jobsynclight.svg'
-          : 'https://assets.nucleuscloud.com/neosync/app/prodsync-dark.svg',
+          ? 'https://assets.nucleuscloud.com/neosync/app/pii-detect-light.svg'
+          : 'https://assets.nucleuscloud.com/neosync/app/pii-detect-dark.svg',
     });
   }
 
