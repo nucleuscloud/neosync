@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"sort"
 	"strings"
+
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
 
 // buildForeignKeyConstraintFingerprint creates a stable hash that
@@ -77,6 +79,23 @@ func BuildTriggerFingerprint(trigger *TableTrigger) string {
 	}
 
 	input := strings.Join(parts, "|")
+	return sha256Hex(input)
+}
+
+func BuildTableColumnFingerprint(column *sqlmanager_shared.TableColumn) string {
+	input := strings.Join([]string{
+		column.Schema,
+		column.Table,
+		column.Name,
+		column.DataType,
+		column.IsNullable,
+		column.ColumnDefault,
+		column.ColumnDefaultType,
+		column.IdentityGeneration,
+		column.GeneratedType,
+		column.GeneratedExpression,
+	}, "|")
+
 	return sha256Hex(input)
 }
 

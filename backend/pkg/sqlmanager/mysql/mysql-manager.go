@@ -211,6 +211,31 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 	return result, nil
 }
 
+func (m *MysqlManager) GetColumnsByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableColumn, error) {
+	rows, err := m.GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
+	if err != nil {
+		return nil, err
+	}
+	columns := []*sqlmanager_shared.TableColumn{}
+	for _, row := range rows {
+		col := &sqlmanager_shared.TableColumn{
+			Schema:              row.TableSchema,
+			Name:                row.ColumnName,
+			Column:              row.ColumnName,
+			DataType:            row.DataType,
+			IsNullable:          row.IsNullable,
+			ColumnDefault:       row.ColumnDefault,
+			ColumnDefaultType:   row.ColumnDefaultType,
+			IdentityGeneration:  row.IdentityGeneration,
+			GeneratedType:       row.GeneratedType,
+			GeneratedExpression: row.GeneratedExpression,
+		}
+		col.Fingerprint = sqlmanager_shared.BuildTableColumnFingerprint(col)
+		columns = append(columns, col)
+	}
+	return columns, nil
+}
+
 func (m *MysqlManager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
 	rows, err := m.querier.GetAllSchemas(ctx, m.pool)
 	if err != nil {
