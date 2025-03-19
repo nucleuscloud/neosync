@@ -67,6 +67,8 @@ interface Props {
     indices: number[],
     config: JobMappingTransformerForm
   ): void;
+  hasMissingSourceColumnMappings: boolean;
+  onRemoveMissingSourceColumnMappings(): void;
 }
 
 export default function NosqlTable(props: Props): ReactElement {
@@ -90,6 +92,8 @@ export default function NosqlTable(props: Props): ReactElement {
     getAvailableTransformersForBulk,
     getTransformerFromFieldValue,
     onTransformerBulkUpdate,
+    hasMissingSourceColumnMappings,
+    onRemoveMissingSourceColumnMappings,
   } = props;
   const { account } = useAccount();
   const { handler, isValidating } = useGetTransformersHandler(
@@ -239,6 +243,10 @@ export default function NosqlTable(props: Props): ReactElement {
           );
         }}
         getAvailableCollectionsByRow={getAvailableCollectionsByRow}
+        hasMissingSourceColumnMappings={hasMissingSourceColumnMappings}
+        onRemoveMissingSourceColumnMappings={
+          onRemoveMissingSourceColumnMappings
+        }
       />
     </div>
   );

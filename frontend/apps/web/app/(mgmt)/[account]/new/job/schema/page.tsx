@@ -717,6 +717,8 @@ export default function Page(props: PageProps): ReactElement {
               }}
               onApplyDefaultClick={onApplyDefaultClick}
               onTransformerBulkUpdate={onTransformerBulkUpdate}
+              hasMissingSourceColumnMappings={false}
+              onRemoveMissingSourceColumnMappings={() => {}}
             />
           )}
 
@@ -762,6 +764,8 @@ export default function Page(props: PageProps): ReactElement {
               }}
               onApplyDefaultClick={onApplyDefaultClick}
               onTransformerBulkUpdate={onTransformerBulkUpdate}
+              hasMissingSourceColumnMappings={false}
+              onRemoveMissingSourceColumnMappings={() => {}}
             />
           )}
           <div className="flex flex-row gap-1 justify-between">
