@@ -100,7 +100,9 @@ func getDatabaseDataForSchemaDiff(
 	schemaMap map[string][]*sqlmanager_shared.SchemaTable,
 ) (*shared.DatabaseData, error) {
 	columns := []*sqlmanager_shared.DatabaseSchemaRow{}
-	constraints := map[string]*sqlmanager_shared.AllTableConstraints{}
+	nonFkConstraints := map[string]*sqlmanager_shared.NonForeignKeyConstraint{}
+	fkConstraints := map[string]*sqlmanager_shared.ForeignKeyConstraint{}
+	triggers := map[string]*sqlmanager_shared.TableTrigger{}
 
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.SetLimit(5)
@@ -111,6 +113,17 @@ func getDatabaseDataForSchemaDiff(
 			return fmt.Errorf("failed to retrieve database table schemas: %w", err)
 		}
 		columns = cols
+		return nil
+	})
+
+	errgrp.Go(func() error {
+		tabletriggers, err := db.Db().GetSchemaTableTriggers(ctx, tables)
+		if err != nil {
+			return fmt.Errorf("failed to retrieve database table triggers: %w", err)
+		}
+		for _, tabletrigger := range tabletriggers {
+			triggers[tabletrigger.Fingerprint] = tabletrigger
+		}
 		return nil
 	})
 
@@ -127,10 +140,15 @@ func getDatabaseDataForSchemaDiff(
 			if err != nil {
 				return fmt.Errorf("failed to retrieve  database table constraints for schema %s: %w", schema, err)
 			}
-			for key, tableconstraint := range tableconstraints {
-				mu.Lock()
-				constraints[key] = tableconstraint
-				mu.Unlock()
+			mu.Lock()
+			defer mu.Unlock()
+			for _, tableconstraint := range tableconstraints {
+				for _, nonFkConstraint := range tableconstraint.NonForeignKeyConstraints {
+					nonFkConstraints[nonFkConstraint.Fingerprint] = nonFkConstraint
+				}
+				for _, fkConstraint := range tableconstraint.ForeignKeyConstraints {
+					fkConstraints[fkConstraint.Fingerprint] = fkConstraint
+				}
 			}
 			return nil
 		})
@@ -142,8 +160,10 @@ func getDatabaseDataForSchemaDiff(
 	columnsMap := sqlmanager_shared.GetUniqueSchemaColMappings(columns)
 
 	return &shared.DatabaseData{
-		Columns:          columnsMap,
-		TableConstraints: constraints,
+		Columns:                  columnsMap,
+		NonForeignKeyConstraints: nonFkConstraints,
+		ForeignKeyConstraints:    fkConstraints,
+		Triggers:                 triggers,
 	}, nil
 }
 
@@ -178,7 +198,16 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 		dropColumnStatements = append(dropColumnStatements, sqlmanager_mysql.BuildDropColumnStatement(column))
 	}
 
+	dropTriggerStatements := []string{}
+	for _, trigger := range diff.ExistsInDestination.Triggers {
+		dropTriggerStatements = append(dropTriggerStatements, sqlmanager_mysql.BuildDropTriggerStatement(trigger.TriggerSchema, trigger.TriggerName))
+	}
+
 	return []*sqlmanager_shared.InitSchemaStatements{
+		{
+			Label:      sqlmanager_mysql.DropTriggersLabel,
+			Statements: dropTriggerStatements,
+		},
 		{
 			Label:      sqlmanager_mysql.AddColumnsLabel,
 			Statements: addColumnStatements,
@@ -227,6 +256,7 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 	for _, statement := range initblocks {
 		statementBlocks = append(statementBlocks, statement)
 		if statement.Label == sqlmanager_mysql.CreateTablesLabel {
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropTriggersLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropForeignKeyConstraintsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropNonForeignKeyConstraintsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropColumnsLabel]...)

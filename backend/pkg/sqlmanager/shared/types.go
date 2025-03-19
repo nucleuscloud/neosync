@@ -73,10 +73,12 @@ func (s SchemaTable) String() string {
 }
 
 type TableTrigger struct {
-	Schema      string
-	Table       string
-	TriggerName string
-	Definition  string
+	Fingerprint   string
+	Schema        string
+	Table         string
+	TriggerSchema *string
+	TriggerName   string
+	Definition    string
 }
 
 type TableInitStatement struct {
