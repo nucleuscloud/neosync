@@ -51,6 +51,7 @@ type GetPiiDetectJobDetailsResponse struct {
 	SourceConnectionId string
 }
 
+// Used to retrieve information about the PII Detect job to funnel in to the remaining workflow.
 func (a *Activities) GetPiiDetectJobDetails(ctx context.Context, req *GetPiiDetectJobDetailsRequest) (*GetPiiDetectJobDetailsResponse, error) {
 	logger := log.With(activity.GetLogger(ctx), "jobId", req.JobId)
 
@@ -92,6 +93,9 @@ type GetLastSuccessfulWorkflowIdResponse struct {
 	WorkflowId *string
 }
 
+// Used to retrieve the last successful workflow run from a job's schedule
+// This is used for incremental PII syncs in order to find the last result set of scanned PII.
+// This is then funneled in to computing the diff of what tables have changed and should be rescanned.
 func (a *Activities) GetLastSuccessfulWorkflowId(ctx context.Context, req *GetLastSuccessfulWorkflowIdRequest) (*GetLastSuccessfulWorkflowIdResponse, error) {
 	logger := log.With(activity.GetLogger(ctx), "accountId", req.AccountId, "jobId", req.JobId)
 	workflowIds, err := getRecentRunsFromHandle(ctx, a.tmprlScheduleClient.GetHandle(ctx, req.JobId))
@@ -180,6 +184,8 @@ type GetTablesToPiiScanResponse struct {
 	PreviousReports []*TableReport
 }
 
+// This retrieves all tables from the source connection and filters them based on the user provided filter.
+// If an incremental config is provided, it will also filter the tables based on the previous successful workflow run.
 func (a *Activities) GetTablesToPiiScan(ctx context.Context, req *GetTablesToPiiScanRequest) (*GetTablesToPiiScanResponse, error) {
 	logger := log.With(activity.GetLogger(ctx), "sourceConnectionId", req.SourceConnectionId)
 	slogger := temporallogger.NewSlogger(logger)
@@ -418,11 +424,6 @@ func makeTableSet(tables []TableIdentifier) map[TableIdentifier]bool {
 	return set
 }
 
-// Make TableIdentifier comparable
-func (t TableIdentifier) Equals(other TableIdentifier) bool {
-	return t.Schema == other.Schema && t.Table == other.Table
-}
-
 type SaveJobPiiDetectReportRequest struct {
 	AccountId string
 	JobId     string
@@ -451,6 +452,7 @@ func (t *TableReport) ToTableIdentifier() TableIdentifier {
 	}
 }
 
+// After all of the tables have been scanned, this saves the final report for the run in the run context.
 func (a *Activities) SaveJobPiiDetectReport(ctx context.Context, req *SaveJobPiiDetectReportRequest) (*SaveJobPiiDetectReportResponse, error) {
 	info := activity.GetInfo(ctx)
 	jobRunId := info.WorkflowExecution.ID
