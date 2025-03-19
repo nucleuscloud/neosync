@@ -242,9 +242,6 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 		if err != nil {
 			d.logger.Error(fmt.Sprintf("unable to exec mysql %s statements: %s", block.Label, err.Error()))
-			if block.Label != sqlmanager_mysql.SchemasLabel {
-				return nil, fmt.Errorf("unable to exec mysql %s statements: %w", block.Label, err)
-			}
 			for _, stmt := range block.Statements {
 				err = d.destdb.Db().BatchExec(ctx, 1, []string{stmt}, &sqlmanager_shared.BatchExecOpts{})
 				if err != nil {
