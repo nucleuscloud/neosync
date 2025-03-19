@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
@@ -126,6 +127,7 @@ func getDatabaseDataForSchemaDiff(
 		return nil
 	})
 
+	mu := sync.Mutex{}
 	for schema, tables := range schemaMap {
 		tableNames := make([]string, len(tables))
 		for i, table := range tables {
@@ -138,6 +140,8 @@ func getDatabaseDataForSchemaDiff(
 			if err != nil {
 				return fmt.Errorf("failed to retrieve  database table constraints for schema %s: %w", schema, err)
 			}
+			mu.Lock()
+			defer mu.Unlock()
 			for _, tableconstraint := range tableconstraints {
 				for _, nonFkConstraint := range tableconstraint.NonForeignKeyConstraints {
 					nonFkConstraints[nonFkConstraint.Fingerprint] = nonFkConstraint
