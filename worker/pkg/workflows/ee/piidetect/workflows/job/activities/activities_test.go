@@ -87,9 +87,10 @@ func Test_GetTablesToPiiScan(t *testing.T) {
 
 	t.Run("successfully gets tables with include filter", func(t *testing.T) {
 		connId := "test-conn-id"
-		tables := []connectiondata.TableIdentifier{
-			{Schema: "schema1", Table: "table1"},
-			{Schema: "schema2", Table: "table2"},
+		dbColumnSchemas := []*mgmtv1alpha1.DatabaseColumn{
+			{Schema: "schema1", Table: "table1", Column: "col1"},
+			{Schema: "schema1", Table: "table1", Column: "col2"},
+			{Schema: "schema2", Table: "table2", Column: "col1"},
 		}
 
 		connClient.EXPECT().GetConnection(mock.Anything, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
@@ -102,7 +103,7 @@ func Test_GetTablesToPiiScan(t *testing.T) {
 		)
 
 		connBuilder.EXPECT().NewDataConnection(mock.Anything, mock.Anything).Return(dataConn, nil)
-		dataConn.EXPECT().GetAllTables(mock.Anything).Return(tables, nil)
+		dataConn.EXPECT().GetSchema(mock.Anything, &mgmtv1alpha1.ConnectionSchemaConfig{}).Return(dbColumnSchemas, nil)
 
 		filter := &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter{
 			Mode: &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter_Include{
@@ -124,6 +125,9 @@ func Test_GetTablesToPiiScan(t *testing.T) {
 		require.Len(t, resp.Tables, 1)
 		require.Equal(t, "schema1", resp.Tables[0].Schema)
 		require.Equal(t, "table1", resp.Tables[0].Table)
+		// Verify fingerprint matches expected value for schema1.table1 with columns col1,col2
+		expectedFingerprint := getTableColumnFingerprint("schema1", "table1", []string{"col1", "col2"})
+		require.Equal(t, expectedFingerprint, resp.Tables[0].Fingerprint)
 
 		connClient.AssertExpectations(t)
 		connBuilder.AssertExpectations(t)
