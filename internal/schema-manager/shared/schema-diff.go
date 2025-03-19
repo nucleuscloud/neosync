@@ -116,7 +116,6 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 				}
 			}
 
-			// todo: handle column name changes
 			for _, column := range sourceTable {
 				destColumn, ok := destTable[column.Name]
 				if !ok {

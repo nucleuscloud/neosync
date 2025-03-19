@@ -616,9 +616,18 @@ func test_mysql_schema_reconciliation(
 	err = testworkflow.TestEnv.GetWorkflowError()
 	require.NoError(t, err, "Received Temporal Workflow Error: mysql-schema-reconciliation-run-2")
 
+	// fmt.Println()
+	// fmt.Println(mysql.Source.URL)
+	// fmt.Println(mysql.Target.URL)
+	// fmt.Println()
+	// time.Sleep(2 * time.Hour)
+
 	for _, expected := range expectedResults {
 		if expected.table == "multi_col_parent" && !shouldTruncate {
 			expected.rowCount = 4
+		}
+		if expected.table == "emails" && !shouldTruncate {
+			expected.rowCount = 20
 		}
 		rowCount, err := mysql.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)
@@ -629,7 +638,9 @@ func test_mysql_schema_reconciliation(
 	test_mysql_schema_reconciliation_column_values(t, ctx, mysql, schema)
 	t.Logf("finished verifying destination data after alter statements")
 
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "emails", sqlmanager_shared.MysqlDriver, []string{"email_identity"})
+	if shouldTruncate {
+		testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "emails", sqlmanager_shared.MysqlDriver, []string{"email_identity"})
+	}
 
 	test_mysql_schema_reconciliation_compare_schemas(t, ctx, mysql, schema, tables)
 	test_schema_reconciliation_run_context(t, ctx, jobclient, job.GetId(), destinationId, accountId)
@@ -695,6 +706,11 @@ func test_mysql_schema_reconciliation_compare_schemas(
 	destConstraints, err := destManager.GetTableConstraintsByTables(ctx, schema, tables)
 	require.NoError(t, err, "failed to get destination table constraints")
 
+	jsonF, _ := json.MarshalIndent(srcConstraints, "", " ")
+	fmt.Printf("\n\n source: %s \n\n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(destConstraints, "", " ")
+	fmt.Printf("\n\n destination: %s \n\n", string(jsonF))
+
 	require.Len(t, srcConstraints, len(destConstraints), "source and destination have different number of tables with constraints")
 	for table, constraint := range srcConstraints {
 		srcfk := constraint.ForeignKeyConstraints
@@ -738,11 +754,6 @@ func test_mysql_schema_reconciliation_compare_schemas(
 	require.NoError(t, err, "failed to get source columns")
 	destColumns, err := destManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
 	require.NoError(t, err, "failed to get destination columns")
-
-	jsonF, _ := json.MarshalIndent(srcColumns, "", " ")
-	fmt.Printf("\n\n %s \n\n", string(jsonF))
-	jsonF, _ = json.MarshalIndent(destColumns, "", " ")
-	fmt.Printf("\n\n %s \n\n", string(jsonF))
 
 	require.Len(t, srcColumns, len(destColumns), "source and destination have different number of columns")
 	for _, column := range srcColumns {

@@ -308,6 +308,11 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 		if len(block.Statements) == 0 {
 			continue
 		}
+		if block.Label == sqlmanager_mysql.UpdateColumnsLabel || block.Label == sqlmanager_mysql.AddColumnsLabel {
+			for _, stmt := range block.Statements {
+				fmt.Printf("\n\n %s \n\n", stmt)
+			}
+		}
 		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 		if err != nil {
 			d.logger.Error(fmt.Sprintf("unable to exec mysql %s statements: %s", block.Label, err.Error()))

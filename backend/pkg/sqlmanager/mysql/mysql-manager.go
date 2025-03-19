@@ -651,23 +651,14 @@ func nullStringToPtr(str sql.NullString) *string {
 }
 
 func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) (string, error) {
-	columnDefaultStr, err := EscapeMysqlDefaultColumn(column.ColumnDefault, column.ColumnDefaultType)
-	if err != nil {
-		return "", fmt.Errorf("failed to escape column default: %w", err)
-	}
-
-	col := buildTableCol(&buildTableColRequest{
-		ColumnName:          column.Name,
-		ColumnDefault:       columnDefaultStr,
-		DataType:            column.DataType,
-		IsNullable:          column.IsNullable,
-		IdentityType:        column.IdentityGeneration,
-		GeneratedExpression: *column.GeneratedExpression,
-	})
-	return fmt.Sprintf("ALTER TABLE %s.%s ADD COLUMN %s;", EscapeMysqlColumn(column.Schema), EscapeMysqlColumn(column.Table), col), nil
+	return buildColumnStatement("ADD", column)
 }
 
 func BuildUpdateColumnStatement(column *sqlmanager_shared.TableColumn) (string, error) {
+	return buildColumnStatement("MODIFY", column)
+}
+
+func buildColumnStatement(keyword string, column *sqlmanager_shared.TableColumn) (string, error) {
 	columnDefaultStr, err := EscapeMysqlDefaultColumn(column.ColumnDefault, column.ColumnDefaultType)
 	if err != nil {
 		return "", fmt.Errorf("failed to escape column default: %w", err)
@@ -678,10 +669,10 @@ func BuildUpdateColumnStatement(column *sqlmanager_shared.TableColumn) (string, 
 		ColumnDefault:       columnDefaultStr,
 		DataType:            column.DataType,
 		IsNullable:          column.IsNullable,
-		IdentityType:        column.IdentityGeneration,
+		IdentityType:        column.GeneratedType,
 		GeneratedExpression: *column.GeneratedExpression,
 	})
-	return fmt.Sprintf("ALTER TABLE %s.%s MODIFY COLUMN %s;", EscapeMysqlColumn(column.Schema), EscapeMysqlColumn(column.Table), col), nil
+	return fmt.Sprintf("ALTER TABLE %s.%s %s COLUMN %s;", EscapeMysqlColumn(column.Schema), EscapeMysqlColumn(column.Table), keyword, col), nil
 }
 
 func BuildDropColumnStatement(column *sqlmanager_shared.TableColumn) string {

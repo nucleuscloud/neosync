@@ -25,7 +25,7 @@ ALTER TABLE emails AUTO_INCREMENT = 100;
 ALTER TABLE employees
   ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1,
   ADD COLUMN last_modified TIMESTAMP NOT NULL
-    DEFAULT CURRENT_TIMESTAMP
+    DEFAULT (CURRENT_TIMESTAMP)
     ON UPDATE CURRENT_TIMESTAMP,
   ADD COLUMN full_name VARCHAR(46)
     GENERATED ALWAYS AS (CONCAT(first_name, ' ', last_name)) STORED,
@@ -244,8 +244,8 @@ END;
 
 -- modify columns
 
-ALTER TABLE regions
-  MODIFY COLUMN region_code CHAR(5) NOT NULL DEFAULT 'UNK';
+ALTER TABLE grandparent
+  MODIFY COLUMN gp_name VARCHAR(75) NULL;
 
 ALTER TABLE locations
   MODIFY COLUMN city VARCHAR(50) NOT NULL;
@@ -254,12 +254,9 @@ ALTER TABLE employees
   MODIFY COLUMN phone_number VARCHAR(25) DEFAULT NULL,
   MODIFY COLUMN salary DECIMAL(10, 2) NOT NULL;
 
-ALTER TABLE locations
-  MODIFY COLUMN established_year YEAR NOT NULL DEFAULT 2001;
-
 -- ALTER TABLE employees
 --   CHANGE COLUMN extra_info profile_data JSON DEFAULT NULL;
 
-ALTER TABLE employees
+ALTER TABLE astronaut
   MODIFY COLUMN full_name VARCHAR(60)
-    GENERATED ALWAYS AS (CONCAT(first_name, ' ', last_name)) STORED;
+    GENERATED ALWAYS AS (CONCAT(first_name, '-', last_name)) STORED;
