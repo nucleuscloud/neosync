@@ -272,4 +272,225 @@ func Test_JobPiiDetect(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Equal(t, expectedJobKey, result.ReportKey)
 	})
+
+	t.Run("workflow_with_incremental_sync", func(t *testing.T) {
+		var ts testsuite.WorkflowTestSuite
+		env := ts.NewTestWorkflowEnvironment()
+
+		wf := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
+		env.RegisterWorkflow(wf.JobPiiDetect)
+		tableWf := piidetect_table_workflow.New()
+		env.RegisterWorkflow(tableWf.TablePiiDetect)
+
+		env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+			Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil).Twice()
+
+		var activities *piidetect_job_activities.Activities
+
+		// Setup GetPiiDetectJobDetails with incremental config enabled
+		env.OnActivity(activities.GetPiiDetectJobDetails, mock.Anything, mock.Anything).Return(&piidetect_job_activities.GetPiiDetectJobDetailsResponse{
+			AccountId:          "acc-123",
+			SourceConnectionId: "conn-123",
+			PiiDetectConfig: &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect{
+				Incremental: &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_Incremental{
+					IsEnabled: true,
+				},
+			},
+		}, nil)
+
+		// Setup GetLastSuccessfulWorkflowId
+		lastWorkflowId := "previous-workflow-123"
+		env.OnActivity(activities.GetLastSuccessfulWorkflowId, mock.Anything, &piidetect_job_activities.GetLastSuccessfulWorkflowIdRequest{
+			AccountId: "acc-123",
+			JobId:     "job-123",
+		}).Return(&piidetect_job_activities.GetLastSuccessfulWorkflowIdResponse{
+			WorkflowId: &lastWorkflowId,
+		}, nil)
+
+		// Setup GetTablesToPiiScan with previous reports and changed tables
+		previousReport := &piidetect_job_activities.TableReport{
+			TableSchema:     "public",
+			TableName:       "unchanged_table",
+			ScanFingerprint: "old-fingerprint",
+			ReportKey: &mgmtv1alpha1.RunContextKey{
+				AccountId:  "acc-123",
+				JobRunId:   "job-123",
+				ExternalId: "public.unchanged_table--table-pii-report",
+			},
+		}
+
+		env.OnActivity(activities.GetTablesToPiiScan, mock.Anything, &piidetect_job_activities.GetTablesToPiiScanRequest{
+			AccountId:          "acc-123",
+			JobId:              "job-123",
+			SourceConnectionId: "conn-123",
+			IncrementalConfig: &piidetect_job_activities.GetIncrementalTablesConfig{
+				LastWorkflowId: lastWorkflowId,
+			},
+		}).Return(&piidetect_job_activities.GetTablesToPiiScanResponse{
+			Tables: []piidetect_job_activities.TableIdentifierWithFingerprint{
+				{TableIdentifier: piidetect_job_activities.TableIdentifier{Schema: "public", Table: "changed_table"}, Fingerprint: "new-fingerprint"},
+			},
+			PreviousReports: []*piidetect_job_activities.TableReport{previousReport},
+		}, nil)
+
+		// Setup child workflow expectations for changed table
+		changedTableKey := &mgmtv1alpha1.RunContextKey{
+			AccountId:  "acc-123",
+			JobRunId:   "job-123",
+			ExternalId: "public.changed_table--table-pii-report",
+		}
+		env.OnWorkflow(tableWf.TablePiiDetect, mock.Anything, mock.Anything).Return(&piidetect_table_workflow.TablePiiDetectResponse{
+			ResultKey: changedTableKey,
+		}, nil)
+
+		// Setup SaveJobPiiDetectReport - should include both previous and new reports
+		expectedJobKey := &mgmtv1alpha1.RunContextKey{
+			AccountId:  "acc-123",
+			JobRunId:   "job-123",
+			ExternalId: "job-pii-report",
+		}
+		env.OnActivity(activities.SaveJobPiiDetectReport, mock.Anything, mock.MatchedBy(func(req *piidetect_job_activities.SaveJobPiiDetectReportRequest) bool {
+			// Verify that both the unchanged and changed table reports are included
+			if len(req.Report.SuccessfulTableReports) != 2 {
+				return false
+			}
+			hasUnchanged := false
+			hasChanged := false
+			for _, report := range req.Report.SuccessfulTableReports {
+				if report.TableName == "unchanged_table" {
+					hasUnchanged = true
+				}
+				if report.TableName == "changed_table" {
+					hasChanged = true
+				}
+			}
+			return hasUnchanged && hasChanged
+		})).Return(&piidetect_job_activities.SaveJobPiiDetectReportResponse{
+			Key: expectedJobKey,
+		}, nil)
+
+		req := &PiiDetectRequest{
+			JobId: "job-123",
+		}
+
+		var result *PiiDetectResponse
+		env.ExecuteWorkflow(wf.JobPiiDetect, req)
+
+		require.True(t, env.IsWorkflowCompleted())
+		require.NoError(t, env.GetWorkflowError())
+		require.NoError(t, env.GetWorkflowResult(&result))
+
+		assert.NotNil(t, result)
+		assert.Equal(t, expectedJobKey, result.ReportKey)
+	})
+
+	t.Run("workflow_with_incremental_sync_updates_changed_table", func(t *testing.T) {
+		var ts testsuite.WorkflowTestSuite
+		env := ts.NewTestWorkflowEnvironment()
+
+		wf := New(testutil.NewFakeEELicense(testutil.WithIsValid()))
+		env.RegisterWorkflow(wf.JobPiiDetect)
+		tableWf := piidetect_table_workflow.New()
+		env.RegisterWorkflow(tableWf.TablePiiDetect)
+
+		env.OnWorkflow(accounthook_workflow.ProcessAccountHook, mock.Anything, mock.Anything).
+			Return(&accounthook_workflow.ProcessAccountHookResponse{}, nil).Twice()
+
+		var activities *piidetect_job_activities.Activities
+
+		// Setup GetPiiDetectJobDetails with incremental config enabled
+		env.OnActivity(activities.GetPiiDetectJobDetails, mock.Anything, mock.Anything).Return(&piidetect_job_activities.GetPiiDetectJobDetailsResponse{
+			AccountId:          "acc-123",
+			SourceConnectionId: "conn-123",
+			PiiDetectConfig: &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect{
+				Incremental: &mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_Incremental{
+					IsEnabled: true,
+				},
+			},
+		}, nil)
+
+		// Setup GetLastSuccessfulWorkflowId
+		lastWorkflowId := "previous-workflow-123"
+		env.OnActivity(activities.GetLastSuccessfulWorkflowId, mock.Anything, &piidetect_job_activities.GetLastSuccessfulWorkflowIdRequest{
+			AccountId: "acc-123",
+			JobId:     "job-123",
+		}).Return(&piidetect_job_activities.GetLastSuccessfulWorkflowIdResponse{
+			WorkflowId: &lastWorkflowId,
+		}, nil)
+
+		// Setup previous report for a table that will be detected as changed
+		previousReport := &piidetect_job_activities.TableReport{
+			TableSchema:     "public",
+			TableName:       "users",
+			ScanFingerprint: "old-fingerprint",
+			ReportKey: &mgmtv1alpha1.RunContextKey{
+				AccountId:  "acc-123",
+				JobRunId:   "previous-job",
+				ExternalId: "public.users--table-pii-report-old",
+			},
+		}
+
+		// Setup GetTablesToPiiScan to return the same table with a new fingerprint
+		env.OnActivity(activities.GetTablesToPiiScan, mock.Anything, &piidetect_job_activities.GetTablesToPiiScanRequest{
+			AccountId:          "acc-123",
+			JobId:              "job-123",
+			SourceConnectionId: "conn-123",
+			IncrementalConfig: &piidetect_job_activities.GetIncrementalTablesConfig{
+				LastWorkflowId: lastWorkflowId,
+			},
+		}).Return(&piidetect_job_activities.GetTablesToPiiScanResponse{
+			Tables: []piidetect_job_activities.TableIdentifierWithFingerprint{
+				{TableIdentifier: piidetect_job_activities.TableIdentifier{Schema: "public", Table: "users"}, Fingerprint: "new-fingerprint"},
+			},
+			PreviousReports: []*piidetect_job_activities.TableReport{previousReport},
+		}, nil)
+
+		// Setup child workflow expectations for the changed table
+		newTableKey := &mgmtv1alpha1.RunContextKey{
+			AccountId:  "acc-123",
+			JobRunId:   "job-123",
+			ExternalId: "public.users--table-pii-report-new",
+		}
+		env.OnWorkflow(tableWf.TablePiiDetect, mock.Anything, mock.MatchedBy(func(req *piidetect_table_workflow.TablePiiDetectRequest) bool {
+			// Verify that the previous results key is passed to the table workflow
+			return req.TableName == "users" &&
+				req.PreviousResultsKey != nil &&
+				req.PreviousResultsKey.ExternalId == "public.users--table-pii-report-old"
+		})).Return(&piidetect_table_workflow.TablePiiDetectResponse{
+			ResultKey: newTableKey,
+		}, nil)
+
+		// Setup SaveJobPiiDetectReport - should contain only the new report
+		expectedJobKey := &mgmtv1alpha1.RunContextKey{
+			AccountId:  "acc-123",
+			JobRunId:   "job-123",
+			ExternalId: "job-pii-report",
+		}
+		env.OnActivity(activities.SaveJobPiiDetectReport, mock.Anything, mock.MatchedBy(func(req *piidetect_job_activities.SaveJobPiiDetectReportRequest) bool {
+			if len(req.Report.SuccessfulTableReports) != 1 {
+				return false
+			}
+			report := req.Report.SuccessfulTableReports[0]
+			// Verify that we're using the new report with the new fingerprint
+			return report.TableName == "users" &&
+				report.ScanFingerprint == "new-fingerprint" &&
+				report.ReportKey.ExternalId == "public.users--table-pii-report-new"
+		})).Return(&piidetect_job_activities.SaveJobPiiDetectReportResponse{
+			Key: expectedJobKey,
+		}, nil)
+
+		req := &PiiDetectRequest{
+			JobId: "job-123",
+		}
+
+		var result *PiiDetectResponse
+		env.ExecuteWorkflow(wf.JobPiiDetect, req)
+
+		require.True(t, env.IsWorkflowCompleted())
+		require.NoError(t, env.GetWorkflowError())
+		require.NoError(t, env.GetWorkflowResult(&result))
+
+		assert.NotNil(t, result)
+		assert.Equal(t, expectedJobKey, result.ReportKey)
+	})
 }
