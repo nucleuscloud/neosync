@@ -12,13 +12,13 @@ func Test_NewSchemaDifferencesBuilder(t *testing.T) {
 		{Schema: "public", Table: "users"},
 	}
 	sourceData := &DatabaseData{
-		Columns:                  map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{},
+		Columns:                  map[string]map[string]*sqlmanager_shared.TableColumn{},
 		ForeignKeyConstraints:    map[string]*sqlmanager_shared.ForeignKeyConstraint{},
 		NonForeignKeyConstraints: map[string]*sqlmanager_shared.NonForeignKeyConstraint{},
 		Triggers:                 map[string]*sqlmanager_shared.TableTrigger{},
 	}
 	destData := &DatabaseData{
-		Columns:                  map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{},
+		Columns:                  map[string]map[string]*sqlmanager_shared.TableColumn{},
 		ForeignKeyConstraints:    map[string]*sqlmanager_shared.ForeignKeyConstraint{},
 		NonForeignKeyConstraints: map[string]*sqlmanager_shared.NonForeignKeyConstraint{},
 		Triggers:                 map[string]*sqlmanager_shared.TableTrigger{},
@@ -47,17 +47,17 @@ func Test_Build_TableColumnDifferences(t *testing.T) {
 	}
 
 	sourceData := &DatabaseData{
-		Columns: map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		Columns: map[string]map[string]*sqlmanager_shared.TableColumn{
 			"public.users": {
 				"id": {
-					TableSchema: "public",
-					TableName:   "users",
-					ColumnName:  "id",
+					Name:   "id",
+					Schema: "public",
+					Table:  "users",
 				},
 				"name": {
-					TableSchema: "public",
-					TableName:   "users",
-					ColumnName:  "name",
+					Name:   "name",
+					Schema: "public",
+					Table:  "users",
 				},
 			},
 		},
@@ -67,17 +67,17 @@ func Test_Build_TableColumnDifferences(t *testing.T) {
 	}
 
 	destData := &DatabaseData{
-		Columns: map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		Columns: map[string]map[string]*sqlmanager_shared.TableColumn{
 			"public.users": {
 				"id": {
-					TableSchema: "public",
-					TableName:   "users",
-					ColumnName:  "id",
+					Name:   "id",
+					Schema: "public",
+					Table:  "users",
 				},
 				"email": {
-					TableSchema: "public",
-					TableName:   "users",
-					ColumnName:  "email",
+					Name:   "email",
+					Schema: "public",
+					Table:  "users",
 				},
 			},
 		},
@@ -93,9 +93,9 @@ func Test_Build_TableColumnDifferences(t *testing.T) {
 	require.Len(t, diff.ExistsInBoth.Tables, 1)
 	require.Equal(t, "users", diff.ExistsInBoth.Tables[0].Table)
 	require.Len(t, diff.ExistsInSource.Columns, 1)
-	require.Equal(t, "name", diff.ExistsInSource.Columns[0].ColumnName)
+	require.Equal(t, "name", diff.ExistsInSource.Columns[0].Name)
 	require.Len(t, diff.ExistsInDestination.Columns, 1)
-	require.Equal(t, "email", diff.ExistsInDestination.Columns[0].ColumnName)
+	require.Equal(t, "email", diff.ExistsInDestination.Columns[0].Name)
 }
 
 func Test_Build_TableConstraintDifferences(t *testing.T) {
@@ -104,12 +104,12 @@ func Test_Build_TableConstraintDifferences(t *testing.T) {
 	}
 
 	sourceData := &DatabaseData{
-		Columns: map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		Columns: map[string]map[string]*sqlmanager_shared.TableColumn{
 			"public.users": {
 				"id": {
-					TableSchema: "public",
-					TableName:   "users",
-					ColumnName:  "id",
+					Name:   "id",
+					Schema: "public",
+					Table:  "users",
 				},
 			},
 		},
@@ -137,12 +137,12 @@ func Test_Build_TableConstraintDifferences(t *testing.T) {
 	}
 
 	destData := &DatabaseData{
-		Columns: map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		Columns: map[string]map[string]*sqlmanager_shared.TableColumn{
 			"public.users": {
 				"id": {
-					TableSchema: "public",
-					TableName:   "users",
-					ColumnName:  "id",
+					Name:   "id",
+					Schema: "public",
+					Table:  "users",
 				},
 			},
 		},
@@ -189,12 +189,12 @@ func Test_Build_TableTriggerDifferences(t *testing.T) {
 	}
 
 	sourceData := &DatabaseData{
-		Columns: map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		Columns: map[string]map[string]*sqlmanager_shared.TableColumn{
 			"public.users": {
 				"id": {
-					TableSchema: "public",
-					TableName:   "users",
-					ColumnName:  "id",
+					Name:   "id",
+					Schema: "public",
+					Table:  "users",
 				},
 			},
 		},
@@ -219,12 +219,12 @@ func Test_Build_TableTriggerDifferences(t *testing.T) {
 	}
 
 	destData := &DatabaseData{
-		Columns: map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+		Columns: map[string]map[string]*sqlmanager_shared.TableColumn{
 			"public.users": {
 				"id": {
-					TableSchema: "public",
-					TableName:   "users",
-					ColumnName:  "id",
+					Name:   "id",
+					Schema: "public",
+					Table:  "users",
 				},
 			},
 		},

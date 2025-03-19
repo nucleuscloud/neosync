@@ -49,8 +49,8 @@ type DatabaseTableRow struct {
 type TableColumn struct {
 	Fingerprint         string
 	Schema              string
+	Table               string
 	Name                string
-	Column              string
 	DataType            string
 	IsNullable          bool
 	ColumnDefault       string

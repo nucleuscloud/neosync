@@ -29,6 +29,7 @@ const (
 	DropTriggersLabel                 = "drop triggers"
 	DropNonForeignKeyConstraintsLabel = "drop non-foreign key constraints"
 	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
+	UpdateColumnsLabel                = "update columns"
 )
 
 type MysqlManager struct {
@@ -220,8 +221,8 @@ func (m *MysqlManager) GetColumnsByTables(ctx context.Context, tables []*sqlmana
 	for _, row := range rows {
 		col := &sqlmanager_shared.TableColumn{
 			Schema:              row.TableSchema,
+			Table:               row.TableName,
 			Name:                row.ColumnName,
-			Column:              row.ColumnName,
 			DataType:            row.DataType,
 			IsNullable:          row.IsNullable,
 			ColumnDefault:       row.ColumnDefault,
@@ -648,25 +649,42 @@ func nullStringToPtr(str sql.NullString) *string {
 	return &str.String
 }
 
-func BuildAddColumnStatement(column *sqlmanager_shared.DatabaseSchemaRow) (string, error) {
+func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) (string, error) {
 	columnDefaultStr, err := EscapeMysqlDefaultColumn(column.ColumnDefault, column.ColumnDefaultType)
 	if err != nil {
 		return "", fmt.Errorf("failed to escape column default: %w", err)
 	}
 
 	col := buildTableCol(&buildTableColRequest{
-		ColumnName:          column.ColumnName,
+		ColumnName:          column.Name,
 		ColumnDefault:       columnDefaultStr,
 		DataType:            column.DataType,
 		IsNullable:          column.IsNullable,
 		IdentityType:        column.IdentityGeneration,
 		GeneratedExpression: *column.GeneratedExpression,
 	})
-	return fmt.Sprintf("ALTER TABLE %s.%s ADD COLUMN %s;", EscapeMysqlColumn(column.TableSchema), EscapeMysqlColumn(column.TableName), col), nil
+	return fmt.Sprintf("ALTER TABLE %s.%s ADD COLUMN %s;", EscapeMysqlColumn(column.Schema), EscapeMysqlColumn(column.Table), col), nil
 }
 
-func BuildDropColumnStatement(column *sqlmanager_shared.DatabaseSchemaRow) string {
-	return fmt.Sprintf("ALTER TABLE %s.%s DROP COLUMN %s;", EscapeMysqlColumn(column.TableSchema), EscapeMysqlColumn(column.TableName), EscapeMysqlColumn(column.ColumnName))
+func BuildUpdateColumnStatement(column *sqlmanager_shared.TableColumn) (string, error) {
+	columnDefaultStr, err := EscapeMysqlDefaultColumn(column.ColumnDefault, column.ColumnDefaultType)
+	if err != nil {
+		return "", fmt.Errorf("failed to escape column default: %w", err)
+	}
+
+	col := buildTableCol(&buildTableColRequest{
+		ColumnName:          column.Name,
+		ColumnDefault:       columnDefaultStr,
+		DataType:            column.DataType,
+		IsNullable:          column.IsNullable,
+		IdentityType:        column.IdentityGeneration,
+		GeneratedExpression: *column.GeneratedExpression,
+	})
+	return fmt.Sprintf("ALTER TABLE %s.%s MODIFY COLUMN %s;", EscapeMysqlColumn(column.Schema), EscapeMysqlColumn(column.Table), col), nil
+}
+
+func BuildDropColumnStatement(column *sqlmanager_shared.TableColumn) string {
+	return fmt.Sprintf("ALTER TABLE %s.%s DROP COLUMN %s;", EscapeMysqlColumn(column.Schema), EscapeMysqlColumn(column.Table), EscapeMysqlColumn(column.Name))
 }
 
 func BuildDropConstraintStatement(schema, table, constraintType, constraintName string) string {
