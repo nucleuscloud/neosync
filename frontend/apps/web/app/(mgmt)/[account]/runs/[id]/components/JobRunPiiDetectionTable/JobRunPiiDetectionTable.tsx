@@ -122,18 +122,21 @@ function useOnDownloadClick(
       escapeFormulae: true,
       header: true,
     });
-
-    // Create and download the CSV file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `pii-detection-report-${jobRunId}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvData(csvContent, `pii-detection-report-${jobRunId}.csv`);
   }, [jobRunId, data]);
+}
+
+// Create and download the CSV file
+function downloadCsvData(content: string, filename: string): void {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function getPiiDetectionRowsFromTables(
