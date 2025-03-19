@@ -299,6 +299,7 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropNonForeignKeyConstraintsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropColumnsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.AddColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.UpdateColumnsLabel]...)
 		}
 	}
 

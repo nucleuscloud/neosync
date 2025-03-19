@@ -102,8 +102,7 @@ func BuildTableColumnFingerprint(column *TableColumn) string {
 		ptrOrEmpty(column.GeneratedExpression),
 	}
 
-	input := strings.Join(parts, "|")
-	return sha256Hex(input)
+	return BuildFingerprint(parts...)
 }
 
 // ptrOrEmpty returns the pointer's value if not nil, otherwise "".
