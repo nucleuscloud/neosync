@@ -629,38 +629,43 @@ class JobTypeConfig(_message.Message):
         class ColumnStrategy(_message.Message):
             __slots__ = ("map_all_columns",)
             class MapAllColumns(_message.Message):
-                __slots__ = ("new_column_addition_strategy", "column_removal_strategy")
-                class NewColumnAdditionStrategy(_message.Message):
-                    __slots__ = ("halt_job", "auto_map")
-                    class HaltJob(_message.Message):
+                __slots__ = ("column_addition_strategy", "column_removal_strategy")
+                class ColumnAdditionStrategy(_message.Message):
+                    __slots__ = ("passthrough", "auto_map", "halt_job")
+                    class Passthrough(_message.Message):
                         __slots__ = ()
                         def __init__(self) -> None: ...
                     class AutoMap(_message.Message):
                         __slots__ = ()
                         def __init__(self) -> None: ...
-                    HALT_JOB_FIELD_NUMBER: _ClassVar[int]
+                    class HaltJob(_message.Message):
+                        __slots__ = ()
+                        def __init__(self) -> None: ...
+                    PASSTHROUGH_FIELD_NUMBER: _ClassVar[int]
                     AUTO_MAP_FIELD_NUMBER: _ClassVar[int]
-                    halt_job: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.HaltJob
-                    auto_map: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.AutoMap
-                    def __init__(self, halt_job: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.HaltJob, _Mapping]] = ..., auto_map: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy.AutoMap, _Mapping]] = ...) -> None: ...
+                    HALT_JOB_FIELD_NUMBER: _ClassVar[int]
+                    passthrough: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.Passthrough
+                    auto_map: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.AutoMap
+                    halt_job: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.HaltJob
+                    def __init__(self, passthrough: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.Passthrough, _Mapping]] = ..., auto_map: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.AutoMap, _Mapping]] = ..., halt_job: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.HaltJob, _Mapping]] = ...) -> None: ...
                 class ColumnRemovalStrategy(_message.Message):
-                    __slots__ = ("halt_job", "continue_job")
+                    __slots__ = ("continue_job", "halt_job")
                     class HaltJob(_message.Message):
                         __slots__ = ()
                         def __init__(self) -> None: ...
                     class ContinueJob(_message.Message):
                         __slots__ = ()
                         def __init__(self) -> None: ...
-                    HALT_JOB_FIELD_NUMBER: _ClassVar[int]
                     CONTINUE_JOB_FIELD_NUMBER: _ClassVar[int]
-                    halt_job: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.HaltJob
+                    HALT_JOB_FIELD_NUMBER: _ClassVar[int]
                     continue_job: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.ContinueJob
-                    def __init__(self, halt_job: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.HaltJob, _Mapping]] = ..., continue_job: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.ContinueJob, _Mapping]] = ...) -> None: ...
-                NEW_COLUMN_ADDITION_STRATEGY_FIELD_NUMBER: _ClassVar[int]
+                    halt_job: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.HaltJob
+                    def __init__(self, continue_job: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.ContinueJob, _Mapping]] = ..., halt_job: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.HaltJob, _Mapping]] = ...) -> None: ...
+                COLUMN_ADDITION_STRATEGY_FIELD_NUMBER: _ClassVar[int]
                 COLUMN_REMOVAL_STRATEGY_FIELD_NUMBER: _ClassVar[int]
-                new_column_addition_strategy: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy
+                column_addition_strategy: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy
                 column_removal_strategy: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy
-                def __init__(self, new_column_addition_strategy: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.NewColumnAdditionStrategy, _Mapping]] = ..., column_removal_strategy: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy, _Mapping]] = ...) -> None: ...
+                def __init__(self, column_addition_strategy: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy, _Mapping]] = ..., column_removal_strategy: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy, _Mapping]] = ...) -> None: ...
             MAP_ALL_COLUMNS_FIELD_NUMBER: _ClassVar[int]
             map_all_columns: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns
             def __init__(self, map_all_columns: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns, _Mapping]] = ...) -> None: ...
