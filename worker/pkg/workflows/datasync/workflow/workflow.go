@@ -662,6 +662,9 @@ func toStringSliceMap(m *sync.Map) (map[string][]string, error) {
 }
 
 func isConfigReady(config *benthosbuilder.BenthosConfigResponse, completed *sync.Map) (bool, error) {
+	if completed == nil {
+		return false, fmt.Errorf("completed map is nil: cannot determine if config is ready")
+	}
 	if config == nil {
 		return false, nil
 	}
