@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"iter"
 	"log/slog"
+	"maps"
+	"slices"
 	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -59,6 +62,244 @@ func NewSqlSyncBuilder(
 	}
 }
 
+type JobTransformationMapping struct {
+	*mgmtv1alpha1.JobMapping
+
+	DestinationSchema string
+	DestinationTable  string
+}
+
+type CascadeSchemaSettings struct {
+	config *mgmtv1alpha1.JobTypeConfig_JobTypeSync
+}
+
+func (c *CascadeSchemaSettings) GetSchemaStrategy() *mgmtv1alpha1.JobTypeConfig_JobTypeSync_SchemaStrategy {
+	return c.config.GetSchemaChange().GetSchemaStrategy()
+}
+
+func (c *CascadeSchemaSettings) GetTableStrategy(schemaName string) *mgmtv1alpha1.JobTypeConfig_JobTypeSync_TableStrategy {
+	for _, schemaMapping := range c.config.GetSchemaMappings() {
+		if schemaMapping.GetSchema() == schemaName {
+			ts := schemaMapping.GetTableStrategy()
+			if ts != nil {
+				return ts
+			} else {
+				break // fall back to global table strategy
+			}
+		}
+	}
+	return c.config.GetSchemaChange().GetTableStrategy()
+}
+
+func (c *CascadeSchemaSettings) GetColumnStrategy(schemaName, tableName string) *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy {
+	for _, schemaMapping := range c.config.GetSchemaMappings() {
+		if schemaMapping.GetSchema() == schemaName {
+			for _, tableMapping := range schemaMapping.GetTableMappings() {
+				if tableMapping.GetTable() == tableName {
+					tableLevelColumnStrategy := tableMapping.GetColumnStrategy()
+					if tableLevelColumnStrategy != nil {
+						return tableLevelColumnStrategy
+					}
+					break // fall back to schema level column strategy
+				}
+			}
+			schemaLevelColumnStrategy := schemaMapping.GetColumnStrategy()
+			if schemaLevelColumnStrategy != nil {
+				return schemaLevelColumnStrategy
+			}
+			break // fall back to global column strategy
+		}
+	}
+	return c.config.GetSchemaChange().GetColumnStrategy()
+}
+
+func (c *CascadeSchemaSettings) GetDefinedSchemas() []string {
+	output := map[string]bool{}
+	for _, schemaMapping := range c.config.GetSchemaMappings() {
+		output[schemaMapping.GetSchema()] = true
+	}
+	return slices.Collect(maps.Keys(output))
+}
+
+func (c *CascadeSchemaSettings) GetDefinedTables(schemaName string) []string {
+	output := map[string]bool{}
+	for _, schemaMapping := range c.config.GetSchemaMappings() {
+		if schemaMapping.GetSchema() == schemaName {
+			for _, tableMapping := range schemaMapping.GetTableMappings() {
+				output[tableMapping.GetTable()] = true
+			}
+		}
+	}
+	return slices.Collect(maps.Keys(output))
+}
+
+func (c *CascadeSchemaSettings) GetColumnTransforms(schemaName, tableName string, sourceColumnMap map[string]*sqlmanager_shared.DatabaseSchemaRow) map[string]*mgmtv1alpha1.TransformerConfig {
+	colStrategy := c.GetColumnStrategy(schemaName, tableName)
+	columnAddStrat := colStrategy.GetMapAllColumns().GetColumnAdditionStrategy()
+	columnRemStrat := colStrategy.GetMapAllColumns().GetColumnRemovalStrategy()
+
+	output := map[string]*mgmtv1alpha1.TransformerConfig{}
+
+	switch columnAddStrat.GetStrategy().(type) {
+	case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy_AutoMap_:
+		for _, columnRow := range sourceColumnMap {
+			output[columnRow.ColumnName] = &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{ // todo: this should configure the correct transformer based on the column type
+					PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+				},
+			}
+		}
+	case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy_Passthrough_:
+		for _, columnRow := range sourceColumnMap {
+			output[columnRow.ColumnName] = &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+					PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+				},
+			}
+		}
+
+	case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy_Halt_:
+		// do nothing for now, need to determine what the schema mappings are for the table
+	}
+
+	// todo: may need to know the direct columns in order to properly halt
+	maps.Insert(output, c.getDirectColumnTransforms(schemaName, tableName))
+
+	// this may just be called by the caller
+	switch columnRemStrat.GetStrategy().(type) {
+	case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_Continue_:
+		// do nothing
+	case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_Halt_:
+		// do nothing for now
+	}
+
+	// todo: handle halt here? not sure, maybe it should be handled in the caller
+	return output
+}
+
+func (c *CascadeSchemaSettings) getDirectColumnTransforms(schemaName, tableName string) iter.Seq2[string, *mgmtv1alpha1.TransformerConfig] {
+	return func(yield func(string, *mgmtv1alpha1.TransformerConfig) bool) {
+		for _, schemaMapping := range c.config.GetSchemaMappings() {
+			if schemaMapping.GetSchema() == schemaName {
+				for _, tableMapping := range schemaMapping.GetTableMappings() {
+					if tableMapping.GetTable() == tableName {
+						for _, columnMapping := range tableMapping.GetColumnMappings() {
+							if !yield(columnMapping.GetColumn(), columnMapping.GetTransformer()) {
+								return
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+func (b *sqlSyncBuilder) hydrateJobMappings(
+	job *mgmtv1alpha1.Job,
+	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+	logger *slog.Logger,
+) ([]JobTransformationMapping, error) {
+	legacyMappings := job.GetMappings()
+	if len(legacyMappings) > 0 {
+		jobMappings := make([]JobTransformationMapping, len(legacyMappings))
+		for i, mapping := range legacyMappings {
+			jobMappings[i] = JobTransformationMapping{
+				JobMapping: mapping,
+			}
+		}
+		return jobMappings, nil
+	}
+
+	syncConfig := job.GetJobType().GetSync()
+	if syncConfig == nil {
+		return nil, fmt.Errorf("unable to hydrate job mappings: sync config not found")
+	}
+
+	schemaTableColumnDbInfo := getSchemaTableColumnDbInfo(groupedColumnInfo)
+
+	// mapAllSchemas := true
+	// switch syncConfig.GetSchemaChange().GetSchemaStrategy().GetStrategy().(type) {
+	// case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_SchemaStrategy_MapAllSchemas_:
+	// 	logger.Debug("hydrating job mappings: map all schemas")
+	// case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_SchemaStrategy_MapDefinedSchemas_:
+	// 	logger.Debug("hydrating job mappings: map defined schemas")
+	// 	mapAllSchemas = false
+	// default:
+	// 	//
+	// 	logger.Debug("hydrating job mappings: map all schemas via default fallback")
+	// }
+
+	// mapAllTables := true
+	// _ = mapAllTables
+	// switch syncConfig.GetSchemaChange().GetTableStrategy().GetStrategy().(type) {
+	// case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_TableStrategy_MapAllTables_:
+	// 	logger.Debug("hydrating job mappings: map all tables")
+	// case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_TableStrategy_MapDefinedTables_:
+	// 	logger.Debug("hydrating job mappings: map defined tables")
+	// 	mapAllTables = false
+	// default:
+	// 	logger.Debug("hydrating job mappings: map all tables via default fallback")
+	// }
+
+	// globalColumnStrategy := syncConfig.GetSchemaChange().GetColumnStrategy()
+	// _ = globalColumnStrategy
+
+	// for _, schemaMapping := range syncConfig.GetSchemaMappings() {
+	// 	schema := schemaMapping.GetSchema()
+	// 	schemaMapping.GetTableStrategy()
+	// 	for _, tableMapping := range schemaMapping.GetTableMappings() {
+	// 		table := tableMapping.GetTable()
+
+	// 	}
+	// }
+
+	// jobMappings := []JobTransformationMapping{}
+
+	// if mapAllSchemas {
+	// 	for schema, tableMap := range schemaTableColumnDbInfo {
+	// 		for table, columnDetails := range tableMap {
+	// 			for _, columnDetail := range columnDetails {
+	// 				jobMappings = append(jobMappings, JobTransformationMapping{
+	// 					JobMapping: &mgmtv1alpha1.JobMapping{
+	// 						Schema: schema,
+	// 						Table:  table,
+	// 						Column: columnDetail.ColumnName,
+	// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+	// 							Config: &mgmtv1alpha1.TransformerConfig{
+	// 								Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+	// 							},
+	// 						},
+	// 					},
+	// 					DestinationSchema: schema,
+	// 					DestinationTable:  table,
+	// 				})
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+	return jobMappings, nil
+}
+
+// outputs schema -> table -> []column info
+func getSchemaTableColumnDbInfo(groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow) map[string]map[string][]*sqlmanager_shared.DatabaseSchemaRow {
+	output := map[string]map[string][]*sqlmanager_shared.DatabaseSchemaRow{}
+
+	for _, columnMap := range groupedColumnInfo {
+		for _, row := range columnMap {
+			tableMap, ok := output[row.TableSchema]
+			if !ok {
+				tableMap = map[string][]*sqlmanager_shared.DatabaseSchemaRow{}
+			}
+			tableMap[row.TableName] = append(tableMap[row.TableName], row)
+			output[row.TableSchema] = tableMap
+		}
+	}
+
+	return output
+}
+
 func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
 	sourceConnection := params.SourceConnection
 	job := params.Job
@@ -83,6 +324,13 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	if err != nil {
 		return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}
+
+	job.Mappings, err = b.hydrateJobMappings(job, groupedColumnInfo)
+	if err != nil {
+		return nil, fmt.Errorf("unable to hydrate job mappings: %w", err)
+	}
+
+	// I think here is where I need to hydrate the mappings if it's a v2 job
 
 	b.sqlSourceSchemaColumnInfoMap = groupedColumnInfo
 	if sqlSourceOpts != nil && sqlSourceOpts.HaltOnNewColumnAddition {
