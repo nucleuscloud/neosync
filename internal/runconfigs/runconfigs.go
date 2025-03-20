@@ -295,7 +295,7 @@ func isValidRunOrder(configs []*RunConfig) bool {
 		prevTableLen = len(configMap)
 		for id, config := range configMap {
 			// child table
-			if IsConfigReady(config.DependsOn(), seenTables) {
+			if AreConfigDependenciesSatisfied(config.DependsOn(), seenTables) {
 				seenTables[config.Table()] = append(seenTables[config.Table()], config.InsertColumns()...)
 				delete(configMap, id)
 			}
@@ -304,7 +304,9 @@ func isValidRunOrder(configs []*RunConfig) bool {
 	return true
 }
 
-func IsConfigReady(dependsOn []*DependsOn, completed map[string][]string) bool {
+// AreConfigDependenciesSatisfied checks if all dependencies for a given config have been completed
+// completed is a map of table name to a list of completed columns
+func AreConfigDependenciesSatisfied(dependsOn []*DependsOn, completed map[string][]string) bool {
 	// root table
 	if len(dependsOn) == 0 {
 		return true

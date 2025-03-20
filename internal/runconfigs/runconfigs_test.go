@@ -1305,6 +1305,75 @@ func Test_isValidRunOrder(t *testing.T) {
 	}
 }
 
+func Test_AreConfigDependenciesSatisfied(t *testing.T) {
+	t.Run("root table with no dependencies", func(t *testing.T) {
+		dependsOn := []*DependsOn{}
+		completed := map[string][]string{}
+		require.True(t, AreConfigDependenciesSatisfied(dependsOn, completed))
+	})
+
+	t.Run("single dependency completed", func(t *testing.T) {
+		dependsOn := []*DependsOn{
+			{Table: "public.users", Columns: []string{"id"}},
+		}
+		completed := map[string][]string{
+			"public.users": {"id"},
+		}
+		require.True(t, AreConfigDependenciesSatisfied(dependsOn, completed))
+	})
+
+	t.Run("single dependency not completed", func(t *testing.T) {
+		dependsOn := []*DependsOn{
+			{Table: "public.users", Columns: []string{"id"}},
+		}
+		completed := map[string][]string{}
+		require.False(t, AreConfigDependenciesSatisfied(dependsOn, completed))
+	})
+
+	t.Run("multiple dependencies all completed", func(t *testing.T) {
+		dependsOn := []*DependsOn{
+			{Table: "public.users", Columns: []string{"id"}},
+			{Table: "public.orders", Columns: []string{"order_id"}},
+		}
+		completed := map[string][]string{
+			"public.users":  {"id"},
+			"public.orders": {"order_id"},
+		}
+		require.True(t, AreConfigDependenciesSatisfied(dependsOn, completed))
+	})
+
+	t.Run("multiple dependencies one not completed", func(t *testing.T) {
+		dependsOn := []*DependsOn{
+			{Table: "public.users", Columns: []string{"id"}},
+			{Table: "public.orders", Columns: []string{"order_id"}},
+		}
+		completed := map[string][]string{
+			"public.users": {"id"},
+		}
+		require.False(t, AreConfigDependenciesSatisfied(dependsOn, completed))
+	})
+
+	t.Run("dependency with multiple columns all completed", func(t *testing.T) {
+		dependsOn := []*DependsOn{
+			{Table: "public.users", Columns: []string{"id", "name"}},
+		}
+		completed := map[string][]string{
+			"public.users": {"id", "name"},
+		}
+		require.True(t, AreConfigDependenciesSatisfied(dependsOn, completed))
+	})
+
+	t.Run("dependency with multiple columns one not completed", func(t *testing.T) {
+		dependsOn := []*DependsOn{
+			{Table: "public.users", Columns: []string{"id", "name"}},
+		}
+		completed := map[string][]string{
+			"public.users": {"id"},
+		}
+		require.False(t, AreConfigDependenciesSatisfied(dependsOn, completed))
+	})
+}
+
 func getConfigByTableAndType(table string, runtype RunType, insertCols []string, configs []*RunConfig) *RunConfig {
 	for _, c := range configs {
 		cCols := slices.Clone(c.InsertColumns())

@@ -669,7 +669,7 @@ func isConfigReady(config *benthosbuilder.BenthosConfigResponse, completed *sync
 	if err != nil {
 		return false, err
 	}
-	return runconfigs.IsConfigReady(config.DependsOn, completedMap), nil
+	return runconfigs.AreConfigDependenciesSatisfied(config.DependsOn, completedMap), nil
 }
 
 type SplitConfigs struct {
