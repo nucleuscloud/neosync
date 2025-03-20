@@ -23,10 +23,13 @@ import (
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/redpanda-data/benthos/v4/public/service"
 	"go.opentelemetry.io/otel/metric"
 	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/client"
+	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/log"
 	"golang.org/x/sync/errgroup"
 
@@ -41,6 +44,7 @@ type Activity struct {
 	mongoconnmanager     connectionmanager.Interface[neosync_benthos_mongodb.MongoClient]
 	meter                metric.Meter // optional
 	benthosStreamManager benthosstream.BenthosStreamManagerClient
+	temporalclient       temporalclient.Client
 }
 
 func New(
@@ -50,6 +54,7 @@ func New(
 	mongoconnmanager connectionmanager.Interface[neosync_benthos_mongodb.MongoClient],
 	meter metric.Meter,
 	benthosStreamManager benthosstream.BenthosStreamManagerClient,
+	temporalclient temporalclient.Client,
 ) *Activity {
 	return &Activity{
 		connclient:           connclient,
@@ -58,6 +63,7 @@ func New(
 		mongoconnmanager:     mongoconnmanager,
 		meter:                meter,
 		benthosStreamManager: benthosStreamManager,
+		temporalclient:       temporalclient,
 	}
 }
 
@@ -171,6 +177,30 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncTableRequest, metadat
 		tokenStr := token.String()
 		continuationTokenToReturn = &tokenStr
 	}
+
+	getNextIdentityBlock := func(ctx context.Context, schema, table, column string, blockSize uint) (uint, uint, error) {
+		identity := fmt.Sprintf("%s.%s.%s", schema, table, column) // todo: make hash
+		handle, err := a.temporalclient.UpdateWorkflow(ctx, client.UpdateWorkflowOptions{
+			WorkflowID: info.WorkflowExecution.ID,
+			RunID:      info.WorkflowExecution.RunID,
+			UpdateName: tablesync_shared.AllocateIdentityBlock,
+			Args: []any{&tablesync_shared.AllocateIdentityBlockRequest{
+				Id:        identity,
+				BlockSize: blockSize,
+			}},
+			WaitForStage: client.WorkflowUpdateStageCompleted,
+		})
+		if err != nil {
+			return 0, 0, fmt.Errorf("unable to send update to get next block size for identity %s: %w", identity, err)
+		}
+		var resp *tablesync_shared.AllocateIdentityBlockResponse
+		err = handle.Get(ctx, &resp)
+		if err != nil {
+			return 0, 0, fmt.Errorf("unable to get next block size for identity %s: %w", identity, err)
+		}
+		return resp.StartValue, resp.EndValue, nil
+	}
+	_ = getNextIdentityBlock
 
 	var continuationToken *continuation_token.ContinuationToken
 	if req.ContinuationToken != nil {

@@ -8,8 +8,8 @@ import (
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/activities/sync"
 	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
-
 	"go.opentelemetry.io/otel/metric"
+	"go.temporal.io/sdk/client"
 )
 
 type Worker interface {
@@ -25,6 +25,7 @@ func Register(
 	mongoconnmanager connectionmanager.Interface[neosync_benthos_mongodb.MongoClient],
 	meter metric.Meter, // optional
 	benthosStreamManager benthosstream.BenthosStreamManagerClient,
+	temporalclient client.Client,
 	maxIterations int,
 ) {
 	tsWf := tablesync_workflow.New(maxIterations)
@@ -37,6 +38,7 @@ func Register(
 		mongoconnmanager,
 		meter,
 		benthosStreamManager,
+		temporalclient,
 	)
 
 	w.RegisterActivity(syncActivity.Sync)

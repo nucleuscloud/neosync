@@ -330,6 +330,7 @@ func serve(ctx context.Context) error {
 		mongoconnmanager,
 		syncActivityMeter,
 		streamManager,
+		temporalClient,
 		maxIterations,
 	)
 

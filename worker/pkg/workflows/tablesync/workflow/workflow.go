@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/activities/sync"
+	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/workflow"
 )
@@ -119,26 +120,13 @@ func (w *Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*Tabl
 	}, nil
 }
 
-const (
-	AllocateIdentityBlock = "allocate-identity-block"
-)
-
-type AllocateIdentityBlockRequest struct {
-	Id        string // This will be the value present in the ColumnIdentityCursors map (key)
-	BlockSize uint   // The size of the block the caller wishes to allocate
-}
-type AllocateIdentityBlockResponse struct {
-	StartValue uint // Inclusive
-	EndValue   uint // Exclusive - represents the next value after the last valid value
-}
-
 // Sets a temporal update handle for use with allocating identity blocks for auto increment columns
 func setCursorUpdateHandler(ctx workflow.Context, cursors map[string]*IdentityCursor) error {
 	cursorMutex := workflow.NewMutex(ctx)
 	return workflow.SetUpdateHandlerWithOptions(
 		ctx,
-		AllocateIdentityBlock,
-		func(ctx workflow.Context, req *AllocateIdentityBlockRequest) (*AllocateIdentityBlockResponse, error) {
+		tablesync_shared.AllocateIdentityBlock,
+		func(ctx workflow.Context, req *tablesync_shared.AllocateIdentityBlockRequest) (*tablesync_shared.AllocateIdentityBlockResponse, error) {
 			err := cursorMutex.Lock(ctx)
 			if err != nil {
 				return nil, err
@@ -151,14 +139,14 @@ func setCursorUpdateHandler(ctx workflow.Context, cursors map[string]*IdentityCu
 			startValue := cursor.currentValue
 			cursor.currentValue += req.BlockSize // prepare for next allocation
 			cursors[req.Id] = cursor
-			return &AllocateIdentityBlockResponse{
+			return &tablesync_shared.AllocateIdentityBlockResponse{
 				StartValue: startValue,
 				EndValue:   startValue + req.BlockSize,
 			}, nil
 		},
 		workflow.UpdateHandlerOptions{
 			Description: "Handles allocating blocks of integers to be used for auto increment columns",
-			Validator: func(ctx workflow.Context, req *AllocateIdentityBlockRequest) error {
+			Validator: func(ctx workflow.Context, req *tablesync_shared.AllocateIdentityBlockRequest) error {
 				if req == nil {
 					return errors.New("request is nil, expected a valid *AllocateIdentityBlockRequest")
 				}
