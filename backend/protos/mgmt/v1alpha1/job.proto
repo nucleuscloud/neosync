@@ -609,12 +609,12 @@ message JobTypeConfig {
       // Also strategies may be configured for handling a mapped column that is no longer present in the source.
       message MapAllColumns {
         // The strategy to use when a new column is detected
-        optional NewColumnAdditionStrategy new_column_addition_strategy = 1;
+        optional ColumnAdditionStrategy column_addition_strategy = 1;
         // The strategy to use when a column is removed
         optional ColumnRemovalStrategy column_removal_strategy = 2;
 
-        // Strategy to use when a new column is detected that is not present in the schema mappings.
-        message NewColumnAdditionStrategy {
+        // Strategy to use when a column is detected that is not present in the schema mappings.
+        message ColumnAdditionStrategy {
           oneof strategy {
             option (buf.validate.oneof).required = false;
             // For any new columns, passthrough the value unchanged.
