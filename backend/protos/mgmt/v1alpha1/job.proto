@@ -566,6 +566,7 @@ message JobTypeConfig {
     // The strategy used to configure how schemas are handled during a job run
     message SchemaStrategy {
       oneof strategy {
+        option (buf.validate.oneof).required = false;
         // When this strategy is configured, all schemas are mapped
         MapAllSchemas map_all_schemas = 1;
         // When this strategy is configured, only the schemas that are defined are mapped
@@ -581,6 +582,7 @@ message JobTypeConfig {
     // The strategy used to configure how tables are handled during a job run
     message TableStrategy {
       oneof strategy {
+        option (buf.validate.oneof).required = false;
         // When this strategy is configured, all tables are mapped
         MapAllTables map_all_tables = 1;
         // When this strategy is configured, only the tables that are defined are mapped
@@ -596,40 +598,51 @@ message JobTypeConfig {
     // The strategy used to configure how columns are handled during a job run
     message ColumnStrategy {
       oneof strategy {
-        // When this strategy is configured, all columns are mapped
+        option (buf.validate.oneof).required = false;
+        // When this strategy is configured, all columns are mapped.
+        // Further configuration can be done to handle columns not present in the schema mappings.
         MapAllColumns map_all_columns = 1;
       }
-      // Strategy that maps all columns for a table. Further configuration can be done to handle newly added columns or removed columns
+
+      // Strategy that maps all columns for a table.
+      // Further configuration can be done to handle columns not present in the schema mappings.
+      // Also strategies may be configured for handling a mapped column that is no longer present in the source.
       message MapAllColumns {
         // The strategy to use when a new column is detected
         optional NewColumnAdditionStrategy new_column_addition_strategy = 1;
         // The strategy to use when a column is removed
         optional ColumnRemovalStrategy column_removal_strategy = 2;
 
-        // Strategy to use when a new column is detected
+        // Strategy to use when a new column is detected that is not present in the schema mappings.
         message NewColumnAdditionStrategy {
           oneof strategy {
-            // halt job if a new column is detected.
-            HaltJob halt_job = 1;
-            // automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
+            option (buf.validate.oneof).required = false;
+            // For any new columns, passthrough the value unchanged.
+            Passthrough passthrough = 1;
+            // Automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
             // If this doesn't exist, will fall back to configuring generators for supported datatypes.
             // If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
             AutoMap auto_map = 2;
+            // halt job if a new column is detected.
+            HaltJob halt_job = 3;
           }
-          // Configuration for the HaltJob strategy
-          message HaltJob {}
+          // Configuration for the Passthrough strategy
+          message Passthrough {}
           // Configuration for the AutoMap strategy
           message AutoMap {}
+          // Configuration for the HaltJob strategy
+          message HaltJob {}
         }
 
-        // Strategy to use when a column is removed
+        // Strategy to use when a column is removed that is present in the schema mappings.
         message ColumnRemovalStrategy {
           oneof strategy {
-            // halt job if a column is removed
-            HaltJob halt_job = 1;
+            option (buf.validate.oneof).required = false;
+            // Continue the run if a column is removed
+            ContinueJob continue_job = 1;
 
-            // continue job if a column is removed
-            ContinueJob continue_job = 2;
+            // Halt the run if a column is removed
+            HaltJob halt_job = 2;
           }
           // Configuration for the HaltJob strategy
           message HaltJob {}
