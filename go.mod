@@ -54,7 +54,7 @@ require (
 	github.com/pganalyze/pg_query_go/v5 v5.1.0
 	github.com/prometheus/client_golang v1.21.1
 	github.com/prometheus/common v0.63.0
-	github.com/redis/go-redis/v9 v9.7.1
+	github.com/redis/go-redis/v9 v9.7.3
 	github.com/redpanda-data/benthos/v4 v4.45.1
 	github.com/redpanda-data/connect/v4 v4.49.1
 	github.com/rodaine/table v1.3.0
