@@ -12,6 +12,7 @@ import (
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
@@ -642,32 +643,33 @@ func updateCompletedMap(tableName string, completed *sync.Map, columns []string)
 	return nil
 }
 
+func toStringSliceMap(m *sync.Map) (map[string][]string, error) {
+	result := make(map[string][]string)
+	var typeErr error
+
+	m.Range(func(k, v any) bool {
+		key, okKey := k.(string)
+		val, okVal := v.([]string)
+		if !okKey || !okVal {
+			typeErr = fmt.Errorf("failed type assertion for key=%T and value=%T", k, v)
+			return false
+		}
+		result[key] = val
+		return true
+	})
+
+	return result, typeErr
+}
+
 func isConfigReady(config *benthosbuilder.BenthosConfigResponse, completed *sync.Map) (bool, error) {
 	if config == nil {
 		return false, nil
 	}
-
-	if len(config.DependsOn) == 0 {
-		return true, nil
+	completedMap, err := toStringSliceMap(completed)
+	if err != nil {
+		return false, err
 	}
-	// check that all columns in dependency has been completed
-	for _, dep := range config.DependsOn {
-		val, loaded := completed.Load(dep.Table)
-		if loaded {
-			completedCols, ok := val.([]string)
-			if !ok {
-				return false, fmt.Errorf("unable to retrieve completed columns from completed map. Expected []string, received: %T", val)
-			}
-			for _, dc := range dep.Columns {
-				if !slices.Contains(completedCols, dc) {
-					return false, nil
-				}
-			}
-		} else {
-			return false, nil
-		}
-	}
-	return true, nil
+	return runconfigs.IsConfigReady(config.DependsOn, completedMap), nil
 }
 
 type SplitConfigs struct {

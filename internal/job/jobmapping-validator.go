@@ -204,7 +204,11 @@ func (j *JobMappingsValidator) ValidateCircularDependencies(
 	}
 
 	// merge virtual foreign keys with table foreign keys
-	allForeignKeys := foreignKeys
+	allForeignKeys := map[string][]*sqlmanager_shared.ForeignConstraint{}
+	for table, fks := range foreignKeys {
+		allForeignKeys[table] = append(allForeignKeys[table], fks...)
+	}
+
 	for _, vfk := range virtualForeignKeys {
 		tableName := sqlmanager_shared.BuildTable(vfk.Schema, vfk.Table)
 		fkTable := sqlmanager_shared.BuildTable(vfk.ForeignKey.Schema, vfk.ForeignKey.Table)
@@ -227,7 +231,7 @@ func (j *JobMappingsValidator) ValidateCircularDependencies(
 			Columns:     vfk.GetColumns(),
 			NotNullable: notNullable,
 			ForeignKey: &sqlmanager_shared.ForeignKey{
-				Columns: vfk.GetColumns(),
+				Columns: vfk.GetForeignKey().GetColumns(),
 				Table:   fkTable,
 			},
 		}

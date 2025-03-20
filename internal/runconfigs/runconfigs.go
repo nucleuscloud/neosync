@@ -294,31 +294,32 @@ func isValidRunOrder(configs []*RunConfig) bool {
 		}
 		prevTableLen = len(configMap)
 		for id, config := range configMap {
-			// root table
-			if len(config.DependsOn()) == 0 {
-				seenTables[config.Table()] = config.InsertColumns()
-				delete(configMap, id)
-				continue
-			}
 			// child table
-			for _, d := range config.DependsOn() {
-				seenCols, seen := seenTables[d.Table]
-				isReady := func() bool {
-					if !seen {
-						return false
-					}
-					for _, c := range d.Columns {
-						if !slices.Contains(seenCols, c) {
-							return false
-						}
-					}
-					return true
-				}
-				if isReady() {
-					seenTables[config.Table()] = append(seenTables[config.Table()], config.InsertColumns()...)
-					delete(configMap, id)
+			if IsConfigReady(config.DependsOn(), seenTables) {
+				seenTables[config.Table()] = append(seenTables[config.Table()], config.InsertColumns()...)
+				delete(configMap, id)
+			}
+		}
+	}
+	return true
+}
+
+func IsConfigReady(dependsOn []*DependsOn, completed map[string][]string) bool {
+	// root table
+	if len(dependsOn) == 0 {
+		return true
+	}
+	// check that all columns in dependency has been completed
+	for _, dep := range dependsOn {
+		completedCols, ok := completed[dep.Table]
+		if ok {
+			for _, dc := range dep.Columns {
+				if !slices.Contains(completedCols, dc) {
+					return false
 				}
 			}
+		} else {
+			return false
 		}
 	}
 	return true
