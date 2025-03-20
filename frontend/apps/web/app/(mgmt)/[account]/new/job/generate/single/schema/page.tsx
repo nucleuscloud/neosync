@@ -448,6 +448,8 @@ export default function Page(props: PageProps): ReactElement {
               }}
               onApplyDefaultClick={onApplyDefaultClick}
               onTransformerBulkUpdate={onTransformerBulkUpdate}
+              hasMissingSourceColumnMappings={false}
+              onRemoveMissingSourceColumnMappings={() => {}}
             />
           )}
           {form.formState.errors.root && (

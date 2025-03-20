@@ -1,17 +1,18 @@
 import FastTable from '@/components/FastTable/FastTable';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
-import { refreshWhenJobRunning } from '@/libs/utils';
+import { cn, refreshWhenJobRunning } from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
 import { JobService, PiiDetectionReport_TableReport } from '@neosync/sdk';
-import { ReloadIcon } from '@radix-ui/react-icons';
+import { DownloadIcon, ReloadIcon } from '@radix-ui/react-icons';
 import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ReactElement, useMemo } from 'react';
+import Papa from 'papaparse';
+import { ReactElement, useCallback, useMemo } from 'react';
 import { PII_DETECTION_COLUMNS, PiiDetectionRow } from './columns';
 
 interface Props {
@@ -68,26 +69,74 @@ export default function JobRunPiiDetectionTable(props: Props): ReactElement {
     }
   }
 
+  const onDownloadClick = useOnDownloadClick(jobRunId, data);
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-row gap-2 items-center">
         <div className="text-xl font-semibold tracking-tight">
           PII Detection Report
         </div>
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row gap-1">
+          <Button variant="ghost" size="icon" onClick={() => onRefreshClick()}>
+            <ReloadIcon
+              className={cn('h-4 w-4', isFetchingReport && 'animate-spin')}
+            />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => onRefreshClick()}
-            className={isFetchingReport ? 'animate-spin' : ''}
+            onClick={() => onDownloadClick()}
+            disabled={!data.length}
           >
-            <ReloadIcon className="h-4 w-4" />
+            <DownloadIcon className="h-4 w-4" />
           </Button>
         </div>
       </div>
       <FastTable table={table} estimateRowSize={() => 53} rowOverscan={50} />
     </div>
   );
+}
+
+function useOnDownloadClick(
+  jobRunId: string,
+  data: PiiDetectionRow[]
+): () => void {
+  return useCallback(() => {
+    if (!data.length) {
+      return;
+    }
+
+    // Create CSV content
+    const csvRows = data.map((row) => {
+      return {
+        schema: row.schema,
+        table: row.table,
+        column: row.column,
+        categories: row.reporterCategory,
+        confidence: row.reporterConfidence,
+        reporters: row.reporterType,
+      };
+    });
+    const csvContent = Papa.unparse(csvRows, {
+      escapeFormulae: true,
+      header: true,
+    });
+    downloadCsvData(csvContent, `pii-detection-report-${jobRunId}.csv`);
+  }, [jobRunId, data]);
+}
+
+// Create and download the CSV file
+function downloadCsvData(content: string, filename: string): void {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function getPiiDetectionRowsFromTables(

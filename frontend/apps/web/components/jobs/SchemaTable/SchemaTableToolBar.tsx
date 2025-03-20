@@ -47,6 +47,9 @@ interface DataTableToolbarProps<TData> {
   displayApplyDefaultTransformersButton: boolean;
   isApplyDefaultButtonDisabled: boolean;
   onApplyDefaultClick(override: boolean): void;
+
+  hasMissingSourceColumnMappings: boolean;
+  onRemoveMissingSourceColumnMappings(): void;
 }
 
 const DEFAULT_TRANSFORMER_BUTTON_TEXT = 'Bulk set transformers';
@@ -61,6 +64,8 @@ export function SchemaTableToolbar<TData>({
   displayApplyDefaultTransformersButton,
   isApplyDefaultButtonDisabled,
   onApplyDefaultClick,
+  hasMissingSourceColumnMappings,
+  onRemoveMissingSourceColumnMappings,
 }: DataTableToolbarProps<TData>) {
   const tableState = table.getState();
   const isFiltered = tableState.columnFilters.length > 0;
@@ -156,6 +161,16 @@ export function SchemaTableToolbar<TData>({
                 leftIcon={<Cross2Icon className="h-3 w-3" />}
                 text="Clear filters"
               />
+            </Button>
+          )}
+          {hasMissingSourceColumnMappings && (
+            <Button
+              variant="outline"
+              type="button"
+              disabled={!hasMissingSourceColumnMappings}
+              onClick={onRemoveMissingSourceColumnMappings}
+            >
+              <ButtonText text="Remove Missing Source Column Mappings" />
             </Button>
           )}
           {displayApplyDefaultTransformersButton && (

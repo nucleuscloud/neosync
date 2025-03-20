@@ -570,6 +570,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
           }}
           onApplyDefaultClick={onApplyDefaultClick}
           onTransformerBulkUpdate={onTransformerBulkUpdate}
+          hasMissingSourceColumnMappings={false}
+          onRemoveMissingSourceColumnMappings={() => {}}
         />
 
         {form.formState.errors.mappings && (
