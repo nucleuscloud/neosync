@@ -738,12 +738,12 @@ func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAddition
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy_HaltJob) MarshalJSON() ([]byte, error) {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy_Halt) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy_HaltJob) UnmarshalJSON(b []byte) error {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy_Halt) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 
@@ -758,22 +758,22 @@ func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalS
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_HaltJob) MarshalJSON() ([]byte, error) {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_Halt) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_HaltJob) UnmarshalJSON(b []byte) error {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_Halt) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_ContinueJob) MarshalJSON() ([]byte, error) {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_Continue) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_ContinueJob) UnmarshalJSON(b []byte) error {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_Continue) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 

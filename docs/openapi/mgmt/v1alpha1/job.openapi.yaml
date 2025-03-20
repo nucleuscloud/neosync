@@ -3274,7 +3274,7 @@ components:
             - required:
                 - autoMap
             - required:
-                - haltJob
+                - halt
             - required:
                 - passthrough
             - not:
@@ -3282,14 +3282,14 @@ components:
                   - required:
                       - autoMap
                   - required:
-                      - haltJob
+                      - halt
                   - required:
                       - passthrough
       anyOf:
         - required:
             - autoMap
         - required:
-            - haltJob
+            - halt
         - required:
             - passthrough
         - not:
@@ -3297,7 +3297,7 @@ components:
               - required:
                   - autoMap
               - required:
-                  - haltJob
+                  - halt
               - required:
                   - passthrough
       properties:
@@ -3314,10 +3314,10 @@ components:
             Automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
              If this doesn't exist, will fall back to configuring generators for supported datatypes.
              If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
-        haltJob:
+        halt:
           allOf:
-            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.HaltJob'
-          title: halt_job
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.Halt'
+          title: halt
           description: halt job if a new column is detected.
       title: ColumnAdditionStrategy
       additionalProperties: false
@@ -3327,11 +3327,11 @@ components:
       title: AutoMap
       additionalProperties: false
       description: Configuration for the AutoMap strategy
-    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.HaltJob:
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.Halt:
       type: object
-      title: HaltJob
+      title: Halt
       additionalProperties: false
-      description: Configuration for the HaltJob strategy
+      description: Configuration for the Halt strategy
     mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.Passthrough:
       type: object
       title: Passthrough
@@ -3342,50 +3342,50 @@ components:
       allOf:
         - anyOf:
             - required:
-                - continueJob
+                - continue
             - required:
-                - haltJob
+                - halt
             - not:
                 anyOf:
                   - required:
-                      - continueJob
+                      - continue
                   - required:
-                      - haltJob
+                      - halt
       anyOf:
         - required:
-            - continueJob
+            - continue
         - required:
-            - haltJob
+            - halt
         - not:
             anyOf:
               - required:
-                  - continueJob
+                  - continue
               - required:
-                  - haltJob
+                  - halt
       properties:
-        continueJob:
+        continue:
           allOf:
-            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.ContinueJob'
-          title: continue_job
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.Continue'
+          title: continue
           description: Continue the run if a column is removed
-        haltJob:
+        halt:
           allOf:
-            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.HaltJob'
-          title: halt_job
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.Halt'
+          title: halt
           description: Halt the run if a column is removed
       title: ColumnRemovalStrategy
       additionalProperties: false
       description: Strategy to use when a column is removed that is present in the schema mappings.
-    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.ContinueJob:
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.Continue:
       type: object
-      title: ContinueJob
+      title: Continue
       additionalProperties: false
-      description: Configuration for the ContinueJob strategy
-    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.HaltJob:
+      description: Configuration for the Continue strategy
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.Halt:
       type: object
-      title: HaltJob
+      title: Halt
       additionalProperties: false
-      description: Configuration for the HaltJob strategy
+      description: Configuration for the Halt strategy
     mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaChange:
       type: object
       allOf:

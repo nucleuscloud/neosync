@@ -624,14 +624,14 @@ message JobTypeConfig {
             // If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
             AutoMap auto_map = 2;
             // halt job if a new column is detected.
-            HaltJob halt_job = 3;
+            Halt halt = 3;
           }
           // Configuration for the Passthrough strategy
           message Passthrough {}
           // Configuration for the AutoMap strategy
           message AutoMap {}
-          // Configuration for the HaltJob strategy
-          message HaltJob {}
+          // Configuration for the Halt strategy
+          message Halt {}
         }
 
         // Strategy to use when a column is removed that is present in the schema mappings.
@@ -639,16 +639,15 @@ message JobTypeConfig {
           oneof strategy {
             option (buf.validate.oneof).required = false;
             // Continue the run if a column is removed
-            ContinueJob continue_job = 1;
-
+            Continue continue = 1;
             // Halt the run if a column is removed
-            HaltJob halt_job = 2;
+            Halt halt = 2;
           }
-          // Configuration for the HaltJob strategy
-          message HaltJob {}
+          // Configuration for the Halt strategy
+          message Halt {}
 
-          // Configuration for the ContinueJob strategy
-          message ContinueJob {}
+          // Configuration for the Continue strategy
+          message Continue {}
         }
       }
     }
