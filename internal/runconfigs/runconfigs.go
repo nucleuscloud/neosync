@@ -294,7 +294,6 @@ func isValidRunOrder(configs []*RunConfig) bool {
 		}
 		prevTableLen = len(configMap)
 		for id, config := range configMap {
-			// child table
 			if AreConfigDependenciesSatisfied(config.DependsOn(), seenTables) {
 				seenTables[config.Table()] = append(seenTables[config.Table()], config.InsertColumns()...)
 				delete(configMap, id)
