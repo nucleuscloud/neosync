@@ -664,12 +664,17 @@ func buildColumnStatement(keyword string, column *sqlmanager_shared.TableColumn)
 		return "", fmt.Errorf("failed to escape column default: %w", err)
 	}
 
+	identityType := column.IdentityGeneration
+	if identityType == nil && column.GeneratedType != nil && *column.GeneratedType != "" {
+		identityType = column.GeneratedType
+	}
+
 	col := buildTableCol(&buildTableColRequest{
 		ColumnName:          column.Name,
 		ColumnDefault:       columnDefaultStr,
 		DataType:            column.DataType,
 		IsNullable:          column.IsNullable,
-		IdentityType:        column.GeneratedType,
+		IdentityType:        identityType,
 		GeneratedExpression: *column.GeneratedExpression,
 	})
 	return fmt.Sprintf("ALTER TABLE %s.%s %s COLUMN %s;", EscapeMysqlColumn(column.Schema), EscapeMysqlColumn(column.Table), keyword, col), nil

@@ -616,18 +616,9 @@ func test_mysql_schema_reconciliation(
 	err = testworkflow.TestEnv.GetWorkflowError()
 	require.NoError(t, err, "Received Temporal Workflow Error: mysql-schema-reconciliation-run-2")
 
-	// fmt.Println()
-	// fmt.Println(mysql.Source.URL)
-	// fmt.Println(mysql.Target.URL)
-	// fmt.Println()
-	// time.Sleep(2 * time.Hour)
-
 	for _, expected := range expectedResults {
 		if expected.table == "multi_col_parent" && !shouldTruncate {
 			expected.rowCount = 4
-		}
-		if expected.table == "emails" && !shouldTruncate {
-			expected.rowCount = 20
 		}
 		rowCount, err := mysql.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)
@@ -705,11 +696,6 @@ func test_mysql_schema_reconciliation_compare_schemas(
 	require.NoError(t, err, "failed to get source table constraints")
 	destConstraints, err := destManager.GetTableConstraintsByTables(ctx, schema, tables)
 	require.NoError(t, err, "failed to get destination table constraints")
-
-	jsonF, _ := json.MarshalIndent(srcConstraints, "", " ")
-	fmt.Printf("\n\n source: %s \n\n", string(jsonF))
-	jsonF, _ = json.MarshalIndent(destConstraints, "", " ")
-	fmt.Printf("\n\n destination: %s \n\n", string(jsonF))
 
 	require.Len(t, srcConstraints, len(destConstraints), "source and destination have different number of tables with constraints")
 	for table, constraint := range srcConstraints {
