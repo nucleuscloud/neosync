@@ -91,6 +91,10 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 			val := row.Extra.String
 			identityGeneration = &val
 		}
+		var comment *string
+		if row.Comment.Valid {
+			comment = &row.Comment.String
+		}
 		result = append(result, &sqlmanager_shared.DatabaseSchemaRow{
 			TableSchema:            row.TableSchema,
 			TableName:              row.TableName,
@@ -106,6 +110,7 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 			OrdinalPosition:        int(row.OrdinalPosition),
 			IdentityGeneration:     identityGeneration,
 			UpdateAllowed:          isColumnUpdateAllowed(row.Extra),
+			Comment:                comment,
 		})
 	}
 	return result, nil
@@ -191,6 +196,10 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 				val := row.IdentityGeneration.String
 				identityGeneration = &val
 			}
+			var comment *string
+			if row.Comment.Valid {
+				comment = &row.Comment.String
+			}
 			result = append(result, &sqlmanager_shared.DatabaseSchemaRow{
 				TableSchema:            row.SchemaName,
 				TableName:              row.TableName,
@@ -207,6 +216,7 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 				OrdinalPosition:        int(row.OrdinalPosition),
 				IdentityGeneration:     identityGeneration,
 				UpdateAllowed:          isColumnUpdateAllowed(row.IdentityGeneration),
+				Comment:                comment,
 			})
 		}
 	}
@@ -231,6 +241,7 @@ func (m *MysqlManager) GetColumnsByTables(ctx context.Context, tables []*sqlmana
 			IdentityGeneration:  row.IdentityGeneration,
 			GeneratedType:       row.GeneratedType,
 			GeneratedExpression: row.GeneratedExpression,
+			Comment:             row.Comment,
 		}
 		col.Fingerprint = sqlmanager_shared.BuildTableColumnFingerprint(col)
 		columns = append(columns, col)
