@@ -629,9 +629,7 @@ func test_mysql_schema_reconciliation(
 	test_mysql_schema_reconciliation_column_values(t, ctx, mysql, schema)
 	t.Logf("finished verifying destination data after alter statements")
 
-	if shouldTruncate {
-		testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "emails", sqlmanager_shared.MysqlDriver, []string{"email_identity"})
-	}
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "emails", sqlmanager_shared.MysqlDriver, []string{"email_identity"})
 
 	test_mysql_schema_reconciliation_compare_schemas(t, ctx, mysql, schema, tables)
 	test_schema_reconciliation_run_context(t, ctx, jobclient, job.GetId(), destinationId, accountId)

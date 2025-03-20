@@ -254,9 +254,6 @@ ALTER TABLE employees
   MODIFY COLUMN phone_number VARCHAR(25) DEFAULT NULL,
   MODIFY COLUMN salary DECIMAL(10, 2) NOT NULL;
 
--- ALTER TABLE employees
---   CHANGE COLUMN extra_info profile_data JSON DEFAULT NULL;
-
 ALTER TABLE astronaut
   MODIFY COLUMN full_name VARCHAR(60)
     GENERATED ALWAYS AS (CONCAT(first_name, '-', last_name)) STORED;
