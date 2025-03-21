@@ -10,7 +10,8 @@ SELECT
 	c.character_maximum_length,
     c.numeric_precision,
     c.numeric_scale,
-	c.extra
+	c.extra,
+    c.column_comment as comment
 FROM
 	information_schema.columns AS c
 	JOIN information_schema.tables AS t ON c.table_schema = t.table_schema
@@ -224,7 +225,8 @@ SELECT
    c.ORDINAL_POSITION AS ordinal_position,
    c.EXTRA AS identity_generation,
    IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.GENERATION_EXPRESSION, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS generation_exp, -- hack to fix this bug https://bugs.mysql.com/
-   t.AUTO_INCREMENT as auto_increment_start_value
+   t.AUTO_INCREMENT as auto_increment_start_value,
+   c.COLUMN_COMMENT as comment
 FROM
     information_schema.COLUMNS as c
     join information_schema.TABLES as t on t.TABLE_SCHEMA = c.TABLE_SCHEMA and t.TABLE_NAME = c.TABLE_NAME

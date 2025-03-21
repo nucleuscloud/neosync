@@ -28,6 +28,7 @@ type DatabaseSchemaRow struct {
 	// UpdateAllowed indicates whether updates are permitted for this column.
 	// generated columns are an example of columns that do not allow updates.
 	UpdateAllowed bool
+	Comment       *string
 }
 
 func (d *DatabaseSchemaRow) NullableString() string {
@@ -60,6 +61,7 @@ type TableColumn struct {
 	IdentityGeneration  *string
 	SequenceDefinition  *string
 	IsSerial            bool
+	Comment             *string
 }
 
 type ForeignKeyConstraintsRow struct {
