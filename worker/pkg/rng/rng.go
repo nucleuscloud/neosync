@@ -11,6 +11,7 @@ type Rand interface {
 	Float64() float64
 	Int63() int64
 	Int() int
+	Uint() uint
 }
 
 var _ Rand = &Randomizer{} // Ensures Randomizer always conforms to the Rand interface
@@ -53,4 +54,10 @@ func (r *Randomizer) Int() int {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	return r.rng.Int()
+}
+
+func (r *Randomizer) Uint() uint {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.rng.Uint()
 }
