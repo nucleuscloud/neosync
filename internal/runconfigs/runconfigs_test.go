@@ -1251,6 +1251,51 @@ func Test_isValidRunOrder(t *testing.T) {
 			},
 			expected: false,
 		},
+		{
+			name: "multiple dependencies",
+			configs: []*RunConfig{
+				{
+					id:             "public.referral_codes.insert",
+					table:          sqlmanager_shared.SchemaTable{Schema: "public", Table: "referral_codes"},
+					runType:        RunTypeInsert,
+					primaryKeys:    []string{"id"},
+					selectColumns:  []string{"id", "customer_id"},
+					insertColumns:  []string{"id", "customer_id"},
+					orderByColumns: []string{"id"},
+					dependsOn:      []*DependsOn{{Table: "public.store_customers", Columns: []string{"id"}}},
+				},
+				{
+					id:             "public.store_customers.insert",
+					table:          sqlmanager_shared.SchemaTable{Schema: "public", Table: "store_customers"},
+					runType:        RunTypeInsert,
+					primaryKeys:    []string{"id"},
+					selectColumns:  []string{"id", "store_id", "referred_by_code"},
+					insertColumns:  []string{"id", "store_id", "referred_by_code"},
+					orderByColumns: []string{"id"},
+					dependsOn:      []*DependsOn{{Table: "public.referral_codes", Columns: []string{"id"}}, {Table: "public.stores", Columns: []string{"id"}}},
+				},
+				{
+					id:             "public.store_notifications.insert",
+					table:          sqlmanager_shared.SchemaTable{Schema: "public", Table: "store_notifications"},
+					runType:        RunTypeInsert,
+					primaryKeys:    []string{"id"},
+					selectColumns:  []string{"id"},
+					insertColumns:  []string{"id"},
+					orderByColumns: []string{"id"},
+				},
+				{
+					id:             "public.stores.insert",
+					table:          sqlmanager_shared.SchemaTable{Schema: "public", Table: "stores"},
+					runType:        RunTypeInsert,
+					primaryKeys:    []string{"id"},
+					selectColumns:  []string{"id", "notifications_id"},
+					insertColumns:  []string{"id", "notifications_id"},
+					orderByColumns: []string{"id"},
+					dependsOn:      []*DependsOn{{Table: "public.store_notifications", Columns: []string{"id"}}},
+				},
+			},
+			expected: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1258,6 +1303,75 @@ func Test_isValidRunOrder(t *testing.T) {
 			require.Equal(t, tt.expected, actual)
 		})
 	}
+}
+
+func Test_AreConfigDependenciesSatisfied(t *testing.T) {
+	t.Run("root table with no dependencies", func(t *testing.T) {
+		dependsOn := []*DependsOn{}
+		completed := map[string][]string{}
+		require.True(t, AreConfigDependenciesSatisfied(dependsOn, completed))
+	})
+
+	t.Run("single dependency completed", func(t *testing.T) {
+		dependsOn := []*DependsOn{
+			{Table: "public.users", Columns: []string{"id"}},
+		}
+		completed := map[string][]string{
+			"public.users": {"id"},
+		}
+		require.True(t, AreConfigDependenciesSatisfied(dependsOn, completed))
+	})
+
+	t.Run("single dependency not completed", func(t *testing.T) {
+		dependsOn := []*DependsOn{
+			{Table: "public.users", Columns: []string{"id"}},
+		}
+		completed := map[string][]string{}
+		require.False(t, AreConfigDependenciesSatisfied(dependsOn, completed))
+	})
+
+	t.Run("multiple dependencies all completed", func(t *testing.T) {
+		dependsOn := []*DependsOn{
+			{Table: "public.users", Columns: []string{"id"}},
+			{Table: "public.orders", Columns: []string{"order_id"}},
+		}
+		completed := map[string][]string{
+			"public.users":  {"id"},
+			"public.orders": {"order_id"},
+		}
+		require.True(t, AreConfigDependenciesSatisfied(dependsOn, completed))
+	})
+
+	t.Run("multiple dependencies one not completed", func(t *testing.T) {
+		dependsOn := []*DependsOn{
+			{Table: "public.users", Columns: []string{"id"}},
+			{Table: "public.orders", Columns: []string{"order_id"}},
+		}
+		completed := map[string][]string{
+			"public.users": {"id"},
+		}
+		require.False(t, AreConfigDependenciesSatisfied(dependsOn, completed))
+	})
+
+	t.Run("dependency with multiple columns all completed", func(t *testing.T) {
+		dependsOn := []*DependsOn{
+			{Table: "public.users", Columns: []string{"id", "name"}},
+		}
+		completed := map[string][]string{
+			"public.users": {"id", "name"},
+		}
+		require.True(t, AreConfigDependenciesSatisfied(dependsOn, completed))
+	})
+
+	t.Run("dependency with multiple columns one not completed", func(t *testing.T) {
+		dependsOn := []*DependsOn{
+			{Table: "public.users", Columns: []string{"id", "name"}},
+		}
+		completed := map[string][]string{
+			"public.users": {"id"},
+		}
+		require.False(t, AreConfigDependenciesSatisfied(dependsOn, completed))
+	})
 }
 
 func getConfigByTableAndType(table string, runtype RunType, insertCols []string, configs []*RunConfig) *RunConfig {
