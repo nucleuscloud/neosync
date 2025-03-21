@@ -13,7 +13,8 @@ CREATE TABLE information_schema.columns (
   numeric_precision bigint,
   numeric_scale bigint,
   extra longtext null,
-  generation_expression longtext null
+  generation_expression longtext null,
+  column_comment longtext null
 );
 
 create table information_schema.tables (

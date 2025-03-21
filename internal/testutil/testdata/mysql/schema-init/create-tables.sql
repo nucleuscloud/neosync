@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS employees (
     employee_id INT (11) AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR (20) DEFAULT NULL,
     last_name VARCHAR (25) NOT NULL,
-    email VARCHAR (100) NOT NULL,
+    email VARCHAR (100) NOT NULL COMMENT 'verrrryyyyy sensitive',
     phone_number VARCHAR (20) DEFAULT NULL,
     hire_date DATE NOT NULL,
     job_id INT (11) NOT NULL,
@@ -427,7 +427,7 @@ VALUES
 
 -- trigger test
 CREATE TABLE IF NOT EXISTS astronaut (
-    astronaut_id INT AUTO_INCREMENT PRIMARY KEY,
+    astronaut_id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'space!!',
     first_name VARCHAR (20) DEFAULT NULL,
     last_name VARCHAR (25) NOT NULL,
     full_name   VARCHAR(100) GENERATED ALWAYS AS (CONCAT(first_name, ' ', last_name)) STORED,

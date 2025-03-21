@@ -100,6 +100,7 @@ func BuildTableColumnFingerprint(column *TableColumn) string {
 		ptrOrEmpty(column.IdentityGeneration),
 		ptrOrEmpty(column.GeneratedType),
 		ptrOrEmpty(column.GeneratedExpression),
+		ptrOrEmpty(column.Comment),
 	}
 
 	return BuildFingerprint(parts...)
