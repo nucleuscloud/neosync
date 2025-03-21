@@ -58,6 +58,8 @@ type TableColumn struct {
 	GeneratedType       *string
 	GeneratedExpression *string
 	IdentityGeneration  *string
+	SequenceDefinition  *string
+	IsSerial            bool
 }
 
 type ForeignKeyConstraintsRow struct {

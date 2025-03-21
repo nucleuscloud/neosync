@@ -2,7 +2,6 @@ package schemamanager_postgres
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -14,6 +13,7 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	shared "github.com/nucleuscloud/neosync/internal/schema-manager/shared"
+	"golang.org/x/sync/errgroup"
 )
 
 type PostgresSchemaManager struct {
@@ -54,6 +54,152 @@ func NewPostgresSchemaManager(
 		destdb:                destdb,
 		sourcedb:              sourcedb,
 	}, nil
+}
+
+func (d *PostgresSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*shared.SchemaDifferences, error) {
+	d.logger.Debug("calculating schema diff")
+	tables := []*sqlmanager_shared.SchemaTable{}
+	for _, schematable := range uniqueTables {
+		tables = append(tables, schematable)
+	}
+
+	sourceData := &shared.DatabaseData{}
+	destData := &shared.DatabaseData{}
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		dbData, err := getDatabaseDataForSchemaDiff(errctx, d.sourcedb, tables)
+		if err != nil {
+			return fmt.Errorf("failed to get database data for schema diff: %w", err)
+		}
+		sourceData = dbData
+		return nil
+	})
+	errgrp.Go(func() error {
+		dbData, err := getDatabaseDataForSchemaDiff(errctx, d.destdb, tables)
+		if err != nil {
+			return fmt.Errorf("failed to get database data for schema diff: %w", err)
+		}
+		destData = dbData
+		return nil
+	})
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	builder := shared.NewSchemaDifferencesBuilder(tables, sourceData, destData)
+	return builder.Build(), nil
+}
+
+func getDatabaseDataForSchemaDiff(
+	ctx context.Context,
+	db *sqlmanager.SqlConnection,
+	tables []*sqlmanager_shared.SchemaTable,
+) (*shared.DatabaseData, error) {
+	columns, err := db.Db().GetColumnsByTables(ctx, tables)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve database table schemas: %w", err)
+	}
+	columnsMap := shared.GetUniqueSchemaColMappings(columns)
+	return &shared.DatabaseData{
+		Columns: columnsMap,
+	}, nil
+}
+
+func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *shared.SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+	d.logger.Debug("building schema diff statements")
+	if !d.destOpts.GetInitTableSchema() {
+		d.logger.Info("skipping schema init as it is not enabled")
+		return nil, nil
+	}
+	addColumnStatements := []string{}
+	for _, column := range diff.ExistsInSource.Columns {
+		stmt, err := sqlmanager_postgres.BuildAddColumnStatement(column)
+		if err != nil {
+			return nil, fmt.Errorf("failed to build add column statement: %w", err)
+		}
+		addColumnStatements = append(addColumnStatements, stmt)
+	}
+
+	return []*sqlmanager_shared.InitSchemaStatements{
+		{
+			Label:      sqlmanager_postgres.AddColumnsLabel,
+			Statements: addColumnStatements,
+		},
+	}, nil
+}
+
+func (d *PostgresSchemaManager) ReconcileDestinationSchema(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable, schemaStatements []*sqlmanager_shared.InitSchemaStatements) ([]*shared.InitSchemaError, error) {
+	d.logger.Debug("reconciling destination schema")
+	initErrors := []*shared.InitSchemaError{}
+	if !d.destOpts.GetInitTableSchema() {
+		d.logger.Info("skipping schema init as it is not enabled")
+		return initErrors, nil
+	}
+	tables := []*sqlmanager_shared.SchemaTable{}
+	for _, tableschema := range uniqueTables {
+		tables = append(tables, tableschema)
+	}
+
+	initblocks, err := d.sourcedb.Db().GetSchemaInitStatements(ctx, tables)
+	if err != nil {
+		return nil, err
+	}
+
+	schemaStatementsByLabel := map[string][]*sqlmanager_shared.InitSchemaStatements{}
+	for _, statement := range schemaStatements {
+		schemaStatementsByLabel[statement.Label] = append(schemaStatementsByLabel[statement.Label], statement)
+	}
+
+	// insert add columns statements after create table statements
+	// initblocks will eventually be replaced by schemastatements
+	// this is a weird intermitten state for now
+	statementBlocks := []*sqlmanager_shared.InitSchemaStatements{}
+	for _, statement := range initblocks {
+		statementBlocks = append(statementBlocks, statement)
+		if statement.Label == sqlmanager_postgres.CreateTablesLabel {
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_postgres.AddColumnsLabel]...)
+		}
+	}
+
+	for _, block := range statementBlocks {
+		d.logger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
+		if len(block.Statements) == 0 {
+			continue
+		}
+		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
+		if err != nil {
+			d.logger.Error(fmt.Sprintf("unable to exec postgres %s statements: %s", block.Label, err.Error()))
+			for _, stmt := range block.Statements {
+				err = d.destdb.Db().BatchExec(ctx, 1, []string{stmt}, &sqlmanager_shared.BatchExecOpts{})
+				if err != nil {
+					initErrors = append(initErrors, &shared.InitSchemaError{
+						Statement: stmt,
+						Error:     err.Error(),
+					})
+				}
+			}
+		}
+	}
+	return initErrors, nil
+}
+
+func (d *PostgresSchemaManager) TruncateTables(ctx context.Context, schemaDiff *shared.SchemaDifferences) error {
+	if !d.destOpts.GetTruncateTable().GetTruncateBeforeInsert() && !d.destOpts.GetTruncateTable().GetCascade() {
+		d.logger.Info("skipping truncate as it is not enabled")
+		return nil
+	}
+	uniqueTables := map[string]struct{}{}
+	schemaMap := map[string]struct{}{}
+	for _, table := range schemaDiff.ExistsInBoth.Tables {
+		uniqueTables[table.String()] = struct{}{}
+		schemaMap[table.Schema] = struct{}{}
+	}
+	uniqueSchemas := []string{}
+	for schema := range schemaMap {
+		uniqueSchemas = append(uniqueSchemas, schema)
+	}
+	return d.TruncateData(ctx, uniqueTables, uniqueSchemas)
 }
 
 func (d *PostgresSchemaManager) InitializeSchema(ctx context.Context, uniqueTables map[string]struct{}) ([]*shared.InitSchemaError, error) {
@@ -170,22 +316,6 @@ func (d *PostgresSchemaManager) TruncateData(ctx context.Context, uniqueTables m
 		}
 	}
 	return nil
-}
-
-func (d *PostgresSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*shared.SchemaDifferences, error) {
-	return nil, errors.ErrUnsupported
-}
-
-func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *shared.SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error) {
-	return nil, errors.ErrUnsupported
-}
-
-func (d *PostgresSchemaManager) ReconcileDestinationSchema(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable, schemaStatements []*sqlmanager_shared.InitSchemaStatements) ([]*shared.InitSchemaError, error) {
-	return nil, errors.ErrUnsupported
-}
-
-func (d *PostgresSchemaManager) TruncateTables(ctx context.Context, schemaDiff *shared.SchemaDifferences) error {
-	return errors.ErrUnsupported
 }
 
 func (d *PostgresSchemaManager) CloseConnections() {

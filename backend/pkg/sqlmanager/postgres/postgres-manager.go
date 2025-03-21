@@ -17,8 +17,10 @@ import (
 )
 
 const (
-	SchemasLabel    = "schemas"
-	ExtensionsLabel = "extensions"
+	SchemasLabel      = "schemas"
+	ExtensionsLabel   = "extensions"
+	CreateTablesLabel = "create table"
+	AddColumnsLabel   = "add columns"
 )
 
 type PostgresManager struct {
@@ -89,16 +91,6 @@ func (p *PostgresManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.
 	}
 	result := []*sqlmanager_shared.DatabaseSchemaRow{}
 	for _, row := range rows {
-		var generatedType *string
-		if row.GeneratedType != "" {
-			generatedTypeCopy := row.GeneratedType
-			generatedType = &generatedTypeCopy
-		}
-		var identityGeneration *string
-		if row.IdentityGeneration != "" {
-			val := row.IdentityGeneration
-			identityGeneration = &val
-		}
 		result = append(result, &sqlmanager_shared.DatabaseSchemaRow{
 			TableSchema:            row.SchemaName,
 			TableName:              row.TableName,
@@ -110,8 +102,8 @@ func (p *PostgresManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.
 			NumericPrecision:       int(row.NumericPrecision),
 			NumericScale:           int(row.NumericScale),
 			OrdinalPosition:        int(row.OrdinalPosition),
-			GeneratedType:          generatedType,
-			IdentityGeneration:     identityGeneration,
+			GeneratedType:          sqlmanager_shared.Ptr(row.GeneratedType),
+			IdentityGeneration:     sqlmanager_shared.Ptr(row.IdentityGeneration),
 			UpdateAllowed:          isColumnUpdateAllowed(row.IdentityGeneration, row.GeneratedType),
 		})
 	}
@@ -119,7 +111,46 @@ func (p *PostgresManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.
 }
 
 func (p *PostgresManager) GetColumnsByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableColumn, error) {
-	return nil, errors.ErrUnsupported
+	schemaTables := make([]string, 0, len(tables))
+	for _, t := range tables {
+		schemaTables = append(schemaTables, t.String())
+	}
+	rows, err := p.querier.GetDatabaseTableSchemasBySchemasAndTables(ctx, p.db, schemaTables)
+	if err != nil {
+		return nil, err
+	}
+	result := []*sqlmanager_shared.TableColumn{}
+	for _, row := range rows {
+		var sequenceDefinition *string
+		if row.IdentityGeneration != "" && row.SeqStartValue.Valid && row.SeqMinValue.Valid &&
+			row.SeqMaxValue.Valid && row.SeqIncrementBy.Valid && row.SeqCycleOption.Valid && row.SeqCacheValue.Valid {
+			seqConfig := &SequenceConfiguration{
+				StartValue:  row.SeqStartValue.Int64,
+				MinValue:    row.SeqMinValue.Int64,
+				MaxValue:    row.SeqMaxValue.Int64,
+				IncrementBy: row.SeqIncrementBy.Int64,
+				CycleOption: row.SeqCycleOption.Bool,
+				CacheValue:  row.SeqCacheValue.Int64,
+			}
+			seqStr := buildSequenceDefinition(row.IdentityGeneration, seqConfig)
+			sequenceDefinition = &seqStr
+		}
+		col := &sqlmanager_shared.TableColumn{
+			Schema:             row.SchemaName,
+			Table:              row.TableName,
+			Name:               row.ColumnName,
+			DataType:           row.DataType,
+			IsNullable:         row.IsNullable != "NO",
+			ColumnDefault:      row.ColumnDefault,
+			GeneratedType:      sqlmanager_shared.Ptr(row.GeneratedType),
+			IdentityGeneration: sqlmanager_shared.Ptr(row.IdentityGeneration),
+			SequenceDefinition: sequenceDefinition,
+			IsSerial:           row.SequenceType == "SERIAL",
+		}
+		col.Fingerprint = sqlmanager_shared.BuildTableColumnFingerprint(col)
+		result = append(result, col)
+	}
+	return result, nil
 }
 
 func (p *PostgresManager) GetTableConstraintsByTables(ctx context.Context, schema string, tables []string) (map[string]*sqlmanager_shared.AllTableConstraints, error) {
@@ -593,10 +624,10 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 		columns := make([]string, 0, len(tableData))
 		for _, record := range tableData {
 			record := record
-			var seqConfig *SequenceConfiguration
+			var seqDefinition *string
 			if record.IdentityGeneration != "" && record.SeqStartValue.Valid && record.SeqMinValue.Valid &&
 				record.SeqMaxValue.Valid && record.SeqIncrementBy.Valid && record.SeqCycleOption.Valid && record.SeqCacheValue.Valid {
-				seqConfig = &SequenceConfiguration{
+				seqConfig := &SequenceConfiguration{
 					StartValue:  record.SeqStartValue.Int64,
 					MinValue:    record.SeqMinValue.Int64,
 					MaxValue:    record.SeqMaxValue.Int64,
@@ -604,16 +635,17 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 					CycleOption: record.SeqCycleOption.Bool,
 					CacheValue:  record.SeqCacheValue.Int64,
 				}
+				seqStr := buildSequenceDefinition(record.IdentityGeneration, seqConfig)
+				seqDefinition = &seqStr
 			}
 			columns = append(columns, buildTableCol(&buildTableColRequest{
-				ColumnName:    record.ColumnName,
-				ColumnDefault: record.ColumnDefault,
-				DataType:      record.DataType,
-				IsNullable:    record.IsNullable == "YES",
-				GeneratedType: record.GeneratedType,
-				IsSerial:      record.SequenceType == "SERIAL",
-				Sequence:      seqConfig,
-				IdentityType:  &record.IdentityGeneration,
+				ColumnName:         record.ColumnName,
+				ColumnDefault:      record.ColumnDefault,
+				DataType:           record.DataType,
+				IsNullable:         record.IsNullable == "YES",
+				GeneratedType:      record.GeneratedType,
+				IsSerial:           record.SequenceType == "SERIAL",
+				SequenceDefinition: seqDefinition,
 			}))
 		}
 
@@ -762,7 +794,7 @@ func (p *PostgresManager) GetSchemaInitStatements(
 		{Label: SchemasLabel, Statements: schemaStmts},
 		{Label: ExtensionsLabel, Statements: extensionStmts},
 		{Label: "data types", Statements: dataTypeStmts},
-		{Label: "create table", Statements: createTables},
+		{Label: CreateTablesLabel, Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
 		{Label: "table index", Statements: idxStmts},
 		{Label: "fk alter table", Statements: fkAlterStmts},
@@ -979,15 +1011,27 @@ func buildAlterStatementByConstraint(
 	), nil
 }
 
+func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) (string, error) {
+	col := buildTableCol(&buildTableColRequest{
+		ColumnName:         column.Name,
+		ColumnDefault:      column.ColumnDefault,
+		DataType:           column.DataType,
+		IsNullable:         column.IsNullable,
+		GeneratedType:      *column.GeneratedType,
+		SequenceDefinition: column.SequenceDefinition,
+	})
+	return fmt.Sprintf("ALTER TABLE %q.%q ADD COLUMN %s;", column.Schema, column.Table, col), nil
+}
+
 type buildTableColRequest struct {
-	ColumnName    string
-	ColumnDefault string
-	DataType      string
-	IsNullable    bool
-	GeneratedType string
-	IsSerial      bool
-	IdentityType  *string
-	Sequence      *SequenceConfiguration
+	ColumnName         string
+	ColumnDefault      string
+	DataType           string
+	IsNullable         bool
+	GeneratedType      string
+	IsSerial           bool
+	SequenceDefinition *string
+	Sequence           *SequenceConfiguration
 }
 
 type SequenceConfiguration struct {
@@ -1030,12 +1074,8 @@ func buildTableCol(record *buildTableColRequest) string {
 		} else {
 			pieces[1] = "SERIAL"
 		}
-	} else if record.IdentityType != nil && *record.IdentityType != "" && record.Sequence != nil {
-		if *record.IdentityType == "d" {
-			pieces = append(pieces, record.Sequence.ToGeneratedDefaultIdentity())
-		} else if *record.IdentityType == "a" {
-			pieces = append(pieces, record.Sequence.ToGeneratedAlwaysIdentity())
-		}
+	} else if record.SequenceDefinition != nil && *record.SequenceDefinition != "" {
+		pieces = append(pieces, *record.SequenceDefinition)
 	} else if record.ColumnDefault != "" {
 		if record.GeneratedType == "s" {
 			pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS (%s) STORED", record.ColumnDefault))
@@ -1044,6 +1084,16 @@ func buildTableCol(record *buildTableColRequest) string {
 		}
 	}
 	return strings.Join(pieces, " ")
+}
+
+func buildSequenceDefinition(identityType string, seqConfig *SequenceConfiguration) string {
+	var seqStr string
+	if identityType == "d" {
+		seqStr = seqConfig.ToGeneratedDefaultIdentity()
+	} else if identityType == "a" {
+		seqStr = seqConfig.ToGeneratedAlwaysIdentity()
+	}
+	return seqStr
 }
 
 func buildNullableText(isNullable bool) string {
