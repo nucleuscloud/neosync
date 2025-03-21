@@ -118,7 +118,8 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, d
 		if err != nil {
 			return nil, fmt.Errorf("failed to build add column statement: %w", err)
 		}
-		addColumnStatements = append(addColumnStatements, stmt)
+		commentStmt := sqlmanager_postgres.BuildUpdateCommentStatement(column.Schema, column.Table, column.Name, column.Comment)
+		addColumnStatements = append(addColumnStatements, stmt, commentStmt)
 	}
 
 	return []*sqlmanager_shared.InitSchemaStatements{

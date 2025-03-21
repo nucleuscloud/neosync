@@ -117,7 +117,8 @@ SELECT
     ic.max_value as seq_max_value,
     ic.start_value as seq_start_value,
     ic.cache_value as seq_cache_value,
-    ic.cycle_option as seq_cycle_option
+    ic.cycle_option as seq_cycle_option,
+    pg_catalog.col_description(cd.table_oid, cd.ordinal_position) AS column_comment
 FROM
     column_defaults cd
 LEFT JOIN linked_to_serial ls
@@ -249,7 +250,8 @@ SELECT
     ic.max_value as seq_max_value,
     ic.start_value as seq_start_value,
     ic.cache_value as seq_cache_value,
-    ic.cycle_option as seq_cycle_option
+    ic.cycle_option as seq_cycle_option,
+    pg_catalog.col_description(cd.table_oid, cd.ordinal_position) AS column_comment
 FROM
     column_defaults cd
 LEFT JOIN linked_to_serial ls

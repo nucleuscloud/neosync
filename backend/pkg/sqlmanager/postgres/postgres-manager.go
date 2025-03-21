@@ -146,6 +146,7 @@ func (p *PostgresManager) GetColumnsByTables(ctx context.Context, tables []*sqlm
 			IdentityGeneration: sqlmanager_shared.Ptr(row.IdentityGeneration),
 			SequenceDefinition: sequenceDefinition,
 			IsSerial:           row.SequenceType == "SERIAL",
+			Comment:            sqlmanager_shared.Ptr(row.ColumnComment),
 		}
 		col.Fingerprint = sqlmanager_shared.BuildTableColumnFingerprint(col)
 		result = append(result, col)
@@ -1094,6 +1095,13 @@ func buildSequenceDefinition(identityType string, seqConfig *SequenceConfigurati
 		seqStr = seqConfig.ToGeneratedAlwaysIdentity()
 	}
 	return seqStr
+}
+
+func BuildUpdateCommentStatement(schema, table, column string, comment *string) string {
+	if comment == nil || *comment == "" {
+		return fmt.Sprintf("COMMENT ON COLUMN %q.%q.%q IS NULL;", schema, table, column)
+	}
+	return fmt.Sprintf("COMMENT ON COLUMN %q.%q.%q IS %q;", schema, table, column, *comment)
 }
 
 func buildNullableText(isNullable bool) string {
