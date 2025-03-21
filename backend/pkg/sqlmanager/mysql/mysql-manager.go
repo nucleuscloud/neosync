@@ -91,10 +91,6 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 			val := row.Extra.String
 			identityGeneration = &val
 		}
-		var comment *string
-		if row.Comment.Valid {
-			comment = &row.Comment.String
-		}
 		result = append(result, &sqlmanager_shared.DatabaseSchemaRow{
 			TableSchema:            row.TableSchema,
 			TableName:              row.TableName,
@@ -110,7 +106,7 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 			OrdinalPosition:        int(row.OrdinalPosition),
 			IdentityGeneration:     identityGeneration,
 			UpdateAllowed:          isColumnUpdateAllowed(row.Extra),
-			Comment:                comment,
+			Comment:                nullStringToPtr(row.Comment),
 		})
 	}
 	return result, nil
@@ -196,10 +192,6 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 				val := row.IdentityGeneration.String
 				identityGeneration = &val
 			}
-			var comment *string
-			if row.Comment.Valid {
-				comment = &row.Comment.String
-			}
 			result = append(result, &sqlmanager_shared.DatabaseSchemaRow{
 				TableSchema:            row.SchemaName,
 				TableName:              row.TableName,
@@ -216,7 +208,7 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 				OrdinalPosition:        int(row.OrdinalPosition),
 				IdentityGeneration:     identityGeneration,
 				UpdateAllowed:          isColumnUpdateAllowed(row.IdentityGeneration),
-				Comment:                comment,
+				Comment:                nullStringToPtr(row.Comment),
 			})
 		}
 	}
@@ -537,10 +529,6 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert generation expression to string: %w", err)
 			}
-			var comment *string
-			if record.Comment.Valid {
-				comment = &record.Comment.String
-			}
 			columns = append(columns, buildTableColForCreate(&buildTableColRequest{
 				ColumnName:          record.ColumnName,
 				ColumnDefault:       columnDefaultStr,
@@ -548,7 +536,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 				IsNullable:          record.IsNullable == 1,
 				IdentityType:        identityType,
 				GeneratedExpression: genExp,
-				Comment:             comment,
+				Comment:             nullStringToPtr(record.Comment),
 			}))
 		}
 
