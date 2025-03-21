@@ -923,14 +923,19 @@ func Test_Workflow_Max_InFlight(t *testing.T) {
 
 func Test_isConfigReady(t *testing.T) {
 	isReady, err := isConfigReady(nil, nil)
+	assert.Error(t, err)
+
+	completed := sync.Map{}
+	isReady, err = isConfigReady(nil, &completed)
 	assert.NoError(t, err)
 	assert.False(t, isReady, "config is nil")
 
+	completed = sync.Map{}
 	isReady, err = isConfigReady(&benthosbuilder.BenthosConfigResponse{
 		Name:      "foo",
 		DependsOn: []*runconfigs.DependsOn{},
 	},
-		nil)
+		&completed)
 	assert.NoError(t, err)
 	assert.True(
 		t,
@@ -938,7 +943,7 @@ func Test_isConfigReady(t *testing.T) {
 		"has no dependencies",
 	)
 
-	completed := sync.Map{}
+	completed = sync.Map{}
 	completed.Store("bar", []string{"id"})
 	isReady, err = isConfigReady(&benthosbuilder.BenthosConfigResponse{
 		Name:      "foo",
