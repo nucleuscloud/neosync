@@ -537,13 +537,18 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert generation expression to string: %w", err)
 			}
-			columns = append(columns, buildTableCol(&buildTableColRequest{
+			var comment *string
+			if record.Comment.Valid {
+				comment = &record.Comment.String
+			}
+			columns = append(columns, buildTableColForCreate(&buildTableColRequest{
 				ColumnName:          record.ColumnName,
 				ColumnDefault:       columnDefaultStr,
 				DataType:            record.DataType,
 				IsNullable:          record.IsNullable == 1,
 				IdentityType:        identityType,
 				GeneratedExpression: genExp,
+				Comment:             comment,
 			}))
 		}
 
@@ -680,14 +685,23 @@ func buildColumnStatement(keyword string, column *sqlmanager_shared.TableColumn)
 		identityType = column.GeneratedType
 	}
 
-	col := buildTableCol(&buildTableColRequest{
+	colReq := &buildTableColRequest{
 		ColumnName:          column.Name,
 		ColumnDefault:       columnDefaultStr,
 		DataType:            column.DataType,
 		IsNullable:          column.IsNullable,
 		IdentityType:        identityType,
 		GeneratedExpression: *column.GeneratedExpression,
-	})
+		Comment:             column.Comment,
+	}
+
+	var col string
+	if keyword == "MODIFY" {
+		col = buildTableColForModifyColumn(colReq)
+	} else {
+		col = buildTableColForCreate(colReq)
+	}
+
 	return fmt.Sprintf("ALTER TABLE %s.%s %s COLUMN %s;", EscapeMysqlColumn(column.Schema), EscapeMysqlColumn(column.Table), keyword, col), nil
 }
 
@@ -716,6 +730,14 @@ func BuildDropFunctionStatement(schema, functionName string) string {
 	return fmt.Sprintf("DROP FUNCTION IF EXISTS %s.%s;", EscapeMysqlColumn(schema), EscapeMysqlColumn(functionName))
 }
 
+func buildTableColForModifyColumn(record *buildTableColRequest) string {
+	return buildTableCol(record, true)
+}
+
+func buildTableColForCreate(record *buildTableColRequest) string {
+	return buildTableCol(record, false)
+}
+
 type buildTableColRequest struct {
 	ColumnName          string
 	ColumnDefault       string
@@ -724,9 +746,10 @@ type buildTableColRequest struct {
 	GeneratedType       string
 	GeneratedExpression string
 	IdentityType        *string
+	Comment             *string
 }
 
-func buildTableCol(record *buildTableColRequest) string {
+func buildTableCol(record *buildTableColRequest, isModifyColumn bool) string {
 	pieces := []string{EscapeMysqlColumn(record.ColumnName), record.DataType}
 
 	if record.GeneratedExpression != "" {
@@ -746,7 +769,16 @@ func buildTableCol(record *buildTableColRequest) string {
 	}
 
 	if record.IdentityType != nil && *record.IdentityType == "auto_increment" {
-		pieces = append(pieces, fmt.Sprintf("%s PRIMARY KEY", *record.IdentityType))
+		if isModifyColumn {
+			pieces = append(pieces, *record.IdentityType)
+		} else {
+			// auto_increment requires a primary key on table creation or column addition
+			pieces = append(pieces, fmt.Sprintf("%s PRIMARY KEY", *record.IdentityType))
+		}
+	}
+
+	if record.Comment != nil && *record.Comment != "" {
+		pieces = append(pieces, fmt.Sprintf("COMMENT '%s'", strings.ReplaceAll(*record.Comment, "'", `\'`)))
 	}
 
 	return strings.Join(pieces, " ")

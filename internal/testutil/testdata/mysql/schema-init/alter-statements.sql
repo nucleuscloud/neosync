@@ -257,3 +257,15 @@ ALTER TABLE employees
 ALTER TABLE astronaut
   MODIFY COLUMN full_name VARCHAR(60)
     GENERATED ALWAYS AS (CONCAT(first_name, '-', last_name)) STORED;
+
+
+-- add comments
+
+ALTER TABLE emails
+  MODIFY COLUMN email VARCHAR (100) COMMENT 'also verrrryyyyy sensitive';
+
+ALTER TABLE astronaut_log
+  MODIFY COLUMN action VARCHAR (20) COMMENT 'woah';
+
+ALTER TABLE astronaut
+  MODIFY COLUMN first_name VARCHAR (20) COMMENT 'I\'m an astronaut';
