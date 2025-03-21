@@ -598,57 +598,104 @@ message JobTypeConfig {
     // The strategy used to configure how columns are handled during a job run
     message ColumnStrategy {
       oneof strategy {
-        option (buf.validate.oneof).required = false;
-        // When this strategy is configured, all columns are mapped.
-        // Further configuration can be done to handle columns not present in the schema mappings.
+        // 1. Map all columns + user-defined sub-strategies for each mismatch scenario
         MapAllColumns map_all_columns = 1;
+
+        // 2. Only map user-defined columns + sub-strategies for mismatch scenarios
+        MapDefinedColumns map_defined_columns = 2;
       }
 
-      // Strategy that maps all columns for a table.
-      // Further configuration can be done to handle columns not present in the schema mappings.
-      // Also strategies may be configured for handling a mapped column that is no longer present in the source.
+      // -------------------------------------------------------------
+      // 1. MapAllColumns
+      // -------------------------------------------------------------
       message MapAllColumns {
-        // The strategy to use when a new column is detected
-        optional ColumnAdditionStrategy column_addition_strategy = 1;
-        // The strategy to use when a column is removed
-        optional ColumnRemovalStrategy column_removal_strategy = 2;
+        // When a column is present in source but not mapped
+        optional ColumnInSourceNotMappedStrategy column_in_source_not_mapped = 1;
 
-        // Strategy to use when a column is detected that is not present in the schema mappings.
-        message ColumnAdditionStrategy {
-          oneof strategy {
-            option (buf.validate.oneof).required = false;
-            // For any new columns, passthrough the value unchanged.
-            Passthrough passthrough = 1;
-            // Automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
-            // If this doesn't exist, will fall back to configuring generators for supported datatypes.
-            // If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
-            AutoMap auto_map = 2;
-            // halt job if a new column is detected.
-            Halt halt = 3;
-          }
-          // Configuration for the Passthrough strategy
-          message Passthrough {}
-          // Configuration for the AutoMap strategy
-          message AutoMap {}
-          // Configuration for the Halt strategy
-          message Halt {}
+        // When a column is mapped but not in source
+        optional ColumnMappedNotInSourceStrategy column_mapped_not_in_source = 2;
+
+        // When a column is in source + mapped, but missing in destination
+        optional ColumnInSourceMappedNotInDestinationStrategy column_in_source_mapped_not_in_destination = 3;
+
+        // When a column is in the destination but no longer in source
+        optional ColumnInDestinationNoLongerInSourceStrategy column_in_destination_no_longer_in_source = 4;
+      }
+
+      // -------------------------------------------------------------
+      // 2. MapDefinedColumns
+      // -------------------------------------------------------------
+      message MapDefinedColumns {
+        // Mapped but missing in source
+        optional ColumnMappedNotInSourceStrategy column_mapped_not_in_source = 1;
+
+        // In source + mapped, but missing in destination
+        optional ColumnInSourceMappedNotInDestinationStrategy column_in_source_mapped_not_in_destination = 2;
+
+        // Source columns not in user mapping
+        optional UnknownSourceColumnStrategy unknown_source_column = 3;
+      }
+
+      // -------------------------------------------------------------
+      // Sub-strategy definitions
+      // -------------------------------------------------------------
+
+      // a) Column present in source, not mapped
+      message ColumnInSourceNotMappedStrategy {
+        oneof strategy {
+          Passthrough passthrough = 1;
+          AutoMap auto_map = 2;
+          Halt halt = 3;
+          Drop drop = 4;
         }
+        message Passthrough {}
+        message AutoMap {}
+        message Halt {}
+        message Drop {}
+      }
 
-        // Strategy to use when a column is removed that is present in the schema mappings.
-        message ColumnRemovalStrategy {
-          oneof strategy {
-            option (buf.validate.oneof).required = false;
-            // Continue the run if a column is removed
-            Continue continue = 1;
-            // Halt the run if a column is removed
-            Halt halt = 2;
-          }
-          // Configuration for the Halt strategy
-          message Halt {}
-
-          // Configuration for the Continue strategy
-          message Continue {}
+      // b) Column mapped, but not in source
+      message ColumnMappedNotInSourceStrategy {
+        oneof strategy {
+          Continue continue = 1; // e.g. treat as NULL or skip
+          Halt halt = 2; // fail the job
         }
+        message Continue {}
+        message Halt {}
+      }
+
+      // c) Column in source + mapped, but missing in destination
+      message ColumnInSourceMappedNotInDestinationStrategy {
+        oneof strategy {
+          // In your version, "Continue" = "if init_schema => create column, else skip"
+          Continue continue = 1;
+          Drop drop = 2;
+          Halt halt = 3;
+        }
+        message Continue {}
+        message Drop {}
+        message Halt {}
+      }
+
+      // d) Column in destination, but not in source
+      message ColumnInDestinationNoLongerInSourceStrategy {
+        oneof strategy {
+          // "Continue" => "if init_schema => drop column, else leave it alone"
+          Continue continue = 1;
+          Halt halt = 2;
+        }
+        message Continue {}
+        message Halt {}
+      }
+
+      // e) In "MapDefinedColumns" mode: columns in source that aren't in the user mapping
+      message UnknownSourceColumnStrategy {
+        oneof strategy {
+          Ignore ignore = 1;
+          Halt halt = 2;
+        }
+        message Ignore {}
+        message Halt {}
       }
     }
 
