@@ -6,7 +6,7 @@ import (
 
 type ExistsInSource struct {
 	Tables                   []*sqlmanager_shared.SchemaTable
-	Columns                  []*sqlmanager_shared.DatabaseSchemaRow
+	Columns                  []*sqlmanager_shared.TableColumn
 	NonForeignKeyConstraints []*sqlmanager_shared.NonForeignKeyConstraint
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
 	Triggers                 []*sqlmanager_shared.TableTrigger
@@ -14,11 +14,12 @@ type ExistsInSource struct {
 }
 
 type ExistsInBoth struct {
-	Tables []*sqlmanager_shared.SchemaTable
+	Tables  []*sqlmanager_shared.SchemaTable
+	Columns []*sqlmanager_shared.TableColumn // only columns that exist in both source and destination and have a fingerprint difference
 }
 
 type ExistsInDestination struct {
-	Columns                  []*sqlmanager_shared.DatabaseSchemaRow
+	Columns                  []*sqlmanager_shared.TableColumn
 	NonForeignKeyConstraints []*sqlmanager_shared.NonForeignKeyConstraint
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
 	Triggers                 []*sqlmanager_shared.TableTrigger
@@ -35,11 +36,11 @@ type SchemaDifferences struct {
 }
 
 type DatabaseData struct {
-	Columns                  map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // map of schema.table -> column name -> column info
-	ForeignKeyConstraints    map[string]*sqlmanager_shared.ForeignKeyConstraint         // map of fingerprint -> foreign key constraint
-	NonForeignKeyConstraints map[string]*sqlmanager_shared.NonForeignKeyConstraint      // map of fingerprint -> non foreign key constraint
-	Triggers                 map[string]*sqlmanager_shared.TableTrigger                 // map of fingerprint -> trigger
-	Functions                map[string]*sqlmanager_shared.DataType                     // map of  fingerprint -> function
+	Columns                  map[string]map[string]*sqlmanager_shared.TableColumn  // map of schema.table -> column name -> column info
+	ForeignKeyConstraints    map[string]*sqlmanager_shared.ForeignKeyConstraint    // map of fingerprint -> foreign key constraint
+	NonForeignKeyConstraints map[string]*sqlmanager_shared.NonForeignKeyConstraint // map of fingerprint -> non foreign key constraint
+	Triggers                 map[string]*sqlmanager_shared.TableTrigger            // map of fingerprint -> trigger
+	Functions                map[string]*sqlmanager_shared.DataType                // map of fingerprint -> function
 }
 
 type SchemaDifferencesBuilder struct {
@@ -62,14 +63,14 @@ func NewSchemaDifferencesBuilder(
 		diff: &SchemaDifferences{
 			ExistsInSource: &ExistsInSource{
 				Tables:                   []*sqlmanager_shared.SchemaTable{},
-				Columns:                  []*sqlmanager_shared.DatabaseSchemaRow{},
+				Columns:                  []*sqlmanager_shared.TableColumn{},
 				NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
 				ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
 				Triggers:                 []*sqlmanager_shared.TableTrigger{},
 				Functions:                []*sqlmanager_shared.DataType{},
 			},
 			ExistsInDestination: &ExistsInDestination{
-				Columns:                  []*sqlmanager_shared.DatabaseSchemaRow{},
+				Columns:                  []*sqlmanager_shared.TableColumn{},
 				NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
 				ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
 				Triggers:                 []*sqlmanager_shared.TableTrigger{},
@@ -103,15 +104,25 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 
 			// column diff
 			for _, column := range sourceTable {
-				_, ok := destTable[column.ColumnName]
+				_, ok := destTable[column.Name]
 				if !ok {
 					b.diff.ExistsInSource.Columns = append(b.diff.ExistsInSource.Columns, column)
 				}
 			}
 			for _, column := range destTable {
-				_, ok := sourceTable[column.ColumnName]
+				_, ok := sourceTable[column.Name]
 				if !ok {
 					b.diff.ExistsInDestination.Columns = append(b.diff.ExistsInDestination.Columns, column)
+				}
+			}
+
+			for _, column := range sourceTable {
+				destColumn, ok := destTable[column.Name]
+				if !ok {
+					continue
+				}
+				if column.Fingerprint != destColumn.Fingerprint {
+					b.diff.ExistsInBoth.Columns = append(b.diff.ExistsInBoth.Columns, column)
 				}
 			}
 		}

@@ -30,6 +30,7 @@ const (
 	DropFunctionsLabel                = "drop functions"
 	DropNonForeignKeyConstraintsLabel = "drop non-foreign key constraints"
 	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
+	UpdateColumnsLabel                = "update columns"
 )
 
 type MysqlManager struct {
@@ -210,6 +211,31 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 		}
 	}
 	return result, nil
+}
+
+func (m *MysqlManager) GetColumnsByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableColumn, error) {
+	rows, err := m.GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
+	if err != nil {
+		return nil, err
+	}
+	columns := []*sqlmanager_shared.TableColumn{}
+	for _, row := range rows {
+		col := &sqlmanager_shared.TableColumn{
+			Schema:              row.TableSchema,
+			Table:               row.TableName,
+			Name:                row.ColumnName,
+			DataType:            row.DataType,
+			IsNullable:          row.IsNullable,
+			ColumnDefault:       row.ColumnDefault,
+			ColumnDefaultType:   row.ColumnDefaultType,
+			IdentityGeneration:  row.IdentityGeneration,
+			GeneratedType:       row.GeneratedType,
+			GeneratedExpression: row.GeneratedExpression,
+		}
+		col.Fingerprint = sqlmanager_shared.BuildTableColumnFingerprint(col)
+		columns = append(columns, col)
+	}
+	return columns, nil
 }
 
 func (m *MysqlManager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
@@ -624,25 +650,38 @@ func nullStringToPtr(str sql.NullString) *string {
 	return &str.String
 }
 
-func BuildAddColumnStatement(column *sqlmanager_shared.DatabaseSchemaRow) (string, error) {
+func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) (string, error) {
+	return buildColumnStatement("ADD", column)
+}
+
+func BuildUpdateColumnStatement(column *sqlmanager_shared.TableColumn) (string, error) {
+	return buildColumnStatement("MODIFY", column)
+}
+
+func buildColumnStatement(keyword string, column *sqlmanager_shared.TableColumn) (string, error) {
 	columnDefaultStr, err := EscapeMysqlDefaultColumn(column.ColumnDefault, column.ColumnDefaultType)
 	if err != nil {
 		return "", fmt.Errorf("failed to escape column default: %w", err)
 	}
 
+	identityType := column.IdentityGeneration
+	if identityType == nil && column.GeneratedType != nil && *column.GeneratedType != "" {
+		identityType = column.GeneratedType
+	}
+
 	col := buildTableCol(&buildTableColRequest{
-		ColumnName:          column.ColumnName,
+		ColumnName:          column.Name,
 		ColumnDefault:       columnDefaultStr,
 		DataType:            column.DataType,
 		IsNullable:          column.IsNullable,
-		IdentityType:        column.IdentityGeneration,
+		IdentityType:        identityType,
 		GeneratedExpression: *column.GeneratedExpression,
 	})
-	return fmt.Sprintf("ALTER TABLE %s.%s ADD COLUMN %s;", EscapeMysqlColumn(column.TableSchema), EscapeMysqlColumn(column.TableName), col), nil
+	return fmt.Sprintf("ALTER TABLE %s.%s %s COLUMN %s;", EscapeMysqlColumn(column.Schema), EscapeMysqlColumn(column.Table), keyword, col), nil
 }
 
-func BuildDropColumnStatement(column *sqlmanager_shared.DatabaseSchemaRow) string {
-	return fmt.Sprintf("ALTER TABLE %s.%s DROP COLUMN %s;", EscapeMysqlColumn(column.TableSchema), EscapeMysqlColumn(column.TableName), EscapeMysqlColumn(column.ColumnName))
+func BuildDropColumnStatement(column *sqlmanager_shared.TableColumn) string {
+	return fmt.Sprintf("ALTER TABLE %s.%s DROP COLUMN %s;", EscapeMysqlColumn(column.Schema), EscapeMysqlColumn(column.Table), EscapeMysqlColumn(column.Name))
 }
 
 func BuildDropConstraintStatement(schema, table, constraintType, constraintName string) string {

@@ -99,7 +99,7 @@ func getDatabaseDataForSchemaDiff(
 	tables []*sqlmanager_shared.SchemaTable,
 	schemaMap map[string][]*sqlmanager_shared.SchemaTable,
 ) (*shared.DatabaseData, error) {
-	columns := []*sqlmanager_shared.DatabaseSchemaRow{}
+	columns := []*sqlmanager_shared.TableColumn{}
 	nonFkConstraints := map[string]*sqlmanager_shared.NonForeignKeyConstraint{}
 	fkConstraints := map[string]*sqlmanager_shared.ForeignKeyConstraint{}
 	triggers := map[string]*sqlmanager_shared.TableTrigger{}
@@ -109,7 +109,7 @@ func getDatabaseDataForSchemaDiff(
 	errgrp.SetLimit(5)
 
 	errgrp.Go(func() error {
-		cols, err := db.Db().GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
+		cols, err := db.Db().GetColumnsByTables(ctx, tables)
 		if err != nil {
 			return fmt.Errorf("failed to retrieve database table schemas: %w", err)
 		}
@@ -169,7 +169,7 @@ func getDatabaseDataForSchemaDiff(
 	if err := errgrp.Wait(); err != nil {
 		return nil, err
 	}
-	columnsMap := sqlmanager_shared.GetUniqueSchemaColMappings(columns)
+	columnsMap := shared.GetUniqueSchemaColMappings(columns)
 
 	return &shared.DatabaseData{
 		Columns:                  columnsMap,
@@ -216,6 +216,15 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 		dropTriggerStatements = append(dropTriggerStatements, sqlmanager_mysql.BuildDropTriggerStatement(trigger.TriggerSchema, trigger.TriggerName))
 	}
 
+	updateColumnStatements := []string{}
+	for _, column := range diff.ExistsInBoth.Columns {
+		stmt, err := sqlmanager_mysql.BuildUpdateColumnStatement(column)
+		if err != nil {
+			return nil, fmt.Errorf("failed to build update column statement: %w", err)
+		}
+		updateColumnStatements = append(updateColumnStatements, stmt)
+	}
+
 	dropFunctionStatements := []string{}
 	for _, function := range diff.ExistsInDestination.Functions {
 		dropFunctionStatements = append(dropFunctionStatements, sqlmanager_mysql.BuildDropFunctionStatement(function.Schema, function.Name))
@@ -233,6 +242,10 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 		{
 			Label:      sqlmanager_mysql.AddColumnsLabel,
 			Statements: addColumnStatements,
+		},
+		{
+			Label:      sqlmanager_mysql.UpdateColumnsLabel,
+			Statements: updateColumnStatements,
 		},
 		{
 			Label:      sqlmanager_mysql.DropForeignKeyConstraintsLabel,
@@ -286,6 +299,7 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropNonForeignKeyConstraintsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropColumnsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.AddColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.UpdateColumnsLabel]...)
 		}
 	}
 

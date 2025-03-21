@@ -187,6 +187,9 @@ func (m *Manager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 
 	return output, nil
 }
+func (m *Manager) GetColumnsByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableColumn, error) {
+	return nil, errors.ErrUnsupported
+}
 
 func (m *Manager) GetTableConstraintsByTables(ctx context.Context, schema string, tables []string) (map[string]*sqlmanager_shared.AllTableConstraints, error) {
 	return nil, errors.ErrUnsupported

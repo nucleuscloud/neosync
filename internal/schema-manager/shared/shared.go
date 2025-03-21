@@ -33,3 +33,20 @@ func GetFilteredForeignToPrimaryTableMap(td map[string][]*sqlmanager_shared.Fore
 	}
 	return dpMap
 }
+
+func GetUniqueSchemaColMappings(
+	schemas []*sqlmanager_shared.TableColumn,
+) map[string]map[string]*sqlmanager_shared.TableColumn {
+	groupedSchemas := map[string]map[string]*sqlmanager_shared.TableColumn{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+	for _, record := range schemas {
+		key := sqlmanager_shared.SchemaTable{Schema: record.Schema, Table: record.Table}.String()
+		if _, ok := groupedSchemas[key]; ok {
+			groupedSchemas[key][record.Name] = record
+		} else {
+			groupedSchemas[key] = map[string]*sqlmanager_shared.TableColumn{
+				record.Name: record,
+			}
+		}
+	}
+	return groupedSchemas
+}

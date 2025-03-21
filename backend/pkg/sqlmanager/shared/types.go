@@ -46,6 +46,20 @@ type DatabaseTableRow struct {
 	TableName  string
 }
 
+type TableColumn struct {
+	Fingerprint         string
+	Schema              string
+	Table               string
+	Name                string
+	DataType            string
+	IsNullable          bool
+	ColumnDefault       string
+	ColumnDefaultType   *string
+	GeneratedType       *string
+	GeneratedExpression *string
+	IdentityGeneration  *string
+}
+
 type ForeignKeyConstraintsRow struct {
 	ConstraintName    string
 	SchemaName        string

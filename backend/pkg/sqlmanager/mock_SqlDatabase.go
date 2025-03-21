@@ -266,6 +266,65 @@ func (_c *MockSqlDatabase_GetAllTables_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// GetColumnsByTables provides a mock function with given fields: ctx, tables
+func (_m *MockSqlDatabase) GetColumnsByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableColumn, error) {
+	ret := _m.Called(ctx, tables)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetColumnsByTables")
+	}
+
+	var r0 []*sqlmanager_shared.TableColumn
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableColumn, error)); ok {
+		return rf(ctx, tables)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []*sqlmanager_shared.SchemaTable) []*sqlmanager_shared.TableColumn); ok {
+		r0 = rf(ctx, tables)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*sqlmanager_shared.TableColumn)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []*sqlmanager_shared.SchemaTable) error); ok {
+		r1 = rf(ctx, tables)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetColumnsByTables_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetColumnsByTables'
+type MockSqlDatabase_GetColumnsByTables_Call struct {
+	*mock.Call
+}
+
+// GetColumnsByTables is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tables []*sqlmanager_shared.SchemaTable
+func (_e *MockSqlDatabase_Expecter) GetColumnsByTables(ctx interface{}, tables interface{}) *MockSqlDatabase_GetColumnsByTables_Call {
+	return &MockSqlDatabase_GetColumnsByTables_Call{Call: _e.mock.On("GetColumnsByTables", ctx, tables)}
+}
+
+func (_c *MockSqlDatabase_GetColumnsByTables_Call) Run(run func(ctx context.Context, tables []*sqlmanager_shared.SchemaTable)) *MockSqlDatabase_GetColumnsByTables_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]*sqlmanager_shared.SchemaTable))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetColumnsByTables_Call) Return(_a0 []*sqlmanager_shared.TableColumn, _a1 error) *MockSqlDatabase_GetColumnsByTables_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetColumnsByTables_Call) RunAndReturn(run func(context.Context, []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableColumn, error)) *MockSqlDatabase_GetColumnsByTables_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetDatabaseSchema provides a mock function with given fields: ctx
 func (_m *MockSqlDatabase) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	ret := _m.Called(ctx)

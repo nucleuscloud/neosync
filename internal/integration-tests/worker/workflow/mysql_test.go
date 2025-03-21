@@ -732,6 +732,20 @@ func test_mysql_schema_reconciliation_compare_schemas(
 	for _, function := range destFunctions.Functions {
 		require.Contains(t, srcFunctions.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
 	}
+
+	t.Logf("checking columns are the same in source and destination")
+	srcColumns, err := srcManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get source columns")
+	destColumns, err := destManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get destination columns")
+
+	require.Len(t, srcColumns, len(destColumns), "source and destination have different number of columns")
+	for _, column := range srcColumns {
+		require.Contains(t, destColumns, column, "destination missing column with fingerprint %s", column.Fingerprint)
+	}
+	for _, column := range destColumns {
+		require.Contains(t, srcColumns, column, "source missing column with fingerprint %s", column.Fingerprint)
+	}
 }
 
 func test_mysql_schema_reconciliation_column_values(

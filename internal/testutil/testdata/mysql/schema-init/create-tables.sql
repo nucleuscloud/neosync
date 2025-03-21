@@ -428,7 +428,9 @@ VALUES
 -- trigger test
 CREATE TABLE IF NOT EXISTS astronaut (
     astronaut_id INT AUTO_INCREMENT PRIMARY KEY,
-    full_name   VARCHAR(100),
+    first_name VARCHAR (20) DEFAULT NULL,
+    last_name VARCHAR (25) NOT NULL,
+    full_name   VARCHAR(100) GENERATED ALWAYS AS (CONCAT(first_name, ' ', last_name)) STORED,
     position    VARCHAR(50)
 );
 
@@ -456,10 +458,10 @@ BEGIN
 		astronaut_id = NEW.astronaut_id;
 END;
 
-INSERT INTO astronaut (full_name, position)
+INSERT INTO astronaut (first_name, last_name, position)
 VALUES
-    ('Neil Armstrong', 'Astronaut'),
-    ('Buzz Aldrin', 'Astronaut');
+    ('Neil', 'Armstrong', 'Astronaut'),
+    ('Buzz', 'Aldrin', 'Astronaut');
 
 INSERT INTO astronaut_log (
     astronaut_id,

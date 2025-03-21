@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -85,6 +86,23 @@ func BuildFingerprint(input ...string) string {
 		h.Write([]byte(i))
 	}
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+func BuildTableColumnFingerprint(column *TableColumn) string {
+	parts := []string{
+		column.Schema,
+		column.Table,
+		column.Name,
+		column.DataType,
+		strconv.FormatBool(column.IsNullable),
+		column.ColumnDefault,
+		ptrOrEmpty(column.ColumnDefaultType),
+		ptrOrEmpty(column.IdentityGeneration),
+		ptrOrEmpty(column.GeneratedType),
+		ptrOrEmpty(column.GeneratedExpression),
+	}
+
+	return BuildFingerprint(parts...)
 }
 
 // ptrOrEmpty returns the pointer's value if not nil, otherwise "".
