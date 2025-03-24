@@ -15,14 +15,17 @@ import (
 )
 
 type Activity struct {
-	jobclient mgmtv1alpha1connect.JobServiceClient
+	jobclient           mgmtv1alpha1connect.JobServiceClient
+	postgresSchemaDrift bool
 }
 
 func New(
 	jobclient mgmtv1alpha1connect.JobServiceClient,
+	postgresSchemaDrift bool,
 ) *Activity {
 	return &Activity{
-		jobclient: jobclient,
+		jobclient:           jobclient,
+		postgresSchemaDrift: postgresSchemaDrift,
 	}
 }
 
@@ -34,6 +37,7 @@ type RetrieveActivityOptionsResponse struct {
 	AccountId            string
 	RequestedRecordCount *uint64
 	Destinations         []*mgmtv1alpha1.JobDestination
+	PostgresSchemaDrift  bool
 }
 
 func (a *Activity) RetrieveActivityOptions(
@@ -59,6 +63,7 @@ func (a *Activity) RetrieveActivityOptions(
 		AccountId:            job.GetAccountId(),
 		RequestedRecordCount: getRequestedRecordCount(job),
 		Destinations:         job.GetDestinations(),
+		PostgresSchemaDrift:  a.postgresSchemaDrift,
 	}, nil
 }
 

@@ -106,6 +106,18 @@ func Test_Workflow(t *testing.T) {
 			test_postgres_complex(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
 
+		t.Run("schema_reconciliation", func(t *testing.T) {
+			t.Parallel()
+			t.Run("truncate", func(t *testing.T) {
+				t.Parallel()
+				test_postgres_schema_reconciliation(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn, true)
+			})
+			t.Run("no_truncate", func(t *testing.T) {
+				t.Parallel()
+				test_postgres_schema_reconciliation(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn, false)
+			})
+		})
+
 		// Generate workflow tests
 		t.Run("generate", func(t *testing.T) {
 			t.Parallel()

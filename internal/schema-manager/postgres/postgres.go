@@ -200,6 +200,10 @@ func (d *PostgresSchemaManager) TruncateTables(ctx context.Context, schemaDiff *
 	for schema := range schemaMap {
 		uniqueSchemas = append(uniqueSchemas, schema)
 	}
+	if len(uniqueTables) == 0 && len(uniqueSchemas) == 0 {
+		d.logger.Info("no tables or schemas to truncate")
+		return nil
+	}
 	return d.TruncateData(ctx, uniqueTables, uniqueSchemas)
 }
 

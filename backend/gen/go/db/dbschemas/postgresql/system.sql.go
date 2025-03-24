@@ -637,7 +637,7 @@ SELECT
     ic.start_value as seq_start_value,
     ic.cache_value as seq_cache_value,
     ic.cycle_option as seq_cycle_option,
-    pg_catalog.col_description(cd.table_oid, cd.ordinal_position) AS column_comment
+    COALESCE(pg_catalog.col_description(cd.table_oid, cd.ordinal_position), '')::text AS column_comment
 FROM
     column_defaults cd
 LEFT JOIN linked_to_serial ls
@@ -840,7 +840,7 @@ SELECT
     ic.start_value as seq_start_value,
     ic.cache_value as seq_cache_value,
     ic.cycle_option as seq_cycle_option,
-    pg_catalog.col_description(cd.table_oid, cd.ordinal_position) AS column_comment
+    COALESCE(pg_catalog.col_description(cd.table_oid, cd.ordinal_position), '')::text AS column_comment
 FROM
     column_defaults cd
 LEFT JOIN linked_to_serial ls

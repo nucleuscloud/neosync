@@ -21,6 +21,7 @@ import (
 	pg_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/edgecases"
 	pg_foreignkey_violations "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/foreignkey-violations"
 	pg_humanresources "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/humanresources"
+	pg_schema_init "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/schema-init"
 	pg_subsetting "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/subsetting"
 	pg_transformers "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/transformers"
 	pg_uuids "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/uuids"
@@ -1281,5 +1282,66 @@ func test_postgres_complex(
 
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{"space_mission", "scientific_data"})
+	require.NoError(t, err)
+}
+
+func test_postgres_schema_reconciliation(
+	t *testing.T,
+	ctx context.Context,
+	postgres *tcpostgres.PostgresTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+	shouldTruncate bool,
+) {
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	schema := fmt.Sprintf("schema_drift_%t", shouldTruncate)
+	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"schema-init/create-tables.sql"}, schema)
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
+	job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     schema,
+		JobMappings: pg_schema_init.GetDefaultSyncJobMappings(schema),
+		JobOptions: &TestJobOptions{
+			Truncate:        shouldTruncate,
+			TruncateCascade: shouldTruncate,
+			InitSchema:      true,
+		},
+	})
+
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithPostgresSchemaDrift(), WithMaxIterations(100), WithPageLimit(10000))
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: schema_drift")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: schema_drift")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: schema, table: "regions", rowCount: 4},
+		{schema: schema, table: "countries", rowCount: 25},
+		{schema: schema, table: "locations", rowCount: 7},
+		{schema: schema, table: "departments", rowCount: 11},
+		{schema: schema, table: "jobs", rowCount: 19},
+		{schema: schema, table: "employees", rowCount: 40},
+		{schema: schema, table: "dependents", rowCount: 30},
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: schema_drift Table: %s Truncated: %t", expected.table, shouldTruncate))
+	}
+
+	// tear down
+	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
 	require.NoError(t, err)
 }

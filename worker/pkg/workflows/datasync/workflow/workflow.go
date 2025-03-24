@@ -172,7 +172,7 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 		return nil, err
 	}
 
-	err = runSchemaInitWorkflowByDestination(ctx, logger, actOptResp.AccountId, req.JobId, info.WorkflowExecution.ID, actOptResp.Destinations)
+	err = runSchemaInitWorkflowByDestination(ctx, logger, actOptResp.AccountId, req.JobId, info.WorkflowExecution.ID, actOptResp.Destinations, actOptResp.PostgresSchemaDrift)
 	if err != nil {
 		return nil, err
 	}
@@ -415,6 +415,7 @@ func runSchemaInitWorkflowByDestination(
 	logger log.Logger,
 	accountId, jobId, jobRunId string,
 	destinations []*mgmtv1alpha1.JobDestination,
+	postgresSchemaDrift bool,
 ) error {
 	initSchemaActivityOptions := &workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
@@ -425,7 +426,7 @@ func runSchemaInitWorkflowByDestination(
 	}
 	for _, destination := range destinations {
 		// right now only mysql supports schema drift
-		schemaDrift := destination.GetOptions().GetMysqlOptions() != nil
+		schemaDrift := shouldUseSchemaDrift(destination, postgresSchemaDrift)
 		logger.Info("scheduling Schema Initialization workflow for execution.", "destinationId", destination.GetId())
 		siWf := &schemainit_workflow.Workflow{}
 		var wfResult schemainit_workflow.SchemaInitResponse
@@ -450,6 +451,13 @@ func runSchemaInitWorkflowByDestination(
 		logger.Info("completed Schema Initialization workflow.", "destinationId", destination.GetId())
 	}
 	return nil
+}
+
+func shouldUseSchemaDrift(destination *mgmtv1alpha1.JobDestination, postgresSchemaDrift bool) bool {
+	if destination.GetOptions().GetPostgresOptions() != nil && postgresSchemaDrift {
+		return true
+	}
+	return destination.GetOptions().GetMysqlOptions() != nil
 }
 
 func retrieveActivityOptions(

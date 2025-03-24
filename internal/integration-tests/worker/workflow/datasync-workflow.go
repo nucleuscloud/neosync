@@ -35,13 +35,14 @@ import (
 type Option func(*TestWorkflowEnv)
 
 type TestWorkflowEnv struct {
-	neosyncApi    *tcneosyncapi.NeosyncApiTestClient
-	redisconfig   *neosync_redis.RedisConfig
-	fakeEELicense *testutil.FakeEELicense
-	pageLimit     int
-	maxIterations int
-	TestEnv       *testsuite.TestWorkflowEnvironment
-	Redisclient   redis.UniversalClient
+	neosyncApi          *tcneosyncapi.NeosyncApiTestClient
+	redisconfig         *neosync_redis.RedisConfig
+	fakeEELicense       *testutil.FakeEELicense
+	pageLimit           int
+	maxIterations       int
+	postgresSchemaDrift bool
+	TestEnv             *testsuite.TestWorkflowEnvironment
+	Redisclient         redis.UniversalClient
 }
 
 // WithRedis creates redis client with provided URL
@@ -77,6 +78,12 @@ func WithMaxIterations(maxIterations int) Option {
 	}
 }
 
+func WithPostgresSchemaDrift() Option {
+	return func(c *TestWorkflowEnv) {
+		c.postgresSchemaDrift = true
+	}
+}
+
 // NewTestDataSyncWorkflowEnv creates and configures a new test datasync workflow environment
 func NewTestDataSyncWorkflowEnv(
 	t testing.TB,
@@ -87,10 +94,11 @@ func NewTestDataSyncWorkflowEnv(
 	t.Helper()
 
 	workflowEnv := &TestWorkflowEnv{
-		neosyncApi:    neosyncApi,
-		fakeEELicense: testutil.NewFakeEELicense(),
-		pageLimit:     10,
-		maxIterations: 5,
+		neosyncApi:          neosyncApi,
+		fakeEELicense:       testutil.NewFakeEELicense(),
+		pageLimit:           10,
+		maxIterations:       5,
+		postgresSchemaDrift: false,
 	}
 
 	for _, opt := range opts {
@@ -126,6 +134,7 @@ func NewTestDataSyncWorkflowEnv(
 		workflowEnv.Redisclient,
 		false,
 		workflowEnv.pageLimit,
+		workflowEnv.postgresSchemaDrift,
 	)
 
 	schemainit_workflow_register.Register(
