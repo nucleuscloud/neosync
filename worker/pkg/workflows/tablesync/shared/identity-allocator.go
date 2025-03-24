@@ -79,6 +79,11 @@ type IdentityAllocator interface {
 	GetIdentity(ctx context.Context, token string, value *uint) (uint, error)
 }
 
+// Note: This allocator caches the used values in a memory-map.
+// This could be problematic if the worker restarts and is retried.
+// This will result in Temporal returning the same block for allocation, but the allocator will no longer have
+// the cache of values used in the previous attempt.
+// To mitigate this, we need to store the used values in a durable store (e.g. Redis)
 type SingleIdentityAllocator struct {
 	blockAllocator BlockAllocator
 	blockSize      uint
