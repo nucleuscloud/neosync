@@ -89,6 +89,12 @@ func createPostgresSyncJob(
 		if config.JobOptions.MaxInFlight != nil {
 			maxInFlight = config.JobOptions.MaxInFlight
 		}
+		onConflict := &mgmtv1alpha1.PostgresOnConflictConfig{}
+		if config.JobOptions.OnConflictDoUpdate {
+			onConflict.Strategy = &mgmtv1alpha1.PostgresOnConflictConfig_Update{}
+		} else if config.JobOptions.OnConflictDoNothing {
+			onConflict.Strategy = &mgmtv1alpha1.PostgresOnConflictConfig_Nothing{}
+		}
 		destinationOptions = &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
 				PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
@@ -101,6 +107,7 @@ func createPostgresSyncJob(
 						Count: batchSize,
 					},
 					MaxInFlight: maxInFlight,
+					OnConflict:  onConflict,
 				},
 			},
 		}
@@ -1308,9 +1315,10 @@ func test_postgres_schema_reconciliation(
 		JobName:     schema,
 		JobMappings: pg_schema_init.GetDefaultSyncJobMappings(schema),
 		JobOptions: &TestJobOptions{
-			Truncate:        shouldTruncate,
-			TruncateCascade: shouldTruncate,
-			InitSchema:      true,
+			Truncate:           shouldTruncate,
+			TruncateCascade:    shouldTruncate,
+			InitSchema:         true,
+			OnConflictDoUpdate: !shouldTruncate,
 		},
 	})
 
@@ -1340,6 +1348,22 @@ func test_postgres_schema_reconciliation(
 		require.NoError(t, err)
 		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: schema_drift Table: %s Truncated: %t", expected.table, shouldTruncate))
 	}
+
+	t.Logf("running alter statements")
+	err = postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"schema-init/alter-statements.sql"}, schema)
+	require.NoError(t, err)
+	t.Logf("finished running alter statements")
+
+	updatedMappings := job.GetMappings()
+	updatedMappings = append(updatedMappings, pg_schema_init.GetAlteredSyncJobMappings(schema)...)
+	job = updateJobMappings(t, ctx, jobclient, job.GetId(), updatedMappings, job.GetSource())
+
+	testworkflow = NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithPostgresSchemaDrift(), WithMaxIterations(100), WithPageLimit(1000))
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: postgres-schema-reconciliation-run-2")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: postgres-schema-reconciliation-run-2")
 
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
