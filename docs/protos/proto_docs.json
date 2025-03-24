@@ -3053,17 +3053,6 @@
           ]
         },
         {
-          "name": "ScrambleIdentity",
-          "longName": "ScrambleIdentity",
-          "fullName": "mgmt.v1alpha1.ScrambleIdentity",
-          "description": "Takes an input integer and scrambles it, effectively outputing another integer that is not the same as the input.\nThis is effectively a random integer generator that has unique properties.",
-          "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": []
-        },
-        {
           "name": "SystemTransformer",
           "longName": "SystemTransformer",
           "fullName": "mgmt.v1alpha1.SystemTransformer",
@@ -3629,6 +3618,17 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "TransformScrambleIdentity",
+          "longName": "TransformScrambleIdentity",
+          "fullName": "mgmt.v1alpha1.TransformScrambleIdentity",
+          "description": "Takes an input integer and scrambles it, effectively outputing another integer that is not the same as the input.\nThis is effectively a random integer generator that has unique properties.",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "TransformString",
@@ -4240,12 +4240,12 @@
               "defaultValue": ""
             },
             {
-              "name": "scramble_identity_config",
+              "name": "transform_scramble_identity_config",
               "description": "Scrambles an integer while keeping it unique.",
               "label": "",
-              "type": "ScrambleIdentity",
-              "longType": "ScrambleIdentity",
-              "fullType": "mgmt.v1alpha1.ScrambleIdentity",
+              "type": "TransformScrambleIdentity",
+              "longType": "TransformScrambleIdentity",
+              "fullType": "mgmt.v1alpha1.TransformScrambleIdentity",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

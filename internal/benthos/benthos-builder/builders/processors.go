@@ -278,7 +278,7 @@ func buildIdentityCursors(
 			transformer = val
 		}
 
-		scrambleConfig := transformer.GetConfig().GetScrambleIdentityConfig()
+		scrambleConfig := transformer.GetConfig().GetTransformScrambleIdentityConfig()
 		if scrambleConfig != nil {
 			cursors[buildScrambleIdentityToken(col)] = tablesync_shared.NewDefaultIdentityCursor()
 		}
@@ -736,7 +736,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
-	case *mgmtv1alpha1.TransformerConfig_ScrambleIdentityConfig:
+	case *mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig:
 		token := buildScrambleIdentityToken(col)
 		opts, err := transformers.NewTransformIdentityScrambleOptsFromConfigWithToken(token)
 		if err != nil {

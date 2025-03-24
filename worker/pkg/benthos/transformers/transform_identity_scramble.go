@@ -2,6 +2,7 @@ package transformers
 
 import (
 	context "context"
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -16,7 +17,7 @@ func RegisterTransformIdentityScramble(env *bloblang.Environment, allocator tabl
 	spec := bloblang.NewPluginSpec().
 		Description("Scrambles the identity of the input").
 		Category("int64").
-		Param(bloblang.NewStringParam("value").Description("The value to scramble").Optional()).
+		Param(bloblang.NewAnyParam("value").Description("The value to scramble").Optional()).
 		Param(bloblang.NewStringParam("token").Description("The token used to exchange for a block of identity values"))
 
 	err := env.RegisterFunctionV2("transform_identity_scramble", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -39,7 +40,7 @@ func RegisterTransformIdentityScramble(env *bloblang.Environment, allocator tabl
 	return nil
 }
 
-func NewTransformIdentityScrambleOptsFromConfig(config *mgmtv1alpha1.ScrambleIdentity) (*TransformIdentityScrambleOpts, error) {
+func NewTransformIdentityScrambleOptsFromConfig(config *mgmtv1alpha1.TransformScrambleIdentity) (*TransformIdentityScrambleOpts, error) {
 	if config == nil {
 		return NewTransformIdentityScrambleOpts("")
 	}
@@ -67,11 +68,13 @@ func transformIdentityScramble(allocator tablesync_shared.IdentityAllocator, tok
 	var identity uint
 	var err error
 	switch v := reflect.ValueOf(value); v.Kind() {
-	case reflect.String:
-		// return allocator.GetIdentity(context.Background(), token, v.String())
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		// todo: check if value is negative
-		input := uint(v.Uint())
+		var input uint
+		if v.Int() < 0 {
+			input = 0
+		} else {
+			input = uint(v.Int()) //nolint:gosec // safe to convert since we check for negative values above
+		}
 		identity, err = allocator.GetIdentity(context.Background(), token, &input)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get identity from value: %w", err)
@@ -82,9 +85,11 @@ func transformIdentityScramble(allocator tablesync_shared.IdentityAllocator, tok
 		if err != nil {
 			return nil, fmt.Errorf("unable to get identity from value: %w", err)
 		}
+	default:
+		return nil, fmt.Errorf("unable to get identity from value as input was %T", value)
 	}
 	if identity == 0 {
-		return nil, fmt.Errorf("unable to get identity from value: %v", value)
+		return nil, errors.New("unable to get identity from value as generated identity was 0")
 	}
 
 	return identity, nil

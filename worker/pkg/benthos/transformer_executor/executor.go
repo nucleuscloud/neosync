@@ -773,8 +773,8 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 			},
 		}, nil
 
-	case *mgmtv1alpha1.TransformerConfig_ScrambleIdentityConfig:
-		config := transformerConfig.GetScrambleIdentityConfig()
+	case *mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig:
+		config := transformerConfig.GetTransformScrambleIdentityConfig()
 		opts, err := transformers.NewTransformIdentityScrambleOptsFromConfig(config)
 		if err != nil {
 			return nil, err

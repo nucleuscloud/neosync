@@ -131,29 +131,26 @@ func setCursorUpdateHandler(ctx workflow.Context, cursors map[string]*tablesync_
 				return nil, errors.New("cursor not found for provided id")
 			}
 			startValue := cursor.CurrentValue
-			cursor.CurrentValue += req.BlockSize // prepare for next allocation
+			if startValue == 0 {
+				// special case: first allocation should start from 1
+				startValue = 1
+			}
+			cursor.CurrentValue = startValue + req.BlockSize // prepare for next allocation
 			cursors[req.Id] = cursor
 			return &tablesync_shared.AllocateIdentityBlockResponse{
 				StartValue: startValue,
-				EndValue:   startValue + req.BlockSize,
+				EndValue:   cursor.CurrentValue,
 			}, nil
 		},
 		workflow.UpdateHandlerOptions{
 			Description: "Handles allocating blocks of integers to be used for auto increment columns",
 			Validator: func(ctx workflow.Context, req *tablesync_shared.AllocateIdentityBlockRequest) error {
+				// Note: The validator function is a read-only function and cannot access workflow state
 				if req == nil {
 					return errors.New("request is nil, expected a valid *AllocateIdentityBlockRequest")
 				}
 				if req.Id == "" || req.BlockSize == 0 {
 					return errors.New("id and block size are required")
-				}
-				err := cursorMutex.Lock(ctx)
-				if err != nil {
-					return err
-				}
-				defer cursorMutex.Unlock()
-				if _, ok := cursors[req.Id]; !ok {
-					return errors.New("cursor not found for provided id")
 				}
 				return nil
 			},

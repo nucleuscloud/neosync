@@ -166,12 +166,10 @@ func (i *SingleIdentityAllocator) GetIdentity(ctx context.Context, token string,
 // handles allocating blocks of integers to be used for auto increment columns
 type IdentityCursor struct {
 	CurrentValue uint
-	BlockSize    uint
 }
 
 func NewDefaultIdentityCursor() *IdentityCursor {
 	return &IdentityCursor{
 		CurrentValue: 0,
-		BlockSize:    1000, // todo: make this configurable
 	}
 }

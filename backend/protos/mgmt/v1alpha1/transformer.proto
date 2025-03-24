@@ -263,13 +263,13 @@ message TransformerConfig {
     GenerateIpAddress generate_ip_address_config = 46;
     TransformUuid transform_uuid_config = 47;
     // Scrambles an integer while keeping it unique.
-    ScrambleIdentity scramble_identity_config = 48;
+    TransformScrambleIdentity transform_scramble_identity_config = 48;
   }
 }
 
 // Takes an input integer and scrambles it, effectively outputing another integer that is not the same as the input.
 // This is effectively a random integer generator that has unique properties.
-message ScrambleIdentity {}
+message TransformScrambleIdentity {}
 
 // NeosyncCloud/Enterprise only transformer for anonymizing PII Text
 message TransformPiiText {

@@ -1073,13 +1073,6 @@ components:
           description: List of words that will be treated as PII.
       title: PiiDenyRecognizer
       additionalProperties: false
-    mgmt.v1alpha1.ScrambleIdentity:
-      type: object
-      title: ScrambleIdentity
-      additionalProperties: false
-      description: |-
-        Takes an input integer and scrambles it, effectively outputing another integer that is not the same as the input.
-         This is effectively a random integer generator that has unique properties.
     mgmt.v1alpha1.SystemTransformer:
       type: object
       properties:
@@ -1505,6 +1498,13 @@ components:
           title: value
       title: EntityAnonymizersEntry
       additionalProperties: false
+    mgmt.v1alpha1.TransformScrambleIdentity:
+      type: object
+      title: TransformScrambleIdentity
+      additionalProperties: false
+      description: |-
+        Takes an input integer and scrambles it, effectively outputing another integer that is not the same as the input.
+         This is effectively a random integer generator that has unique properties.
     mgmt.v1alpha1.TransformString:
       type: object
       allOf:
@@ -1602,8 +1602,6 @@ components:
             - required:
                 - passthroughConfig
             - required:
-                - scrambleIdentityConfig
-            - required:
                 - transformCharacterScrambleConfig
             - required:
                 - transformE164PhoneNumberConfig
@@ -1627,6 +1625,8 @@ components:
                 - transformPhoneNumberConfig
             - required:
                 - transformPiiTextConfig
+            - required:
+                - transformScrambleIdentityConfig
             - required:
                 - transformStringConfig
             - required:
@@ -1700,8 +1700,6 @@ components:
                   - required:
                       - passthroughConfig
                   - required:
-                      - scrambleIdentityConfig
-                  - required:
                       - transformCharacterScrambleConfig
                   - required:
                       - transformE164PhoneNumberConfig
@@ -1725,6 +1723,8 @@ components:
                       - transformPhoneNumberConfig
                   - required:
                       - transformPiiTextConfig
+                  - required:
+                      - transformScrambleIdentityConfig
                   - required:
                       - transformStringConfig
                   - required:
@@ -1797,8 +1797,6 @@ components:
         - required:
             - passthroughConfig
         - required:
-            - scrambleIdentityConfig
-        - required:
             - transformCharacterScrambleConfig
         - required:
             - transformE164PhoneNumberConfig
@@ -1822,6 +1820,8 @@ components:
             - transformPhoneNumberConfig
         - required:
             - transformPiiTextConfig
+        - required:
+            - transformScrambleIdentityConfig
         - required:
             - transformStringConfig
         - required:
@@ -1895,8 +1895,6 @@ components:
               - required:
                   - passthroughConfig
               - required:
-                  - scrambleIdentityConfig
-              - required:
                   - transformCharacterScrambleConfig
               - required:
                   - transformE164PhoneNumberConfig
@@ -1920,6 +1918,8 @@ components:
                   - transformPhoneNumberConfig
               - required:
                   - transformPiiTextConfig
+              - required:
+                  - transformScrambleIdentityConfig
               - required:
                   - transformStringConfig
               - required:
@@ -2116,10 +2116,10 @@ components:
           allOf:
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformUuid'
           title: transform_uuid_config
-        scrambleIdentityConfig:
+        transformScrambleIdentityConfig:
           allOf:
-            - $ref: '#/components/schemas/mgmt.v1alpha1.ScrambleIdentity'
-          title: scramble_identity_config
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformScrambleIdentity'
+          title: transform_scramble_identity_config
           description: Scrambles an integer while keeping it unique.
       title: TransformerConfig
       additionalProperties: false

@@ -198,12 +198,12 @@ func (msg *TransformerConfig) UnmarshalJSON(b []byte) error {
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *ScrambleIdentity) MarshalJSON() ([]byte, error) {
+func (msg *TransformScrambleIdentity) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *ScrambleIdentity) UnmarshalJSON(b []byte) error {
+func (msg *TransformScrambleIdentity) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 
