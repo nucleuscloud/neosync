@@ -42,9 +42,9 @@ func RegisterTransformIdentityScramble(env *bloblang.Environment, allocator tabl
 
 func NewTransformIdentityScrambleOptsFromConfig(config *mgmtv1alpha1.TransformScrambleIdentity) (*TransformIdentityScrambleOpts, error) {
 	if config == nil {
-		return NewTransformIdentityScrambleOpts("")
+		return NewTransformIdentityScrambleOpts("token-not-implemented")
 	}
-	return NewTransformIdentityScrambleOpts("")
+	return NewTransformIdentityScrambleOpts("token-not-implemented")
 }
 
 func NewTransformIdentityScrambleOptsFromConfigWithToken(token string) (*TransformIdentityScrambleOpts, error) {
@@ -57,7 +57,7 @@ func (t *TransformIdentityScramble) Transform(value, opts any) (any, error) {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 	_ = parsedOpts
-	return transformIdentityScramble(nil, "", nil)
+	return transformIdentityScramble(nil, "token-not-implemented", value)
 }
 
 func transformIdentityScramble(allocator tablesync_shared.IdentityAllocator, token string, value any) (any, error) {
@@ -67,6 +67,7 @@ func transformIdentityScramble(allocator tablesync_shared.IdentityAllocator, tok
 
 	var identity uint
 	var err error
+	// todo: should add better support for different integer types to ensure overflow does not occur
 	switch v := reflect.ValueOf(value); v.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		var input uint
@@ -77,13 +78,13 @@ func transformIdentityScramble(allocator tablesync_shared.IdentityAllocator, tok
 		}
 		identity, err = allocator.GetIdentity(context.Background(), token, &input)
 		if err != nil {
-			return nil, fmt.Errorf("unable to get identity from value: %w", err)
+			return nil, fmt.Errorf("unable to get identity from value with token %s: %w", token, err)
 		}
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		input := uint(v.Uint())
 		identity, err = allocator.GetIdentity(context.Background(), token, &input)
 		if err != nil {
-			return nil, fmt.Errorf("unable to get identity from value: %w", err)
+			return nil, fmt.Errorf("unable to get identity from value with token %s: %w", token, err)
 		}
 	default:
 		return nil, fmt.Errorf("unable to get identity from value as input was %T", value)

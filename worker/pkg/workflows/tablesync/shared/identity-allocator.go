@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	// Method name for the Temporal Update handler that will allocate a block of identities
 	AllocateIdentityBlock = "allocate-identity-block"
 )
 
@@ -28,9 +29,8 @@ type IdentityRange struct {
 	EndValue   uint // Exclusive - represents the next value after the last valid value
 }
 
-type GetNextIdentityBlock func(ctx context.Context, schema, table, column string, blockSize uint) (*IdentityRange, error)
-
 type BlockAllocator interface {
+	// GetNextBlock returns the next block of identities for the given token
 	GetNextBlock(ctx context.Context, token string, blockSize uint) (*IdentityRange, error)
 }
 
@@ -103,11 +103,10 @@ func (i *SingleIdentityAllocator) GetIdentity(ctx context.Context, token string,
 
 	// Helper function for the main retry logic
 	tryGetValue := func() (uint, bool) {
-		maxAttempts := i.blockSize
+		// Increase max attempts to reduce the probability of missing an available value
+		maxAttempts := i.blockSize * 2 // Double the attempts to be more thorough
 		attempts := uint(0)
 
-		// todo: ask AI if we should increase the max attempts due to possibility of randomly getting the same value every time
-		// so that even if there is a value, we will still try to get a new one
 		for attempts < maxAttempts {
 			randomValue := i.currentBlock.StartValue + i.rand.Uint()%(i.currentBlock.EndValue-i.currentBlock.StartValue)
 			if value == nil || *value != randomValue {

@@ -179,33 +179,6 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncTableRequest, metadat
 		continuationTokenToReturn = &tokenStr
 	}
 
-	// getNextIdentityBlock := func(ctx context.Context, schema, table, column string, blockSize uint) (*tablesync_shared.IdentityRange, error) {
-	// 	identity := fmt.Sprintf("%s.%s.%s", schema, table, column) // todo: make hash
-	// 	handle, err := a.temporalclient.UpdateWorkflow(ctx, client.UpdateWorkflowOptions{
-	// 		WorkflowID: info.WorkflowExecution.ID,
-	// 		RunID:      info.WorkflowExecution.RunID,
-	// 		UpdateName: tablesync_shared.AllocateIdentityBlock,
-	// 		Args: []any{&tablesync_shared.AllocateIdentityBlockRequest{
-	// 			Id:        identity,
-	// 			BlockSize: blockSize,
-	// 		}},
-	// 		WaitForStage: client.WorkflowUpdateStageCompleted,
-	// 	})
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("unable to send update to get next block size for identity %s: %w", identity, err)
-	// 	}
-	// 	var resp *tablesync_shared.AllocateIdentityBlockResponse
-	// 	err = handle.Get(ctx, &resp)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("unable to get next block size for identity %s: %w", identity, err)
-	// 	}
-	// 	return &tablesync_shared.IdentityRange{
-	// 		StartValue: resp.StartValue,
-	// 		EndValue:   resp.EndValue,
-	// 	}, nil
-	// }
-	// _ = getNextIdentityBlock
-
 	var continuationToken *continuation_token.ContinuationToken
 	if req.ContinuationToken != nil {
 		continuationToken, err = continuation_token.FromTokenString(*req.ContinuationToken)
