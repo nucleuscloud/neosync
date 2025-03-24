@@ -10,10 +10,18 @@ ALTER TABLE locations
     ADD COLUMN phone_numbers TEXT[];
 
 ALTER TABLE jobs
-    ADD COLUMN job_type CHARACTER VARYING(50);
+    ADD COLUMN job_type CHARACTER VARYING(50),
+    ADD COLUMN job_code SERIAL;
 
 ALTER TABLE employees
     ADD COLUMN profile JSONB;
+
+CREATE SEQUENCE employees_code_seq
+    START 1000
+    INCREMENT 1;
+
+ALTER TABLE employees
+    ADD COLUMN employee_code INTEGER DEFAULT nextval('employees_code_seq');
 
 COMMENT ON COLUMN employees.profile IS 'A JSONB column containing employee profile information';
 COMMENT ON COLUMN countries.last_update IS 'The last time the country was updated';
