@@ -2,6 +2,7 @@ package tablesync_shared
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -159,7 +160,7 @@ func (i *SingleIdentityAllocator) GetIdentity(ctx context.Context, token string,
 	}
 
 	// If we still can't find a value, something is seriously wrong
-	return 0, fmt.Errorf("unable to find unused value different from %d after getting new block", value)
+	return 0, errors.New("unable to find unused value different from input after getting new block")
 }
 
 // handles allocating blocks of integers to be used for auto increment columns
