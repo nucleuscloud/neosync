@@ -2,7 +2,6 @@ package transformer_utils
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 	"time"
 
@@ -154,12 +153,12 @@ func Test_WithoutCharacters(t *testing.T) {
 }
 
 func Test_GetRandomCharacterString(t *testing.T) {
-	actual := GetRandomCharacterString(rand.New(rand.NewSource(1)), 100)
+	actual := GetRandomCharacterString(rng.New(1), 100)
 	require.Len(t, actual, 100)
 }
 
 func Test_GenerateStringFromCorpus(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	values := []string{"aa", "bb", "cc", "dd"}
 	stringMap := map[int64][2]int{2: {0, 3}}
 	sizeIndices := []int64{2}
@@ -178,7 +177,7 @@ func Test_GenerateStringFromCorpus(t *testing.T) {
 }
 
 func Test_GenerateStringFromCorpus_No_Candidates(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	values := []string{"aa", "bb", "cc", "dd"}
 	stringMap := map[int64][2]int{2: {0, 3}}
 	sizeIndices := []int64{2}
@@ -198,7 +197,7 @@ func Test_GenerateStringFromCorpus_No_Candidates(t *testing.T) {
 }
 
 func Test_GenerateStringFromCorpus_Mismatched_MapAndIndices(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	// the index has a key of 3, but it is not present in the map
 	values := []string{"aa", "bb", "cc", "dd"}
 	stringMap := map[int64][2]int{2: {0, 3}}
@@ -217,7 +216,7 @@ func Test_GenerateStringFromCorpus_Mismatched_MapAndIndices(t *testing.T) {
 	require.Empty(t, output)
 }
 func Test_GenerateStringFromCorpus_NoDice(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	// the index has a key of 3, but it is not present in the map
 	values := []string{"aa", "bb"}
 	stringMap := map[int64][2]int{2: {0, 1}}

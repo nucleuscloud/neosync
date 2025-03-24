@@ -2,9 +2,9 @@ package transformers
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
 )
@@ -12,7 +12,7 @@ import (
 var fullName = "john smith"
 
 func Test_TranformFullNameEmptyName(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	emptyName := ""
 
 	res, err := transformFullName(randomizer, emptyName, true, maxCharacterLimit)
@@ -21,7 +21,7 @@ func Test_TranformFullNameEmptyName(t *testing.T) {
 }
 
 func Test_TransformFullNamePreserveLengthTrue(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 
 	nameLength := int64(len(fullName))
 
@@ -33,7 +33,7 @@ func Test_TransformFullNamePreserveLengthTrue(t *testing.T) {
 }
 
 func Test_TransformFullNameMaxLengthBetween12And5(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := transformFullName(randomizer, fullName, false, 10)
 
 	assert.NoError(t, err)

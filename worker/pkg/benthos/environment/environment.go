@@ -17,7 +17,6 @@ import (
 	neosync_benthos_connectiondata "github.com/nucleuscloud/neosync/worker/pkg/benthos/neosync_connection_data"
 	openaigenerate "github.com/nucleuscloud/neosync/worker/pkg/benthos/openai_generate"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
-	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/redpanda-data/benthos/v4/public/service"
 	"go.opentelemetry.io/otel/metric"
@@ -72,11 +71,10 @@ func WithBlobEnv(b *bloblang.Environment) Option {
 }
 
 type SqlConfig struct {
-	Provider                  neosync_benthos_sql.ConnectionProvider
-	IsRetry                   bool
-	InputHasMorePages         neosync_benthos_sql.OnHasMorePagesFn
-	InputContinuationToken    *continuation_token.ContinuationToken
-	InputGetNextIdentityBlock tablesync_shared.GetNextIdentityBlock
+	Provider               neosync_benthos_sql.ConnectionProvider
+	IsRetry                bool
+	InputHasMorePages      neosync_benthos_sql.OnHasMorePagesFn
+	InputContinuationToken *continuation_token.ContinuationToken
 }
 
 type MongoConfig struct {

@@ -22,13 +22,14 @@ import (
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/redpanda-data/benthos/v4/public/service"
 	"go.opentelemetry.io/otel/metric"
 	"go.temporal.io/sdk/activity"
-	"go.temporal.io/sdk/client"
 	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/log"
 	"golang.org/x/sync/errgroup"
@@ -178,32 +179,32 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncTableRequest, metadat
 		continuationTokenToReturn = &tokenStr
 	}
 
-	getNextIdentityBlock := func(ctx context.Context, schema, table, column string, blockSize uint) (*tablesync_shared.IdentityRange, error) {
-		identity := fmt.Sprintf("%s.%s.%s", schema, table, column) // todo: make hash
-		handle, err := a.temporalclient.UpdateWorkflow(ctx, client.UpdateWorkflowOptions{
-			WorkflowID: info.WorkflowExecution.ID,
-			RunID:      info.WorkflowExecution.RunID,
-			UpdateName: tablesync_shared.AllocateIdentityBlock,
-			Args: []any{&tablesync_shared.AllocateIdentityBlockRequest{
-				Id:        identity,
-				BlockSize: blockSize,
-			}},
-			WaitForStage: client.WorkflowUpdateStageCompleted,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("unable to send update to get next block size for identity %s: %w", identity, err)
-		}
-		var resp *tablesync_shared.AllocateIdentityBlockResponse
-		err = handle.Get(ctx, &resp)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get next block size for identity %s: %w", identity, err)
-		}
-		return &tablesync_shared.IdentityRange{
-			StartValue: resp.StartValue,
-			EndValue:   resp.EndValue,
-		}, nil
-	}
-	_ = getNextIdentityBlock
+	// getNextIdentityBlock := func(ctx context.Context, schema, table, column string, blockSize uint) (*tablesync_shared.IdentityRange, error) {
+	// 	identity := fmt.Sprintf("%s.%s.%s", schema, table, column) // todo: make hash
+	// 	handle, err := a.temporalclient.UpdateWorkflow(ctx, client.UpdateWorkflowOptions{
+	// 		WorkflowID: info.WorkflowExecution.ID,
+	// 		RunID:      info.WorkflowExecution.RunID,
+	// 		UpdateName: tablesync_shared.AllocateIdentityBlock,
+	// 		Args: []any{&tablesync_shared.AllocateIdentityBlockRequest{
+	// 			Id:        identity,
+	// 			BlockSize: blockSize,
+	// 		}},
+	// 		WaitForStage: client.WorkflowUpdateStageCompleted,
+	// 	})
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("unable to send update to get next block size for identity %s: %w", identity, err)
+	// 	}
+	// 	var resp *tablesync_shared.AllocateIdentityBlockResponse
+	// 	err = handle.Get(ctx, &resp)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("unable to get next block size for identity %s: %w", identity, err)
+	// 	}
+	// 	return &tablesync_shared.IdentityRange{
+	// 		StartValue: resp.StartValue,
+	// 		EndValue:   resp.EndValue,
+	// 	}, nil
+	// }
+	// _ = getNextIdentityBlock
 
 	var continuationToken *continuation_token.ContinuationToken
 	if req.ContinuationToken != nil {
@@ -213,6 +214,8 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncTableRequest, metadat
 		}
 	}
 
+	identityAllocator := a.getIdentityAllocator(a.temporalclient, &info)
+
 	bstream, err := a.getBenthosStream(
 		&info,
 		benthosConfig,
@@ -221,7 +224,7 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncTableRequest, metadat
 		getConnectionById,
 		hasMorePages,
 		continuationToken,
-		getNextIdentityBlock,
+		identityAllocator,
 		logger,
 	)
 	if err != nil {
@@ -259,6 +262,20 @@ func (a *Activity) getConnectionByIdFn(
 	}
 
 	return getConnectionByIdFn(maps.Collect(getDtoSeq(connections))), nil
+}
+
+const (
+	allocatorBlockSize = 1_000 // todo: should be the page limit
+)
+
+func (a *Activity) getIdentityAllocator(tclient temporalclient.Client, info *activity.Info) tablesync_shared.IdentityAllocator {
+	blockAllocator := tablesync_shared.NewTemporalBlockAllocator(
+		tclient,
+		info.WorkflowExecution.ID,
+		info.WorkflowExecution.RunID,
+	)
+	seed := time.Now().UnixNano() // todo: should be deterministic or configurable
+	return tablesync_shared.NewSingleIdentityAllocator(blockAllocator, allocatorBlockSize, rng.New(seed))
 }
 
 func monitorActivityHeartbeat(
@@ -342,7 +359,7 @@ func (a *Activity) getBenthosStream(
 	getConnectionById func(connectionId string) (connectionmanager.ConnectionInput, error),
 	hasMorePages neosync_benthos_sql.OnHasMorePagesFn,
 	continuationToken *continuation_token.ContinuationToken,
-	getNextIdentityBlockFn tablesync_shared.GetNextIdentityBlock,
+	identityAllocator tablesync_shared.IdentityAllocator,
 	logger *slog.Logger,
 ) (benthosstream.BenthosStreamClient, error) {
 	benenv, err := a.getBenthosEnvironment(
@@ -353,7 +370,7 @@ func (a *Activity) getBenthosStream(
 		stopActivityChan,
 		hasMorePages,
 		continuationToken,
-		getNextIdentityBlockFn,
+		identityAllocator,
 	)
 	if err != nil {
 		return nil, err
@@ -393,23 +410,27 @@ func (a *Activity) getBenthosEnvironment(
 	stopActivityChan chan error,
 	hasMorePages neosync_benthos_sql.OnHasMorePagesFn,
 	continuationToken *continuation_token.ContinuationToken,
-	getNextIdentityBlockFn tablesync_shared.GetNextIdentityBlock,
+	identityAllocator tablesync_shared.IdentityAllocator,
 ) (*service.Environment, error) {
+	blobEnv := bloblang.NewEnvironment()
+	err := transformers.RegisterTransformIdentityScramble(blobEnv, identityAllocator)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register identity scramble transformer: %w", err)
+	}
 	benenv, err := benthos_environment.NewEnvironment(
 		logger,
 		benthos_environment.WithMeter(a.meter),
 		benthos_environment.WithSqlConfig(&benthos_environment.SqlConfig{
-			Provider:                  pool_sql_provider.NewConnectionProvider(a.sqlconnmanager, getConnectionById, session, logger),
-			IsRetry:                   isRetry,
-			InputHasMorePages:         hasMorePages,
-			InputContinuationToken:    continuationToken,
-			InputGetNextIdentityBlock: getNextIdentityBlockFn,
+			Provider:               pool_sql_provider.NewConnectionProvider(a.sqlconnmanager, getConnectionById, session, logger),
+			IsRetry:                isRetry,
+			InputHasMorePages:      hasMorePages,
+			InputContinuationToken: continuationToken,
 		}),
 		benthos_environment.WithMongoConfig(&benthos_environment.MongoConfig{
 			Provider: pool_mongo_provider.NewProvider(a.mongoconnmanager, getConnectionById, session, logger),
 		}),
 		benthos_environment.WithStopChannel(stopActivityChan),
-		benthos_environment.WithBlobEnv(bloblang.NewEnvironment()),
+		benthos_environment.WithBlobEnv(blobEnv),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to instantiate benthos environment: %w", err)

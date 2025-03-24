@@ -3,10 +3,10 @@ package transformers
 import (
 	"bytes"
 	"fmt"
-	"math/rand"
 	"testing"
 	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
 )
@@ -15,7 +15,7 @@ var name = "evis"
 var maxCharacterLimit = int64(20)
 
 func Test_TranformFirstNameEmptyName(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	emptyName := ""
 
 	res, err := transformFirstName(randomizer, emptyName, false, maxCharacterLimit)
@@ -24,7 +24,7 @@ func Test_TranformFirstNameEmptyName(t *testing.T) {
 }
 
 func Test_TranformFirstName_Random(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(time.Now().UnixNano()))
+	randomizer := rng.New(time.Now().UnixNano())
 
 	res, err := transformFirstName(randomizer, "foo", false, maxCharacterLimit)
 	assert.NoError(t, err)
@@ -32,7 +32,7 @@ func Test_TranformFirstName_Random(t *testing.T) {
 }
 
 func Test_TransformFirstName_Preserve_True(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 
 	nameLength := int64(len(name))
 
@@ -44,7 +44,7 @@ func Test_TransformFirstName_Preserve_True(t *testing.T) {
 }
 
 func Test_TransformFirstName_Preserve_True_With_Padding(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	length := 300
 
 	var buffer bytes.Buffer
@@ -63,7 +63,7 @@ func Test_TransformFirstName_Preserve_True_With_Padding(t *testing.T) {
 }
 
 func Test_TransformFirstName_Preserve_False(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 
 	res, err := transformFirstName(randomizer, name, false, maxCharacterLimit)
 
