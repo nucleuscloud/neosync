@@ -15,6 +15,9 @@ ALTER TABLE jobs
 ALTER TABLE employees
     ADD COLUMN profile JSONB;
 
+COMMENT ON COLUMN employees.profile IS 'A JSONB column containing employee profile information';
+COMMENT ON COLUMN countries.last_update IS 'The last time the country was updated';
+COMMENT ON COLUMN jobs.job_type IS 'I''m an astronaut';
 
 UPDATE regions
 SET is_active = TRUE

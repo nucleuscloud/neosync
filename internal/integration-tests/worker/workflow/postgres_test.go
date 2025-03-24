@@ -1436,16 +1436,16 @@ func verify_postgres_column_spec(
 	source, target *sqlmanager_shared.TableColumn,
 ) {
 	columnName := fmt.Sprintf("%s.%s.%s", source.Schema, source.Table, source.Name)
-	assert.Equal(t, target.Name, target.Name, fmt.Sprintf("column names do not match for column %s", columnName))
-	assert.Equal(t, target.Comment, target.Comment, fmt.Sprintf("column comments do not match for column %s", columnName))
-	assert.Equal(t, target.DataType, target.DataType, fmt.Sprintf("column data types do not match for column %s", columnName))
-	assert.Equal(t, target.IsNullable, target.IsNullable, fmt.Sprintf("column nullability does not match for column %s", columnName))
-	assert.Equal(t, target.IdentityGeneration, target.IdentityGeneration, fmt.Sprintf("column identity generation does not match for column %s", columnName))
-	assert.Equal(t, target.GeneratedType, target.GeneratedType, fmt.Sprintf("column generated types do not match for column %s", columnName))
-	assert.Equal(t, target.GeneratedExpression, target.GeneratedExpression, fmt.Sprintf("column generated expressions do not match for column %s", columnName))
-	assert.Equal(t, target.IsSerial, target.IsSerial, fmt.Sprintf("column serial properties do not match for column %s", columnName))
-	assert.Equal(t, target.ColumnDefaultType, target.ColumnDefaultType, fmt.Sprintf("column default types do not match for column %s", columnName))
-	assert.Equal(t, target.SequenceDefinition, target.SequenceDefinition, fmt.Sprintf("column sequence definitions do not match for column %s", columnName))
+	assert.Equal(t, source.Name, target.Name, fmt.Sprintf("column names do not match for column %s", columnName))
+	assert.Equal(t, source.Comment, target.Comment, fmt.Sprintf("column comments do not match for column %s", columnName))
+	assert.Equal(t, source.DataType, target.DataType, fmt.Sprintf("column data types do not match for column %s", columnName))
+	assert.Equal(t, source.IsNullable, target.IsNullable, fmt.Sprintf("column nullability does not match for column %s", columnName))
+	assert.Equal(t, source.IdentityGeneration, target.IdentityGeneration, fmt.Sprintf("column identity generation does not match for column %s", columnName))
+	assert.Equal(t, source.GeneratedType, target.GeneratedType, fmt.Sprintf("column generated types do not match for column %s", columnName))
+	assert.Equal(t, source.GeneratedExpression, target.GeneratedExpression, fmt.Sprintf("column generated expressions do not match for column %s", columnName))
+	assert.Equal(t, source.IsSerial, target.IsSerial, fmt.Sprintf("column serial properties do not match for column %s", columnName))
+	assert.Equal(t, source.ColumnDefaultType, target.ColumnDefaultType, fmt.Sprintf("column default types do not match for column %s", columnName))
+	assert.Equal(t, source.SequenceDefinition, target.SequenceDefinition, fmt.Sprintf("column sequence definitions do not match for column %s", columnName))
 	if !source.IsSerial {
 		// sequence names are not the same. known issue.
 		assert.Equal(t, source.ColumnDefault, target.ColumnDefault, fmt.Sprintf("column default values do not match for column %s", columnName))

@@ -1101,7 +1101,7 @@ func BuildUpdateCommentStatement(schema, table, column string, comment *string) 
 	if comment == nil || *comment == "" {
 		return fmt.Sprintf("COMMENT ON COLUMN %q.%q.%q IS NULL;", schema, table, column)
 	}
-	return fmt.Sprintf("COMMENT ON COLUMN %q.%q.%q IS %q;", schema, table, column, *comment)
+	return fmt.Sprintf("COMMENT ON COLUMN %q.%q.%q IS '%s';", schema, table, column, strings.ReplaceAll(*comment, "'", "''"))
 }
 
 func buildNullableText(isNullable bool) string {
