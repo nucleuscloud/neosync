@@ -8,9 +8,11 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
+	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
@@ -1365,7 +1367,87 @@ func test_postgres_schema_reconciliation(
 	err = testworkflow.TestEnv.GetWorkflowError()
 	require.NoError(t, err, "Received Temporal Workflow Error: postgres-schema-reconciliation-run-2")
 
+	source, err := sql.Open("postgres", postgres.Source.URL)
+	require.NoError(t, err)
+	defer source.Close()
+
+	target, err := sql.Open("postgres", postgres.Target.URL)
+	require.NoError(t, err)
+	defer target.Close()
+
+	verify_postgres_schemas(t, ctx, source, target, schema)
+
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "regions", sqlmanager_shared.PostgresDriver, []string{"region_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "employees", sqlmanager_shared.PostgresDriver, []string{"employee_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "dependents", sqlmanager_shared.PostgresDriver, []string{"dependent_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "jobs", sqlmanager_shared.PostgresDriver, []string{"job_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "departments", sqlmanager_shared.PostgresDriver, []string{"department_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "countries", sqlmanager_shared.PostgresDriver, []string{"country_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "locations", sqlmanager_shared.PostgresDriver, []string{"location_id"})
+
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
 	require.NoError(t, err)
+}
+
+func verify_postgres_schemas(
+	t *testing.T,
+	ctx context.Context,
+	source, target *sql.DB,
+	schema string,
+) {
+	srcManager := sqlmanager_postgres.NewManager(pg_queries.New(), source, func() {})
+	destManager := sqlmanager_postgres.NewManager(pg_queries.New(), target, func() {})
+
+	t.Logf("checking columns are the same in source and destination")
+	srcColumns, err := srcManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get source columns")
+	destColumns, err := destManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get destination columns")
+
+	srcColumnsMap := make(map[string]*sqlmanager_shared.TableColumn)
+	for _, column := range srcColumns {
+		key := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
+		srcColumnsMap[key] = column
+	}
+
+	destColumnsMap := make(map[string]*sqlmanager_shared.TableColumn)
+	for _, column := range destColumns {
+		key := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
+		destColumnsMap[key] = column
+	}
+
+	require.Len(t, srcColumns, len(destColumns), "source and destination have different number of columns")
+	for _, column := range srcColumns {
+		srcKey := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
+		destColumn, exists := destColumnsMap[srcKey]
+		require.True(t, exists, "source column %s not found in destination", srcKey)
+		verify_postgres_column_spec(t, column, destColumn)
+	}
+	for _, column := range destColumns {
+		destKey := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
+		_, exists := srcColumnsMap[destKey]
+		require.True(t, exists, "destination column %s not found in source", destKey)
+	}
+}
+
+func verify_postgres_column_spec(
+	t *testing.T,
+	source, target *sqlmanager_shared.TableColumn,
+) {
+	columnName := fmt.Sprintf("%s.%s.%s", source.Schema, source.Table, source.Name)
+	assert.Equal(t, target.Name, target.Name, fmt.Sprintf("column names do not match for column %s", columnName))
+	assert.Equal(t, target.Comment, target.Comment, fmt.Sprintf("column comments do not match for column %s", columnName))
+	assert.Equal(t, target.DataType, target.DataType, fmt.Sprintf("column data types do not match for column %s", columnName))
+	assert.Equal(t, target.IsNullable, target.IsNullable, fmt.Sprintf("column nullability does not match for column %s", columnName))
+	assert.Equal(t, target.IdentityGeneration, target.IdentityGeneration, fmt.Sprintf("column identity generation does not match for column %s", columnName))
+	assert.Equal(t, target.GeneratedType, target.GeneratedType, fmt.Sprintf("column generated types do not match for column %s", columnName))
+	assert.Equal(t, target.GeneratedExpression, target.GeneratedExpression, fmt.Sprintf("column generated expressions do not match for column %s", columnName))
+	assert.Equal(t, target.IsSerial, target.IsSerial, fmt.Sprintf("column serial properties do not match for column %s", columnName))
+	assert.Equal(t, target.ColumnDefaultType, target.ColumnDefaultType, fmt.Sprintf("column default types do not match for column %s", columnName))
+	assert.Equal(t, target.SequenceDefinition, target.SequenceDefinition, fmt.Sprintf("column sequence definitions do not match for column %s", columnName))
+	if !source.IsSerial {
+		// sequence names are not the same. known issue.
+		assert.Equal(t, source.ColumnDefault, target.ColumnDefault, fmt.Sprintf("column default values do not match for column %s", columnName))
+	}
 }
