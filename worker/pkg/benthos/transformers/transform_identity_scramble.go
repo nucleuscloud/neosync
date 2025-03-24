@@ -46,6 +46,10 @@ func NewTransformIdentityScrambleOptsFromConfig(config *mgmtv1alpha1.ScrambleIde
 	return NewTransformIdentityScrambleOpts("")
 }
 
+func NewTransformIdentityScrambleOptsFromConfigWithToken(token string) (*TransformIdentityScrambleOpts, error) {
+	return NewTransformIdentityScrambleOpts(token)
+}
+
 func (t *TransformIdentityScramble) Transform(value, opts any) (any, error) {
 	parsedOpts, ok := opts.(*TransformIdentityScrambleOpts)
 	if !ok {

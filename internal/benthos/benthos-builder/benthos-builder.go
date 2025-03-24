@@ -15,6 +15,7 @@ import (
 	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
 )
 
 // BenthosConfigResponse represents a complete Benthos data pipeline configuration for a specific table,
@@ -32,6 +33,7 @@ type BenthosConfigResponse struct {
 	RedisDependsOn          map[string][]string
 	BenthosDsns             []*bb_shared.BenthosDsn
 	RedisConfig             []*bb_shared.BenthosRedisConfig
+	ColumnIdentityCursors   map[string]*tablesync_shared.IdentityCursor
 }
 
 // Combines a connection type and job type to uniquely identify a builder configuration

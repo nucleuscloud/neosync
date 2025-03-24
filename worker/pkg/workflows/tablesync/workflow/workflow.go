@@ -19,13 +19,7 @@ type TableSyncRequest struct {
 	TableSchema         string
 	TableName           string
 
-	ColumnIdentityCursors map[string]*IdentityCursor
-}
-
-// handles allocating blocks of integers to be used for auto increment columns
-type IdentityCursor struct {
-	currentValue uint
-	blockSize    uint
+	ColumnIdentityCursors map[string]*tablesync_shared.IdentityCursor
 }
 
 type TableSyncResponse struct {
@@ -121,7 +115,7 @@ func (w *Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*Tabl
 }
 
 // Sets a temporal update handle for use with allocating identity blocks for auto increment columns
-func setCursorUpdateHandler(ctx workflow.Context, cursors map[string]*IdentityCursor) error {
+func setCursorUpdateHandler(ctx workflow.Context, cursors map[string]*tablesync_shared.IdentityCursor) error {
 	cursorMutex := workflow.NewMutex(ctx)
 	return workflow.SetUpdateHandlerWithOptions(
 		ctx,
@@ -136,8 +130,8 @@ func setCursorUpdateHandler(ctx workflow.Context, cursors map[string]*IdentityCu
 			if cursor == nil {
 				return nil, errors.New("cursor not found for provided id")
 			}
-			startValue := cursor.currentValue
-			cursor.currentValue += req.BlockSize // prepare for next allocation
+			startValue := cursor.CurrentValue
+			cursor.CurrentValue += req.BlockSize // prepare for next allocation
 			cursors[req.Id] = cursor
 			return &tablesync_shared.AllocateIdentityBlockResponse{
 				StartValue: startValue,

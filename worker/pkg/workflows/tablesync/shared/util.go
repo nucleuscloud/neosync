@@ -162,3 +162,16 @@ func (i *SingleIdentityAllocator) GetIdentity(ctx context.Context, token string,
 	// If we still can't find a value, something is seriously wrong
 	return 0, fmt.Errorf("unable to find unused value different from %d after getting new block", value)
 }
+
+// handles allocating blocks of integers to be used for auto increment columns
+type IdentityCursor struct {
+	CurrentValue uint
+	BlockSize    uint
+}
+
+func NewDefaultIdentityCursor() *IdentityCursor {
+	return &IdentityCursor{
+		CurrentValue: 0,
+		BlockSize:    1000, // todo: make this configurable
+	}
+}

@@ -607,13 +607,14 @@ func invokeSync(
 				MaximumAttempts: 1,
 			},
 		}), tsWf.TableSync, &tablesync_workflow.TableSyncRequest{
-			AccountId:           accId,
-			Id:                  config.Name,
-			SyncActivityOptions: syncActivityOptions,
-			ContinuationToken:   nil,
-			JobRunId:            info.WorkflowExecution.ID,
-			TableSchema:         config.TableSchema,
-			TableName:           config.TableName,
+			AccountId:             accId,
+			Id:                    config.Name,
+			SyncActivityOptions:   syncActivityOptions,
+			ContinuationToken:     nil,
+			JobRunId:              info.WorkflowExecution.ID,
+			TableSchema:           config.TableSchema,
+			TableName:             config.TableName,
+			ColumnIdentityCursors: config.ColumnIdentityCursors,
 		}).Get(ctx, &wfResult)
 		if err == nil {
 			tn := neosync_benthos.BuildBenthosTable(config.TableSchema, config.TableName)
