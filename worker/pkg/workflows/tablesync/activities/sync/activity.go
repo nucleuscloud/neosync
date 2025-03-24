@@ -247,7 +247,7 @@ func (a *Activity) getIdentityAllocator(tclient temporalclient.Client, info *act
 		info.WorkflowExecution.ID,
 		info.WorkflowExecution.RunID,
 	)
-	seed := time.Now().UnixNano() // todo: should be deterministic or configurable
+	seed := info.StartedTime.UnixNano()
 	return tablesync_shared.NewSingleIdentityAllocator(blockAllocator, allocatorBlockSize, rng.New(seed))
 }
 
