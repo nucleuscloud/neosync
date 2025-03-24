@@ -11,6 +11,7 @@ func GetNeosyncTransformers() []NeosyncTransformer {
 		NewTransformFirstName(),
 		NewTransformFloat64(),
 		NewTransformFullName(),
+		NewTransformIdentityScramble(),
 		NewTransformInt64(),
 		NewTransformInt64PhoneNumber(),
 		NewTransformLastName(),

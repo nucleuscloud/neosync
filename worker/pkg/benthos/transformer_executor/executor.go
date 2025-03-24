@@ -773,7 +773,21 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 			},
 		}, nil
 
+	case *mgmtv1alpha1.TransformerConfig_ScrambleIdentityConfig:
+		config := transformerConfig.GetScrambleIdentityConfig()
+		opts, err := transformers.NewTransformIdentityScrambleOptsFromConfig(config)
+		if err != nil {
+			return nil, err
+		}
+		transform := transformers.NewTransformIdentityScramble().Transform
+		return &TransformerExecutor{
+			Opts: opts,
+			Mutate: func(value any, opts any) (any, error) {
+				return transform(value, opts)
+			},
+		}, nil
+
 	default:
-		return nil, fmt.Errorf("unsupported transformerr: %T", typedCfg)
+		return nil, fmt.Errorf("unsupported transformer: %T", typedCfg)
 	}
 }
