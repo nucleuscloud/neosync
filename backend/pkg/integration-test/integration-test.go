@@ -27,12 +27,14 @@ import (
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
+	tmprl_mocks "go.temporal.io/sdk/mocks"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Mocks struct {
 	TemporalClientManager  *clientmanager.MockInterface
 	TemporalConfigProvider *clientmanager.MockConfigProvider
+	TemporalClient         *tmprl_mocks.Client
 	Authclient             *auth_client.MockInterface
 	Authmanagerclient      *authmgmt.MockInterface
 	Prometheusclient       *promapiv1mock.MockAPI
@@ -105,6 +107,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 	s.Mocks = &Mocks{
 		TemporalClientManager:  clientmanager.NewMockInterface(t),
 		TemporalConfigProvider: clientmanager.NewMockConfigProvider(t),
+		TemporalClient:         tmprl_mocks.NewClient(t),
 		Authclient:             auth_client.NewMockInterface(t),
 		Authmanagerclient:      authmgmt.NewMockInterface(t),
 		Prometheusclient:       promapiv1mock.NewMockAPI(t),
