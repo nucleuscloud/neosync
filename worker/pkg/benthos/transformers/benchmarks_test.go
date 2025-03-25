@@ -552,23 +552,6 @@ func BenchmarkTransformFullName(b *testing.B) {
 	}
 }
 
-
-func BenchmarkTransformIdentityScramble(b *testing.B) {
-	transformer := NewTransformIdentityScramble()
-	opts, err := NewTransformIdentityScrambleOpts("")
-	if err != nil {
-		b.Fatal(err)
-	}
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, err := transformer.Transform(123456, opts)
-		if err != nil {
-			b.Fatal(err)
-		}
-	}
-}
-
-
 func BenchmarkTransformInt64(b *testing.B) {
 	transformer := NewTransformInt64()
 	opts, err := NewTransformInt64Opts(nil,nil,nil,)

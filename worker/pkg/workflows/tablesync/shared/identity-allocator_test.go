@@ -175,6 +175,6 @@ func Test_SingleIdentityAllocator_GetIdentity(t *testing.T) {
 
 		_, err := allocator.GetIdentity(context.Background(), "test-token", &inputVal)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "unable to find unused value different from 1")
+		require.Contains(t, err.Error(), "unable to find unused value different from input")
 	})
 }
