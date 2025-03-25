@@ -24,8 +24,8 @@ func GetAlteredSyncJobMappings(schema string) []*mgmtv1alpha1.JobMapping {
 			Column: "region_number",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
-						GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
 					},
 				},
 			},
