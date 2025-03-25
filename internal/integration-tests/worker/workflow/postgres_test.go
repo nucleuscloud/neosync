@@ -1345,6 +1345,11 @@ func test_postgres_schema_reconciliation(
 		{schema: schema, table: "dependents", rowCount: 30},
 	}
 
+	tables := []string{}
+	for _, expected := range expectedResults {
+		tables = append(tables, expected.table)
+	}
+
 	for _, expected := range expectedResults {
 		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)
@@ -1375,7 +1380,7 @@ func test_postgres_schema_reconciliation(
 	require.NoError(t, err)
 	defer target.Close()
 
-	verify_postgres_schemas(t, ctx, source, target, schema)
+	verify_postgres_schemas(t, ctx, source, target, schema, tables)
 
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "regions", sqlmanager_shared.PostgresDriver, []string{"region_id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "employees", sqlmanager_shared.PostgresDriver, []string{"employee_id"})
@@ -1395,6 +1400,7 @@ func verify_postgres_schemas(
 	ctx context.Context,
 	source, target *sql.DB,
 	schema string,
+	tables []string,
 ) {
 	srcManager := sqlmanager_postgres.NewManager(pg_queries.New(), source, func() {})
 	destManager := sqlmanager_postgres.NewManager(pg_queries.New(), target, func() {})
@@ -1417,7 +1423,6 @@ func verify_postgres_schemas(
 		destColumnsMap[key] = column
 	}
 
-	require.Len(t, srcColumns, len(destColumns), "source and destination have different number of columns")
 	for _, column := range srcColumns {
 		srcKey := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
 		destColumn, exists := destColumnsMap[srcKey]
@@ -1428,6 +1433,36 @@ func verify_postgres_schemas(
 		destKey := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
 		_, exists := srcColumnsMap[destKey]
 		require.True(t, exists, "destination column %s not found in source", destKey)
+	}
+
+	t.Logf("checking table constraints are the same in source and destination")
+	srcConstraints, err := srcManager.GetTableConstraintsByTables(ctx, schema, tables)
+	require.NoError(t, err, "failed to get source table constraints")
+	destConstraints, err := destManager.GetTableConstraintsByTables(ctx, schema, tables)
+	require.NoError(t, err, "failed to get destination table constraints")
+
+	require.Len(t, srcConstraints, len(destConstraints), "source and destination have different number of tables with constraints")
+	for table, constraint := range srcConstraints {
+		srcfk := constraint.ForeignKeyConstraints
+		srcNonFk := constraint.NonForeignKeyConstraints
+		destfk := destConstraints[table].ForeignKeyConstraints
+		destNonFk := destConstraints[table].NonForeignKeyConstraints
+		require.Equal(t, srcfk, destfk, "foreign key constraints do not match for table %s", table)
+		require.Equal(t, srcNonFk, destNonFk, "non-foreign key constraints do not match for table %s", table)
+
+		for _, fk := range srcfk {
+			require.Contains(t, destfk, fk, "destination missing foreign key constraint in table %s", table)
+		}
+		for _, fk := range destfk {
+			require.Contains(t, srcfk, fk, "source missing foreign key constraint in table %s", table)
+		}
+
+		for _, nonFk := range srcNonFk {
+			require.Contains(t, destNonFk, nonFk, "destination missing non-foreign key constraint in table %s", table)
+		}
+		for _, nonFk := range destNonFk {
+			require.Contains(t, srcNonFk, nonFk, "source missing non-foreign key constraint in table %s", table)
+		}
 	}
 }
 

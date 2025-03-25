@@ -1114,7 +1114,7 @@ func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) string {
 
 func BuildDropColumnStatement(schema, table, column string) string {
 	// cascade is used to drop the column and all the constraints, views, and indexes that depend on it
-	return fmt.Sprintf("ALTER TABLE %q.%q DROP COLUMN %q IF EXISTS CASCADE;", schema, table, column)
+	return fmt.Sprintf("ALTER TABLE %q.%q DROP COLUMN IF EXISTS %q CASCADE;", schema, table, column)
 }
 
 func BuildDropConstraintStatement(schema, table, constraintName string) string {
