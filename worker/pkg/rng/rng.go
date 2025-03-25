@@ -22,7 +22,11 @@ type Randomizer struct {
 }
 
 func New(seed int64) *Randomizer {
-	rng := rand.New(rand.NewPCG(uint64(seed), uint64(seed))) //nolint:gosec
+	return NewSplit(uint64(seed), uint64(seed)) //nolint:gosec
+}
+
+func NewSplit(seed1, seed2 uint64) *Randomizer {
+	rng := rand.New(rand.NewPCG(seed1, seed2)) //nolint:gosec
 	return &Randomizer{rng: rng}
 }
 

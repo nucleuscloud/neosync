@@ -23,7 +23,6 @@ import (
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
-	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
@@ -247,8 +246,8 @@ func (a *Activity) getIdentityAllocator(tclient temporalclient.Client, info *act
 		info.WorkflowExecution.ID,
 		info.WorkflowExecution.RunID,
 	)
-	seed := info.StartedTime.UnixNano()
-	return tablesync_shared.NewSingleIdentityAllocator(blockAllocator, allocatorBlockSize, rng.New(seed))
+	seed := uint64(info.StartedTime.UnixNano()) //nolint:gosec
+	return tablesync_shared.NewMultiIdentityAllocator(blockAllocator, allocatorBlockSize, seed)
 }
 
 func monitorActivityHeartbeat(

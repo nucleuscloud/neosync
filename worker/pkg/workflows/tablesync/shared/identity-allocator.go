@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"sync"
 
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -77,6 +78,43 @@ func (i *TemporalBlockAllocator) GetNextBlock(ctx context.Context, token string,
 type IdentityAllocator interface {
 	// Given an (optional) input value, will return a value that is not the same as the input value
 	GetIdentity(ctx context.Context, token string, value *uint) (uint, error)
+}
+
+type MultiIdentityAllocator struct {
+	blockAllocator BlockAllocator
+	blockSize      uint
+	seed           uint64
+
+	mu *sync.Mutex
+
+	allocators map[string]*SingleIdentityAllocator
+}
+
+func NewMultiIdentityAllocator(blockAllocator BlockAllocator, blockSize uint, seed uint64) *MultiIdentityAllocator {
+	return &MultiIdentityAllocator{
+		blockAllocator: blockAllocator,
+		blockSize:      blockSize,
+		seed:           seed,
+		allocators:     make(map[string]*SingleIdentityAllocator),
+	}
+}
+
+func (i *MultiIdentityAllocator) GetIdentity(ctx context.Context, token string, value *uint) (uint, error) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	allocator, ok := i.allocators[token]
+	if !ok {
+		allocator = NewSingleIdentityAllocator(i.blockAllocator, i.blockSize, rng.NewSplit(i.seed, hashToSeed(token)))
+		i.allocators[token] = allocator
+	}
+	return allocator.GetIdentity(ctx, token, value)
+}
+
+func hashToSeed(token string) uint64 {
+	h := fnv.New64a()
+	h.Write([]byte(token))
+	return h.Sum64()
 }
 
 // Note: This allocator caches the used values in a memory-map.
