@@ -11,8 +11,6 @@ import (
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 )
 
-// +neosyncTransformerBuilder:transform:transformIdentityScramble
-
 func RegisterTransformIdentityScramble(env *bloblang.Environment, allocator tablesync_shared.IdentityAllocator) error {
 	spec := bloblang.NewPluginSpec().
 		Description("Scrambles the identity of the input").
