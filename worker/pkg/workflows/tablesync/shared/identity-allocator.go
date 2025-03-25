@@ -96,6 +96,7 @@ func NewMultiIdentityAllocator(blockAllocator BlockAllocator, blockSize uint, se
 		blockSize:      blockSize,
 		seed:           seed,
 		allocators:     make(map[string]*SingleIdentityAllocator),
+		mu:             &sync.Mutex{},
 	}
 }
 
