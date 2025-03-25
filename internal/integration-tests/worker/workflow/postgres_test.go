@@ -8,9 +8,11 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
+	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
@@ -21,6 +23,7 @@ import (
 	pg_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/edgecases"
 	pg_foreignkey_violations "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/foreignkey-violations"
 	pg_humanresources "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/humanresources"
+	pg_schema_init "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/schema-init"
 	pg_subsetting "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/subsetting"
 	pg_transformers "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/transformers"
 	pg_uuids "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/uuids"
@@ -88,6 +91,12 @@ func createPostgresSyncJob(
 		if config.JobOptions.MaxInFlight != nil {
 			maxInFlight = config.JobOptions.MaxInFlight
 		}
+		onConflict := &mgmtv1alpha1.PostgresOnConflictConfig{}
+		if config.JobOptions.OnConflictDoUpdate {
+			onConflict.Strategy = &mgmtv1alpha1.PostgresOnConflictConfig_Update{}
+		} else if config.JobOptions.OnConflictDoNothing {
+			onConflict.Strategy = &mgmtv1alpha1.PostgresOnConflictConfig_Nothing{}
+		}
 		destinationOptions = &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
 				PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
@@ -100,6 +109,7 @@ func createPostgresSyncJob(
 						Count: batchSize,
 					},
 					MaxInFlight: maxInFlight,
+					OnConflict:  onConflict,
 				},
 			},
 		}
@@ -1282,4 +1292,162 @@ func test_postgres_complex(
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{"space_mission", "scientific_data"})
 	require.NoError(t, err)
+}
+
+func test_postgres_schema_reconciliation(
+	t *testing.T,
+	ctx context.Context,
+	postgres *tcpostgres.PostgresTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+	shouldTruncate bool,
+) {
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	schema := fmt.Sprintf("schema_drift_%t", shouldTruncate)
+	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"schema-init/create-tables.sql"}, schema)
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
+	job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     schema,
+		JobMappings: pg_schema_init.GetDefaultSyncJobMappings(schema),
+		JobOptions: &TestJobOptions{
+			Truncate:           shouldTruncate,
+			TruncateCascade:    shouldTruncate,
+			InitSchema:         true,
+			OnConflictDoUpdate: !shouldTruncate,
+		},
+	})
+
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithPostgresSchemaDrift(), WithMaxIterations(100), WithPageLimit(10000))
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: schema_drift")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: schema_drift")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: schema, table: "regions", rowCount: 4},
+		{schema: schema, table: "countries", rowCount: 25},
+		{schema: schema, table: "locations", rowCount: 7},
+		{schema: schema, table: "departments", rowCount: 11},
+		{schema: schema, table: "jobs", rowCount: 19},
+		{schema: schema, table: "employees", rowCount: 40},
+		{schema: schema, table: "dependents", rowCount: 30},
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: schema_drift Table: %s Truncated: %t", expected.table, shouldTruncate))
+	}
+
+	t.Logf("running alter statements")
+	err = postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"schema-init/alter-statements.sql"}, schema)
+	require.NoError(t, err)
+	t.Logf("finished running alter statements")
+
+	updatedMappings := job.GetMappings()
+	updatedMappings = append(updatedMappings, pg_schema_init.GetAlteredSyncJobMappings(schema)...)
+	job = updateJobMappings(t, ctx, jobclient, job.GetId(), updatedMappings, job.GetSource())
+
+	testworkflow = NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithPostgresSchemaDrift(), WithMaxIterations(100), WithPageLimit(1000))
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: postgres-schema-reconciliation-run-2")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: postgres-schema-reconciliation-run-2")
+
+	source, err := sql.Open("postgres", postgres.Source.URL)
+	require.NoError(t, err)
+	defer source.Close()
+
+	target, err := sql.Open("postgres", postgres.Target.URL)
+	require.NoError(t, err)
+	defer target.Close()
+
+	verify_postgres_schemas(t, ctx, source, target, schema)
+
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "regions", sqlmanager_shared.PostgresDriver, []string{"region_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "employees", sqlmanager_shared.PostgresDriver, []string{"employee_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "dependents", sqlmanager_shared.PostgresDriver, []string{"dependent_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "jobs", sqlmanager_shared.PostgresDriver, []string{"job_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "departments", sqlmanager_shared.PostgresDriver, []string{"department_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "countries", sqlmanager_shared.PostgresDriver, []string{"country_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "locations", sqlmanager_shared.PostgresDriver, []string{"location_id"})
+
+	// tear down
+	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
+	require.NoError(t, err)
+}
+
+func verify_postgres_schemas(
+	t *testing.T,
+	ctx context.Context,
+	source, target *sql.DB,
+	schema string,
+) {
+	srcManager := sqlmanager_postgres.NewManager(pg_queries.New(), source, func() {})
+	destManager := sqlmanager_postgres.NewManager(pg_queries.New(), target, func() {})
+
+	t.Logf("checking columns are the same in source and destination")
+	srcColumns, err := srcManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get source columns")
+	destColumns, err := destManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get destination columns")
+
+	srcColumnsMap := make(map[string]*sqlmanager_shared.TableColumn)
+	for _, column := range srcColumns {
+		key := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
+		srcColumnsMap[key] = column
+	}
+
+	destColumnsMap := make(map[string]*sqlmanager_shared.TableColumn)
+	for _, column := range destColumns {
+		key := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
+		destColumnsMap[key] = column
+	}
+
+	require.Len(t, srcColumns, len(destColumns), "source and destination have different number of columns")
+	for _, column := range srcColumns {
+		srcKey := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
+		destColumn, exists := destColumnsMap[srcKey]
+		require.True(t, exists, "source column %s not found in destination", srcKey)
+		verify_postgres_column_spec(t, column, destColumn)
+	}
+	for _, column := range destColumns {
+		destKey := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
+		_, exists := srcColumnsMap[destKey]
+		require.True(t, exists, "destination column %s not found in source", destKey)
+	}
+}
+
+func verify_postgres_column_spec(
+	t *testing.T,
+	source, target *sqlmanager_shared.TableColumn,
+) {
+	columnName := fmt.Sprintf("%s.%s.%s", source.Schema, source.Table, source.Name)
+	assert.Equal(t, source.Name, target.Name, fmt.Sprintf("column names do not match for column %s", columnName))
+	assert.Equal(t, source.Comment, target.Comment, fmt.Sprintf("column comments do not match for column %s", columnName))
+	assert.Equal(t, source.DataType, target.DataType, fmt.Sprintf("column data types do not match for column %s", columnName))
+	assert.Equal(t, source.IsNullable, target.IsNullable, fmt.Sprintf("column nullability does not match for column %s", columnName))
+	assert.Equal(t, source.IdentityGeneration, target.IdentityGeneration, fmt.Sprintf("column identity generation does not match for column %s", columnName))
+	assert.Equal(t, source.GeneratedType, target.GeneratedType, fmt.Sprintf("column generated types do not match for column %s", columnName))
+	assert.Equal(t, source.GeneratedExpression, target.GeneratedExpression, fmt.Sprintf("column generated expressions do not match for column %s", columnName))
+	assert.Equal(t, source.IsSerial, target.IsSerial, fmt.Sprintf("column serial properties do not match for column %s", columnName))
+	assert.Equal(t, source.ColumnDefaultType, target.ColumnDefaultType, fmt.Sprintf("column default types do not match for column %s", columnName))
+	assert.Equal(t, source.SequenceDefinition, target.SequenceDefinition, fmt.Sprintf("column sequence definitions do not match for column %s", columnName))
+	if !source.IsSerial {
+		// sequence names are not the same. known issue.
+		assert.Equal(t, source.ColumnDefault, target.ColumnDefault, fmt.Sprintf("column default values do not match for column %s", columnName))
+	}
 }

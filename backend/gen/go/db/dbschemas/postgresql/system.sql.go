@@ -636,7 +636,8 @@ SELECT
     ic.max_value as seq_max_value,
     ic.start_value as seq_start_value,
     ic.cache_value as seq_cache_value,
-    ic.cycle_option as seq_cycle_option
+    ic.cycle_option as seq_cycle_option,
+    COALESCE(pg_catalog.col_description(cd.table_oid, cd.ordinal_position), '')::text AS column_comment
 FROM
     column_defaults cd
 LEFT JOIN linked_to_serial ls
@@ -671,6 +672,7 @@ type GetDatabaseSchemaRow struct {
 	SeqStartValue          sql.NullInt64
 	SeqCacheValue          sql.NullInt64
 	SeqCycleOption         sql.NullBool
+	ColumnComment          string
 }
 
 func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error) {
@@ -703,6 +705,7 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabas
 			&i.SeqStartValue,
 			&i.SeqCacheValue,
 			&i.SeqCycleOption,
+			&i.ColumnComment,
 		); err != nil {
 			return nil, err
 		}
@@ -836,7 +839,8 @@ SELECT
     ic.max_value as seq_max_value,
     ic.start_value as seq_start_value,
     ic.cache_value as seq_cache_value,
-    ic.cycle_option as seq_cycle_option
+    ic.cycle_option as seq_cycle_option,
+    COALESCE(pg_catalog.col_description(cd.table_oid, cd.ordinal_position), '')::text AS column_comment
 FROM
     column_defaults cd
 LEFT JOIN linked_to_serial ls
@@ -871,6 +875,7 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	SeqStartValue          sql.NullInt64
 	SeqCacheValue          sql.NullInt64
 	SeqCycleOption         sql.NullBool
+	ColumnComment          string
 }
 
 func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
@@ -903,6 +908,7 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.SeqStartValue,
 			&i.SeqCacheValue,
 			&i.SeqCycleOption,
+			&i.ColumnComment,
 		); err != nil {
 			return nil, err
 		}

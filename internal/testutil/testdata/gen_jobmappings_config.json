@@ -30,6 +30,11 @@
     "driver": "postgres"
   },
   {
+    "folder": "postgres/schema-init",
+    "sql_file": "create-tables.sql",
+    "driver": "postgres"
+  },
+  {
     "folder": "postgres/subsetting",
     "sql_file": "create-tables.sql",
     "driver": "postgres"
