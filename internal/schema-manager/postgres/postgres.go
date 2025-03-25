@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
@@ -95,14 +96,60 @@ func getDatabaseDataForSchemaDiff(
 	ctx context.Context,
 	db *sqlmanager.SqlConnection,
 	tables []*sqlmanager_shared.SchemaTable,
+	schemaMap map[string][]*sqlmanager_shared.SchemaTable,
 ) (*shared.DatabaseData, error) {
-	columns, err := db.Db().GetColumnsByTables(ctx, tables)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve database table schemas: %w", err)
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(5)
+
+	columns := []*sqlmanager_shared.TableColumn{}
+	errgrp.Go(func() error {
+		cols, err := db.Db().GetColumnsByTables(errctx, tables)
+		if err != nil {
+			return fmt.Errorf("failed to retrieve database table schemas: %w", err)
+		}
+		columns = cols
+		return nil
+	})
+
+	nonFkConstraints := map[string]*sqlmanager_shared.NonForeignKeyConstraint{}
+	fkConstraints := map[string]*sqlmanager_shared.ForeignKeyConstraint{}
+
+	mu := sync.Mutex{}
+	for schema, tables := range schemaMap {
+		tableNames := make([]string, len(tables))
+		for i, table := range tables {
+			tableNames[i] = table.Table
+		}
+
+		schema, tableNames := schema, tableNames
+		errgrp.Go(func() error {
+			tableconstraints, err := db.Db().GetTableConstraintsByTables(errctx, schema, tableNames)
+			if err != nil {
+				return fmt.Errorf("failed to retrieve  database table constraints for schema %s: %w", schema, err)
+			}
+			mu.Lock()
+			defer mu.Unlock()
+			for _, tableconstraint := range tableconstraints {
+				for _, nonFkConstraint := range tableconstraint.NonForeignKeyConstraints {
+					nonFkConstraints[nonFkConstraint.Fingerprint] = nonFkConstraint
+				}
+				for _, fkConstraint := range tableconstraint.ForeignKeyConstraints {
+					fkConstraints[fkConstraint.Fingerprint] = fkConstraint
+				}
+			}
+			return nil
+		})
 	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
 	columnsMap := shared.GetUniqueSchemaColMappings(columns)
 	return &shared.DatabaseData{
-		Columns: columnsMap,
+		Columns:                  columnsMap,
+		NonForeignKeyConstraints: nonFkConstraints,
+		ForeignKeyConstraints:    fkConstraints,
 	}, nil
 }
 

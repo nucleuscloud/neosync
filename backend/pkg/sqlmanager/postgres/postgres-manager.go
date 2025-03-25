@@ -155,7 +155,93 @@ func (p *PostgresManager) GetColumnsByTables(ctx context.Context, tables []*sqlm
 }
 
 func (p *PostgresManager) GetTableConstraintsByTables(ctx context.Context, schema string, tables []string) (map[string]*sqlmanager_shared.AllTableConstraints, error) {
-	return nil, errors.ErrUnsupported
+	if len(tables) == 0 {
+		return map[string]*sqlmanager_shared.AllTableConstraints{}, nil
+	}
+	errgrp, errctx := errgroup.WithContext(ctx)
+	var nonFkConstraints []*pg_queries.GetNonForeignKeyTableConstraintsBySchemaAndTablesRow
+	var fkConstraints []*pg_queries.GetForeignKeyConstraintsBySchemasAndTablesRow
+	errgrp.Go(func() error {
+		var err error
+		constraints, err := p.querier.GetNonForeignKeyTableConstraintsBySchemaAndTables(errctx, p.db, &pg_queries.GetNonForeignKeyTableConstraintsBySchemaAndTablesParams{
+			Schema: schema,
+			Tables: tables,
+		})
+		if err != nil {
+			return err
+		}
+		nonFkConstraints = constraints
+		return nil
+	})
+
+	errgrp.Go(func() error {
+		var err error
+		constraints, err := p.querier.GetForeignKeyConstraintsBySchemasAndTables(errctx, p.db, &pg_queries.GetForeignKeyConstraintsBySchemasAndTablesParams{
+			Schema: schema,
+			Tables: tables,
+		})
+		if err != nil {
+			return err
+		}
+		fkConstraints = constraints
+		return nil
+	})
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	result := map[string]*sqlmanager_shared.AllTableConstraints{}
+
+	for _, row := range nonFkConstraints {
+		key := sqlmanager_shared.SchemaTable{
+			Schema: row.SchemaName,
+			Table:  row.TableName,
+		}.String()
+		if result[key] == nil {
+			result[key] = &sqlmanager_shared.AllTableConstraints{
+				NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
+				ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
+			}
+		}
+		constraint := &sqlmanager_shared.NonForeignKeyConstraint{
+			SchemaName:     row.SchemaName,
+			TableName:      row.TableName,
+			ConstraintName: row.ConstraintName,
+			ConstraintType: row.ConstraintType,
+			Columns:        row.ConstraintColumns,
+			Definition:     row.ConstraintDefinition,
+		}
+		constraint.Fingerprint = sqlmanager_shared.BuildNonForeignKeyConstraintFingerprint(constraint)
+		result[key].NonForeignKeyConstraints = append(result[key].NonForeignKeyConstraints, constraint)
+	}
+
+	for _, row := range fkConstraints {
+		key := sqlmanager_shared.SchemaTable{
+			Schema: row.ReferencingSchema,
+			Table:  row.ReferencingTable,
+		}.String()
+		if result[key] == nil {
+			result[key] = &sqlmanager_shared.AllTableConstraints{
+				NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
+				ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
+			}
+		}
+		constraint := &sqlmanager_shared.ForeignKeyConstraint{
+			ConstraintName:     row.ConstraintName,
+			ConstraintType:     "FOREIGN KEY",
+			ReferencingSchema:  row.ReferencingSchema,
+			ReferencingTable:   row.ReferencingTable,
+			ReferencingColumns: row.ReferencingColumns,
+			ReferencedSchema:   row.ReferencedSchema,
+			ReferencedTable:    row.ReferencedTable,
+			ReferencedColumns:  row.ReferencedColumns,
+			NotNullable:        row.NotNullable,
+		}
+		constraint.Fingerprint = sqlmanager_shared.BuildForeignKeyConstraintFingerprint(constraint)
+		result[key].ForeignKeyConstraints = append(result[key].ForeignKeyConstraints, constraint)
+	}
+	return result, nil
 }
 
 func (p *PostgresManager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
