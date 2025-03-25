@@ -552,6 +552,7 @@ func BenchmarkTransformFullName(b *testing.B) {
 	}
 }
 
+
 func BenchmarkTransformInt64(b *testing.B) {
 	transformer := NewTransformInt64()
 	opts, err := NewTransformInt64Opts(nil,nil,nil,)
