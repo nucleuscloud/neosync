@@ -134,8 +134,19 @@ type PostgresDriver struct {
 }
 
 func (d *PostgresDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {
-	goquRows := toGoquRecords(rows)
+	insertQuery, args, err := d.buildInsertQuery(rows)
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to build postgres insert query: %w", err)
+	}
 
+	if d.options.shouldOverrideColumnDefault {
+		insertQuery = sqlmanager_postgres.BuildPgInsertIdentityAlwaysSql(insertQuery)
+	}
+	return insertQuery, args, nil
+}
+
+func (d *PostgresDriver) buildInsertQuery(rows []map[string]any) (sql string, args []any, err error) {
+	goquRows := toGoquRecords(rows)
 	if d.options.conflictConfig.onConflictDoUpdate != nil {
 		if len(rows) == 0 {
 			return "", []any{}, errors.New("no rows to insert")
@@ -146,9 +157,6 @@ func (d *PostgresDriver) BuildInsertQuery(rows []map[string]any) (query string, 
 			insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &onConflictDoNothing)
 			if err != nil {
 				return "", nil, fmt.Errorf("failed to build insert query on conflict do nothing fallback: %w", err)
-			}
-			if d.options.shouldOverrideColumnDefault {
-				insertQuery = sqlmanager_postgres.BuildPgInsertIdentityAlwaysSql(insertQuery)
 			}
 			return insertQuery, args, nil
 		}
@@ -167,9 +175,6 @@ func (d *PostgresDriver) BuildInsertQuery(rows []map[string]any) (query string, 
 	insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &onConflictDoNothing)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to build insert query: %w", err)
-	}
-	if d.options.shouldOverrideColumnDefault {
-		insertQuery = sqlmanager_postgres.BuildPgInsertIdentityAlwaysSql(insertQuery)
 	}
 	return insertQuery, args, nil
 }
