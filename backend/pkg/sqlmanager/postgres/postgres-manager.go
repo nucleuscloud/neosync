@@ -16,15 +16,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const (
-	SchemasLabel         = "schemas"
-	ExtensionsLabel      = "extensions"
-	CreateTablesLabel    = "create table"
-	AddColumnsLabel      = "add columns"
-	DropConstraintsLabel = "drop constraints"
-	DropColumnsLabel     = "drop columns"
-)
-
 type PostgresManager struct {
 	querier pg_queries.Querier
 	db      pg_queries.DBTX
@@ -880,10 +871,10 @@ func (p *PostgresManager) GetSchemaInitStatements(
 	schemaStmts = append(schemaStmts, additionalSchemaStmts...)
 
 	return []*sqlmanager_shared.InitSchemaStatements{
-		{Label: SchemasLabel, Statements: schemaStmts},
-		{Label: ExtensionsLabel, Statements: extensionStmts},
+		{Label: sqlmanager_shared.SchemasLabel, Statements: schemaStmts},
+		{Label: sqlmanager_shared.ExtensionsLabel, Statements: extensionStmts},
 		{Label: "data types", Statements: dataTypeStmts},
-		{Label: CreateTablesLabel, Statements: createTables},
+		{Label: sqlmanager_shared.CreateTablesLabel, Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
 		{Label: "table index", Statements: idxStmts},
 		{Label: "fk alter table", Statements: fkAlterStmts},

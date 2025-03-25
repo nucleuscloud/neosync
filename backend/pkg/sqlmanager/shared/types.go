@@ -6,6 +6,7 @@ import (
 
 const (
 	DisableForeignKeyChecks           = "SET FOREIGN_KEY_CHECKS = 0;"
+	ExtensionsLabel                   = "extensions"
 	SchemasLabel                      = "schemas"
 	CreateTablesLabel                 = "create table"
 	AddColumnsLabel                   = "add columns"

@@ -231,7 +231,7 @@ func (d *PostgresSchemaManager) ReconcileDestinationSchema(ctx context.Context, 
 	statementBlocks := []*sqlmanager_shared.InitSchemaStatements{}
 	for _, statement := range initblocks {
 		statementBlocks = append(statementBlocks, statement)
-		if statement.Label == sqlmanager_postgres.CreateTablesLabel {
+		if statement.Label == sqlmanager_shared.CreateTablesLabel {
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropForeignKeyConstraintsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropNonForeignKeyConstraintsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropColumnsLabel]...)
@@ -308,7 +308,7 @@ func (d *PostgresSchemaManager) InitializeSchema(ctx context.Context, uniqueTabl
 		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 		if err != nil {
 			d.logger.Error(fmt.Sprintf("unable to exec pg %s statements: %s", block.Label, err.Error()))
-			if block.Label != sqlmanager_postgres.SchemasLabel && block.Label != sqlmanager_postgres.ExtensionsLabel {
+			if block.Label != sqlmanager_shared.SchemasLabel && block.Label != sqlmanager_shared.ExtensionsLabel {
 				return nil, fmt.Errorf("unable to exec pg %s statements: %w", block.Label, err)
 			}
 			for _, stmt := range block.Statements {
