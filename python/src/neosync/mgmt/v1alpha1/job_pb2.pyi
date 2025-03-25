@@ -627,47 +627,99 @@ class JobTypeConfig(_message.Message):
             map_defined_tables: JobTypeConfig.JobTypeSync.TableStrategy.MapDefinedTables
             def __init__(self, map_all_tables: _Optional[_Union[JobTypeConfig.JobTypeSync.TableStrategy.MapAllTables, _Mapping]] = ..., map_defined_tables: _Optional[_Union[JobTypeConfig.JobTypeSync.TableStrategy.MapDefinedTables, _Mapping]] = ...) -> None: ...
         class ColumnStrategy(_message.Message):
-            __slots__ = ("map_all_columns",)
+            __slots__ = ("map_all_columns", "map_defined_columns")
             class MapAllColumns(_message.Message):
-                __slots__ = ("column_addition_strategy", "column_removal_strategy")
-                class ColumnAdditionStrategy(_message.Message):
-                    __slots__ = ("passthrough", "auto_map", "halt")
-                    class Passthrough(_message.Message):
-                        __slots__ = ()
-                        def __init__(self) -> None: ...
-                    class AutoMap(_message.Message):
-                        __slots__ = ()
-                        def __init__(self) -> None: ...
-                    class Halt(_message.Message):
-                        __slots__ = ()
-                        def __init__(self) -> None: ...
-                    PASSTHROUGH_FIELD_NUMBER: _ClassVar[int]
-                    AUTO_MAP_FIELD_NUMBER: _ClassVar[int]
-                    HALT_FIELD_NUMBER: _ClassVar[int]
-                    passthrough: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.Passthrough
-                    auto_map: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.AutoMap
-                    halt: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.Halt
-                    def __init__(self, passthrough: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.Passthrough, _Mapping]] = ..., auto_map: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.AutoMap, _Mapping]] = ..., halt: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.Halt, _Mapping]] = ...) -> None: ...
-                class ColumnRemovalStrategy(_message.Message):
-                    __slots__ = ("halt",)
-                    class Halt(_message.Message):
-                        __slots__ = ()
-                        def __init__(self) -> None: ...
-                    class Continue(_message.Message):
-                        __slots__ = ()
-                        def __init__(self) -> None: ...
-                    CONTINUE_FIELD_NUMBER: _ClassVar[int]
-                    HALT_FIELD_NUMBER: _ClassVar[int]
-                    halt: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.Halt
-                    def __init__(self, halt: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.Halt, _Mapping]] = ..., **kwargs) -> None: ...
-                COLUMN_ADDITION_STRATEGY_FIELD_NUMBER: _ClassVar[int]
-                COLUMN_REMOVAL_STRATEGY_FIELD_NUMBER: _ClassVar[int]
-                column_addition_strategy: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy
-                column_removal_strategy: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy
-                def __init__(self, column_addition_strategy: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy, _Mapping]] = ..., column_removal_strategy: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy, _Mapping]] = ...) -> None: ...
+                __slots__ = ("column_in_source_not_mapped", "column_mapped_not_in_source", "column_in_source_mapped_not_in_destination", "column_in_destination_no_longer_in_source")
+                COLUMN_IN_SOURCE_NOT_MAPPED_FIELD_NUMBER: _ClassVar[int]
+                COLUMN_MAPPED_NOT_IN_SOURCE_FIELD_NUMBER: _ClassVar[int]
+                COLUMN_IN_SOURCE_MAPPED_NOT_IN_DESTINATION_FIELD_NUMBER: _ClassVar[int]
+                COLUMN_IN_DESTINATION_NO_LONGER_IN_SOURCE_FIELD_NUMBER: _ClassVar[int]
+                column_in_source_not_mapped: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy
+                column_mapped_not_in_source: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy
+                column_in_source_mapped_not_in_destination: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy
+                column_in_destination_no_longer_in_source: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy
+                def __init__(self, column_in_source_not_mapped: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy, _Mapping]] = ..., column_mapped_not_in_source: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy, _Mapping]] = ..., column_in_source_mapped_not_in_destination: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy, _Mapping]] = ..., column_in_destination_no_longer_in_source: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy, _Mapping]] = ...) -> None: ...
+            class MapDefinedColumns(_message.Message):
+                __slots__ = ("column_mapped_not_in_source", "column_in_source_mapped_not_in_destination")
+                COLUMN_MAPPED_NOT_IN_SOURCE_FIELD_NUMBER: _ClassVar[int]
+                COLUMN_IN_SOURCE_MAPPED_NOT_IN_DESTINATION_FIELD_NUMBER: _ClassVar[int]
+                column_mapped_not_in_source: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy
+                column_in_source_mapped_not_in_destination: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy
+                def __init__(self, column_mapped_not_in_source: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy, _Mapping]] = ..., column_in_source_mapped_not_in_destination: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy, _Mapping]] = ...) -> None: ...
+            class ColumnInSourceNotMappedStrategy(_message.Message):
+                __slots__ = ("passthrough", "auto_map", "halt", "drop")
+                class Passthrough(_message.Message):
+                    __slots__ = ()
+                    def __init__(self) -> None: ...
+                class AutoMap(_message.Message):
+                    __slots__ = ()
+                    def __init__(self) -> None: ...
+                class Halt(_message.Message):
+                    __slots__ = ()
+                    def __init__(self) -> None: ...
+                class Drop(_message.Message):
+                    __slots__ = ()
+                    def __init__(self) -> None: ...
+                PASSTHROUGH_FIELD_NUMBER: _ClassVar[int]
+                AUTO_MAP_FIELD_NUMBER: _ClassVar[int]
+                HALT_FIELD_NUMBER: _ClassVar[int]
+                DROP_FIELD_NUMBER: _ClassVar[int]
+                passthrough: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Passthrough
+                auto_map: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.AutoMap
+                halt: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Halt
+                drop: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Drop
+                def __init__(self, passthrough: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Passthrough, _Mapping]] = ..., auto_map: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.AutoMap, _Mapping]] = ..., halt: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Halt, _Mapping]] = ..., drop: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Drop, _Mapping]] = ...) -> None: ...
+            class ColumnMappedNotInSourceStrategy(_message.Message):
+                __slots__ = ("halt",)
+                class Continue(_message.Message):
+                    __slots__ = ()
+                    def __init__(self) -> None: ...
+                class Halt(_message.Message):
+                    __slots__ = ()
+                    def __init__(self) -> None: ...
+                CONTINUE_FIELD_NUMBER: _ClassVar[int]
+                HALT_FIELD_NUMBER: _ClassVar[int]
+                halt: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Halt
+                def __init__(self, halt: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Halt, _Mapping]] = ..., **kwargs) -> None: ...
+            class ColumnInSourceMappedNotInDestinationStrategy(_message.Message):
+                __slots__ = ("drop", "halt")
+                class Continue(_message.Message):
+                    __slots__ = ()
+                    def __init__(self) -> None: ...
+                class Drop(_message.Message):
+                    __slots__ = ()
+                    def __init__(self) -> None: ...
+                class Halt(_message.Message):
+                    __slots__ = ()
+                    def __init__(self) -> None: ...
+                CONTINUE_FIELD_NUMBER: _ClassVar[int]
+                DROP_FIELD_NUMBER: _ClassVar[int]
+                HALT_FIELD_NUMBER: _ClassVar[int]
+                drop: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Drop
+                halt: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Halt
+                def __init__(self, drop: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Drop, _Mapping]] = ..., halt: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Halt, _Mapping]] = ..., **kwargs) -> None: ...
+            class ColumnInDestinationNotInSourceStrategy(_message.Message):
+                __slots__ = ("halt", "auto_map")
+                class Continue(_message.Message):
+                    __slots__ = ()
+                    def __init__(self) -> None: ...
+                class Halt(_message.Message):
+                    __slots__ = ()
+                    def __init__(self) -> None: ...
+                class AutoMap(_message.Message):
+                    __slots__ = ()
+                    def __init__(self) -> None: ...
+                CONTINUE_FIELD_NUMBER: _ClassVar[int]
+                HALT_FIELD_NUMBER: _ClassVar[int]
+                AUTO_MAP_FIELD_NUMBER: _ClassVar[int]
+                halt: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Halt
+                auto_map: JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.AutoMap
+                def __init__(self, halt: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Halt, _Mapping]] = ..., auto_map: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.AutoMap, _Mapping]] = ..., **kwargs) -> None: ...
             MAP_ALL_COLUMNS_FIELD_NUMBER: _ClassVar[int]
+            MAP_DEFINED_COLUMNS_FIELD_NUMBER: _ClassVar[int]
             map_all_columns: JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns
-            def __init__(self, map_all_columns: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns, _Mapping]] = ...) -> None: ...
+            map_defined_columns: JobTypeConfig.JobTypeSync.ColumnStrategy.MapDefinedColumns
+            def __init__(self, map_all_columns: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns, _Mapping]] = ..., map_defined_columns: _Optional[_Union[JobTypeConfig.JobTypeSync.ColumnStrategy.MapDefinedColumns, _Mapping]] = ...) -> None: ...
         class SchemaMapping(_message.Message):
             __slots__ = ("schema", "destination_schema", "table_mappings", "table_strategy", "column_strategy")
             class TableMapping(_message.Message):

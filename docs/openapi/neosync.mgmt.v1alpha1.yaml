@@ -12834,71 +12834,185 @@ components:
         - anyOf:
             - required:
                 - mapAllColumns
+            - required:
+                - mapDefinedColumns
             - not:
                 anyOf:
                   - required:
                       - mapAllColumns
+                  - required:
+                      - mapDefinedColumns
       anyOf:
         - required:
             - mapAllColumns
+        - required:
+            - mapDefinedColumns
         - not:
             anyOf:
               - required:
                   - mapAllColumns
+              - required:
+                  - mapDefinedColumns
       properties:
         mapAllColumns:
           allOf:
             - $ref: >-
                 #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns
           title: map_all_columns
-          description: |-
-            When this strategy is configured, all columns are mapped.
-             Further configuration can be done to handle columns not present in the schema mappings.
+          description: >-
+            1. Map all columns + user-defined sub-strategies for each mismatch
+            scenario
+        mapDefinedColumns:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapDefinedColumns
+          title: map_defined_columns
+          description: >-
+            2. Only map user-defined columns + sub-strategies for mismatch
+            scenarios
       title: ColumnStrategy
       additionalProperties: false
       description: The strategy used to configure how columns are handled during a job run
-    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns:
-      type: object
-      allOf:
-        - anyOf:
-            - required:
-                - columnAdditionStrategy
-            - not:
-                anyOf:
-                  - required:
-                      - columnAdditionStrategy
-        - anyOf:
-            - required:
-                - columnRemovalStrategy
-            - not:
-                anyOf:
-                  - required:
-                      - columnRemovalStrategy
-      properties:
-        columnAdditionStrategy:
-          allOf:
-            - $ref: >-
-                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy
-          title: column_addition_strategy
-          description: The strategy to use when a new column is detected
-        columnRemovalStrategy:
-          allOf:
-            - $ref: >-
-                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy
-          title: column_removal_strategy
-          description: The strategy to use when a column is removed
-      title: MapAllColumns
-      additionalProperties: false
-      description: |-
-        Strategy that maps all columns for a table.
-         Further configuration can be done to handle columns not present in the schema mappings.
-         Also strategies may be configured for handling a mapped column that is no longer present in the source.
-    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy:
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy:
       type: object
       allOf:
         - anyOf:
             - required:
                 - autoMap
+            - required:
+                - continue
+            - required:
+                - halt
+            - not:
+                anyOf:
+                  - required:
+                      - autoMap
+                  - required:
+                      - continue
+                  - required:
+                      - halt
+      anyOf:
+        - required:
+            - autoMap
+        - required:
+            - continue
+        - required:
+            - halt
+        - not:
+            anyOf:
+              - required:
+                  - autoMap
+              - required:
+                  - continue
+              - required:
+                  - halt
+      properties:
+        continue:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Continue
+          title: continue
+          description: '"Continue" => "if init_schema => drop column, else leave it alone"'
+        halt:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Halt
+          title: halt
+        autoMap:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.AutoMap
+          title: auto_map
+      title: ColumnInDestinationNotInSourceStrategy
+      additionalProperties: false
+      description: d) Column in destination, but not in source
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.AutoMap:
+      type: object
+      title: AutoMap
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Continue:
+      type: object
+      title: Continue
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Halt:
+      type: object
+      title: Halt
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - continue
+            - required:
+                - drop
+            - required:
+                - halt
+            - not:
+                anyOf:
+                  - required:
+                      - continue
+                  - required:
+                      - drop
+                  - required:
+                      - halt
+      anyOf:
+        - required:
+            - continue
+        - required:
+            - drop
+        - required:
+            - halt
+        - not:
+            anyOf:
+              - required:
+                  - continue
+              - required:
+                  - drop
+              - required:
+                  - halt
+      properties:
+        continue:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Continue
+          title: continue
+          description: >-
+            In your version, "Continue" = "if init_schema => create column, else
+            skip"
+        drop:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Drop
+          title: drop
+        halt:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Halt
+          title: halt
+      title: ColumnInSourceMappedNotInDestinationStrategy
+      additionalProperties: false
+      description: c) Column in source + mapped, but missing in destination
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Continue:
+      type: object
+      title: Continue
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Drop:
+      type: object
+      title: Drop
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Halt:
+      type: object
+      title: Halt
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - autoMap
+            - required:
+                - drop
             - required:
                 - halt
             - required:
@@ -12908,12 +13022,16 @@ components:
                   - required:
                       - autoMap
                   - required:
+                      - drop
+                  - required:
                       - halt
                   - required:
                       - passthrough
       anyOf:
         - required:
             - autoMap
+        - required:
+            - drop
         - required:
             - halt
         - required:
@@ -12923,6 +13041,8 @@ components:
               - required:
                   - autoMap
               - required:
+                  - drop
+              - required:
                   - halt
               - required:
                   - passthrough
@@ -12930,46 +13050,43 @@ components:
         passthrough:
           allOf:
             - $ref: >-
-                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.Passthrough
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Passthrough
           title: passthrough
-          description: For any new columns, passthrough the value unchanged.
         autoMap:
           allOf:
             - $ref: >-
-                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.AutoMap
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.AutoMap
           title: auto_map
-          description: >-
-            Automatically handle unmapped columns. It handles this by using the
-            DBs default/nullable values.
-             If this doesn't exist, will fall back to configuring generators for supported datatypes.
-             If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
         halt:
           allOf:
             - $ref: >-
-                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.Halt
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Halt
           title: halt
-          description: halt job if a new column is detected.
-      title: ColumnAdditionStrategy
+        drop:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Drop
+          title: drop
+      title: ColumnInSourceNotMappedStrategy
       additionalProperties: false
-      description: >-
-        Strategy to use when a column is detected that is not present in the
-        schema mappings.
-    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.AutoMap:
+      description: a) Column present in source, not mapped
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.AutoMap:
       type: object
       title: AutoMap
       additionalProperties: false
-      description: Configuration for the AutoMap strategy
-    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.Halt:
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Drop:
+      type: object
+      title: Drop
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Halt:
       type: object
       title: Halt
       additionalProperties: false
-      description: Configuration for the Halt strategy
-    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnAdditionStrategy.Passthrough:
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Passthrough:
       type: object
       title: Passthrough
       additionalProperties: false
-      description: Configuration for the Passthrough strategy
-    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy:
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy:
       type: object
       allOf:
         - anyOf:
@@ -12998,30 +13115,124 @@ components:
         continue:
           allOf:
             - $ref: >-
-                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.Continue
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Continue
           title: continue
-          description: Continue the run if a column is removed
+          description: e.g. treat as NULL or skip
         halt:
           allOf:
             - $ref: >-
-                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.Halt
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Halt
           title: halt
-          description: Halt the run if a column is removed
-      title: ColumnRemovalStrategy
+          description: fail the job
+      title: ColumnMappedNotInSourceStrategy
       additionalProperties: false
-      description: >-
-        Strategy to use when a column is removed that is present in the schema
-        mappings.
-    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.Continue:
+      description: b) Column mapped, but not in source
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Continue:
       type: object
       title: Continue
       additionalProperties: false
-      description: Configuration for the Continue strategy
-    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns.ColumnRemovalStrategy.Halt:
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Halt:
       type: object
       title: Halt
       additionalProperties: false
-      description: Configuration for the Halt strategy
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - columnInDestinationNoLongerInSource
+            - not:
+                anyOf:
+                  - required:
+                      - columnInDestinationNoLongerInSource
+        - anyOf:
+            - required:
+                - columnInSourceMappedNotInDestination
+            - not:
+                anyOf:
+                  - required:
+                      - columnInSourceMappedNotInDestination
+        - anyOf:
+            - required:
+                - columnInSourceNotMapped
+            - not:
+                anyOf:
+                  - required:
+                      - columnInSourceNotMapped
+        - anyOf:
+            - required:
+                - columnMappedNotInSource
+            - not:
+                anyOf:
+                  - required:
+                      - columnMappedNotInSource
+      properties:
+        columnInSourceNotMapped:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy
+          title: column_in_source_not_mapped
+          description: When a column is present in source but not mapped
+        columnMappedNotInSource:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy
+          title: column_mapped_not_in_source
+          description: When a column is mapped but not in source
+        columnInSourceMappedNotInDestination:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy
+          title: column_in_source_mapped_not_in_destination
+          description: When a column is in source + mapped, but missing in destination
+        columnInDestinationNoLongerInSource:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy
+          title: column_in_destination_no_longer_in_source
+          description: When a column is in the destination but not in source
+      title: MapAllColumns
+      additionalProperties: false
+      description: |-
+        -------------------------------------------------------------
+         1. MapAllColumns
+         -------------------------------------------------------------
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapDefinedColumns:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - columnInSourceMappedNotInDestination
+            - not:
+                anyOf:
+                  - required:
+                      - columnInSourceMappedNotInDestination
+        - anyOf:
+            - required:
+                - columnMappedNotInSource
+            - not:
+                anyOf:
+                  - required:
+                      - columnMappedNotInSource
+      properties:
+        columnMappedNotInSource:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy
+          title: column_mapped_not_in_source
+          description: Mapped but missing in source
+        columnInSourceMappedNotInDestination:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy
+          title: column_in_source_mapped_not_in_destination
+          description: In source + mapped, but missing in destination
+      title: MapDefinedColumns
+      additionalProperties: false
+      description: |-
+        -------------------------------------------------------------
+         2. MapDefinedColumns
+         -------------------------------------------------------------
     mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaChange:
       type: object
       allOf:

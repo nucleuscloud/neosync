@@ -31,7 +31,7 @@ type sqlSourceTableOptions struct {
 type tableMapping struct {
 	Schema   string
 	Table    string
-	Mappings []*mgmtv1alpha1.JobMapping
+	Mappings []*shared.JobTransformationMapping
 }
 
 func removeMappingsNotFoundInSource(
@@ -195,9 +195,9 @@ func mergeVirtualForeignKeys(
 }
 
 func groupMappingsByTable(
-	mappings []*mgmtv1alpha1.JobMapping,
+	mappings []*shared.JobTransformationMapping,
 ) []*tableMapping {
-	groupedMappings := map[string][]*mgmtv1alpha1.JobMapping{}
+	groupedMappings := map[string][]*shared.JobTransformationMapping{}
 
 	for _, mapping := range mappings {
 		key := neosync_benthos.BuildBenthosTable(mapping.Schema, mapping.Table)

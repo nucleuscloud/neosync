@@ -618,8 +618,8 @@ message JobTypeConfig {
         // When a column is in source + mapped, but missing in destination
         optional ColumnInSourceMappedNotInDestinationStrategy column_in_source_mapped_not_in_destination = 3;
 
-        // When a column is in the destination but no longer in source
-        optional ColumnInDestinationNoLongerInSourceStrategy column_in_destination_no_longer_in_source = 4;
+        // When a column is in the destination but not in source
+        optional ColumnInDestinationNotInSourceStrategy column_in_destination_no_longer_in_source = 4;
       }
 
       // -------------------------------------------------------------
@@ -631,9 +631,6 @@ message JobTypeConfig {
 
         // In source + mapped, but missing in destination
         optional ColumnInSourceMappedNotInDestinationStrategy column_in_source_mapped_not_in_destination = 2;
-
-        // Source columns not in user mapping
-        optional UnknownSourceColumnStrategy unknown_source_column = 3;
       }
 
       // -------------------------------------------------------------
@@ -678,25 +675,27 @@ message JobTypeConfig {
       }
 
       // d) Column in destination, but not in source
-      message ColumnInDestinationNoLongerInSourceStrategy {
+      message ColumnInDestinationNotInSourceStrategy {
         oneof strategy {
           // "Continue" => "if init_schema => drop column, else leave it alone"
           Continue continue = 1;
           Halt halt = 2;
+          AutoMap auto_map = 3;
         }
         message Continue {}
         message Halt {}
+        message AutoMap {}
       }
 
-      // e) In "MapDefinedColumns" mode: columns in source that aren't in the user mapping
-      message UnknownSourceColumnStrategy {
-        oneof strategy {
-          Ignore ignore = 1;
-          Halt halt = 2;
-        }
-        message Ignore {}
-        message Halt {}
-      }
+      // // e) In "MapDefinedColumns" mode: columns in source that aren't in the user mapping
+      // message UnknownSourceColumnStrategy {
+      //   oneof strategy {
+      //     Ignore ignore = 1;
+      //     Halt halt = 2;
+      //   }
+      //   message Ignore {}
+      //   message Halt {}
+      // }
     }
 
     // Configuration for a specific schema mapping

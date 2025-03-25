@@ -33,7 +33,7 @@ func buildProcessorConfigsByRunType(
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	jobId, runId string,
 	redisConfig *neosync_redis.RedisConfig,
-	mappings []*mgmtv1alpha1.JobMapping,
+	mappings []*shared.JobTransformationMapping,
 	columnInfoMap map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
 	mappedKeys []string,
@@ -124,7 +124,7 @@ func buildSqlUpdateProcessorConfigs(
 func buildProcessorConfigs(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	cols []*mgmtv1alpha1.JobMapping,
+	cols []*shared.JobTransformationMapping,
 	tableColumnInfo map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	fkSourceCols []string,
@@ -135,7 +135,7 @@ func buildProcessorConfigs(
 	mappedKeys []string,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
 	// filter columns by config insert cols
-	filteredCols := []*mgmtv1alpha1.JobMapping{}
+	filteredCols := []*shared.JobTransformationMapping{}
 	for _, col := range cols {
 		if slices.Contains(runconfig.InsertColumns(), col.Column) {
 			filteredCols = append(filteredCols, col)

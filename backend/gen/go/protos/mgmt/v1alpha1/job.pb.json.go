@@ -708,72 +708,172 @@ func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns) UnmarshalJSON
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy) MarshalJSON() ([]byte, error) {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapDefinedColumns) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy) UnmarshalJSON(b []byte) error {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapDefinedColumns) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy_Passthrough) MarshalJSON() ([]byte, error) {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy_Passthrough) UnmarshalJSON(b []byte) error {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy_AutoMap) MarshalJSON() ([]byte, error) {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Passthrough) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy_AutoMap) UnmarshalJSON(b []byte) error {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Passthrough) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy_Halt) MarshalJSON() ([]byte, error) {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_AutoMap) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnAdditionStrategy_Halt) UnmarshalJSON(b []byte) error {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_AutoMap) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy) MarshalJSON() ([]byte, error) {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Halt) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy) UnmarshalJSON(b []byte) error {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Halt) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_Halt) MarshalJSON() ([]byte, error) {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Drop) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_Halt) UnmarshalJSON(b []byte) error {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Drop) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 
 // MarshalJSON implements json.Marshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_Continue) MarshalJSON() ([]byte, error) {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_ColumnRemovalStrategy_Continue) UnmarshalJSON(b []byte) error {
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy_Continue) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy_Continue) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy_Halt) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy_Halt) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Continue) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Continue) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Drop) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Drop) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Halt) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Halt) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_Continue) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_Continue) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_Halt) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_Halt) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_AutoMap) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_AutoMap) UnmarshalJSON(b []byte) error {
 	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
 }
 

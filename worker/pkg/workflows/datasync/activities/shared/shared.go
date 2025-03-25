@@ -93,15 +93,28 @@ func GetUniqueSchemasFromJob(job *mgmtv1alpha1.Job) []string {
 		}
 		return schemas
 	default:
-		return GetUniqueSchemasFromMappings(job.GetMappings())
+		jtms := make([]*JobTransformationMapping, 0, len(job.GetMappings()))
+		for _, mapping := range job.GetMappings() {
+			jtms = append(jtms, &JobTransformationMapping{
+				JobMapping: mapping,
+			})
+		}
+		return GetUniqueSchemasFromMappings(jtms)
 	}
 }
 
+type JobTransformationMapping struct {
+	*mgmtv1alpha1.JobMapping
+
+	DestinationSchema string
+	DestinationTable  string
+}
+
 // Parses the job mappings and returns the unique set of schemas found
-func GetUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string {
+func GetUniqueSchemasFromMappings(mappings []*JobTransformationMapping) []string {
 	schemas := map[string]struct{}{}
 	for _, mapping := range mappings {
-		schemas[mapping.Schema] = struct{}{}
+		schemas[mapping.GetSchema()] = struct{}{}
 	}
 
 	output := make([]string, 0, len(schemas))
