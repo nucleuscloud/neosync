@@ -115,7 +115,6 @@ func getDatabaseDataForSchemaDiff(
 
 	nonFkConstraints := map[string]*sqlmanager_shared.NonForeignKeyConstraint{}
 	fkConstraints := map[string]*sqlmanager_shared.ForeignKeyConstraint{}
-
 	mu := sync.Mutex{}
 	for schema, tables := range schemaMap {
 		tableNames := make([]string, len(tables))
@@ -133,15 +132,43 @@ func getDatabaseDataForSchemaDiff(
 			defer mu.Unlock()
 			for _, tableconstraint := range tableconstraints {
 				for _, nonFkConstraint := range tableconstraint.NonForeignKeyConstraints {
-					nonFkConstraints[nonFkConstraint.Fingerprint] = nonFkConstraint
+					key := fmt.Sprintf("%s.%s.%s", nonFkConstraint.SchemaName, nonFkConstraint.TableName, nonFkConstraint.ConstraintName)
+					nonFkConstraints[key] = nonFkConstraint
 				}
 				for _, fkConstraint := range tableconstraint.ForeignKeyConstraints {
-					fkConstraints[fkConstraint.Fingerprint] = fkConstraint
+					key := fmt.Sprintf("%s.%s.%s", fkConstraint.ReferencingSchema, fkConstraint.ReferencingTable, fkConstraint.ConstraintName)
+					fkConstraints[key] = fkConstraint
 				}
 			}
 			return nil
 		})
 	}
+
+	triggers := map[string]*sqlmanager_shared.TableTrigger{}
+	errgrp.Go(func() error {
+		tabletriggers, err := db.Db().GetSchemaTableTriggers(ctx, tables)
+		if err != nil {
+			return fmt.Errorf("failed to retrieve database table triggers: %w", err)
+		}
+		for _, tabletrigger := range tabletriggers {
+			key := fmt.Sprintf("%s.%s.%s", tabletrigger.Schema, tabletrigger.Table, tabletrigger.TriggerName)
+			triggers[key] = tabletrigger
+		}
+		return nil
+	})
+
+	functions := map[string]*sqlmanager_shared.DataType{}
+	errgrp.Go(func() error {
+		datatypes, err := db.Db().GetSchemaTableDataTypes(ctx, tables)
+		if err != nil {
+			return fmt.Errorf("failed to retrieve database table functions: %w", err)
+		}
+		for _, tablefunction := range datatypes.Functions {
+			key := fmt.Sprintf("%s.%s", tablefunction.Schema, tablefunction.Name)
+			functions[key] = tablefunction
+		}
+		return nil
+	})
 
 	if err := errgrp.Wait(); err != nil {
 		return nil, err
@@ -152,6 +179,8 @@ func getDatabaseDataForSchemaDiff(
 		Columns:                  columnsMap,
 		NonForeignKeyConstraints: nonFkConstraints,
 		ForeignKeyConstraints:    fkConstraints,
+		Triggers:                 triggers,
+		Functions:                functions,
 	}, nil
 }
 
@@ -161,6 +190,7 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, d
 		d.logger.Info("skipping schema init as it is not enabled")
 		return nil, nil
 	}
+
 	addColumnStatements := []string{}
 	for _, column := range diff.ExistsInSource.Columns {
 		stmt := sqlmanager_postgres.BuildAddColumnStatement(column)
@@ -172,15 +202,42 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, d
 	for _, constraint := range diff.ExistsInDestination.NonForeignKeyConstraints {
 		dropNonFkConstraintStatements = append(dropNonFkConstraintStatements, sqlmanager_postgres.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintName))
 	}
+	// only way to update non fk constraint is to drop and recreate
+	for _, constraint := range diff.ExistsInBoth.Different.NonForeignKeyConstraints {
+		dropNonFkConstraintStatements = append(dropNonFkConstraintStatements, sqlmanager_postgres.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintName))
+	}
 
 	dropFkConstraintStatements := []string{}
 	for _, constraint := range diff.ExistsInDestination.ForeignKeyConstraints {
+		dropFkConstraintStatements = append(dropFkConstraintStatements, sqlmanager_postgres.BuildDropConstraintStatement(constraint.ReferencingSchema, constraint.ReferencingTable, constraint.ConstraintName))
+	}
+	// only way to update fk constraint is to drop and recreate
+	for _, constraint := range diff.ExistsInBoth.Different.ForeignKeyConstraints {
 		dropFkConstraintStatements = append(dropFkConstraintStatements, sqlmanager_postgres.BuildDropConstraintStatement(constraint.ReferencingSchema, constraint.ReferencingTable, constraint.ConstraintName))
 	}
 
 	dropColumnStatements := []string{}
 	for _, column := range diff.ExistsInDestination.Columns {
 		dropColumnStatements = append(dropColumnStatements, sqlmanager_postgres.BuildDropColumnStatement(column.Schema, column.Table, column.Name))
+	}
+
+	dropTriggerStatements := []string{}
+	for _, trigger := range diff.ExistsInDestination.Triggers {
+		dropTriggerStatements = append(dropTriggerStatements, sqlmanager_postgres.BuildDropTriggerStatement(trigger.Schema, trigger.Table, trigger.TriggerName))
+	}
+	// only way to update trigger is to drop and recreate
+	for _, trigger := range diff.ExistsInBoth.Different.Triggers {
+		dropTriggerStatements = append(dropTriggerStatements, sqlmanager_postgres.BuildDropTriggerStatement(trigger.Schema, trigger.Table, trigger.TriggerName))
+	}
+
+	dropFunctionStatements := []string{}
+	for _, function := range diff.ExistsInDestination.Functions {
+		dropFunctionStatements = append(dropFunctionStatements, sqlmanager_postgres.BuildDropFunctionStatement(function.Schema, function.Name))
+	}
+
+	updateFunctionStatements := []string{}
+	for _, function := range diff.ExistsInBoth.Different.Functions {
+		updateFunctionStatements = append(updateFunctionStatements, sqlmanager_postgres.BuildUpdateFunctionStatement(function.Schema, function.Name, function.Definition))
 	}
 
 	return []*sqlmanager_shared.InitSchemaStatements{
@@ -199,6 +256,18 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, d
 		{
 			Label:      sqlmanager_shared.DropColumnsLabel,
 			Statements: dropColumnStatements,
+		},
+		{
+			Label:      sqlmanager_shared.DropTriggersLabel,
+			Statements: dropTriggerStatements,
+		},
+		{
+			Label:      sqlmanager_shared.UpdateFunctionsLabel,
+			Statements: updateFunctionStatements,
+		},
+		{
+			Label:      sqlmanager_shared.DropFunctionsLabel,
+			Statements: dropFunctionStatements,
 		},
 	}, nil
 }
@@ -232,10 +301,13 @@ func (d *PostgresSchemaManager) ReconcileDestinationSchema(ctx context.Context, 
 	for _, statement := range initblocks {
 		statementBlocks = append(statementBlocks, statement)
 		if statement.Label == sqlmanager_shared.CreateTablesLabel {
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropTriggersLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropFunctionsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropForeignKeyConstraintsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropNonForeignKeyConstraintsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropColumnsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.AddColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateFunctionsLabel]...)
 		}
 	}
 

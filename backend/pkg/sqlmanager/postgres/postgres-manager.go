@@ -1113,6 +1113,18 @@ func BuildDropConstraintStatement(schema, table, constraintName string) string {
 	return fmt.Sprintf("ALTER TABLE %q.%q DROP CONSTRAINT IF EXISTS %q CASCADE;", schema, table, constraintName)
 }
 
+func BuildDropTriggerStatement(schema, table, triggerName string) string {
+	return fmt.Sprintf("DROP TRIGGER IF EXISTS %q ON %q.%q;", triggerName, schema, table)
+}
+
+func BuildDropFunctionStatement(schema, functionName string) string {
+	return fmt.Sprintf("DROP FUNCTION IF EXISTS %q.%q;", schema, functionName)
+}
+
+func BuildUpdateFunctionStatement(schema, functionName string, createStatement string) string {
+	return fmt.Sprintf("CREATE OR REPLACE FUNCTION %q.%q %s;", schema, functionName, addSuffixIfNotExist(createStatement, ";"))
+}
+
 type buildTableColRequest struct {
 	ColumnName         string
 	ColumnDefault      string

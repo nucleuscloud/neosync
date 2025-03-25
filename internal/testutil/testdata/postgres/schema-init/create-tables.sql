@@ -68,6 +68,48 @@ CREATE TABLE dependents (
 	FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+
+CREATE OR REPLACE FUNCTION other_trigger_function()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN NEW;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION dummy_trigger_function()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN NEW;
+END;
+$$;
+
+CREATE TABLE dummy_table (
+    id SERIAL PRIMARY KEY,
+    data TEXT
+);
+
+CREATE TRIGGER no_op_trigger
+AFTER INSERT 
+ON dummy_table
+FOR EACH ROW
+EXECUTE FUNCTION dummy_trigger_function();
+
+CREATE TRIGGER other_trigger
+AFTER INSERT 
+ON dummy_table
+FOR EACH ROW
+EXECUTE FUNCTION other_trigger_function();
+
+INSERT INTO dummy_table(id,data) VALUES (1,'Europe Data');
+INSERT INTO dummy_table(id,data) VALUES (2,'Americas Data');
+INSERT INTO dummy_table(id,data) VALUES (3,'Asia Data');
+INSERT INTO dummy_table(id,data) VALUES (4,'Middle East and Africa Data');
+
 /*Data for the table regions */
 INSERT INTO regions(region_id,region_name) VALUES (1,'Europe');
 INSERT INTO regions(region_id,region_name) VALUES (2,'Americas');

@@ -97,3 +97,21 @@ ALTER TABLE countries
 
 ALTER TABLE countries
     DROP COLUMN temp_col;
+
+
+CREATE OR REPLACE FUNCTION dummy_trigger_function()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF TG_OP = 'UPDATE' THEN
+    NEW.data := NEW.data || ' - updated again';
+  END IF;
+
+  -- Return the new row
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS other_trigger ON dummy_table;
+DROP FUNCTION IF EXISTS other_trigger_function();

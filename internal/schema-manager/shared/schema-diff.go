@@ -13,9 +13,18 @@ type ExistsInSource struct {
 	Functions                []*sqlmanager_shared.DataType
 }
 
+type Different struct {
+	Columns                  []*sqlmanager_shared.TableColumn
+	NonForeignKeyConstraints []*sqlmanager_shared.NonForeignKeyConstraint
+	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
+	Triggers                 []*sqlmanager_shared.TableTrigger
+	Functions                []*sqlmanager_shared.DataType
+}
 type ExistsInBoth struct {
-	Tables  []*sqlmanager_shared.SchemaTable
-	Columns []*sqlmanager_shared.TableColumn // only columns that exist in both source and destination and have a fingerprint difference
+	Tables []*sqlmanager_shared.SchemaTable
+
+	// exists in both source and destination but have a fingerprint difference
+	Different *Different
 }
 
 type ExistsInDestination struct {
@@ -78,6 +87,13 @@ func NewSchemaDifferencesBuilder(
 			},
 			ExistsInBoth: &ExistsInBoth{
 				Tables: []*sqlmanager_shared.SchemaTable{},
+				Different: &Different{
+					Columns:                  []*sqlmanager_shared.TableColumn{},
+					NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
+					ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
+					Triggers:                 []*sqlmanager_shared.TableTrigger{},
+					Functions:                []*sqlmanager_shared.DataType{},
+				},
 			},
 		},
 	}
@@ -122,7 +138,7 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 					continue
 				}
 				if column.Fingerprint != destColumn.Fingerprint {
-					b.diff.ExistsInBoth.Columns = append(b.diff.ExistsInBoth.Columns, column)
+					b.diff.ExistsInBoth.Different.Columns = append(b.diff.ExistsInBoth.Different.Columns, column)
 				}
 			}
 		}
@@ -130,49 +146,58 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 }
 
 func (b *SchemaDifferencesBuilder) buildTableForeignKeyConstraintDifferences() {
-	existsInSource, existsInDestination := buildDifferencesByFingerprint(b.source.ForeignKeyConstraints, b.destination.ForeignKeyConstraints)
+	existsInSource, existsInBoth, existsInDestination := buildDifferencesByFingerprint(b.source.ForeignKeyConstraints, b.destination.ForeignKeyConstraints)
 	b.diff.ExistsInSource.ForeignKeyConstraints = existsInSource
+	b.diff.ExistsInBoth.Different.ForeignKeyConstraints = existsInBoth
 	b.diff.ExistsInDestination.ForeignKeyConstraints = existsInDestination
 }
 
 func (b *SchemaDifferencesBuilder) buildTableNonForeignKeyConstraintDifferences() {
-	existsInSource, existsInDestination := buildDifferencesByFingerprint(b.source.NonForeignKeyConstraints, b.destination.NonForeignKeyConstraints)
+	existsInSource, existsInBoth, existsInDestination := buildDifferencesByFingerprint(b.source.NonForeignKeyConstraints, b.destination.NonForeignKeyConstraints)
 	b.diff.ExistsInSource.NonForeignKeyConstraints = existsInSource
+	b.diff.ExistsInBoth.Different.NonForeignKeyConstraints = existsInBoth
 	b.diff.ExistsInDestination.NonForeignKeyConstraints = existsInDestination
 }
 
 func (b *SchemaDifferencesBuilder) buildTableTriggerDifferences() {
-	existsInSource, existsInDestination := buildDifferencesByFingerprint(b.source.Triggers, b.destination.Triggers)
+	existsInSource, existsInBoth, existsInDestination := buildDifferencesByFingerprint(b.source.Triggers, b.destination.Triggers)
 	b.diff.ExistsInSource.Triggers = existsInSource
+	b.diff.ExistsInBoth.Different.Triggers = existsInBoth
 	b.diff.ExistsInDestination.Triggers = existsInDestination
 }
 
 func (b *SchemaDifferencesBuilder) buildSchemaFunctionDifferences() {
-	existsInSource, existsInDestination := buildDifferencesByFingerprint(b.source.Functions, b.destination.Functions)
+	existsInSource, existsInBoth, existsInDestination := buildDifferencesByFingerprint(b.source.Functions, b.destination.Functions)
 	b.diff.ExistsInSource.Functions = existsInSource
+	b.diff.ExistsInBoth.Different.Functions = existsInBoth
 	b.diff.ExistsInDestination.Functions = existsInDestination
 }
 
-// buildDifferencesForMap compares two maps keyed by fingerprint.
+type FingerprintedType interface {
+	GetFingerprint() string
+}
+
+// buildDifferencesForMap compares two maps keyed by an identifier.
 // It appends items in `src` that are not in `dest` to `existsInSource`,
 // and items in `dest` not in `src` to `existsInDestination`.
-func buildDifferencesByFingerprint[T any](
-	src, dest map[string]*T,
-) (existsInSource, existsInDestination []*T) {
-	existsInSource = []*T{}
-	existsInDestination = []*T{}
-	// For each item in src, check if missing in dest
-	for fingerprint, srcVal := range src {
-		if _, ok := dest[fingerprint]; !ok {
-			existsInSource = append(existsInSource, srcVal)
+func buildDifferencesByFingerprint[T FingerprintedType](
+	src, dest map[string]T,
+) (existsInSource, existsInBoth, existsInDestination []T) {
+	inSource := []T{}
+	inDestination := []T{}
+	inBoth := []T{}
+	for key, srcVal := range src {
+		if _, ok := dest[key]; !ok {
+			inSource = append(inSource, srcVal)
+		} else if dest[key].GetFingerprint() != srcVal.GetFingerprint() {
+			inBoth = append(inBoth, srcVal)
 		}
 	}
 
-	// For each item in dest, check if missing in src
-	for fingerprint, destVal := range dest {
-		if _, ok := src[fingerprint]; !ok {
-			existsInDestination = append(existsInDestination, destVal)
+	for key, destVal := range dest {
+		if _, ok := src[key]; !ok {
+			inDestination = append(inDestination, destVal)
 		}
 	}
-	return existsInSource, existsInDestination
+	return inSource, inBoth, inDestination
 }

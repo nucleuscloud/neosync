@@ -1343,6 +1343,7 @@ func test_postgres_schema_reconciliation(
 		{schema: schema, table: "jobs", rowCount: 19},
 		{schema: schema, table: "employees", rowCount: 40},
 		{schema: schema, table: "dependents", rowCount: 30},
+		{schema: schema, table: "dummy_table", rowCount: 4},
 	}
 
 	tables := []string{}
@@ -1389,6 +1390,7 @@ func test_postgres_schema_reconciliation(
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "departments", sqlmanager_shared.PostgresDriver, []string{"department_id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "countries", sqlmanager_shared.PostgresDriver, []string{"country_id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "locations", sqlmanager_shared.PostgresDriver, []string{"location_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "dummy_table", sqlmanager_shared.PostgresDriver, []string{"id"})
 
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
@@ -1463,6 +1465,35 @@ func verify_postgres_schemas(
 		for _, nonFk := range destNonFk {
 			require.Contains(t, srcNonFk, nonFk, "source missing non-foreign key constraint in table %s", table)
 		}
+	}
+
+	t.Logf("checking triggers are the same in source and destination")
+	srcTriggers, err := srcManager.GetSchemaTableTriggers(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "astronaut"}})
+	require.NoError(t, err, "failed to get source triggers")
+	destTriggers, err := destManager.GetSchemaTableTriggers(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "astronaut"}})
+	require.NoError(t, err, "failed to get destination triggers")
+
+	destTriggersMap := make(map[string]*sqlmanager_shared.TableTrigger)
+	for _, trigger := range destTriggers {
+		destTriggersMap[trigger.Fingerprint] = trigger
+	}
+	for _, trigger := range srcTriggers {
+		destTrigger, ok := destTriggersMap[trigger.Fingerprint]
+		require.True(t, ok, "destination missing trigger with fingerprint %s", trigger.Fingerprint)
+		require.Equal(t, trigger.Definition, destTrigger.Definition, "trigger definitions do not match for fingerprint %s", trigger.Fingerprint)
+	}
+
+	t.Logf("checking functions are the same in source and destination")
+	srcFunctions, err := srcManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get source functions")
+	destFunctions, err := destManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get destination functions")
+
+	for _, function := range srcFunctions.Functions {
+		require.Contains(t, destFunctions.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
+	}
+	for _, function := range destFunctions.Functions {
+		require.Contains(t, srcFunctions.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
 	}
 }
 

@@ -16,6 +16,7 @@ const (
 	DropNonForeignKeyConstraintsLabel = "drop non-foreign key constraints"
 	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
 	UpdateColumnsLabel                = "update columns"
+	UpdateFunctionsLabel              = "update functions"
 )
 
 type DatabaseSchemaRow struct {
@@ -57,6 +58,11 @@ type DatabaseTableRow struct {
 	TableName  string
 }
 
+// Fingerprinter is implemented by any type that exposes a Fingerprint via GetFingerprint().
+type Fingerprinter interface {
+	GetFingerprint() string
+}
+
 type TableColumn struct {
 	Fingerprint         string
 	Schema              string
@@ -72,6 +78,10 @@ type TableColumn struct {
 	SequenceDefinition  *string
 	IsSerial            bool
 	Comment             *string
+}
+
+func (c *TableColumn) GetFingerprint() string {
+	return c.Fingerprint
 }
 
 type ForeignKeyConstraintsRow struct {
@@ -109,6 +119,10 @@ type TableTrigger struct {
 	Definition    string
 }
 
+func (t *TableTrigger) GetFingerprint() string {
+	return t.Fingerprint
+}
+
 type TableInitStatement struct {
 	CreateTableStatement string
 	AlterTableStatements []*AlterTableStatement
@@ -135,6 +149,11 @@ type ForeignKeyConstraint struct {
 	UpdateRule         *string
 	DeleteRule         *string
 }
+
+func (f *ForeignKeyConstraint) GetFingerprint() string {
+	return f.Fingerprint
+}
+
 type NonForeignKeyConstraint struct {
 	Fingerprint    string
 	ConstraintName string
@@ -143,6 +162,10 @@ type NonForeignKeyConstraint struct {
 	TableName      string
 	Columns        []string
 	Definition     string
+}
+
+func (n *NonForeignKeyConstraint) GetFingerprint() string {
+	return n.Fingerprint
 }
 
 type AllTableConstraints struct {
@@ -209,6 +232,10 @@ type DataType struct {
 	Schema      string
 	Name        string
 	Definition  string
+}
+
+func (d *DataType) GetFingerprint() string {
+	return d.Fingerprint
 }
 
 type ExtensionDataType struct {
