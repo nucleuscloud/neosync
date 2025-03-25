@@ -1121,7 +1121,7 @@ func BuildDropFunctionStatement(schema, functionName string) string {
 	return fmt.Sprintf("DROP FUNCTION IF EXISTS %q.%q;", schema, functionName)
 }
 
-func BuildUpdateFunctionStatement(schema, functionName string, createStatement string) string {
+func BuildUpdateFunctionStatement(schema, functionName, createStatement string) string {
 	return fmt.Sprintf("CREATE OR REPLACE FUNCTION %q.%q %s;", schema, functionName, addSuffixIfNotExist(createStatement, ";"))
 }
 
