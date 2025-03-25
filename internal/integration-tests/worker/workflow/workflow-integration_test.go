@@ -112,7 +112,7 @@ func Test_Workflow(t *testing.T) {
 				t.Parallel()
 				test_postgres_schema_reconciliation(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn, true)
 			})
-			t.Run("no_truncate", func(t *testing.T) {
+			t.Run("retain_data", func(t *testing.T) {
 				t.Parallel()
 				test_postgres_schema_reconciliation(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn, false)
 			})
