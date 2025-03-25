@@ -675,7 +675,7 @@ var (
 			DataType:          mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_INT64,
 			DataTypes:         []mgmtv1alpha1.TransformerDataType{mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_INT64, mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_NULL},
 			SupportedJobTypes: []mgmtv1alpha1.SupportedJobType{mgmtv1alpha1.SupportedJobType_SUPPORTED_JOB_TYPE_SYNC},
-			Source:            mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_SCRAMBLE_IDENTITY,
+			Source:            mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_SCRAMBLE_IDENTITY,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig{
 					TransformScrambleIdentityConfig: &mgmtv1alpha1.TransformScrambleIdentity{},

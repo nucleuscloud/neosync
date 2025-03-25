@@ -60,7 +60,7 @@ class TransformerSource(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME: _ClassVar[TransformerSource]
     TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS: _ClassVar[TransformerSource]
     TRANSFORMER_SOURCE_TRANSFORM_UUID: _ClassVar[TransformerSource]
-    TRANSFORMER_SOURCE_SCRAMBLE_IDENTITY: _ClassVar[TransformerSource]
+    TRANSFORMER_SOURCE_TRANSFORM_SCRAMBLE_IDENTITY: _ClassVar[TransformerSource]
 
 class TransformerDataType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -155,7 +155,7 @@ TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT: TransformerSource
 TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME: TransformerSource
 TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS: TransformerSource
 TRANSFORMER_SOURCE_TRANSFORM_UUID: TransformerSource
-TRANSFORMER_SOURCE_SCRAMBLE_IDENTITY: TransformerSource
+TRANSFORMER_SOURCE_TRANSFORM_SCRAMBLE_IDENTITY: TransformerSource
 TRANSFORMER_DATA_TYPE_UNSPECIFIED: TransformerDataType
 TRANSFORMER_DATA_TYPE_STRING: TransformerDataType
 TRANSFORMER_DATA_TYPE_INT64: TransformerDataType
