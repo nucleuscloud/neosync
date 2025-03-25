@@ -21,16 +21,6 @@ import (
 const (
 	columnDefaultDefault = "Default"
 	columnDefaultString  = "String"
-
-	SchemasLabel                      = "schemas"
-	CreateTablesLabel                 = "create table"
-	AddColumnsLabel                   = "add columns"
-	DropColumnsLabel                  = "drop columns"
-	DropTriggersLabel                 = "drop triggers"
-	DropFunctionsLabel                = "drop functions"
-	DropNonForeignKeyConstraintsLabel = "drop non-foreign key constraints"
-	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
-	UpdateColumnsLabel                = "update columns"
 )
 
 type MysqlManager struct {
@@ -985,9 +975,9 @@ func (m *MysqlManager) GetSchemaInitStatements(
 	}
 
 	return []*sqlmanager_shared.InitSchemaStatements{
-		{Label: SchemasLabel, Statements: schemaStmts},
+		{Label: sqlmanager_shared.SchemasLabel, Statements: schemaStmts},
 		{Label: "data types", Statements: dataTypeStmts},
-		{Label: CreateTablesLabel, Statements: createTables},
+		{Label: sqlmanager_shared.CreateTablesLabel, Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
 		{Label: "table index", Statements: idxStmts},
 		{Label: "fk alter table", Statements: fkAlterStmts},

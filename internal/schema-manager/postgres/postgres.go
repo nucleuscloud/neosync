@@ -60,15 +60,17 @@ func NewPostgresSchemaManager(
 func (d *PostgresSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*shared.SchemaDifferences, error) {
 	d.logger.Debug("calculating schema diff")
 	tables := []*sqlmanager_shared.SchemaTable{}
+	schemaMap := map[string][]*sqlmanager_shared.SchemaTable{}
 	for _, schematable := range uniqueTables {
 		tables = append(tables, schematable)
+		schemaMap[schematable.Schema] = append(schemaMap[schematable.Schema], schematable)
 	}
 
 	sourceData := &shared.DatabaseData{}
 	destData := &shared.DatabaseData{}
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.Go(func() error {
-		dbData, err := getDatabaseDataForSchemaDiff(errctx, d.sourcedb, tables)
+		dbData, err := getDatabaseDataForSchemaDiff(errctx, d.sourcedb, tables, schemaMap)
 		if err != nil {
 			return fmt.Errorf("failed to get database data for schema diff: %w", err)
 		}
@@ -76,7 +78,7 @@ func (d *PostgresSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueT
 		return nil
 	})
 	errgrp.Go(func() error {
-		dbData, err := getDatabaseDataForSchemaDiff(errctx, d.destdb, tables)
+		dbData, err := getDatabaseDataForSchemaDiff(errctx, d.destdb, tables, schemaMap)
 		if err != nil {
 			return fmt.Errorf("failed to get database data for schema diff: %w", err)
 		}
@@ -161,18 +163,42 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, d
 	}
 	addColumnStatements := []string{}
 	for _, column := range diff.ExistsInSource.Columns {
-		stmt, err := sqlmanager_postgres.BuildAddColumnStatement(column)
-		if err != nil {
-			return nil, fmt.Errorf("failed to build add column statement: %w", err)
-		}
+		stmt := sqlmanager_postgres.BuildAddColumnStatement(column)
 		commentStmt := sqlmanager_postgres.BuildUpdateCommentStatement(column.Schema, column.Table, column.Name, column.Comment)
 		addColumnStatements = append(addColumnStatements, stmt, commentStmt)
 	}
 
+	dropNonFkConstraintStatements := []string{}
+	for _, constraint := range diff.ExistsInDestination.NonForeignKeyConstraints {
+		dropNonFkConstraintStatements = append(dropNonFkConstraintStatements, sqlmanager_postgres.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintName))
+	}
+
+	dropFkConstraintStatements := []string{}
+	for _, constraint := range diff.ExistsInDestination.ForeignKeyConstraints {
+		dropFkConstraintStatements = append(dropFkConstraintStatements, sqlmanager_postgres.BuildDropConstraintStatement(constraint.ReferencingSchema, constraint.ReferencingTable, constraint.ConstraintName))
+	}
+
+	dropColumnStatements := []string{}
+	for _, column := range diff.ExistsInDestination.Columns {
+		dropColumnStatements = append(dropColumnStatements, sqlmanager_postgres.BuildDropColumnStatement(column.Schema, column.Table, column.Name))
+	}
+
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{
-			Label:      sqlmanager_postgres.AddColumnsLabel,
+			Label:      sqlmanager_shared.AddColumnsLabel,
 			Statements: addColumnStatements,
+		},
+		{
+			Label:      sqlmanager_shared.DropForeignKeyConstraintsLabel,
+			Statements: dropFkConstraintStatements,
+		},
+		{
+			Label:      sqlmanager_shared.DropNonForeignKeyConstraintsLabel,
+			Statements: dropNonFkConstraintStatements,
+		},
+		{
+			Label:      sqlmanager_shared.DropColumnsLabel,
+			Statements: dropColumnStatements,
 		},
 	}, nil
 }
@@ -206,7 +232,10 @@ func (d *PostgresSchemaManager) ReconcileDestinationSchema(ctx context.Context, 
 	for _, statement := range initblocks {
 		statementBlocks = append(statementBlocks, statement)
 		if statement.Label == sqlmanager_postgres.CreateTablesLabel {
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_postgres.AddColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropForeignKeyConstraintsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropNonForeignKeyConstraintsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.AddColumnsLabel]...)
 		}
 	}
 

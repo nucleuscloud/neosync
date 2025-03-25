@@ -5,7 +5,16 @@ import (
 )
 
 const (
-	DisableForeignKeyChecks = "SET FOREIGN_KEY_CHECKS = 0;"
+	DisableForeignKeyChecks           = "SET FOREIGN_KEY_CHECKS = 0;"
+	SchemasLabel                      = "schemas"
+	CreateTablesLabel                 = "create table"
+	AddColumnsLabel                   = "add columns"
+	DropColumnsLabel                  = "drop columns"
+	DropTriggersLabel                 = "drop triggers"
+	DropFunctionsLabel                = "drop functions"
+	DropNonForeignKeyConstraintsLabel = "drop non-foreign key constraints"
+	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
+	UpdateColumnsLabel                = "update columns"
 )
 
 type DatabaseSchemaRow struct {

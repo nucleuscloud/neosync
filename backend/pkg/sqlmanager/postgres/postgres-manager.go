@@ -17,10 +17,12 @@ import (
 )
 
 const (
-	SchemasLabel      = "schemas"
-	ExtensionsLabel   = "extensions"
-	CreateTablesLabel = "create table"
-	AddColumnsLabel   = "add columns"
+	SchemasLabel         = "schemas"
+	ExtensionsLabel      = "extensions"
+	CreateTablesLabel    = "create table"
+	AddColumnsLabel      = "add columns"
+	DropConstraintsLabel = "drop constraints"
+	DropColumnsLabel     = "drop columns"
 )
 
 type PostgresManager struct {
@@ -1098,7 +1100,7 @@ func buildAlterStatementByConstraint(
 	), nil
 }
 
-func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) (string, error) {
+func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) string {
 	col := buildTableCol(&buildTableColRequest{
 		ColumnName:         column.Name,
 		ColumnDefault:      column.ColumnDefault,
@@ -1107,7 +1109,17 @@ func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) (string, err
 		GeneratedType:      *column.GeneratedType,
 		SequenceDefinition: column.SequenceDefinition,
 	})
-	return fmt.Sprintf("ALTER TABLE %q.%q ADD COLUMN %s;", column.Schema, column.Table, col), nil
+	return fmt.Sprintf("ALTER TABLE %q.%q ADD COLUMN %s;", column.Schema, column.Table, col)
+}
+
+func BuildDropColumnStatement(schema, table, column string) string {
+	// cascade is used to drop the column and all the constraints, views, and indexes that depend on it
+	return fmt.Sprintf("ALTER TABLE %q.%q DROP COLUMN %q IF EXISTS CASCADE;", schema, table, column)
+}
+
+func BuildDropConstraintStatement(schema, table, constraintName string) string {
+	// cascade is used to drop the constraint and any dependent objects (other constraints, indexes, triggers, etc)
+	return fmt.Sprintf("ALTER TABLE %q.%q DROP CONSTRAINT IF EXISTS %q CASCADE;", schema, table, constraintName)
 }
 
 type buildTableColRequest struct {
