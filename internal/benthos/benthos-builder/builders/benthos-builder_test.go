@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	neosync_benthos_transformers "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 )
 
 const (
@@ -939,6 +940,14 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 				},
 			},
 		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_SCRAMBLE_IDENTITY,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig{
+					TransformScrambleIdentityConfig: &mgmtv1alpha1.TransformScrambleIdentity{},
+				},
+			},
+		},
 	}
 
 	emailColInfo := &sqlmanager_shared.DatabaseSchemaRow{
@@ -951,8 +960,11 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 		NumericScale:           0,
 	}
 
+	blobenv := bloblang.NewEnvironment()
+	neosync_benthos_transformers.RegisterTransformIdentityScramble(blobenv, nil)
+
 	for _, transformer := range transformers {
-		t.Run(fmt.Sprintf("%s_%s_lint", t.Name(), transformer.Source), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%s_%T_lint", t.Name(), transformer.Config.Config), func(t *testing.T) {
 			val, err := computeMutationFunction(
 				&mgmtv1alpha1.JobMapping{
 					Column: "email",
@@ -961,8 +973,8 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 					},
 				}, emailColInfo, false)
 			require.NoError(t, err)
-			ex, err := bloblang.Parse(val)
-			require.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
+			ex, err := blobenv.Parse(val)
+			require.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing Config: %T", transformer.Config.Config))
 			_, err = ex.Query(nil)
 			require.NoError(t, err)
 		})
@@ -1088,6 +1100,9 @@ func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testi
 		{
 			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_GenerateCountryConfig{}},
 		},
+		{
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig{}},
+		},
 	}
 
 	emailColInfo := &sqlmanager_shared.DatabaseSchemaRow{
@@ -1100,8 +1115,11 @@ func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testi
 		NumericScale:           0,
 	}
 
+	blobenv := bloblang.NewEnvironment()
+	neosync_benthos_transformers.RegisterTransformIdentityScramble(blobenv, nil)
+
 	for _, transformer := range transformers {
-		t.Run(fmt.Sprintf("%s_%s_lint", t.Name(), transformer.Source), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%s_%T_lint", t.Name(), transformer.Config.Config), func(t *testing.T) {
 			val, err := computeMutationFunction(
 				&mgmtv1alpha1.JobMapping{
 					Column: "email",
@@ -1110,8 +1128,8 @@ func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testi
 					},
 				}, emailColInfo, false)
 			require.NoError(t, err)
-			ex, err := bloblang.Parse(val)
-			require.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
+			ex, err := blobenv.Parse(val)
+			require.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing Config: %T", transformer.Config.Config))
 			_, err = ex.Query(nil)
 			require.NoError(t, err)
 		})

@@ -2,16 +2,16 @@ package transformers
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_GenerateUsername(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(2))
+	randomizer := rng.New(2)
 	res, err := generateUsername(randomizer, maxLength)
 	assert.NoError(t, err)
 
@@ -21,7 +21,7 @@ func Test_GenerateUsername(t *testing.T) {
 
 func Test_GenerateUsername_Random_Seed(t *testing.T) {
 	seed := time.Now().UnixNano()
-	randomizer := rand.New(rand.NewSource(seed))
+	randomizer := rng.New(seed)
 	res, err := generateUsername(randomizer, maxLength)
 	assert.NoError(t, err, "failed with seed", "seed", seed)
 
@@ -30,7 +30,7 @@ func Test_GenerateUsername_Random_Seed(t *testing.T) {
 }
 
 func Test_GenerateUsernameShort(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := generateUsername(randomizer, 3)
 	assert.NoError(t, err)
 

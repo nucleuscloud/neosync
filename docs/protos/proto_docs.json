@@ -1754,6 +1754,11 @@
               "name": "TRANSFORMER_SOURCE_TRANSFORM_UUID",
               "number": "50",
               "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_SCRAMBLE_IDENTITY",
+              "number": "51",
+              "description": ""
             }
           ]
         }
@@ -3615,6 +3620,17 @@
           ]
         },
         {
+          "name": "TransformScrambleIdentity",
+          "longName": "TransformScrambleIdentity",
+          "fullName": "mgmt.v1alpha1.TransformScrambleIdentity",
+          "description": "Takes an input integer and scrambles it, effectively outputing another integer that is not the same as the input.\nThis is effectively a random integer generator that has unique properties.",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "TransformString",
           "longName": "TransformString",
           "fullName": "mgmt.v1alpha1.TransformString",
@@ -4218,6 +4234,18 @@
               "type": "TransformUuid",
               "longType": "TransformUuid",
               "fullType": "mgmt.v1alpha1.TransformUuid",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "transform_scramble_identity_config",
+              "description": "Scrambles an integer while keeping it unique.",
+              "label": "",
+              "type": "TransformScrambleIdentity",
+              "longType": "TransformScrambleIdentity",
+              "fullType": "mgmt.v1alpha1.TransformScrambleIdentity",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

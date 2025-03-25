@@ -153,6 +153,7 @@ func NewTestDataSyncWorkflowEnv(
 		dbManagers.MongoConnManager,
 		activityMeter,
 		benthosstream.NewBenthosStreamManager(),
+		neosyncApi.Mocks.TemporalClient,
 		workflowEnv.maxIterations,
 	)
 

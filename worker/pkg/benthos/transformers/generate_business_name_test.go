@@ -2,10 +2,10 @@ package transformers
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +13,7 @@ import (
 )
 
 func Test_GenerateRandomBusinessName(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := generateRandomBusinessName(randomizer, nil, maxCharacterLimit)
 
 	assert.NoError(t, err)
@@ -23,7 +23,7 @@ func Test_GenerateRandomBusinessName(t *testing.T) {
 
 func Test_GenerateRandomBusinessName_Random_Seed(t *testing.T) {
 	seed := time.Now().UnixNano()
-	randomizer := rand.New(rand.NewSource(seed))
+	randomizer := rng.New(seed)
 	res, err := generateRandomBusinessName(randomizer, nil, maxCharacterLimit)
 
 	assert.NoError(t, err, "failed with seed", "seed", seed)
@@ -32,7 +32,7 @@ func Test_GenerateRandomBusinessName_Random_Seed(t *testing.T) {
 }
 
 func Test_GenerateRandomBusinessName_Clamped(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := generateRandomBusinessName(randomizer, shared.Ptr(int64(10)), maxCharacterLimit)
 
 	assert.NoError(t, err)
