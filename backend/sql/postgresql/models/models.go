@@ -1209,12 +1209,22 @@ func (s *MongoDbSourceOptions) FromDto(dto *mgmtv1alpha1.MongoDBSourceConnection
 }
 
 type MysqlSourceOptions struct {
-	HaltOnNewColumnAddition       bool                        `json:"haltOnNewColumnAddition"`
-	SubsetByForeignKeyConstraints bool                        `json:"subsetByForeignKeyConstraints"`
-	Schemas                       []*MysqlSourceSchemaOption  `json:"schemas"`
-	ConnectionId                  string                      `json:"connectionId"`
-	ColumnRemovalStrategy         *MysqlColumnRemovalStrategy `json:"columnRemovalStrategy,omitempty"`
+	// @deprecated
+	HaltOnNewColumnAddition       bool                            `json:"haltOnNewColumnAddition"`
+	SubsetByForeignKeyConstraints bool                            `json:"subsetByForeignKeyConstraints"`
+	Schemas                       []*MysqlSourceSchemaOption      `json:"schemas"`
+	ConnectionId                  string                          `json:"connectionId"`
+	ColumnRemovalStrategy         *MysqlColumnRemovalStrategy     `json:"columnRemovalStrategy,omitempty"`
+	NewColumnAdditionStrategy     *MysqlNewColumnAdditionStrategy `json:"newColumnAdditionStrategy,omitempty"`
 }
+
+type MysqlNewColumnAdditionStrategy struct {
+	HaltJob *MysqlHaltJobNewColumnAdditionStrategy `json:"haltJob,omitempty"`
+	AutoMap *MysqlAutoMapNewColumnAdditionStrategy `json:"autoMap,omitempty"`
+}
+
+type MysqlHaltJobNewColumnAdditionStrategy struct{}
+type MysqlAutoMapNewColumnAdditionStrategy struct{}
 
 type MysqlColumnRemovalStrategy struct {
 	HaltJob     *MysqlHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
@@ -1466,11 +1476,60 @@ func (s *MysqlSourceOptions) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions 
 	if s.ColumnRemovalStrategy != nil {
 		dto.ColumnRemovalStrategy = s.ColumnRemovalStrategy.ToDto()
 	}
+	if s.NewColumnAdditionStrategy != nil {
+		dto.NewColumnAdditionStrategy = s.NewColumnAdditionStrategy.ToDto()
+	} else if s.HaltOnNewColumnAddition {
+		dto.NewColumnAdditionStrategy = &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
+			},
+		}
+		dto.HaltOnNewColumnAddition = true
+	}
 
 	return dto
 }
+
+func (s *MysqlNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy {
+	if s.HaltJob != nil {
+		return &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
+			},
+		}
+	}
+	if s.AutoMap != nil {
+		return &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_{
+				AutoMap: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap{},
+			},
+		}
+	}
+	return nil
+}
+
+func (s *MysqlNewColumnAdditionStrategy) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy) {
+	if dto.GetStrategy() != nil {
+		switch dto.GetStrategy().(type) {
+		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
+			s.HaltJob = &MysqlHaltJobNewColumnAdditionStrategy{}
+		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_:
+			s.AutoMap = &MysqlAutoMapNewColumnAdditionStrategy{}
+		}
+	}
+}
+
 func (s *MysqlSourceOptions) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOptions) {
 	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
+	if dto.GetNewColumnAdditionStrategy().GetStrategy() != nil {
+		s.NewColumnAdditionStrategy = &MysqlNewColumnAdditionStrategy{}
+		s.NewColumnAdditionStrategy.FromDto(dto.GetNewColumnAdditionStrategy())
+	} else if dto.HaltOnNewColumnAddition {
+		s.NewColumnAdditionStrategy = &MysqlNewColumnAdditionStrategy{
+			HaltJob: &MysqlHaltJobNewColumnAdditionStrategy{},
+		}
+		s.HaltOnNewColumnAddition = true
+	}
 	s.SubsetByForeignKeyConstraints = dto.SubsetByForeignKeyConstraints
 	s.Schemas = FromDtoMysqlSourceSchemaOptions(dto.Schemas)
 	s.ConnectionId = dto.ConnectionId

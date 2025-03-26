@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -640,6 +641,17 @@ func getAdditionalJobMappings(
 							Column:      col,
 							Transformer: transformer,
 						})
+					case sqlmanager_shared.MysqlDriver:
+						transformer, err := getJmTransformerByMysqlDataType(info)
+						if err != nil {
+							return nil, err
+						}
+						output = append(output, &mgmtv1alpha1.JobMapping{
+							Schema:      schema,
+							Table:       table,
+							Column:      col,
+							Transformer: transformer,
+						})
 					default:
 						logger.Warn("this driver is not currently supported for additional job mapping by data type")
 						return nil, fmt.Errorf("this driver %q does not currently support additional job mappings by data type. Please provide discrete job mappings for %q.%q.%q to continue: %w",
@@ -796,12 +808,456 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchem
 	}
 }
 
+func getJmTransformerByMysqlDataType(colInfo *sqlmanager_shared.DatabaseSchemaRow) (*mgmtv1alpha1.JobMappingTransformer, error) {
+	cleanedDataType := cleanMysqlType(colInfo.DataType)
+	switch cleanedDataType {
+	case "char":
+		params := extractMysqlTypeParams(colInfo.DataType)
+		minLength := int64(0)
+		maxLength := int64(255)
+		if len(params) > 0 {
+			fixedLength, err := strconv.ParseInt(params[0], 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse length for char type %q: %w", colInfo.DataType, err)
+			}
+			minLength = fixedLength
+			maxLength = fixedLength
+		} else if colInfo.CharacterMaximumLength > 0 {
+			maxLength = int64(colInfo.CharacterMaximumLength)
+		}
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
+					GenerateStringConfig: &mgmtv1alpha1.GenerateString{Min: shared.Ptr(minLength), Max: shared.Ptr(maxLength)},
+				},
+			},
+		}, nil
+
+	case "varchar":
+		params := extractMysqlTypeParams(colInfo.DataType)
+		maxLength := int64(65535)
+		if len(params) > 0 {
+			fixedLength, err := strconv.ParseInt(params[0], 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse length for varchar type %q: %w", colInfo.DataType, err)
+			}
+			maxLength = fixedLength
+		} else if colInfo.CharacterMaximumLength > 0 {
+			maxLength = int64(colInfo.CharacterMaximumLength)
+		}
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
+					GenerateStringConfig: &mgmtv1alpha1.GenerateString{Max: shared.Ptr(maxLength)},
+				},
+			},
+		}, nil
+
+	case "tinytext":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
+					GenerateStringConfig: &mgmtv1alpha1.GenerateString{Max: shared.Ptr(int64(255))},
+				},
+			},
+		}, nil
+
+	case "text":
+		params := extractMysqlTypeParams(colInfo.DataType)
+		maxLength := int64(65535)
+		if len(params) > 0 {
+			length, err := strconv.ParseInt(params[0], 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse length for text type %q: %w", colInfo.DataType, err)
+			}
+			maxLength = length
+		} else if colInfo.CharacterMaximumLength > 0 {
+			maxLength = int64(colInfo.CharacterMaximumLength)
+		}
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
+					GenerateStringConfig: &mgmtv1alpha1.GenerateString{Max: shared.Ptr(maxLength)},
+				},
+			},
+		}, nil
+
+	case "mediumtext":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
+					GenerateStringConfig: &mgmtv1alpha1.GenerateString{Max: shared.Ptr(int64(16_777_215))},
+				},
+			},
+		}, nil
+	case "longtext":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
+					GenerateStringConfig: &mgmtv1alpha1.GenerateString{Max: shared.Ptr(int64(4_294_967_295))},
+				},
+			},
+		}, nil
+	case "enum", "set":
+		params := extractMysqlTypeParams(colInfo.DataType)
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{
+					GenerateCategoricalConfig: &mgmtv1alpha1.GenerateCategorical{Categories: shared.Ptr(strings.Join(params, ","))},
+				},
+			},
+		}, nil
+
+	case "tinyint":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
+					GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
+						Min: shared.Ptr(int64(0)),
+						Max: shared.Ptr(int64(255)),
+					},
+				},
+			},
+		}, nil
+
+	case "smallint":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
+					GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
+						Min: shared.Ptr(int64(0)),
+						Max: shared.Ptr(int64(65535)),
+					},
+				},
+			},
+		}, nil
+	case "mediumint":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
+					GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
+						Min: shared.Ptr(int64(0)),
+						Max: shared.Ptr(int64(16_777_215)),
+					},
+				},
+			},
+		}, nil
+	case "int", "integer":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
+					GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
+						Min: shared.Ptr(int64(0)),
+						Max: shared.Ptr(int64(4_294_967_295)),
+					},
+				},
+			},
+		}, nil
+	case "bigint":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
+					GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
+						Min: shared.Ptr(int64(0)),
+						Max: shared.Ptr(int64(9223372036854775807)),
+					},
+				},
+			},
+		}, nil
+	case "float":
+		precision := int64(colInfo.NumericPrecision)
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
+					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
+						Precision: &precision,
+					},
+				},
+			},
+		}, nil
+	case "double", "double precision", "decimal", "dec":
+		precision := int64(colInfo.NumericPrecision)
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
+					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
+						Precision: &precision, // todo: expose scale
+					},
+				},
+			},
+		}, nil
+
+	case "bit":
+		params := extractMysqlTypeParams(colInfo.DataType)
+		bitLength := int64(1) // default length is 1
+		if len(params) > 0 {
+			if parsed, err := strconv.ParseInt(params[0], 10, 64); err == nil && parsed > 0 && parsed <= 64 {
+				bitLength = parsed
+			}
+		}
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: fmt.Sprintf(`
+							// Generate random bits up to specified length
+							const length = %d;
+							let bits = "";
+							for (let i = 0; i < length; i++) {
+								bits += Math.random() < 0.5 ? "0" : "1";
+							}
+							return bits;
+						`, bitLength),
+					},
+				},
+			},
+		}, nil
+	case "binary", "varbinary":
+		params := extractMysqlTypeParams(colInfo.DataType)
+		maxLength := int64(255) // default max length
+		if len(params) > 0 {
+			if parsed, err := strconv.ParseInt(params[0], 10, 64); err == nil && parsed > 0 && parsed <= 255 {
+				maxLength = parsed
+			}
+		}
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: fmt.Sprintf(`
+							// Generate random binary data up to maxLength bytes
+							const maxLength = %d;
+							const length = Math.floor(Math.random() * maxLength) + 1;
+							const bytes = new Uint8Array(length);
+							for (let i = 0; i < length; i++) {
+								bytes[i] = Math.floor(Math.random() * 256);
+							}
+							// Convert to base64 for safe transport
+							return Buffer.from(bytes).toString('base64');
+						`, maxLength),
+					},
+				},
+			},
+		}, nil
+	case "tinyblob":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: `
+							// Generate random TINYBLOB (max 255 bytes)
+							const maxLength = 255;
+							const length = Math.floor(Math.random() * maxLength) + 1;
+							const bytes = new Uint8Array(length);
+							for (let i = 0; i < length; i++) {
+								bytes[i] = Math.floor(Math.random() * 256);
+							}
+							return Buffer.from(bytes).toString('base64');
+						`,
+					},
+				},
+			},
+		}, nil
+	case "blob":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: `
+							// Generate random BLOB (max 65,535 bytes)
+							// Using a smaller max for practical purposes
+							const maxLength = 1024; // Using 1KB for reasonable performance
+							const length = Math.floor(Math.random() * maxLength) + 1;
+							const bytes = new Uint8Array(length);
+							for (let i = 0; i < length; i++) {
+								bytes[i] = Math.floor(Math.random() * 256);
+							}
+							return Buffer.from(bytes).toString('base64');
+						`,
+					},
+				},
+			},
+		}, nil
+	case "mediumblob":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: `
+							// Generate random MEDIUMBLOB (max 16,777,215 bytes)
+							// Using a smaller max for practical purposes
+							const maxLength = 2048; // Using 2KB for reasonable performance
+							const length = Math.floor(Math.random() * maxLength) + 1;
+							const bytes = new Uint8Array(length);
+							for (let i = 0; i < length; i++) {
+								bytes[i] = Math.floor(Math.random() * 256);
+							}
+							return Buffer.from(bytes).toString('base64');
+						`,
+					},
+				},
+			},
+		}, nil
+	case "longblob":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: `
+							// Generate random LONGBLOB (max 4,294,967,295 bytes)
+							// Using a smaller max for practical purposes
+							const maxLength = 4096; // Using 4KB for reasonable performance
+							const length = Math.floor(Math.random() * maxLength) + 1;
+							const bytes = new Uint8Array(length);
+							for (let i = 0; i < length; i++) {
+								bytes[i] = Math.floor(Math.random() * 256);
+							}
+							return Buffer.from(bytes).toString('base64');
+						`,
+					},
+				},
+			},
+		}, nil
+
+	case "date":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: `
+								const date = new Date();
+								const year = date.getFullYear();
+								const month = String(date.getMonth() + 1).padStart(2, '0');
+								const day = String(date.getDate()).padStart(2, '0');
+								return year + "-" + month + "-" + day;
+							`,
+					},
+				},
+			},
+		}, nil
+	case "datetime", "timestamp":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: `
+								const date = new Date();
+								const year = date.getFullYear();
+								const month = String(date.getMonth() + 1).padStart(2, '0');
+								const day = String(date.getDate()).padStart(2, '0');
+								const hours = String(date.getHours()).padStart(2, '0');
+								const minutes = String(date.getMinutes()).padStart(2, '0');
+								const seconds = String(date.getSeconds()).padStart(2, '0');
+								return year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
+							`,
+					},
+				},
+			},
+		}, nil
+	case "time":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: `
+								const date = new Date();
+								const hours = String(date.getHours()).padStart(2, '0');
+								const minutes = String(date.getMinutes()).padStart(2, '0');
+								const seconds = String(date.getSeconds()).padStart(2, '0');
+								return hours + ":" + minutes + ":" + seconds;
+							`,
+					},
+				},
+			},
+		}, nil
+	case "year":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: `
+								const date = new Date();
+								return date.getFullYear();
+							`,
+					},
+				},
+			},
+		}, nil
+	case "boolean", "bool":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{
+					GenerateBoolConfig: &mgmtv1alpha1.GenerateBool{},
+				},
+			},
+		}, nil
+	default:
+		return nil, fmt.Errorf("uncountered unsupported data type %q for %q.%q.%q when attempting to generate an auto-mapper. To continue, provide a discrete job mapping for this column.: %w",
+			colInfo.DataType, colInfo.TableSchema, colInfo.TableName, colInfo.ColumnName, errors.ErrUnsupported,
+		)
+	}
+}
+
 func cleanPostgresType(dataType string) string {
 	parenIndex := strings.Index(dataType, "(")
 	if parenIndex == -1 {
 		return dataType
 	}
 	return strings.TrimSpace(dataType[:parenIndex])
+}
+
+func cleanMysqlType(dataType string) string {
+	parenIndex := strings.Index(dataType, "(")
+	if parenIndex == -1 {
+		return dataType
+	}
+	return strings.TrimSpace(dataType[:parenIndex])
+}
+
+// extractMysqlTypeParams extracts the parameters from MySQL data type definitions
+// Examples:
+// - CHAR(10) -> ["10"]
+// - FLOAT(10, 2) -> ["10", "2"]
+// - ENUM('val1', 'val2') -> ["val1", "val2"]
+func extractMysqlTypeParams(dataType string) []string {
+	parenIndex := strings.Index(dataType, "(")
+	if parenIndex == -1 {
+		return nil
+	}
+
+	closingIndex := strings.LastIndex(dataType, ")")
+	if closingIndex == -1 {
+		return nil
+	}
+
+	// Extract content between parentheses
+	paramsStr := dataType[parenIndex+1 : closingIndex]
+
+	// Handle ENUM/SET cases which use quotes
+	if strings.Contains(paramsStr, "'") {
+		// Split by comma and handle quoted values
+		params := strings.Split(paramsStr, ",")
+		result := make([]string, 0, len(params))
+		for _, p := range params {
+			// Remove quotes and whitespace
+			p = strings.Trim(strings.TrimSpace(p), "'")
+			if p != "" {
+				result = append(result, p)
+			}
+		}
+		return result
+	}
+
+	// Handle regular numeric parameters
+	params := strings.Split(paramsStr, ",")
+	result := make([]string, 0, len(params))
+	for _, p := range params {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			result = append(result, p)
+		}
+	}
+	return result
 }
 
 func shouldOverrideColumnDefault(columnDefaults map[string]*neosync_benthos.ColumnDefaultProperties) bool {
