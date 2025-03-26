@@ -158,14 +158,29 @@ func getDatabaseDataForSchemaDiff(
 	})
 
 	functions := map[string]*sqlmanager_shared.DataType{}
+	domains := map[string]*sqlmanager_shared.DataType{}
+	enums := map[string]*sqlmanager_shared.DataType{}
+	composites := map[string]*sqlmanager_shared.DataType{}
 	errgrp.Go(func() error {
-		datatypes, err := db.Db().GetSchemaTableDataTypes(ctx, tables)
+		rows, err := db.Db().GetSchemaTableDataTypes(ctx, tables)
 		if err != nil {
 			return fmt.Errorf("failed to retrieve database table functions: %w", err)
 		}
-		for _, tablefunction := range datatypes.Functions {
+		for _, tablefunction := range rows.Functions {
 			key := fmt.Sprintf("%s.%s", tablefunction.Schema, tablefunction.Name)
 			functions[key] = tablefunction
+		}
+		for _, dt := range rows.Domains {
+			key := fmt.Sprintf("%s.%s", dt.Schema, dt.Name)
+			domains[key] = dt
+		}
+		for _, dt := range rows.Enums {
+			key := fmt.Sprintf("%s.%s", dt.Schema, dt.Name)
+			enums[key] = dt
+		}
+		for _, dt := range rows.Composites {
+			key := fmt.Sprintf("%s.%s", dt.Schema, dt.Name)
+			composites[key] = dt
 		}
 		return nil
 	})

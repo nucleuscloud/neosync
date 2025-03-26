@@ -123,6 +123,57 @@ func (t *TableTrigger) GetFingerprint() string {
 	return t.Fingerprint
 }
 
+type DomainConstraint struct {
+	Name       string `json:"name"`
+	Definition string `json:"definition"`
+}
+
+type DomainDataType struct {
+	Fingerprint string
+	Schema      string
+	Name        string
+	IsNullable  bool
+	Default     string
+	Constraints []*DomainConstraint
+}
+
+func (d *DomainDataType) GetFingerprint() string {
+	return d.Fingerprint
+}
+
+type EnumDataType struct {
+	Fingerprint string
+	Schema      string
+	Name        string
+	Values      []string
+}
+
+func (e *EnumDataType) GetFingerprint() string {
+	return e.Fingerprint
+}
+
+type CompositeDataType struct {
+	Fingerprint string
+	Schema      string
+	Name        string
+	Fields      []*CompositeField
+}
+
+type CompositeField struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+func (c *CompositeDataType) GetFingerprint() string {
+	return c.Fingerprint
+}
+
+type AllTableDataTypes struct {
+	Domains    []*DomainDataType
+	Enums      []*EnumDataType
+	Composites []*CompositeDataType
+}
+
 type TableInitStatement struct {
 	CreateTableStatement string
 	AlterTableStatements []*AlterTableStatement

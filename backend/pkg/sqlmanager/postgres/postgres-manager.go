@@ -3,6 +3,7 @@ package sqlmanager_postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -235,6 +236,92 @@ func (p *PostgresManager) GetTableConstraintsByTables(ctx context.Context, schem
 		result[key].ForeignKeyConstraints = append(result[key].ForeignKeyConstraints, constraint)
 	}
 	return result, nil
+}
+
+func (p *PostgresManager) GetDataTypesByTables(ctx context.Context, schema string, tables []string) (*sqlmanager_shared.AllTableDataTypes, error) {
+	if len(tables) == 0 {
+		return &sqlmanager_shared.AllTableDataTypes{}, nil
+	}
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+
+	enumTypes := []*sqlmanager_shared.EnumDataType{}
+	errgrp.Go(func() error {
+		var err error
+		enums, err := p.querier.GetEnumTypesByTables(errctx, p.db, &pg_queries.GetEnumTypesByTablesParams{
+			Schema: schema,
+			Tables: tables,
+		})
+		if err != nil {
+			return err
+		}
+		for _, row := range enums {
+			enumTypes = append(enumTypes, &sqlmanager_shared.EnumDataType{
+				Schema: row.Schema,
+				Name:   row.Name,
+				Values: row.Values,
+			})
+		}
+		return nil
+	})
+
+	compositeTypes := []*sqlmanager_shared.CompositeDataType{}
+	errgrp.Go(func() error {
+		var err error
+		composites, err := p.querier.GetCompositeTypesByTables(errctx, p.db, &pg_queries.GetCompositeTypesByTablesParams{
+			Schema: schema,
+			Tables: tables,
+		})
+		if err != nil {
+			return err
+		}
+		for _, row := range composites {
+			var fields []*sqlmanager_shared.CompositeField
+			if err := json.Unmarshal(row.Fields, &fields); err != nil {
+				return err
+			}
+			compositeTypes = append(compositeTypes, &sqlmanager_shared.CompositeDataType{
+				Schema: row.Schema,
+				Name:   row.Name,
+				Fields: fields,
+			})
+		}
+		return nil
+	})
+
+	domainTypes := []*sqlmanager_shared.DomainDataType{}
+	errgrp.Go(func() error {
+		var err error
+		domains, err := p.querier.GetDomainsByTables(errctx, p.db, &pg_queries.GetDomainsByTablesParams{
+			Schema: schema,
+			Tables: tables,
+		})
+		if err != nil {
+			return err
+		}
+		for _, row := range domains {
+			var constraints []*sqlmanager_shared.DomainConstraint
+			if err := json.Unmarshal(row.Constraints, &constraints); err != nil {
+				return err
+			}
+			domainTypes = append(domainTypes, &sqlmanager_shared.DomainDataType{
+				Schema:      row.Schema,
+				Name:        row.Name,
+				Constraints: constraints,
+			})
+		}
+		return nil
+	})
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	return &sqlmanager_shared.AllTableDataTypes{
+		Enums:      enumTypes,
+		Composites: compositeTypes,
+		Domains:    domainTypes,
+	}, nil
 }
 
 func (p *PostgresManager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
