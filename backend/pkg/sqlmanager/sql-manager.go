@@ -40,7 +40,7 @@ type SqlDatabase interface {
 	// returns a map of schema.table to all constraints for that table
 	GetTableConstraintsByTables(ctx context.Context, schema string, tables []string) (map[string]*sqlmanager_shared.AllTableConstraints, error)
 	GetColumnsByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableColumn, error)
-	GetDataTypesByTables(ctx context.Context, schema string, tables []string) (*sqlmanager_shared.AllTableDataTypes, error)
+	GetDataTypesByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.AllTableDataTypes, error)
 
 	// Connection level methods for managing database connections and executing statements
 	BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error

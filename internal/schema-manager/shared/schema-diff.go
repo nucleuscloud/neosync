@@ -11,6 +11,15 @@ type ExistsInSource struct {
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
 	Triggers                 []*sqlmanager_shared.TableTrigger
 	Functions                []*sqlmanager_shared.DataType
+	Enums                    []*sqlmanager_shared.EnumDataType
+	Domains                  []*sqlmanager_shared.DomainDataType
+	Composites               []*sqlmanager_shared.CompositeDataType
+}
+
+type EnumDiff struct {
+	Enum          *sqlmanager_shared.EnumDataType
+	NewValues     []string
+	ChangedValues map[string]string
 }
 
 type Different struct {
@@ -19,6 +28,7 @@ type Different struct {
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
 	Triggers                 []*sqlmanager_shared.TableTrigger
 	Functions                []*sqlmanager_shared.DataType
+	Enums                    []*EnumDiff
 }
 type ExistsInBoth struct {
 	Tables []*sqlmanager_shared.SchemaTable
@@ -33,6 +43,9 @@ type ExistsInDestination struct {
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
 	Triggers                 []*sqlmanager_shared.TableTrigger
 	Functions                []*sqlmanager_shared.DataType
+	Enums                    []*sqlmanager_shared.EnumDataType
+	Domains                  []*sqlmanager_shared.DomainDataType
+	Composites               []*sqlmanager_shared.CompositeDataType
 }
 
 type SchemaDifferences struct {
@@ -46,10 +59,13 @@ type SchemaDifferences struct {
 
 type DatabaseData struct {
 	Columns                  map[string]map[string]*sqlmanager_shared.TableColumn  // map of schema.table -> column name -> column info
-	ForeignKeyConstraints    map[string]*sqlmanager_shared.ForeignKeyConstraint    // map of fingerprint -> foreign key constraint
-	NonForeignKeyConstraints map[string]*sqlmanager_shared.NonForeignKeyConstraint // map of fingerprint -> non foreign key constraint
-	Triggers                 map[string]*sqlmanager_shared.TableTrigger            // map of fingerprint -> trigger
-	Functions                map[string]*sqlmanager_shared.DataType                // map of fingerprint -> function
+	ForeignKeyConstraints    map[string]*sqlmanager_shared.ForeignKeyConstraint    // map of key -> foreign key constraint
+	NonForeignKeyConstraints map[string]*sqlmanager_shared.NonForeignKeyConstraint // map of key -> non foreign key constraint
+	Triggers                 map[string]*sqlmanager_shared.TableTrigger            // map of key -> trigger
+	Functions                map[string]*sqlmanager_shared.DataType                // map of key -> function
+	Domains                  map[string]*sqlmanager_shared.DomainDataType          // map of key -> domain
+	Enums                    map[string]*sqlmanager_shared.EnumDataType            // map of key -> enum
+	Composites               map[string]*sqlmanager_shared.CompositeDataType       // map of key -> composite
 }
 
 type SchemaDifferencesBuilder struct {
@@ -105,6 +121,7 @@ func (b *SchemaDifferencesBuilder) Build() *SchemaDifferences {
 	b.buildTableNonForeignKeyConstraintDifferences()
 	b.buildTableTriggerDifferences()
 	b.buildSchemaFunctionDifferences()
+	b.buildTableEnumDifferences()
 	return b.diff
 }
 
@@ -171,6 +188,35 @@ func (b *SchemaDifferencesBuilder) buildSchemaFunctionDifferences() {
 	b.diff.ExistsInSource.Functions = existsInSource
 	b.diff.ExistsInBoth.Different.Functions = existsInBoth
 	b.diff.ExistsInDestination.Functions = existsInDestination
+}
+
+func (b *SchemaDifferencesBuilder) buildTableEnumDifferences() {
+	for key, srcEnum := range b.source.Enums {
+		if destEnum, ok := b.destination.Enums[key]; ok {
+			newValues := []string{}
+			changedValues := map[string]string{}
+			for idx, srcValue := range srcEnum.Values {
+				if idx >= len(destEnum.Values) {
+					newValues = append(newValues, srcValue)
+				} else if srcValue != destEnum.Values[idx] {
+					changedValues[srcValue] = destEnum.Values[idx]
+				}
+			}
+			b.diff.ExistsInBoth.Different.Enums = append(b.diff.ExistsInBoth.Different.Enums, &EnumDiff{
+				Enum:          srcEnum,
+				NewValues:     newValues,
+				ChangedValues: changedValues,
+			})
+		} else {
+			b.diff.ExistsInSource.Enums = append(b.diff.ExistsInSource.Enums, srcEnum)
+		}
+	}
+
+	for key, destEnum := range b.destination.Enums {
+		if _, ok := b.source.Enums[key]; !ok {
+			b.diff.ExistsInDestination.Enums = append(b.diff.ExistsInDestination.Enums, destEnum)
+		}
+	}
 }
 
 type FingerprintedType interface {

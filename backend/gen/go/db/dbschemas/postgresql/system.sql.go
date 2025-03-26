@@ -124,8 +124,7 @@ table_columns AS (
     JOIN
         pg_catalog.pg_type t ON t.oid = a.atttypid
     WHERE
-        n.nspname = $1
-        AND c.relname = ANY($2::TEXT[])
+        (n.nspname || '.' || c.relname) = ANY($1::TEXT[])
         AND a.attnum > 0
         AND NOT a.attisdropped
 ),
@@ -159,19 +158,14 @@ GROUP BY
     rct.schema_name, rct.type_name
 `
 
-type GetCompositeTypesByTablesParams struct {
-	Schema string
-	Tables []string
-}
-
 type GetCompositeTypesByTablesRow struct {
 	Schema string
 	Name   string
 	Fields json.RawMessage
 }
 
-func (q *Queries) GetCompositeTypesByTables(ctx context.Context, db DBTX, arg *GetCompositeTypesByTablesParams) ([]*GetCompositeTypesByTablesRow, error) {
-	rows, err := db.QueryContext(ctx, getCompositeTypesByTables, arg.Schema, pq.Array(arg.Tables))
+func (q *Queries) GetCompositeTypesByTables(ctx context.Context, db DBTX, schematables []string) ([]*GetCompositeTypesByTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getCompositeTypesByTables, pq.Array(schematables))
 	if err != nil {
 		return nil, err
 	}
@@ -1052,8 +1046,7 @@ table_columns AS (
 		JOIN pg_catalog.pg_attribute a ON a.attrelid = c.oid
 		JOIN pg_catalog.pg_type t ON t.oid = a.atttypid
 	WHERE
-		n.nspname = $1
-        AND c.relname = ANY($2::TEXT[])
+        (n.nspname || '.' || c.relname) = ANY($1::TEXT[])
 		AND a.attnum > 0
 		AND NOT a.attisdropped
 ),
@@ -1089,11 +1082,6 @@ FROM
 GROUP BY rct.schema_name, rct.type_name, t.typbasetype, t.typtypmod, t.typnotnull, t.typdefaultbin, t.typnamespace, t.typdefault
 `
 
-type GetDomainsByTablesParams struct {
-	Schema string
-	Tables []string
-}
-
 type GetDomainsByTablesRow struct {
 	Schema      string
 	Name        string
@@ -1103,8 +1091,8 @@ type GetDomainsByTablesRow struct {
 	Constraints json.RawMessage
 }
 
-func (q *Queries) GetDomainsByTables(ctx context.Context, db DBTX, arg *GetDomainsByTablesParams) ([]*GetDomainsByTablesRow, error) {
-	rows, err := db.QueryContext(ctx, getDomainsByTables, arg.Schema, pq.Array(arg.Tables))
+func (q *Queries) GetDomainsByTables(ctx context.Context, db DBTX, schematables []string) ([]*GetDomainsByTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getDomainsByTables, pq.Array(schematables))
 	if err != nil {
 		return nil, err
 	}
@@ -1163,8 +1151,7 @@ table_columns AS (
     JOIN
         pg_catalog.pg_type t ON t.oid = a.atttypid
     WHERE
-        n.nspname = $1
-        AND c.relname = ANY($2::TEXT[])
+        (n.nspname || '.' || c.relname) = ANY($1::TEXT[])
         AND a.attnum > 0
         AND NOT a.attisdropped
 ),
@@ -1192,19 +1179,14 @@ relevant_custom_types AS (
         rct.schema_name, rct.type_name
 `
 
-type GetEnumTypesByTablesParams struct {
-	Schema string
-	Tables []string
-}
-
 type GetEnumTypesByTablesRow struct {
 	Schema string
 	Name   string
 	Values []string
 }
 
-func (q *Queries) GetEnumTypesByTables(ctx context.Context, db DBTX, arg *GetEnumTypesByTablesParams) ([]*GetEnumTypesByTablesRow, error) {
-	rows, err := db.QueryContext(ctx, getEnumTypesByTables, arg.Schema, pq.Array(arg.Tables))
+func (q *Queries) GetEnumTypesByTables(ctx context.Context, db DBTX, schematables []string) ([]*GetEnumTypesByTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getEnumTypesByTables, pq.Array(schematables))
 	if err != nil {
 		return nil, err
 	}

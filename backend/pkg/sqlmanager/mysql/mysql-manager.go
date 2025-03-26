@@ -845,6 +845,10 @@ func (m *MysqlManager) GetSchemaTableDataTypes(ctx context.Context, tables []*sq
 	return output, nil
 }
 
+func (m *MysqlManager) GetDataTypesByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.AllTableDataTypes, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error) {
 	if len(tables) == 0 {
 		return []*sqlmanager_shared.TableTrigger{}, nil

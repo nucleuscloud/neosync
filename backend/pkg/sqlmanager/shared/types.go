@@ -17,6 +17,8 @@ const (
 	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
 	UpdateColumnsLabel                = "update columns"
 	UpdateFunctionsLabel              = "update functions"
+	DropDatatypesLabel                = "drop datatypes"
+	UpdateDatatypesLabel              = "update datatypes"
 )
 
 type DatabaseSchemaRow struct {
@@ -169,6 +171,7 @@ func (c *CompositeDataType) GetFingerprint() string {
 }
 
 type AllTableDataTypes struct {
+	Functions  []*DataType
 	Domains    []*DomainDataType
 	Enums      []*EnumDataType
 	Composites []*CompositeDataType

@@ -278,6 +278,10 @@ func (m *Manager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmana
 	return output, nil
 }
 
+func (m *Manager) GetDataTypesByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.AllTableDataTypes, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (m *Manager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error) {
 	if len(tables) == 0 {
 		return []*sqlmanager_shared.TableTrigger{}, nil

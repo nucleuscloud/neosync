@@ -885,8 +885,7 @@ table_columns AS (
     JOIN
         pg_catalog.pg_type t ON t.oid = a.atttypid
     WHERE
-        n.nspname = sqlc.arg('schema')
-        AND c.relname = ANY(sqlc.arg('tables')::TEXT[])
+        (n.nspname || '.' || c.relname) = ANY(sqlc.arg('schematables')::TEXT[])
         AND a.attnum > 0
         AND NOT a.attisdropped
 ),
@@ -950,8 +949,7 @@ table_columns AS (
     JOIN
         pg_catalog.pg_type t ON t.oid = a.atttypid
     WHERE
-        n.nspname = sqlc.arg('schema')
-        AND c.relname = ANY(sqlc.arg('tables')::TEXT[])
+        (n.nspname || '.' || c.relname) = ANY(sqlc.arg('schematables')::TEXT[])
         AND a.attnum > 0
         AND NOT a.attisdropped
 ),
@@ -1008,8 +1006,7 @@ table_columns AS (
 		JOIN pg_catalog.pg_attribute a ON a.attrelid = c.oid
 		JOIN pg_catalog.pg_type t ON t.oid = a.atttypid
 	WHERE
-		n.nspname = sqlc.arg('schema')
-        AND c.relname = ANY(sqlc.arg('tables')::TEXT[])
+        (n.nspname || '.' || c.relname) = ANY(sqlc.arg('schematables')::TEXT[])
 		AND a.attnum > 0
 		AND NOT a.attisdropped
 ),

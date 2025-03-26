@@ -238,9 +238,14 @@ func (p *PostgresManager) GetTableConstraintsByTables(ctx context.Context, schem
 	return result, nil
 }
 
-func (p *PostgresManager) GetDataTypesByTables(ctx context.Context, schema string, tables []string) (*sqlmanager_shared.AllTableDataTypes, error) {
+func (p *PostgresManager) GetDataTypesByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.AllTableDataTypes, error) {
 	if len(tables) == 0 {
 		return &sqlmanager_shared.AllTableDataTypes{}, nil
+	}
+
+	tableNames := make([]string, 0, len(tables))
+	for _, t := range tables {
+		tableNames = append(tableNames, t.String())
 	}
 
 	errgrp, errctx := errgroup.WithContext(ctx)
@@ -248,10 +253,7 @@ func (p *PostgresManager) GetDataTypesByTables(ctx context.Context, schema strin
 	enumTypes := []*sqlmanager_shared.EnumDataType{}
 	errgrp.Go(func() error {
 		var err error
-		enums, err := p.querier.GetEnumTypesByTables(errctx, p.db, &pg_queries.GetEnumTypesByTablesParams{
-			Schema: schema,
-			Tables: tables,
-		})
+		enums, err := p.querier.GetEnumTypesByTables(errctx, p.db, tableNames)
 		if err != nil {
 			return err
 		}
@@ -268,10 +270,7 @@ func (p *PostgresManager) GetDataTypesByTables(ctx context.Context, schema strin
 	compositeTypes := []*sqlmanager_shared.CompositeDataType{}
 	errgrp.Go(func() error {
 		var err error
-		composites, err := p.querier.GetCompositeTypesByTables(errctx, p.db, &pg_queries.GetCompositeTypesByTablesParams{
-			Schema: schema,
-			Tables: tables,
-		})
+		composites, err := p.querier.GetCompositeTypesByTables(errctx, p.db, tableNames)
 		if err != nil {
 			return err
 		}
@@ -292,10 +291,7 @@ func (p *PostgresManager) GetDataTypesByTables(ctx context.Context, schema strin
 	domainTypes := []*sqlmanager_shared.DomainDataType{}
 	errgrp.Go(func() error {
 		var err error
-		domains, err := p.querier.GetDomainsByTables(errctx, p.db, &pg_queries.GetDomainsByTablesParams{
-			Schema: schema,
-			Tables: tables,
-		})
+		domains, err := p.querier.GetDomainsByTables(errctx, p.db, tableNames)
 		if err != nil {
 			return err
 		}
@@ -313,11 +309,29 @@ func (p *PostgresManager) GetDataTypesByTables(ctx context.Context, schema strin
 		return nil
 	})
 
+	schemaTablesMap := map[string][]string{}
+	for _, t := range tables {
+		schemaTablesMap[t.Schema] = append(schemaTablesMap[t.Schema], t.Table)
+	}
+
+	functions := []*sqlmanager_shared.DataType{}
+	errgrp.Go(func() error {
+		for schema, tables := range schemaTablesMap {
+			funcs, err := p.getFunctionsByTables(errctx, schema, tables)
+			if err != nil {
+				return err
+			}
+			functions = append(functions, funcs...)
+		}
+		return nil
+	})
+
 	if err := errgrp.Wait(); err != nil {
 		return nil, err
 	}
 
 	return &sqlmanager_shared.AllTableDataTypes{
+		Functions:  functions,
 		Enums:      enumTypes,
 		Composites: compositeTypes,
 		Domains:    domainTypes,
@@ -1210,6 +1224,21 @@ func BuildDropFunctionStatement(schema, functionName string) string {
 
 func BuildUpdateFunctionStatement(schema, functionName, createStatement string) string {
 	return fmt.Sprintf("CREATE OR REPLACE FUNCTION %q.%q %s;", schema, functionName, addSuffixIfNotExist(createStatement, ";"))
+}
+
+func BuildDropDatatypesStatement(schema, enumName string) string {
+	return fmt.Sprintf("DROP TYPE IF EXISTS %q.%q;", schema, enumName)
+}
+
+func BuildUpdateEnumStatements(schema, enumName string, newValues []string, changedValues map[string]string) []string {
+	statements := []string{}
+	for _, value := range newValues {
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q ADD VALUE IF NOT EXISTS %q", schema, enumName, value))
+	}
+	for value, newVal := range changedValues {
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q RENAME VALUE IF EXISTS %q TO %q", schema, enumName, value, newVal))
+	}
+	return statements
 }
 
 type buildTableColRequest struct {

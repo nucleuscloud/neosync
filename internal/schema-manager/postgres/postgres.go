@@ -158,11 +158,11 @@ func getDatabaseDataForSchemaDiff(
 	})
 
 	functions := map[string]*sqlmanager_shared.DataType{}
-	domains := map[string]*sqlmanager_shared.DataType{}
-	enums := map[string]*sqlmanager_shared.DataType{}
-	composites := map[string]*sqlmanager_shared.DataType{}
+	domains := map[string]*sqlmanager_shared.DomainDataType{}
+	enums := map[string]*sqlmanager_shared.EnumDataType{}
+	composites := map[string]*sqlmanager_shared.CompositeDataType{}
 	errgrp.Go(func() error {
-		rows, err := db.Db().GetSchemaTableDataTypes(ctx, tables)
+		rows, err := db.Db().GetDataTypesByTables(ctx, tables)
 		if err != nil {
 			return fmt.Errorf("failed to retrieve database table functions: %w", err)
 		}
@@ -196,6 +196,9 @@ func getDatabaseDataForSchemaDiff(
 		ForeignKeyConstraints:    fkConstraints,
 		Triggers:                 triggers,
 		Functions:                functions,
+		Domains:                  domains,
+		Enums:                    enums,
+		Composites:               composites,
 	}, nil
 }
 
@@ -255,6 +258,16 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, d
 		updateFunctionStatements = append(updateFunctionStatements, sqlmanager_postgres.BuildUpdateFunctionStatement(function.Schema, function.Name, function.Definition))
 	}
 
+	dropDatatypesStatements := []string{}
+	for _, enum := range diff.ExistsInDestination.Enums {
+		dropDatatypesStatements = append(dropDatatypesStatements, sqlmanager_postgres.BuildDropDatatypesStatement(enum.Schema, enum.Name))
+	}
+
+	updateDatatypesStatements := []string{}
+	for _, enum := range diff.ExistsInBoth.Different.Enums {
+		updateDatatypesStatements = append(updateDatatypesStatements, sqlmanager_postgres.BuildUpdateEnumStatements(enum.Enum.Schema, enum.Enum.Name, enum.NewValues, enum.ChangedValues)...)
+	}
+
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{
 			Label:      sqlmanager_shared.AddColumnsLabel,
@@ -283,6 +296,14 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, d
 		{
 			Label:      sqlmanager_shared.DropFunctionsLabel,
 			Statements: dropFunctionStatements,
+		},
+		{
+			Label:      sqlmanager_shared.DropDatatypesLabel,
+			Statements: dropDatatypesStatements,
+		},
+		{
+			Label:      sqlmanager_shared.UpdateDatatypesLabel,
+			Statements: updateDatatypesStatements,
 		},
 	}, nil
 }
