@@ -19,6 +19,7 @@ import {
   toColumnRemovalStrategy,
   toJobSourceMssqlColumnRemovalStrategy,
   toJobSourceMysqlColumnRemovalStrategy,
+  toJobSourceMysqlNewColumnAdditionStrategy,
   toJobSourcePostgresColumnRemovalStrategy,
   toJobSourcePostgresNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
@@ -798,9 +799,10 @@ function toJobSourceOptions(
           case: 'mysql',
           value: create(MysqlSourceConnectionOptionsSchema, {
             connectionId: values.connect.sourceId,
-            haltOnNewColumnAddition:
-              values.connect.sourceOptions.mysql?.haltOnNewColumnAddition ??
-              false,
+            newColumnAdditionStrategy:
+              toJobSourceMysqlNewColumnAdditionStrategy(
+                values.connect.sourceOptions.mysql?.newColumnAdditionStrategy
+              ),
             columnRemovalStrategy: toJobSourceMysqlColumnRemovalStrategy(
               values.connect.sourceOptions.mysql?.columnRemovalStrategy
             ),
@@ -1298,8 +1300,9 @@ function setDefaultConnectFormValues(
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {
           mysql: {
-            haltOnNewColumnAddition:
-              job.source.options.config.value.haltOnNewColumnAddition,
+            newColumnAdditionStrategy: toNewColumnAdditionStrategy(
+              job.source.options.config.value.newColumnAdditionStrategy
+            ),
             columnRemovalStrategy: toColumnRemovalStrategy(
               job.source.options.config.value.columnRemovalStrategy
             ),
