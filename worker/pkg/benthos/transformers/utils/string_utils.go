@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
-	"unsafe"
 
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
@@ -135,7 +134,7 @@ func generateSmallString(randomizer rng.Rand, length int64) (string, error) {
 		result[i] = lowercaseAlphanumeric[randomizer.Intn(alphaLen)]
 	}
 
-	return *(*string)(unsafe.Pointer(&result)), nil
+	return string(result), nil
 }
 
 func generateLargeString(randomizer rng.Rand, length int64) (string, error) {
