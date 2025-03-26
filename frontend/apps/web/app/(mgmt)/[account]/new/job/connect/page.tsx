@@ -270,7 +270,7 @@ export default function Page(props: PageProps): ReactElement {
                                   'sourceOptions',
                                   {
                                     mysql: {
-                                      haltOnNewColumnAddition: false,
+                                      newColumnAdditionStrategy: 'halt',
                                       columnRemovalStrategy: 'continue',
                                     },
                                   },

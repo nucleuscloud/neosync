@@ -42,16 +42,19 @@ export default function NewColumnAdditionStrategyOptionsForm(
         <StrategyRadioItem
           value="halt"
           label="Halt - Stop the run if a new column is detected"
+          idPrefix="new-column-addition-strategy"
         />
         {!disableAutoMap && (
           <StrategyRadioItem
             value="automap"
             label="AutoMap - Automatically generate a new value"
+            idPrefix="new-column-addition-strategy"
           />
         )}
         <StrategyRadioItem
           value="continue"
           label="Continue - Ignores new columns; may fail if column doesn't have default"
+          idPrefix="new-column-addition-strategy"
         />
       </RadioGroup>
     </div>
@@ -61,14 +64,18 @@ export default function NewColumnAdditionStrategyOptionsForm(
 interface StrategyRadioItemProps {
   value: NewColumnAdditionStrategy;
   label: string;
+  idPrefix: string;
 }
 
 function StrategyRadioItem(props: StrategyRadioItemProps): ReactElement {
-  const { value, label } = props;
+  const { value, label, idPrefix } = props;
+  const id = `${idPrefix}-${value}`;
   return (
     <div className="flex items-center gap-2">
-      <RadioGroupItem value={value} id={value} />
-      <Label htmlFor={value}>{label}</Label>
+      <RadioGroupItem value={value} id={id} className="cursor-pointer" />
+      <Label htmlFor={id} className="cursor-pointer">
+        {label}
+      </Label>
     </div>
   );
 }

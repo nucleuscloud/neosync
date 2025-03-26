@@ -44,6 +44,7 @@ import {
   toColumnRemovalStrategy,
   toJobSourceMssqlColumnRemovalStrategy,
   toJobSourceMysqlColumnRemovalStrategy,
+  toJobSourceMysqlNewColumnAdditionStrategy,
   toJobSourcePostgresColumnRemovalStrategy,
   toJobSourcePostgresNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
@@ -84,6 +85,8 @@ import {
   MssqlSourceConnectionOptionsSchema,
   MysqlSourceConnectionOptions,
   MysqlSourceConnectionOptionsSchema,
+  MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
+  MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
   PostgresSourceConnectionOptions,
   PostgresSourceConnectionOptionsSchema,
   ValidateJobMappingsResponse,
@@ -1004,8 +1007,10 @@ function toJobSourceOptions(
           value: create(MysqlSourceConnectionOptionsSchema, {
             ...getExistingMysqlSourceConnectionOptions(job),
             connectionId: newSourceId,
-            haltOnNewColumnAddition:
-              values.sourceOptions.mysql?.haltOnNewColumnAddition ?? false,
+            newColumnAdditionStrategy:
+              toJobSourceMysqlNewColumnAdditionStrategy(
+                values.sourceOptions.mysql?.newColumnAdditionStrategy
+              ),
             columnRemovalStrategy: toJobSourceMysqlColumnRemovalStrategy(
               values.sourceOptions.mysql?.columnRemovalStrategy
             ),
@@ -1226,13 +1231,30 @@ function getJobSource(
         },
       };
     case 'mysql':
+      if (
+        job.source.options.config.value.haltOnNewColumnAddition &&
+        !job.source.options.config.value.newColumnAdditionStrategy?.strategy
+      ) {
+        job.source.options.config.value.newColumnAdditionStrategy = create(
+          MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
+          {
+            strategy: {
+              case: 'haltJob',
+              value: create(
+                MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema
+              ),
+            },
+          }
+        );
+      }
       return {
         ...yupValidationValues,
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
           mysql: {
-            haltOnNewColumnAddition:
-              job?.source?.options?.config.value.haltOnNewColumnAddition,
+            newColumnAdditionStrategy: toNewColumnAdditionStrategy(
+              job.source.options.config.value.newColumnAdditionStrategy
+            ),
             columnRemovalStrategy: toColumnRemovalStrategy(
               job.source.options.config.value.columnRemovalStrategy
             ),
@@ -1347,7 +1369,7 @@ async function getUpdatedValues(
         ...values,
         sourceOptions: {
           mysql: {
-            haltOnNewColumnAddition: false,
+            newColumnAdditionStrategy: 'halt',
             columnRemovalStrategy: 'continue',
           },
         },
