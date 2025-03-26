@@ -1484,7 +1484,7 @@ func (s *MysqlSourceOptions) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions 
 				HaltJob: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
 			},
 		}
-		dto.HaltOnNewColumnAddition = true
+		dto.HaltOnNewColumnAddition = true //nolint:staticcheck
 	}
 
 	return dto
@@ -1520,11 +1520,11 @@ func (s *MysqlNewColumnAdditionStrategy) FromDto(dto *mgmtv1alpha1.MysqlSourceCo
 }
 
 func (s *MysqlSourceOptions) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOptions) {
-	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
+	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition //nolint:staticcheck
 	if dto.GetNewColumnAdditionStrategy().GetStrategy() != nil {
 		s.NewColumnAdditionStrategy = &MysqlNewColumnAdditionStrategy{}
 		s.NewColumnAdditionStrategy.FromDto(dto.GetNewColumnAdditionStrategy())
-	} else if dto.HaltOnNewColumnAddition {
+	} else if dto.HaltOnNewColumnAddition { //nolint:staticcheck
 		s.NewColumnAdditionStrategy = &MysqlNewColumnAdditionStrategy{
 			HaltJob: &MysqlHaltJobNewColumnAdditionStrategy{},
 		}

@@ -95,7 +95,7 @@ func GetSqlJobSourceOpts(
 		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_:
 			shouldGenerateNewColTransforms = true
 		}
-		if !shouldHalt && jobSourceConfig.Mysql.GetHaltOnNewColumnAddition() {
+		if !shouldHalt && jobSourceConfig.Mysql.GetHaltOnNewColumnAddition() { //nolint:staticcheck
 			shouldHalt = true
 		}
 		shouldHaltOnColumnRemoval := false
