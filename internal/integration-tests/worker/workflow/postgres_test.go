@@ -1490,18 +1490,34 @@ func verify_postgres_schemas(
 
 	t.Logf("checking functions are the same in source and destination")
 	for _, function := range srcDatatypes.Functions {
-		require.Contains(t, destDatatypes.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
+		assert.Contains(t, destDatatypes.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
 	}
 	for _, function := range destDatatypes.Functions {
-		require.Contains(t, srcDatatypes.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
+		assert.Contains(t, srcDatatypes.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
+	}
+
+	t.Logf("checking enum are the same in source and destination")
+	for _, enum := range srcDatatypes.Enums {
+		assert.Contains(t, destDatatypes.Enums, enum, "destination missing enum with fingerprint %s", enum.Fingerprint)
+	}
+	for _, enum := range destDatatypes.Enums {
+		assert.Contains(t, srcDatatypes.Enums, enum, "source missing enum with fingerprint %s", enum.Fingerprint)
+	}
+
+	t.Logf("checking composite types are the same in source and destination")
+	for _, composite := range srcDatatypes.Composites {
+		assert.Contains(t, destDatatypes.Composites, composite, "destination missing composite with fingerprint %s", composite.Fingerprint)
+	}
+	for _, composite := range destDatatypes.Composites {
+		assert.Contains(t, srcDatatypes.Composites, composite, "source missing composite with fingerprint %s", composite.Fingerprint)
 	}
 
 	t.Logf("checking domains are the same in source and destination")
 	for _, domain := range srcDatatypes.Domains {
-		require.Contains(t, destDatatypes.Domains, domain, "destination missing domain with fingerprint %s", domain.Fingerprint)
+		assert.Contains(t, destDatatypes.Domains, domain, "destination missing domain with fingerprint %s", domain.Fingerprint)
 	}
 	for _, domain := range destDatatypes.Domains {
-		require.Contains(t, srcDatatypes.Domains, domain, "source missing domain with fingerprint %s", domain.Fingerprint)
+		assert.Contains(t, srcDatatypes.Domains, domain, "source missing domain with fingerprint %s", domain.Fingerprint)
 	}
 }
 

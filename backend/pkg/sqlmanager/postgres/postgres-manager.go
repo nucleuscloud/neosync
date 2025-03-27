@@ -1233,10 +1233,10 @@ func BuildDropDatatypesStatement(schema, enumName string) string {
 func BuildUpdateEnumStatements(schema, enumName string, newValues []string, changedValues map[string]string) []string {
 	statements := []string{}
 	for _, value := range newValues {
-		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q ADD VALUE IF NOT EXISTS %q", schema, enumName, value))
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q ADD VALUE IF NOT EXISTS '%s';", schema, enumName, value))
 	}
 	for value, newVal := range changedValues {
-		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q RENAME VALUE IF EXISTS %q TO %q", schema, enumName, value, newVal))
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q RENAME VALUE '%s' TO '%s';", schema, enumName, value, newVal))
 	}
 	return statements
 }

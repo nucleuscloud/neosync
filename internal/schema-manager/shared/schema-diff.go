@@ -199,7 +199,7 @@ func (b *SchemaDifferencesBuilder) buildTableEnumDifferences() {
 				if idx >= len(destEnum.Values) {
 					newValues = append(newValues, srcValue)
 				} else if srcValue != destEnum.Values[idx] {
-					changedValues[srcValue] = destEnum.Values[idx]
+					changedValues[destEnum.Values[idx]] = srcValue
 				}
 			}
 			b.diff.ExistsInBoth.Different.Enums = append(b.diff.ExistsInBoth.Different.Enums, &EnumDiff{
