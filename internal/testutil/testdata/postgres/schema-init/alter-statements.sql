@@ -115,3 +115,11 @@ $$;
 
 DROP TRIGGER IF EXISTS other_trigger ON dummy_table;
 DROP FUNCTION IF EXISTS other_trigger_function();
+
+ALTER TYPE employment_status ADD VALUE 'CONTRACTOR';
+
+ALTER TYPE employment_status 
+  RENAME VALUE 'PART_TIME' TO 'PARTTIME';
+
+ALTER TABLE jobs DROP COLUMN job_category;
+DROP TYPE IF EXISTS job_category;

@@ -31,13 +31,16 @@ CREATE TABLE departments (
 	FOREIGN KEY (location_id) REFERENCES locations (location_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+CREATE TYPE job_category AS ENUM ('FULL_TIME', 'PART_TIME');
 CREATE TABLE jobs (
 	job_id SERIAL PRIMARY KEY,
 	job_title CHARACTER VARYING (35) NOT NULL,
 	min_salary NUMERIC (8, 2),
-	max_salary NUMERIC (8, 2)
+	max_salary NUMERIC (8, 2),
+	job_category job_category NOT NULL DEFAULT 'FULL_TIME'
 );
 
+CREATE TYPE employment_status AS ENUM ('FULL_TIME', 'PART_TIME');
 CREATE TABLE employees (
 	employee_id SERIAL PRIMARY KEY,
 	first_name CHARACTER VARYING (20),
@@ -48,6 +51,7 @@ CREATE TABLE employees (
 	job_id INTEGER NOT NULL,
 	salary NUMERIC (8, 2) NOT NULL,
 	manager_id INTEGER,
+	employment_type   employment_status NOT NULL DEFAULT 'FULL_TIME',
 	department_id INTEGER,
 	-- Added for testing column drops:
 	temp_col INT,

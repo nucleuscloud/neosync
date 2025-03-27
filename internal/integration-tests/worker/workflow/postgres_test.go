@@ -1483,17 +1483,25 @@ func verify_postgres_schemas(
 		require.Equal(t, trigger.Definition, destTrigger.Definition, "trigger definitions do not match for fingerprint %s", trigger.Fingerprint)
 	}
 
-	t.Logf("checking functions are the same in source and destination")
-	srcFunctions, err := srcManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
-	require.NoError(t, err, "failed to get source functions")
-	destFunctions, err := destManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
-	require.NoError(t, err, "failed to get destination functions")
+	srcDatatypes, err := srcManager.GetDataTypesByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get source datatypes")
+	destDatatypes, err := destManager.GetDataTypesByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get destination datatypes")
 
-	for _, function := range srcFunctions.Functions {
-		require.Contains(t, destFunctions.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
+	t.Logf("checking functions are the same in source and destination")
+	for _, function := range srcDatatypes.Functions {
+		require.Contains(t, destDatatypes.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
 	}
-	for _, function := range destFunctions.Functions {
-		require.Contains(t, srcFunctions.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
+	for _, function := range destDatatypes.Functions {
+		require.Contains(t, srcDatatypes.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
+	}
+
+	t.Logf("checking domains are the same in source and destination")
+	for _, domain := range srcDatatypes.Domains {
+		require.Contains(t, destDatatypes.Domains, domain, "destination missing domain with fingerprint %s", domain.Fingerprint)
+	}
+	for _, domain := range destDatatypes.Domains {
+		require.Contains(t, srcDatatypes.Domains, domain, "source missing domain with fingerprint %s", domain.Fingerprint)
 	}
 }
 
