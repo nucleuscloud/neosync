@@ -142,6 +142,124 @@ func (_c *MockConnectionServiceClient_CheckConnectionConfigById_Call) RunAndRetu
 	return _c
 }
 
+// CheckSSHConnection provides a mock function with given fields: _a0, _a1
+func (_m *MockConnectionServiceClient) CheckSSHConnection(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CheckSSHConnectionRequest]) (*connect.Response[mgmtv1alpha1.CheckSSHConnectionResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckSSHConnection")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.CheckSSHConnectionResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.CheckSSHConnectionRequest]) (*connect.Response[mgmtv1alpha1.CheckSSHConnectionResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.CheckSSHConnectionRequest]) *connect.Response[mgmtv1alpha1.CheckSSHConnectionResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.CheckSSHConnectionResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.CheckSSHConnectionRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockConnectionServiceClient_CheckSSHConnection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CheckSSHConnection'
+type MockConnectionServiceClient_CheckSSHConnection_Call struct {
+	*mock.Call
+}
+
+// CheckSSHConnection is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.CheckSSHConnectionRequest]
+func (_e *MockConnectionServiceClient_Expecter) CheckSSHConnection(_a0 interface{}, _a1 interface{}) *MockConnectionServiceClient_CheckSSHConnection_Call {
+	return &MockConnectionServiceClient_CheckSSHConnection_Call{Call: _e.mock.On("CheckSSHConnection", _a0, _a1)}
+}
+
+func (_c *MockConnectionServiceClient_CheckSSHConnection_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CheckSSHConnectionRequest])) *MockConnectionServiceClient_CheckSSHConnection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.CheckSSHConnectionRequest]))
+	})
+	return _c
+}
+
+func (_c *MockConnectionServiceClient_CheckSSHConnection_Call) Return(_a0 *connect.Response[mgmtv1alpha1.CheckSSHConnectionResponse], _a1 error) *MockConnectionServiceClient_CheckSSHConnection_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockConnectionServiceClient_CheckSSHConnection_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.CheckSSHConnectionRequest]) (*connect.Response[mgmtv1alpha1.CheckSSHConnectionResponse], error)) *MockConnectionServiceClient_CheckSSHConnection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CheckSSHConnectionById provides a mock function with given fields: _a0, _a1
+func (_m *MockConnectionServiceClient) CheckSSHConnectionById(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CheckSSHConnectionByIdRequest]) (*connect.Response[mgmtv1alpha1.CheckSSHConnectionByIdResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckSSHConnectionById")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.CheckSSHConnectionByIdResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.CheckSSHConnectionByIdRequest]) (*connect.Response[mgmtv1alpha1.CheckSSHConnectionByIdResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.CheckSSHConnectionByIdRequest]) *connect.Response[mgmtv1alpha1.CheckSSHConnectionByIdResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.CheckSSHConnectionByIdResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.CheckSSHConnectionByIdRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockConnectionServiceClient_CheckSSHConnectionById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CheckSSHConnectionById'
+type MockConnectionServiceClient_CheckSSHConnectionById_Call struct {
+	*mock.Call
+}
+
+// CheckSSHConnectionById is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.CheckSSHConnectionByIdRequest]
+func (_e *MockConnectionServiceClient_Expecter) CheckSSHConnectionById(_a0 interface{}, _a1 interface{}) *MockConnectionServiceClient_CheckSSHConnectionById_Call {
+	return &MockConnectionServiceClient_CheckSSHConnectionById_Call{Call: _e.mock.On("CheckSSHConnectionById", _a0, _a1)}
+}
+
+func (_c *MockConnectionServiceClient_CheckSSHConnectionById_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CheckSSHConnectionByIdRequest])) *MockConnectionServiceClient_CheckSSHConnectionById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.CheckSSHConnectionByIdRequest]))
+	})
+	return _c
+}
+
+func (_c *MockConnectionServiceClient_CheckSSHConnectionById_Call) Return(_a0 *connect.Response[mgmtv1alpha1.CheckSSHConnectionByIdResponse], _a1 error) *MockConnectionServiceClient_CheckSSHConnectionById_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockConnectionServiceClient_CheckSSHConnectionById_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.CheckSSHConnectionByIdRequest]) (*connect.Response[mgmtv1alpha1.CheckSSHConnectionByIdResponse], error)) *MockConnectionServiceClient_CheckSSHConnectionById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CheckSqlQuery provides a mock function with given fields: _a0, _a1
 func (_m *MockConnectionServiceClient) CheckSqlQuery(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CheckSqlQueryRequest]) (*connect.Response[mgmtv1alpha1.CheckSqlQueryResponse], error) {
 	ret := _m.Called(_a0, _a1)
