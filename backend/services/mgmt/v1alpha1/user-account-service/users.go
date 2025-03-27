@@ -238,7 +238,16 @@ func (s *Service) ConvertPersonalToTeamAccount(
 		return nil, err
 	}
 
-	// todo: need to re-upsert rbac for the new personal account.
+	newPersonalAccountId := neosyncdb.UUIDString(resp.PersonalAccount.ID)
+	if err := s.rbacClient.SetupNewAccount(ctx, newPersonalAccountId, logger); err != nil {
+		// note: if this fails the account is kind of in a broken state...
+		return nil, fmt.Errorf("unable to setup newly converted personal account, please reach out to support for further assistance: %w", err)
+	}
+
+	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(newPersonalAccountId), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN); err != nil {
+		// note: if this fails the account is kind of in a broken state...
+		return nil, fmt.Errorf("unable to set account role for user in new personal account, please reach out to support for further assistance: %w", err)
+	}
 
 	var checkoutSessionUrl *string
 	if s.cfg.IsNeosyncCloud && !resp.TeamAccount.StripeCustomerID.Valid && s.billingclient != nil {
