@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"slices"
 	"strings"
 	"time"
 
@@ -13,7 +12,6 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	job_util "github.com/nucleuscloud/neosync/internal/job"
-	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
@@ -419,25 +417,6 @@ func getColumnDefaultProperties(
 		}
 	}
 	return colDefaults, nil
-}
-
-func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*bb_internal.ReferenceKey, runconfig *runconfigs.RunConfig) map[string][]string {
-	redisDependsOnMap := map[string][]string{}
-	for col, fks := range transformedForeignKeyToSourceMap {
-		if !slices.Contains(runconfig.InsertColumns(), col) {
-			continue
-		}
-		for _, fk := range fks {
-			if _, exists := redisDependsOnMap[fk.Table]; !exists {
-				redisDependsOnMap[fk.Table] = []string{}
-			}
-			redisDependsOnMap[fk.Table] = append(redisDependsOnMap[fk.Table], fk.Column)
-		}
-	}
-	if runconfig.RunType() == runconfigs.RunTypeUpdate && len(redisDependsOnMap) != 0 {
-		redisDependsOnMap[runconfig.Table()] = runconfig.PrimaryKeys()
-	}
-	return redisDependsOnMap
 }
 
 type destinationOptions struct {
