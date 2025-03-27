@@ -265,7 +265,6 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 				activityErr = err
 				cancelHandler()
 
-				// empty depends on map will clean up all redis inserts
 				detachedCtx, _ := workflow.NewDisconnectedContext(ctx)
 				redisErr := runRedisCleanUpActivity(detachedCtx, logger, req.JobId, bcResp.BenthosConfigs)
 				if redisErr != nil {
@@ -369,12 +368,12 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 
 	logger.Info("data syncs completed")
 
-	err = runRedisCleanUpActivity(ctx, logger, req.JobId, bcResp.BenthosConfigs)
+	err = execRunJobHooksByTiming(ctx, &jobhooks_by_timing_activity.RunJobHooksByTimingRequest{JobId: req.JobId, Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC}, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	err = execRunJobHooksByTiming(ctx, &jobhooks_by_timing_activity.RunJobHooksByTimingRequest{JobId: req.JobId, Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC}, logger)
+	err = runRedisCleanUpActivity(ctx, logger, req.JobId, bcResp.BenthosConfigs)
 	if err != nil {
 		return nil, err
 	}
