@@ -404,3 +404,17 @@ class CheckSqlQueryResponse(_message.Message):
     is_valid: bool
     erorr_message: str
     def __init__(self, is_valid: bool = ..., erorr_message: _Optional[str] = ...) -> None: ...
+
+class CheckSSHConnectionRequest(_message.Message):
+    __slots__ = ("tunnel",)
+    TUNNEL_FIELD_NUMBER: _ClassVar[int]
+    tunnel: SSHTunnel
+    def __init__(self, tunnel: _Optional[_Union[SSHTunnel, _Mapping]] = ...) -> None: ...
+
+class CheckSSHConnectionResponse(_message.Message):
+    __slots__ = ("is_successful", "error_message")
+    IS_SUCCESSFUL_FIELD_NUMBER: _ClassVar[int]
+    ERROR_MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    is_successful: bool
+    error_message: str
+    def __init__(self, is_successful: bool = ..., error_message: _Optional[str] = ...) -> None: ...

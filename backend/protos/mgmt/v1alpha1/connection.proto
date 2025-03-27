@@ -433,6 +433,18 @@ message CheckSqlQueryResponse {
   optional string erorr_message = 2;
 }
 
+message CheckSSHConnectionRequest {
+  // The SSH tunnel configuration to use for the connection
+  SSHTunnel tunnel = 1;
+}
+
+message CheckSSHConnectionResponse {
+  // Whether or not the SSH connection is successful
+  bool is_successful = 1;
+  // The error message returned by the SSH client if the connection is not successful
+  optional string error_message = 2;
+}
+
 // Service for managing datasource connections.
 // This is a primary data model in Neosync and is used in reference when hooking up Jobs to synchronize and generate data.
 service ConnectionService {
@@ -462,4 +474,6 @@ service ConnectionService {
   // Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema
   // This is useful when constructing subsets to see if the WHERE clause is correct
   rpc CheckSqlQuery(CheckSqlQueryRequest) returns (CheckSqlQueryResponse) {}
+  // Checks if the SSH server is reachable and accessible with the given credentials
+  rpc CheckSSHConnection(CheckSSHConnectionRequest) returns (CheckSSHConnectionResponse) {}
 }

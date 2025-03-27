@@ -346,6 +346,44 @@ components:
           title: privileges
       title: CheckConnectionConfigResponse
       additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionRequest:
+      type: object
+      properties:
+        tunnel:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
+          title: tunnel
+          description: The SSH tunnel configuration to use for the connection
+      title: CheckSSHConnectionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionResponse:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - errorMessage
+            - not:
+                anyOf:
+                  - required:
+                      - errorMessage
+      anyOf:
+        - required:
+            - errorMessage
+        - not:
+            anyOf:
+              - required:
+                  - errorMessage
+      properties:
+        isSuccessful:
+          type: boolean
+          title: is_successful
+          description: Whether or not the SSH connection is successful
+        errorMessage:
+          type: string
+          title: error_message
+          description: The error message returned by the SSH client if the connection is not successful
+      title: CheckSSHConnectionResponse
+      additionalProperties: false
     mgmt.v1alpha1.CheckSqlQueryRequest:
       type: object
       properties:
@@ -1771,6 +1809,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.CheckSqlQueryResponse'
+  /mgmt.v1alpha1.ConnectionService/CheckSSHConnection:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: CheckSSHConnection
+      description: Checks if the SSH server is reachable and accessible with the given credentials
+      operationId: mgmt.v1alpha1.ConnectionService.CheckSSHConnection
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionResponse'
 tags:
   - name: mgmt.v1alpha1.ConnectionService
     description: |-
