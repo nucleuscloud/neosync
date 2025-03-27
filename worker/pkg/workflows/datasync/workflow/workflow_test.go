@@ -1006,34 +1006,6 @@ func Test_updateCompletedMap(t *testing.T) {
 	assert.Equal(t, []string{"name", "id"}, val)
 }
 
-func Test_isReadyForCleanUp(t *testing.T) {
-	assert.True(t, isReadyForCleanUp("", "", nil), "no dependencies")
-
-	assert.False(
-		t,
-		isReadyForCleanUp(
-			"table",
-			"col",
-			map[string]map[string][]string{
-				"other_table": {"table": []string{"col"}},
-			},
-		),
-		"has dependency",
-	)
-
-	assert.True(
-		t,
-		isReadyForCleanUp(
-			"table",
-			"col",
-			map[string]map[string][]string{
-				"other_table": {"table": []string{"col1"}},
-			},
-		),
-		"no dependency",
-	)
-}
-
 func Test_Workflow_Initial_AccountStatus(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()

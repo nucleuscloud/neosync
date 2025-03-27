@@ -256,11 +256,10 @@ func buildBenthosSqlSourceConfigResponses(
 		}
 
 		configs = append(configs, &bb_internal.BenthosSourceConfig{
-			Name:           config.Id(),
-			Config:         bc,
-			DependsOn:      config.DependsOn(),
-			RedisDependsOn: buildRedisDependsOnMap(transformedFktoPkMap, config),
-			RunType:        config.RunType(),
+			Name:      config.Id(),
+			Config:    bc,
+			DependsOn: config.DependsOn(),
+			RunType:   config.RunType(),
 
 			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: dsnConnectionId}},
 
