@@ -76,6 +76,8 @@ func New(
 			return cfg.dialer.DialContext(ctx, network, addr)
 		}
 
+		// This solves an issue with AWS Multi-AZ connections that seems to plague the PGX driver.
+		// Related: https://github.com/jackc/pgx/issues/1724
 		pgxConfig.LookupFunc = func(ctx context.Context, name string) ([]string, error) {
 			addrs := []string{name}
 			resp, err := net.DefaultResolver.LookupHost(ctx, name)
