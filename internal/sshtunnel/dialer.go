@@ -208,6 +208,8 @@ func (s *SSHDialer) startKeepAlive(client *ssh.Client) {
 					s.logger.Error("keepalive failed", "error", err)
 					s.client = nil
 					client.Close()
+				} else {
+					s.logger.Debug("keepalive successful")
 				}
 			case <-ctx.Done():
 				s.logger.Error("keepalive timed out")
