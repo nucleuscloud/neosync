@@ -274,6 +274,25 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, d
 		updateDatatypesStatements = append(updateDatatypesStatements, sqlmanager_postgres.BuildUpdateCompositeStatements(composite.Composite.Schema, composite.Composite.Name, composite.ChangedAttributeDatatype, composite.ChangedAttributeName, composite.NewAttributes, composite.RemovedAttributes)...)
 	}
 
+	for _, domain := range diff.ExistsInDestination.Domains {
+		dropDatatypesStatements = append(dropDatatypesStatements, sqlmanager_postgres.BuildDropDomainStatement(domain.Schema, domain.Name))
+	}
+
+	for _, domain := range diff.ExistsInBoth.Different.Domains {
+		statements := sqlmanager_postgres.BuildDomainConstraintStatements(domain.Domain.Schema, domain.Domain.Name, domain.NewConstraints, domain.RemovedConstraints)
+		updateDatatypesStatements = append(updateDatatypesStatements, statements...)
+		if domain.IsDefaultDifferent {
+			if domain.Domain.Default != "" {
+				updateDatatypesStatements = append(updateDatatypesStatements, sqlmanager_postgres.BuildUpdateDomainDefaultStatement(domain.Domain.Schema, domain.Domain.Name, domain.Domain.Default))
+			} else {
+				updateDatatypesStatements = append(updateDatatypesStatements, sqlmanager_postgres.BuildDropDomainDefaultStatement(domain.Domain.Schema, domain.Domain.Name))
+			}
+		}
+		if domain.IsNullDifferent {
+			updateDatatypesStatements = append(updateDatatypesStatements, sqlmanager_postgres.BuildUpdateDomainNotNullStatement(domain.Domain.Schema, domain.Domain.Name, domain.Domain.IsNullable))
+		}
+	}
+
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{
 			Label:      sqlmanager_shared.AddColumnsLabel,

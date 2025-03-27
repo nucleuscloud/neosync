@@ -141,3 +141,16 @@ CREATE TYPE comp_new AS (
 );
 
 ALTER TABLE dummy_comp_table ADD COLUMN comp_col_new comp_new;
+
+ALTER TABLE example_table DROP COLUMN amount;
+DROP DOMAIN IF EXISTS over_hundred;
+
+ALTER DOMAIN positive_integer
+  SET DEFAULT 1;
+  
+ALTER DOMAIN positive_integer
+  SET NOT NULL;
+
+
+ALTER DOMAIN positive_integer ADD CONSTRAINT less_10000 
+    CHECK (VALUE < 10000);

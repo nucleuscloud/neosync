@@ -1254,18 +1254,49 @@ func BuildUpdateCompositeStatements(
 ) []string {
 	statements := []string{}
 	for attribute, newDatatype := range changedAttributesDatatype {
-		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q ALTER ATTRIBUTE '%s' SET DATA TYPE '%s';", schema, compositeName, attribute, newDatatype))
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q ALTER ATTRIBUTE %q SET DATA TYPE '%s';", schema, compositeName, attribute, newDatatype))
 	}
 	for oldName, newName := range changedAttributesName {
-		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q RENAME ATTRIBUTE '%s' TO '%s';", schema, compositeName, oldName, newName))
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q RENAME ATTRIBUTE %q TO  %q;", schema, compositeName, oldName, newName))
 	}
 	for attribute, datatype := range newAttributes {
-		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q ADD ATTRIBUTE '%s' %s;", schema, compositeName, attribute, datatype))
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q ADD ATTRIBUTE %q %s;", schema, compositeName, attribute, datatype))
 	}
 	for _, attribute := range removedAttributes {
-		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q DROP ATTRIBUTE IF EXISTS '%s';", schema, compositeName, attribute))
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q DROP ATTRIBUTE IF EXISTS %q;", schema, compositeName, attribute))
 	}
 	return statements
+}
+
+func BuildDropDomainStatement(schema, domainName string) string {
+	return fmt.Sprintf("DROP DOMAIN IF EXISTS %q.%q;", schema, domainName)
+}
+
+func BuildDomainConstraintStatements(schema, domainName string, newConstraints map[string]string, removedConstraints []string) []string {
+	statements := []string{}
+	for constraint, definition := range newConstraints {
+		statements = append(statements, fmt.Sprintf("ALTER DOMAIN %q.%q ADD CONSTRAINT %q %s;", schema, domainName, constraint, definition))
+	}
+	for _, constraint := range removedConstraints {
+		statements = append(statements, fmt.Sprintf("ALTER DOMAIN %q.%q DROP CONSTRAINT IF EXISTS %q;", schema, domainName, constraint))
+	}
+	return statements
+}
+
+func BuildUpdateDomainDefaultStatement(schema, domainName, defaultString string) string {
+	return fmt.Sprintf("ALTER DOMAIN %q.%q SET DEFAULT %s;", schema, domainName, defaultString)
+}
+
+func BuildDropDomainDefaultStatement(schema, domainName string) string {
+	return fmt.Sprintf("ALTER DOMAIN %q.%q DROP DEFAULT;", schema, domainName)
+}
+
+func BuildUpdateDomainNotNullStatement(schema, domainName string, isNullable bool) string {
+	nullString := "NOT NULL"
+	if isNullable {
+		nullString = "NULL"
+	}
+	return fmt.Sprintf("ALTER DOMAIN %q.%q SET %s;", schema, domainName, nullString)
 }
 
 type buildTableColRequest struct {

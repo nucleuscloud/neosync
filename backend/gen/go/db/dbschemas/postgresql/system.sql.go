@@ -144,7 +144,7 @@ SELECT
     JSON_AGG(
         JSON_BUILD_OBJECT(
             'name', a.attname,
-            'type', pg_catalog.format_type(a.atttypid, a.atttypmod),
+            'datatype', pg_catalog.format_type(a.atttypid, a.atttypmod),
             'id', a.attnum
         ) ORDER BY a.attnum
     )::JSONB AS attributes

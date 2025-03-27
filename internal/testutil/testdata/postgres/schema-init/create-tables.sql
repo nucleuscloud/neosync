@@ -85,10 +85,6 @@ CREATE TABLE office_locations (
     address      comp_address
 );
 
-INSERT INTO office_locations (address)
-VALUES (ROW('123 Main St', 'Springfield', 'IL', 62704, 4));
-
-
 CREATE TYPE comp_dummy AS (
     street   text,
     city     text,
@@ -100,6 +96,19 @@ CREATE TYPE comp_dummy AS (
 CREATE TABLE dummy_comp_table (
     id  serial PRIMARY KEY,
     comp      comp_dummy
+);
+
+CREATE DOMAIN positive_integer AS integer
+    CHECK (VALUE > 0);
+
+CREATE DOMAIN over_hundred AS integer
+    CHECK (VALUE > 100);
+
+CREATE TABLE example_table (
+    id serial PRIMARY KEY,
+    quantity positive_integer,
+		amount over_hundred,
+    description text
 );
 
 

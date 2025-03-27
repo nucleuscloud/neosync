@@ -30,6 +30,16 @@ type CompositeDiff struct {
 	ChangedAttributeName     map[string]string
 }
 
+type DomainDiff struct {
+	Domain             *sqlmanager_shared.DomainDataType
+	IsNullDifferent    bool
+	IsDefaultDifferent bool
+
+	// constraints
+	NewConstraints     map[string]string
+	RemovedConstraints []string
+}
+
 type Different struct {
 	Columns                  []*sqlmanager_shared.TableColumn
 	NonForeignKeyConstraints []*sqlmanager_shared.NonForeignKeyConstraint
@@ -38,6 +48,7 @@ type Different struct {
 	Functions                []*sqlmanager_shared.DataType
 	Enums                    []*EnumDiff
 	Composites               []*CompositeDiff
+	Domains                  []*DomainDiff
 }
 type ExistsInBoth struct {
 	Tables []*sqlmanager_shared.SchemaTable
@@ -134,6 +145,7 @@ func (b *SchemaDifferencesBuilder) Build() *SchemaDifferences {
 	b.buildSchemaFunctionDifferences()
 	b.buildTableEnumDifferences()
 	b.buildTableCompositeDifferences()
+	b.buildTableDomainDifferences()
 	return b.diff
 }
 
@@ -283,6 +295,55 @@ func (b *SchemaDifferencesBuilder) buildTableCompositeDifferences() {
 	for key, destComposite := range b.destination.Composites {
 		if _, ok := b.source.Composites[key]; !ok {
 			b.diff.ExistsInDestination.Composites = append(b.diff.ExistsInDestination.Composites, destComposite)
+		}
+	}
+}
+
+func (b *SchemaDifferencesBuilder) buildTableDomainDifferences() {
+	for key, srcDomain := range b.source.Domains {
+		if destDomain, ok := b.destination.Domains[key]; ok {
+			domain := &DomainDiff{
+				Domain:             srcDomain,
+				IsNullDifferent:    srcDomain.IsNullable != destDomain.IsNullable,
+				IsDefaultDifferent: srcDomain.Default != destDomain.Default,
+				NewConstraints:     map[string]string{},
+				RemovedConstraints: []string{},
+			}
+
+			srcConstraints := map[string]*sqlmanager_shared.DomainConstraint{}
+			for _, constraint := range srcDomain.Constraints {
+				srcConstraints[constraint.Name] = constraint
+			}
+			destConstraints := map[string]*sqlmanager_shared.DomainConstraint{}
+			for _, constraint := range destDomain.Constraints {
+				destConstraints[constraint.Name] = constraint
+			}
+
+			for _, constraint := range srcConstraints {
+				if destConstraint, ok := destConstraints[constraint.Name]; ok {
+					if constraint.Definition != destConstraint.Definition {
+						domain.RemovedConstraints = append(domain.RemovedConstraints, constraint.Name)
+					}
+				} else {
+					domain.NewConstraints[constraint.Name] = constraint.Definition
+				}
+			}
+
+			for _, constraint := range destConstraints {
+				if _, ok := srcConstraints[constraint.Name]; !ok {
+					domain.NewConstraints[constraint.Name] = constraint.Definition
+				}
+			}
+
+			b.diff.ExistsInBoth.Different.Domains = append(b.diff.ExistsInBoth.Different.Domains, domain)
+		} else {
+			b.diff.ExistsInSource.Domains = append(b.diff.ExistsInSource.Domains, srcDomain)
+		}
+	}
+
+	for key, destDomain := range b.destination.Domains {
+		if _, ok := b.source.Domains[key]; !ok {
+			b.diff.ExistsInDestination.Domains = append(b.diff.ExistsInDestination.Domains, destDomain)
 		}
 	}
 }
