@@ -28,24 +28,24 @@ UmTDjHp2ZBeXOtnQniimAAAAEHRlc3RAZXhhbXBsZS5jb20BAgMEBQ==
 	unencryptedPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVer1BVE7oIuxR6Z5uP/yBwUmTDjHp2ZBeXOtnQniim test@example.com"
 )
 
-func Test_GetPrivateKeyAuthMethod(t *testing.T) {
-	out, err := GetPrivateKeyAuthMethod([]byte(encryptedPrivateKey), ptr(encryptedPrivateKeyPass))
+func Test_getPrivateKeyAuthMethod(t *testing.T) {
+	out, err := getPrivateKeyAuthMethod([]byte(encryptedPrivateKey), ptr(encryptedPrivateKeyPass))
 	assert.NoError(t, err)
 	assert.NotNil(t, out)
 
-	out, err = GetPrivateKeyAuthMethod([]byte(encryptedPrivateKey), ptr("badpassword"))
+	out, err = getPrivateKeyAuthMethod([]byte(encryptedPrivateKey), ptr("badpassword"))
 	assert.Error(t, err)
 	assert.Nil(t, out)
 
-	out, err = GetPrivateKeyAuthMethod([]byte("bad key"), ptr(encryptedPrivateKeyPass))
+	out, err = getPrivateKeyAuthMethod([]byte("bad key"), ptr(encryptedPrivateKeyPass))
 	assert.Error(t, err)
 	assert.Nil(t, out)
 
-	out, err = GetPrivateKeyAuthMethod([]byte(unencryptedPrivateKey), nil)
+	out, err = getPrivateKeyAuthMethod([]byte(unencryptedPrivateKey), nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, out)
 
-	out, err = GetPrivateKeyAuthMethod([]byte("bad key"), nil)
+	out, err = getPrivateKeyAuthMethod([]byte("bad key"), nil)
 	assert.Error(t, err)
 	assert.Nil(t, out)
 }
@@ -54,26 +54,26 @@ func ptr[T any](val T) *T {
 	return &val
 }
 
-func Test_ParseSshKey(t *testing.T) {
-	pk, err := ParseSshKey(unencryptedPublicKey)
+func Test_parseSshKey(t *testing.T) {
+	pk, err := parseSshKey(unencryptedPublicKey)
 	assert.NoError(t, err)
 	assert.NotNil(t, pk)
 
-	pk, err = ParseSshKey("bad key")
+	pk, err = parseSshKey("bad key")
 	assert.Error(t, err)
 	assert.Nil(t, pk)
 }
 
-func Test_GetTunnelAuthMethodFromSshConfig(t *testing.T) {
-	out, err := GetTunnelAuthMethodFromSshConfig(nil)
+func Test_getTunnelAuthMethodFromSshConfig(t *testing.T) {
+	out, err := getTunnelAuthMethodFromSshConfig(nil)
 	assert.NoError(t, err)
 	assert.Nil(t, out)
 
-	out, err = GetTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{})
+	out, err = getTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{})
 	assert.NoError(t, err)
 	assert.Nil(t, out)
 
-	out, err = GetTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
+	out, err = getTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
 		AuthConfig: &mgmtv1alpha1.SSHAuthentication_Passphrase{
 			Passphrase: &mgmtv1alpha1.SSHPassphrase{
 				Value: "foo",
@@ -83,7 +83,7 @@ func Test_GetTunnelAuthMethodFromSshConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, out)
 
-	out, err = GetTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
+	out, err = getTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
 		AuthConfig: &mgmtv1alpha1.SSHAuthentication_PrivateKey{
 			PrivateKey: &mgmtv1alpha1.SSHPrivateKey{
 				Value:      encryptedPrivateKey,
@@ -94,7 +94,7 @@ func Test_GetTunnelAuthMethodFromSshConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, out)
 
-	out, err = GetTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
+	out, err = getTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
 		AuthConfig: &mgmtv1alpha1.SSHAuthentication_PrivateKey{
 			PrivateKey: &mgmtv1alpha1.SSHPrivateKey{
 				Value:      encryptedPrivateKey,
