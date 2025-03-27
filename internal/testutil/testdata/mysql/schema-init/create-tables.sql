@@ -472,3 +472,19 @@ INSERT INTO astronaut_log (
 VALUES
     (1, 'Neil Armstrong', 'INSERTED', NOW()),
     (2, 'Buzz Aldrin', 'INSERTED', NOW());
+
+
+CREATE TABLE IF NOT EXISTS plants (
+    plant_id INT PRIMARY KEY AUTO_INCREMENT,
+    plant_name VARCHAR(100) NOT NULL,
+    plant_type ENUM('Alive', 'Dormant', 'Dead') NOT NULL,
+    water_types SET('Rainwater', 'Tapwater', 'Wellwater') NOT NULL
+);
+
+INSERT INTO plants (plant_name, plant_type, water_types) 
+VALUES 
+    ('Palm Tree', 'Alive', 'Rainwater'),
+    ('Cactus', 'Dormant', 'Rainwater'),
+    ('Flower', 'Dead', 'Wellwater');
+
+
