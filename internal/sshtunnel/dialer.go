@@ -83,7 +83,8 @@ func (s *SSHDialer) DialContext(ctx context.Context, network, addr string) (net.
 	if err != nil {
 		return nil, fmt.Errorf("unable to get or create ssh client during DialContext: %w", err)
 	}
-	conn, err := client.DialContext(ctx, network, addr)
+	s.logger.Debug("dialing", "network", network, "addr", addr)
+	conn, err := client.Dial(network, addr)
 	if err != nil {
 		return nil, fmt.Errorf("unable to dial address: %w", err)
 	}
@@ -112,6 +113,7 @@ const (
 )
 
 func (s *SSHDialer) getClient(ctx context.Context) (*ssh.Client, error) {
+	s.logger.Debug("getting ssh client")
 	s.clientmu.Lock()
 	defer s.clientmu.Unlock()
 
@@ -142,6 +144,7 @@ func (s *SSHDialer) getClient(ctx context.Context) (*ssh.Client, error) {
 
 	s.client = client
 	s.startKeepAlive(client)
+	s.logger.Debug("dialed ssh client")
 	return client, nil
 }
 

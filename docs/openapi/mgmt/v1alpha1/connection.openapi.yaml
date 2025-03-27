@@ -346,6 +346,26 @@ components:
           title: privileges
       title: CheckConnectionConfigResponse
       additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionByIdRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The connection id that the SSH connection will be checked against
+      title: CheckSSHConnectionByIdRequest
+      additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionByIdResponse:
+      type: object
+      properties:
+        result:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionResult'
+          title: result
+          description: The result of the SSH connection check
+      title: CheckSSHConnectionByIdResponse
+      additionalProperties: false
     mgmt.v1alpha1.CheckSSHConnectionRequest:
       type: object
       properties:
@@ -357,6 +377,16 @@ components:
       title: CheckSSHConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.CheckSSHConnectionResponse:
+      type: object
+      properties:
+        result:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionResult'
+          title: result
+          description: The result of the SSH connection check
+      title: CheckSSHConnectionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionResult:
       type: object
       allOf:
         - anyOf:
@@ -382,7 +412,7 @@ components:
           type: string
           title: error_message
           description: The error message returned by the SSH client if the connection is not successful
-      title: CheckSSHConnectionResponse
+      title: CheckSSHConnectionResult
       additionalProperties: false
     mgmt.v1alpha1.CheckSqlQueryRequest:
       type: object
@@ -1845,6 +1875,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionResponse'
+  /mgmt.v1alpha1.ConnectionService/CheckSSHConnectionById:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: CheckSSHConnectionById
+      description: Checks if the SSH server is reachable and accessible with the given credentials
+      operationId: mgmt.v1alpha1.ConnectionService.CheckSSHConnectionById
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionByIdRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionByIdResponse'
 tags:
   - name: mgmt.v1alpha1.ConnectionService
     description: |-

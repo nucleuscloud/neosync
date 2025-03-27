@@ -412,6 +412,24 @@ class CheckSSHConnectionRequest(_message.Message):
     def __init__(self, tunnel: _Optional[_Union[SSHTunnel, _Mapping]] = ...) -> None: ...
 
 class CheckSSHConnectionResponse(_message.Message):
+    __slots__ = ("result",)
+    RESULT_FIELD_NUMBER: _ClassVar[int]
+    result: CheckSSHConnectionResult
+    def __init__(self, result: _Optional[_Union[CheckSSHConnectionResult, _Mapping]] = ...) -> None: ...
+
+class CheckSSHConnectionByIdRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+class CheckSSHConnectionByIdResponse(_message.Message):
+    __slots__ = ("result",)
+    RESULT_FIELD_NUMBER: _ClassVar[int]
+    result: CheckSSHConnectionResult
+    def __init__(self, result: _Optional[_Union[CheckSSHConnectionResult, _Mapping]] = ...) -> None: ...
+
+class CheckSSHConnectionResult(_message.Message):
     __slots__ = ("is_successful", "error_message")
     IS_SUCCESSFUL_FIELD_NUMBER: _ClassVar[int]
     ERROR_MESSAGE_FIELD_NUMBER: _ClassVar[int]

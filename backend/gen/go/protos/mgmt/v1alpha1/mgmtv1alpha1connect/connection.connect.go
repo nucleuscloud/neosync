@@ -63,6 +63,9 @@ const (
 	// ConnectionServiceCheckSSHConnectionProcedure is the fully-qualified name of the
 	// ConnectionService's CheckSSHConnection RPC.
 	ConnectionServiceCheckSSHConnectionProcedure = "/mgmt.v1alpha1.ConnectionService/CheckSSHConnection"
+	// ConnectionServiceCheckSSHConnectionByIdProcedure is the fully-qualified name of the
+	// ConnectionService's CheckSSHConnectionById RPC.
+	ConnectionServiceCheckSSHConnectionByIdProcedure = "/mgmt.v1alpha1.ConnectionService/CheckSSHConnectionById"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -78,6 +81,7 @@ var (
 	connectionServiceCheckConnectionConfigByIdMethodDescriptor = connectionServiceServiceDescriptor.Methods().ByName("CheckConnectionConfigById")
 	connectionServiceCheckSqlQueryMethodDescriptor             = connectionServiceServiceDescriptor.Methods().ByName("CheckSqlQuery")
 	connectionServiceCheckSSHConnectionMethodDescriptor        = connectionServiceServiceDescriptor.Methods().ByName("CheckSSHConnection")
+	connectionServiceCheckSSHConnectionByIdMethodDescriptor    = connectionServiceServiceDescriptor.Methods().ByName("CheckSSHConnectionById")
 )
 
 // ConnectionServiceClient is a client for the mgmt.v1alpha1.ConnectionService service.
@@ -105,6 +109,8 @@ type ConnectionServiceClient interface {
 	CheckSqlQuery(context.Context, *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error)
 	// Checks if the SSH server is reachable and accessible with the given credentials
 	CheckSSHConnection(context.Context, *connect.Request[v1alpha1.CheckSSHConnectionRequest]) (*connect.Response[v1alpha1.CheckSSHConnectionResponse], error)
+	// Checks if the SSH server is reachable and accessible with the given credentials
+	CheckSSHConnectionById(context.Context, *connect.Request[v1alpha1.CheckSSHConnectionByIdRequest]) (*connect.Response[v1alpha1.CheckSSHConnectionByIdResponse], error)
 }
 
 // NewConnectionServiceClient constructs a client for the mgmt.v1alpha1.ConnectionService service.
@@ -179,6 +185,12 @@ func NewConnectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(connectionServiceCheckSSHConnectionMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		checkSSHConnectionById: connect.NewClient[v1alpha1.CheckSSHConnectionByIdRequest, v1alpha1.CheckSSHConnectionByIdResponse](
+			httpClient,
+			baseURL+ConnectionServiceCheckSSHConnectionByIdProcedure,
+			connect.WithSchema(connectionServiceCheckSSHConnectionByIdMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -194,6 +206,7 @@ type connectionServiceClient struct {
 	checkConnectionConfigById *connect.Client[v1alpha1.CheckConnectionConfigByIdRequest, v1alpha1.CheckConnectionConfigByIdResponse]
 	checkSqlQuery             *connect.Client[v1alpha1.CheckSqlQueryRequest, v1alpha1.CheckSqlQueryResponse]
 	checkSSHConnection        *connect.Client[v1alpha1.CheckSSHConnectionRequest, v1alpha1.CheckSSHConnectionResponse]
+	checkSSHConnectionById    *connect.Client[v1alpha1.CheckSSHConnectionByIdRequest, v1alpha1.CheckSSHConnectionByIdResponse]
 }
 
 // GetConnections calls mgmt.v1alpha1.ConnectionService.GetConnections.
@@ -246,6 +259,11 @@ func (c *connectionServiceClient) CheckSSHConnection(ctx context.Context, req *c
 	return c.checkSSHConnection.CallUnary(ctx, req)
 }
 
+// CheckSSHConnectionById calls mgmt.v1alpha1.ConnectionService.CheckSSHConnectionById.
+func (c *connectionServiceClient) CheckSSHConnectionById(ctx context.Context, req *connect.Request[v1alpha1.CheckSSHConnectionByIdRequest]) (*connect.Response[v1alpha1.CheckSSHConnectionByIdResponse], error) {
+	return c.checkSSHConnectionById.CallUnary(ctx, req)
+}
+
 // ConnectionServiceHandler is an implementation of the mgmt.v1alpha1.ConnectionService service.
 type ConnectionServiceHandler interface {
 	// Returns a list of connections associated with the account
@@ -271,6 +289,8 @@ type ConnectionServiceHandler interface {
 	CheckSqlQuery(context.Context, *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error)
 	// Checks if the SSH server is reachable and accessible with the given credentials
 	CheckSSHConnection(context.Context, *connect.Request[v1alpha1.CheckSSHConnectionRequest]) (*connect.Response[v1alpha1.CheckSSHConnectionResponse], error)
+	// Checks if the SSH server is reachable and accessible with the given credentials
+	CheckSSHConnectionById(context.Context, *connect.Request[v1alpha1.CheckSSHConnectionByIdRequest]) (*connect.Response[v1alpha1.CheckSSHConnectionByIdResponse], error)
 }
 
 // NewConnectionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -341,6 +361,12 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 		connect.WithSchema(connectionServiceCheckSSHConnectionMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	connectionServiceCheckSSHConnectionByIdHandler := connect.NewUnaryHandler(
+		ConnectionServiceCheckSSHConnectionByIdProcedure,
+		svc.CheckSSHConnectionById,
+		connect.WithSchema(connectionServiceCheckSSHConnectionByIdMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.ConnectionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ConnectionServiceGetConnectionsProcedure:
@@ -363,6 +389,8 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 			connectionServiceCheckSqlQueryHandler.ServeHTTP(w, r)
 		case ConnectionServiceCheckSSHConnectionProcedure:
 			connectionServiceCheckSSHConnectionHandler.ServeHTTP(w, r)
+		case ConnectionServiceCheckSSHConnectionByIdProcedure:
+			connectionServiceCheckSSHConnectionByIdHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -410,4 +438,8 @@ func (UnimplementedConnectionServiceHandler) CheckSqlQuery(context.Context, *con
 
 func (UnimplementedConnectionServiceHandler) CheckSSHConnection(context.Context, *connect.Request[v1alpha1.CheckSSHConnectionRequest]) (*connect.Response[v1alpha1.CheckSSHConnectionResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionService.CheckSSHConnection is not implemented"))
+}
+
+func (UnimplementedConnectionServiceHandler) CheckSSHConnectionById(context.Context, *connect.Request[v1alpha1.CheckSSHConnectionByIdRequest]) (*connect.Response[v1alpha1.CheckSSHConnectionByIdResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionService.CheckSSHConnectionById is not implemented"))
 }

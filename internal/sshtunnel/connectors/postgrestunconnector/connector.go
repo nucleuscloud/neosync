@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql/driver"
+	"fmt"
 	"log/slog"
 	"net"
 
@@ -74,6 +75,18 @@ func New(
 		pgxConfig.DialFunc = func(ctx context.Context, network, addr string) (net.Conn, error) {
 			return cfg.dialer.DialContext(ctx, network, addr)
 		}
+
+		pgxConfig.LookupFunc = func(ctx context.Context, name string) ([]string, error) {
+			addrs := []string{name}
+			resp, err := net.DefaultResolver.LookupHost(ctx, name)
+			if err != nil {
+				cfg.logger.Error("unable to lookup addrs for hostname during postgres tunnel dial", "name", name, "err", err)
+			} else {
+				addrs = append(addrs, resp...)
+			}
+			cfg.logger.Debug("looked up", "name", name, "addrs", addrs)
+			return addrs, nil
+		}
 	}
 	if cfg.tlsConfig != nil {
 		pgxConfig.TLSConfig = cfg.tlsConfig
@@ -97,6 +110,7 @@ func New(
 }
 
 func (c *Connector) Connect(_ context.Context) (driver.Conn, error) {
+	fmt.Println("opening", c.connStr)
 	return c.driver.Open(c.connStr)
 }
 

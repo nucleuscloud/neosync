@@ -17,6 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { getErrorMessage } from '@/util/util';
 import {
   AwsAdvancedFormValues,
   AwsCredentialsFormValues,
@@ -32,10 +33,14 @@ import {
   CheckConnectionConfigRequest,
   CheckConnectionConfigResponse,
   CheckConnectionConfigResponseSchema,
+  CheckSSHConnectionByIdRequest,
+  CheckSSHConnectionRequest,
+  CheckSSHConnectionResult,
   ConnectionService,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
+import { toast } from 'sonner';
 
 export interface SecretRevealProps<T> {
   isViewMode: boolean;
@@ -301,6 +306,8 @@ interface SshTunnelAccordionProps
   value: SshTunnelFormValues;
   onChange(value: SshTunnelFormValues): void;
   errors: Record<string, string>;
+  onCheckRequest(): CheckSSHConnectionRequest;
+  onCheckIdRequest(): CheckSSHConnectionByIdRequest;
 }
 
 export function SshTunnelAccordion(
@@ -326,11 +333,21 @@ interface SSHTunnelProps extends SecretRevealProps<SshTunnelFormValues> {
   value: SshTunnelFormValues;
   onChange(value: SshTunnelFormValues): void;
   errors: Record<string, string>;
+  onCheckRequest(): CheckSSHConnectionRequest;
+  onCheckIdRequest(): CheckSSHConnectionByIdRequest;
 }
 
 function SSHTunnel(props: SSHTunnelProps): ReactElement {
-  const { value, onChange, errors, isViewMode, canViewSecrets, onRevealClick } =
-    props;
+  const {
+    value,
+    onChange,
+    errors,
+    isViewMode,
+    canViewSecrets,
+    onRevealClick,
+    onCheckRequest,
+    onCheckIdRequest,
+  } = props;
 
   return (
     <>
@@ -458,8 +475,85 @@ function SSHTunnel(props: SSHTunnelProps): ReactElement {
           placeholder="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAlkjd9s7aJkfdLk3jSLkfj2lk3j2lkfj2l3kjf2lkfj2l"
         />
         <FormErrorMessage message={errors['tunnel.knownHostPublicKey']} />
+        <div>
+          <CheckSSHConnectionButton
+            onCheckRequest={onCheckRequest}
+            onCheckIdRequest={onCheckIdRequest}
+            isViewMode={isViewMode}
+          />
+        </div>
       </div>
     </>
+  );
+}
+
+interface CheckSSHConnectionButtonProps {
+  onCheckRequest(): CheckSSHConnectionRequest;
+  onCheckIdRequest(): CheckSSHConnectionByIdRequest;
+  isViewMode: boolean;
+}
+
+function CheckSSHConnectionButton(
+  props: CheckSSHConnectionButtonProps
+): ReactElement {
+  const { onCheckRequest, onCheckIdRequest, isViewMode } = props;
+  const { mutateAsync: checkSSHConnection } = useMutation(
+    ConnectionService.method.checkSSHConnection
+  );
+  const { mutateAsync: checkSSHConnectionById } = useMutation(
+    ConnectionService.method.checkSSHConnectionById
+  );
+  const [isChecking, setIsChecking] = useState(false);
+  const [checkResponse, setCheckResponse] = useState<
+    CheckSSHConnectionResult | undefined
+  >();
+
+  async function onClick(): Promise<void> {
+    if (isChecking) {
+      return;
+    }
+    try {
+      if (isViewMode) {
+        const res = await checkSSHConnectionById(onCheckIdRequest());
+        setCheckResponse(res.result);
+      } else {
+        const res = await checkSSHConnection(onCheckRequest());
+        setCheckResponse(res.result);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Unable to connect to SSH tunnel', {
+        description: getErrorMessage(err),
+      });
+    } finally {
+      setIsChecking(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Button variant="outline" onClick={onClick}>
+        <ButtonText
+          leftIcon={isChecking ? <Spinner /> : undefined}
+          text="Check Connection"
+        />
+      </Button>
+      {checkResponse && (
+        <div>
+          <p>
+            {checkResponse.isSuccessful
+              ? 'Connection successful'
+              : 'Connection failed'}
+          </p>
+          {checkResponse.errorMessage && (
+            <ErrorAlert
+              title="Tunnel Connection Failed"
+              description={checkResponse.errorMessage}
+            />
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

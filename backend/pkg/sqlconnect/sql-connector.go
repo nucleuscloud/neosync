@@ -336,7 +336,7 @@ func getTunnelConfig(tunnel *mgmtv1alpha1.SSHTunnel) (*tunnelConfig, error) {
 			User:            tunnel.GetUser(),
 			Auth:            authmethods,
 			HostKeyCallback: hostcallback,
-			Timeout:         15 * time.Second, // todo: make configurable
+			Timeout:         30 * time.Second, // todo: make configurable
 		},
 	}, nil
 }

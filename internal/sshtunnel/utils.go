@@ -1,7 +1,11 @@
 package sshtunnel
 
 import (
+	"errors"
 	"fmt"
+	"net"
+	"strconv"
+	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"golang.org/x/crypto/ssh"
@@ -57,5 +61,62 @@ func GetTunnelAuthMethodFromSshConfig(auth *mgmtv1alpha1.SSHAuthentication) (ssh
 		return authMethod, nil
 	default:
 		return nil, nil
+	}
+}
+
+type DtoTunnelConfig struct {
+	Addr         string
+	ClientConfig *ssh.ClientConfig
+}
+
+// Converts the proto SSHTunnel into a config that can be plugged in to ssh.Dial
+func GetTunnelConfigFromSSHDto(tunnel *mgmtv1alpha1.SSHTunnel) (*DtoTunnelConfig, error) {
+	if tunnel == nil {
+		return nil, errors.New("tunnel config is nil")
+	}
+
+	hostcallback, err := buildHostKeyCallback(tunnel)
+	if err != nil {
+		return nil, fmt.Errorf("unable to build host key callback: %w", err)
+	}
+
+	authmethod, err := GetTunnelAuthMethodFromSshConfig(tunnel.GetAuthentication())
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse ssh auth method: %w", err)
+	}
+
+	authmethods := []ssh.AuthMethod{}
+	if authmethod != nil {
+		authmethods = append(authmethods, authmethod)
+	}
+	return &DtoTunnelConfig{
+		Addr: getSshAddr(tunnel),
+		ClientConfig: &ssh.ClientConfig{
+			User:            tunnel.GetUser(),
+			Auth:            authmethods,
+			HostKeyCallback: hostcallback,
+			Timeout:         15 * time.Second, // todo: make configurable
+		},
+	}, nil
+}
+
+func getSshAddr(tunnel *mgmtv1alpha1.SSHTunnel) string {
+	host := tunnel.GetHost()
+	port := tunnel.GetPort()
+	if port > 0 {
+		return net.JoinHostPort(host, strconv.FormatInt(int64(port), 10))
+	}
+	return host
+}
+
+func buildHostKeyCallback(tunnel *mgmtv1alpha1.SSHTunnel) (ssh.HostKeyCallback, error) {
+	if tunnel.GetKnownHostPublicKey() != "" {
+		publickey, err := ParseSshKey(tunnel.GetKnownHostPublicKey())
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse ssh known host public key: %w", err)
+		}
+		return ssh.FixedHostKey(publickey), nil
+	} else {
+		return ssh.InsecureIgnoreHostKey(), nil //nolint:gosec // the user has chosen to not provide a known host public key
 	}
 }
