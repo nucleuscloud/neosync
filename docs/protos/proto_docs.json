@@ -6328,6 +6328,138 @@
           ]
         },
         {
+          "name": "CheckSSHConnectionByIdRequest",
+          "longName": "CheckSSHConnectionByIdRequest",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionByIdRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The connection id that the SSH connection will be checked against",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CheckSSHConnectionByIdResponse",
+          "longName": "CheckSSHConnectionByIdResponse",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionByIdResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "result",
+              "description": "The result of the SSH connection check",
+              "label": "",
+              "type": "CheckSSHConnectionResult",
+              "longType": "CheckSSHConnectionResult",
+              "fullType": "mgmt.v1alpha1.CheckSSHConnectionResult",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CheckSSHConnectionRequest",
+          "longName": "CheckSSHConnectionRequest",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "tunnel",
+              "description": "The SSH tunnel configuration to use for the connection",
+              "label": "",
+              "type": "SSHTunnel",
+              "longType": "SSHTunnel",
+              "fullType": "mgmt.v1alpha1.SSHTunnel",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CheckSSHConnectionResponse",
+          "longName": "CheckSSHConnectionResponse",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "result",
+              "description": "The result of the SSH connection check",
+              "label": "",
+              "type": "CheckSSHConnectionResult",
+              "longType": "CheckSSHConnectionResult",
+              "fullType": "mgmt.v1alpha1.CheckSSHConnectionResult",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CheckSSHConnectionResult",
+          "longName": "CheckSSHConnectionResult",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionResult",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_successful",
+              "description": "Whether or not the SSH connection is successful",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "error_message",
+              "description": "The error message returned by the SSH client if the connection is not successful",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_error_message",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "CheckSqlQueryRequest",
           "longName": "CheckSqlQueryRequest",
           "fullName": "mgmt.v1alpha1.CheckSqlQueryRequest",
@@ -8066,6 +8198,30 @@
               "responseType": "CheckSqlQueryResponse",
               "responseLongType": "CheckSqlQueryResponse",
               "responseFullType": "mgmt.v1alpha1.CheckSqlQueryResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "CheckSSHConnection",
+              "description": "Checks if the SSH server is reachable and accessible with the given credentials",
+              "requestType": "CheckSSHConnectionRequest",
+              "requestLongType": "CheckSSHConnectionRequest",
+              "requestFullType": "mgmt.v1alpha1.CheckSSHConnectionRequest",
+              "requestStreaming": false,
+              "responseType": "CheckSSHConnectionResponse",
+              "responseLongType": "CheckSSHConnectionResponse",
+              "responseFullType": "mgmt.v1alpha1.CheckSSHConnectionResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "CheckSSHConnectionById",
+              "description": "Checks if the SSH server is reachable and accessible with the given credentials",
+              "requestType": "CheckSSHConnectionByIdRequest",
+              "requestLongType": "CheckSSHConnectionByIdRequest",
+              "requestFullType": "mgmt.v1alpha1.CheckSSHConnectionByIdRequest",
+              "requestStreaming": false,
+              "responseType": "CheckSSHConnectionByIdResponse",
+              "responseLongType": "CheckSSHConnectionByIdResponse",
+              "responseFullType": "mgmt.v1alpha1.CheckSSHConnectionByIdResponse",
               "responseStreaming": false
             }
           ]

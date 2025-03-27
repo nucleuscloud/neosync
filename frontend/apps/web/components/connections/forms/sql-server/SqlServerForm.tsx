@@ -1,4 +1,7 @@
-import { buildConnectionConfigMssql } from '@/app/(mgmt)/[account]/connections/util';
+import {
+  buildConnectionConfigMssql,
+  getTunnelConfig,
+} from '@/app/(mgmt)/[account]/connections/util';
 import Submit from '@/components/forms/Submit';
 import { useAccount } from '@/components/providers/account-provider';
 import { BaseStore } from '@/util/zustand.stores.util';
@@ -8,6 +11,8 @@ import { useMutation } from '@connectrpc/connect-query';
 import {
   CheckConnectionConfigByIdRequestSchema,
   CheckConnectionConfigRequestSchema,
+  CheckSSHConnectionByIdRequestSchema,
+  CheckSSHConnectionRequestSchema,
   ConnectionService,
 } from '@neosync/sdk';
 import { ReactElement, useEffect } from 'react';
@@ -183,6 +188,16 @@ export default function SqlServerForm(props: Props): ReactElement {
         onRevealClick={async () => {
           const values = await getValueWithSecrets?.();
           return values?.tunnel;
+        }}
+        onCheckRequest={() => {
+          return createMessage(CheckSSHConnectionRequestSchema, {
+            tunnel: getTunnelConfig(formData.tunnel),
+          });
+        }}
+        onCheckIdRequest={() => {
+          return createMessage(CheckSSHConnectionByIdRequestSchema, {
+            id: connectionId ?? '',
+          });
         }}
       />
 

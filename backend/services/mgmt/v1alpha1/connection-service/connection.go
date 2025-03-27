@@ -24,6 +24,8 @@ import (
 	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/internal/sshtunnel"
+	"golang.org/x/crypto/ssh"
 	"golang.org/x/sync/errgroup"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -550,6 +552,81 @@ func (s *Service) CheckSqlQuery(
 		IsValid:      err == nil,
 		ErorrMessage: errorMsg,
 	}), nil
+}
+
+func (s *Service) CheckSSHConnection(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.CheckSSHConnectionRequest],
+) (*connect.Response[mgmtv1alpha1.CheckSSHConnectionResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	result, err := checkSSHConnection(req.Msg.GetTunnel(), logger)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&mgmtv1alpha1.CheckSSHConnectionResponse{
+		Result: result,
+	}), nil
+}
+
+func (s *Service) CheckSSHConnectionById(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.CheckSSHConnectionByIdRequest],
+) (*connect.Response[mgmtv1alpha1.CheckSSHConnectionByIdResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("connectionId", req.Msg.GetId())
+	connection, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: req.Msg.GetId()}))
+	if err != nil {
+		return nil, err
+	}
+
+	var sshTunnel *mgmtv1alpha1.SSHTunnel
+
+	switch cfg := connection.Msg.GetConnection().GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		sshTunnel = cfg.PgConfig.GetTunnel()
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		sshTunnel = cfg.MssqlConfig.GetTunnel()
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		sshTunnel = cfg.MysqlConfig.GetTunnel()
+	}
+
+	result, err := checkSSHConnection(sshTunnel, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.CheckSSHConnectionByIdResponse{
+		Result: result,
+	}), nil
+}
+
+func checkSSHConnection(sshTunnel *mgmtv1alpha1.SSHTunnel, logger *slog.Logger) (*mgmtv1alpha1.CheckSSHConnectionResult, error) {
+	if sshTunnel == nil {
+		errorMsg := "no ssh tunnel config found"
+		return &mgmtv1alpha1.CheckSSHConnectionResult{
+			IsSuccessful: false,
+			ErrorMessage: &errorMsg,
+		}, nil
+	}
+
+	tunnelConfig, err := sshtunnel.GetTunnelConfigFromSSHDto(sshTunnel)
+	if err != nil {
+		return nil, fmt.Errorf("unable to build tunnel config from dto: %w", err)
+	}
+	client, err := ssh.Dial("tcp", tunnelConfig.Addr, tunnelConfig.ClientConfig)
+	if err != nil {
+		errorMsg := err.Error()
+		logger.Error(fmt.Sprintf("unable to dial ssh: %s", errorMsg))
+		return &mgmtv1alpha1.CheckSSHConnectionResult{
+			IsSuccessful: false,
+			ErrorMessage: &errorMsg,
+		}, nil
+	}
+	client.Close()
+
+	return &mgmtv1alpha1.CheckSSHConnectionResult{
+		IsSuccessful: true,
+	}, nil
 }
 
 type urlEnvVarConfig interface {
