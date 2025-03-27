@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql/driver"
-	"fmt"
 	"log/slog"
 	"net"
 
@@ -112,7 +111,6 @@ func New(
 }
 
 func (c *Connector) Connect(_ context.Context) (driver.Conn, error) {
-	fmt.Println("opening", c.connStr)
 	return c.driver.Open(c.connStr)
 }
 
