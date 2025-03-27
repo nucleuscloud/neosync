@@ -105,3 +105,19 @@ func Test_GetTunnelAuthMethodFromSshConfig(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, out)
 }
+
+func Test_getSshAddr(t *testing.T) {
+	t.Run("with port", func(t *testing.T) {
+		actual := getSshAddr(&mgmtv1alpha1.SSHTunnel{
+			Host: "localhost",
+			Port: 2222,
+		})
+		assert.Equal(t, "localhost:2222", actual)
+	})
+	t.Run("without port", func(t *testing.T) {
+		actual := getSshAddr(&mgmtv1alpha1.SSHTunnel{
+			Host: "localhost",
+		})
+		assert.Equal(t, "localhost", actual)
+	})
+}
