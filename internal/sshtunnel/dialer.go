@@ -113,7 +113,6 @@ const (
 )
 
 func (s *SSHDialer) getClient(ctx context.Context) (*ssh.Client, error) {
-	s.logger.Debug("getting ssh client")
 	s.clientmu.Lock()
 	defer s.clientmu.Unlock()
 
@@ -144,7 +143,6 @@ func (s *SSHDialer) getClient(ctx context.Context) (*ssh.Client, error) {
 
 	s.client = client
 	s.startKeepAlive(client)
-	s.logger.Debug("dialed ssh client")
 	return client, nil
 }
 
