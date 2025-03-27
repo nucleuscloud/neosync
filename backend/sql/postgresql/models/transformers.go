@@ -55,7 +55,10 @@ type TransformerConfig struct {
 	GenerateBusinessName       *GenerateBusinessNameConfig      `json:"generateBusinessNameConfig,omitempty"`
 	GenerateIpAddress          *GenerateIpAddressConfig         `json:"generateIpAddressConfig,omitempty"`
 	TransformUuid              *TransformUuidConfig             `json:"transformUuid,omitempty"`
+	TransformScrambleIdentity  *TransformScrambleIdentityConfig `json:"transformScrambleIdentity,omitempty"`
 }
+
+type TransformScrambleIdentityConfig struct{}
 
 type GenerateEmailConfig struct {
 	EmailType *int32 `json:"emailType,omitempty"`
@@ -393,6 +396,8 @@ func (t *TransformerConfig) FromTransformerConfigDto(tr *mgmtv1alpha1.Transforme
 		}
 	case *mgmtv1alpha1.TransformerConfig_TransformUuidConfig:
 		t.TransformUuid = &TransformUuidConfig{}
+	case *mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig:
+		t.TransformScrambleIdentity = &TransformScrambleIdentityConfig{}
 	default:
 		t = &TransformerConfig{}
 	}
@@ -751,6 +756,12 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformUuidConfig{
 				TransformUuidConfig: &mgmtv1alpha1.TransformUuid{},
+			},
+		}
+	case t.TransformScrambleIdentity != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig{
+				TransformScrambleIdentityConfig: &mgmtv1alpha1.TransformScrambleIdentity{},
 			},
 		}
 	default:

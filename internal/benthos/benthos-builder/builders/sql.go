@@ -250,6 +250,11 @@ func buildBenthosSqlSourceConfigResponses(
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
 		}
 
+		cursors, err := buildIdentityCursors(ctx, transformerclient, mappings.Mappings)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build identity cursors: %w", err)
+		}
+
 		configs = append(configs, &bb_internal.BenthosSourceConfig{
 			Name:           config.Id(),
 			Config:         bc,
@@ -263,6 +268,8 @@ func buildBenthosSqlSourceConfigResponses(
 			TableName:   mappings.Table,
 			Columns:     config.InsertColumns(),
 			PrimaryKeys: config.PrimaryKeys(),
+
+			ColumnIdentityCursors: cursors,
 
 			Metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, mappings.Schema),

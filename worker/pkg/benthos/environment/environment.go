@@ -119,7 +119,13 @@ func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...O
 		if err != nil {
 			return nil, fmt.Errorf("unable to register pooled_sql_update output to benthos instance: %w", err)
 		}
-		err = neosync_benthos_sql.RegisterPooledSqlRawInput(env, config.sqlConfig.Provider, config.stopChannel, config.sqlConfig.InputHasMorePages, config.sqlConfig.InputContinuationToken)
+		err = neosync_benthos_sql.RegisterPooledSqlRawInput(
+			env,
+			config.sqlConfig.Provider,
+			config.stopChannel,
+			config.sqlConfig.InputHasMorePages,
+			config.sqlConfig.InputContinuationToken,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("unable to register pooled_sql_raw input to benthos instance: %w", err)
 		}

@@ -30,6 +30,7 @@ func main() {
 		p, err := transformers.ParseBloblangSpec(tf)
 		if err != nil {
 			fmt.Println("Error parsing bloblang params:", err)
+			return
 		}
 		tf.Params = p.Params
 		tf.Description = p.SpecDescription

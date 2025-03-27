@@ -774,6 +774,6 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}, nil
 
 	default:
-		return nil, fmt.Errorf("unsupported transformerr: %T", typedCfg)
+		return nil, fmt.Errorf("unsupported transformer: %T", typedCfg)
 	}
 }
