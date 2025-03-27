@@ -268,3 +268,147 @@ func Test_Build_TableTriggerDifferences(t *testing.T) {
 	require.Contains(t, destTriggerNames, "users_trigger")
 	require.Contains(t, destTriggerNames, "delete_users_trigger")
 }
+
+func Test_buildTableCompositeDifferences(t *testing.T) {
+	jobmappingTables := []*sqlmanager_shared.SchemaTable{
+		{Schema: "public", Table: "users"},
+	}
+
+	sourceData := &DatabaseData{
+		Composites: map[string]*sqlmanager_shared.CompositeDataType{
+			"public.address": {
+				Schema: "public",
+				Name:   "address",
+				Attributes: []*sqlmanager_shared.CompositeAttribute{
+					{Id: 1, Name: "street", Datatype: "text"},      // changed datatype
+					{Id: 2, Name: "street_name", Datatype: "text"}, // changed name
+					{Id: 5, Name: "state", Datatype: "text"},       // new attribute
+				},
+			},
+			"public.contact": { // exists in source but not dest
+				Schema: "public",
+				Name:   "contact",
+				Attributes: []*sqlmanager_shared.CompositeAttribute{
+					{Id: 1, Name: "email", Datatype: "text"},
+					{Id: 2, Name: "phone", Datatype: "text"},
+				},
+			},
+		},
+	}
+
+	destData := &DatabaseData{
+		Composites: map[string]*sqlmanager_shared.CompositeDataType{
+			"public.address": {
+				Schema: "public",
+				Name:   "address",
+				Attributes: []*sqlmanager_shared.CompositeAttribute{
+					{Id: 1, Name: "street", Datatype: "varchar(255)"}, // changed datatype
+					{Id: 2, Name: "city", Datatype: "text"},           // changed name
+					{Id: 3, Name: "country", Datatype: "text"},        // removed
+					{Id: 4, Name: "postal_code", Datatype: "text"},    // removed
+				},
+			},
+			"public.person": { // exists in dest but not source
+				Schema: "public",
+				Name:   "person",
+				Attributes: []*sqlmanager_shared.CompositeAttribute{
+					{Id: 1, Name: "first_name", Datatype: "text"},
+					{Id: 2, Name: "last_name", Datatype: "text"},
+				},
+			},
+		},
+	}
+
+	builder := NewSchemaDifferencesBuilder(jobmappingTables, sourceData, destData)
+	diff := builder.Build()
+
+	require.NotNil(t, diff)
+
+	// Check composites that exist in source but not in destination
+	require.Len(t, diff.ExistsInSource.Composites, 1)
+	require.Equal(t, "contact", diff.ExistsInSource.Composites[0].Name)
+
+	// Check composites that exist in destination but not in source
+	require.Len(t, diff.ExistsInDestination.Composites, 1)
+	require.Equal(t, "person", diff.ExistsInDestination.Composites[0].Name)
+
+	// Check composites that exist in both but have differences
+	require.Len(t, diff.ExistsInBoth.Different.Composites, 1)
+	compositeDiff := diff.ExistsInBoth.Different.Composites[0]
+
+	// Check changed attribute datatypes
+	require.Len(t, compositeDiff.ChangedAttributeDatatype, 1)
+	require.Equal(t, "text", compositeDiff.ChangedAttributeDatatype["street"])
+
+	// Check changed attribute names
+	require.Len(t, compositeDiff.ChangedAttributeName, 1)
+	require.Equal(t, "street_name", compositeDiff.ChangedAttributeName["city"])
+
+	// Check new attributes
+	require.Len(t, compositeDiff.NewAttributes, 1)
+	require.Equal(t, "text", compositeDiff.NewAttributes["state"])
+
+	// Check removed attributes
+	require.Len(t, compositeDiff.RemovedAttributes, 2)
+	require.Contains(t, compositeDiff.RemovedAttributes, "country")
+	require.Contains(t, compositeDiff.RemovedAttributes, "postal_code")
+}
+
+func TestBuildTableEnumDifferences(t *testing.T) {
+	jobmappingTables := []*sqlmanager_shared.SchemaTable{}
+
+	sourceData := &DatabaseData{
+		Enums: map[string]*sqlmanager_shared.EnumDataType{
+			"public.status": { // exists in both but different
+				Schema: "public",
+				Name:   "status",
+				Values: []string{"active", "inactive", "pending", "cancelled"},
+			},
+			"public.priority": { // exists in source only
+				Schema: "public",
+				Name:   "priority",
+				Values: []string{"low", "medium", "high"},
+			},
+		},
+	}
+
+	destData := &DatabaseData{
+		Enums: map[string]*sqlmanager_shared.EnumDataType{
+			"public.status": { // exists in both but different
+				Schema: "public",
+				Name:   "status",
+				Values: []string{"active", "disabled", "pending"},
+			},
+			"public.level": { // exists in dest only
+				Schema: "public",
+				Name:   "level",
+				Values: []string{"beginner", "intermediate", "expert"},
+			},
+		},
+	}
+
+	builder := NewSchemaDifferencesBuilder(jobmappingTables, sourceData, destData)
+	diff := builder.Build()
+
+	require.NotNil(t, diff)
+
+	// Check enums that exist in source but not in destination
+	require.Len(t, diff.ExistsInSource.Enums, 1)
+	require.Equal(t, "priority", diff.ExistsInSource.Enums[0].Name)
+
+	// Check enums that exist in destination but not in source
+	require.Len(t, diff.ExistsInDestination.Enums, 1)
+	require.Equal(t, "level", diff.ExistsInDestination.Enums[0].Name)
+
+	// Check enums that exist in both but have differences
+	require.Len(t, diff.ExistsInBoth.Different.Enums, 1)
+	enumDiff := diff.ExistsInBoth.Different.Enums[0]
+
+	// Check new values
+	require.Len(t, enumDiff.NewValues, 1)
+	require.Equal(t, "cancelled", enumDiff.NewValues[0])
+
+	// Check changed values
+	require.Len(t, enumDiff.ChangedValues, 1)
+	require.Equal(t, "inactive", enumDiff.ChangedValues["disabled"])
+}

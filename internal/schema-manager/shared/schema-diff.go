@@ -22,6 +22,14 @@ type EnumDiff struct {
 	ChangedValues map[string]string
 }
 
+type CompositeDiff struct {
+	Composite                *sqlmanager_shared.CompositeDataType
+	ChangedAttributeDatatype map[string]string
+	NewAttributes            map[string]string
+	RemovedAttributes        []string
+	ChangedAttributeName     map[string]string
+}
+
 type Different struct {
 	Columns                  []*sqlmanager_shared.TableColumn
 	NonForeignKeyConstraints []*sqlmanager_shared.NonForeignKeyConstraint
@@ -29,6 +37,7 @@ type Different struct {
 	Triggers                 []*sqlmanager_shared.TableTrigger
 	Functions                []*sqlmanager_shared.DataType
 	Enums                    []*EnumDiff
+	Composites               []*CompositeDiff
 }
 type ExistsInBoth struct {
 	Tables []*sqlmanager_shared.SchemaTable
@@ -109,6 +118,8 @@ func NewSchemaDifferencesBuilder(
 					ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
 					Triggers:                 []*sqlmanager_shared.TableTrigger{},
 					Functions:                []*sqlmanager_shared.DataType{},
+					Enums:                    []*EnumDiff{},
+					Composites:               []*CompositeDiff{},
 				},
 			},
 		},
@@ -122,6 +133,7 @@ func (b *SchemaDifferencesBuilder) Build() *SchemaDifferences {
 	b.buildTableTriggerDifferences()
 	b.buildSchemaFunctionDifferences()
 	b.buildTableEnumDifferences()
+	b.buildTableCompositeDifferences()
 	return b.diff
 }
 
@@ -215,6 +227,62 @@ func (b *SchemaDifferencesBuilder) buildTableEnumDifferences() {
 	for key, destEnum := range b.destination.Enums {
 		if _, ok := b.source.Enums[key]; !ok {
 			b.diff.ExistsInDestination.Enums = append(b.diff.ExistsInDestination.Enums, destEnum)
+		}
+	}
+}
+
+func (b *SchemaDifferencesBuilder) buildTableCompositeDifferences() {
+	for key, srcComposite := range b.source.Composites {
+		if destComposite, ok := b.destination.Composites[key]; ok {
+			changedAttributesDatatype := map[string]string{}
+			changedAttributesName := map[string]string{}
+			newAttributes := map[string]string{}
+			removedAttributes := []string{}
+
+			srcAttributes := map[int]*sqlmanager_shared.CompositeAttribute{}
+			for _, attr := range srcComposite.Attributes {
+				srcAttributes[attr.Id] = attr
+			}
+			destAttributes := map[int]*sqlmanager_shared.CompositeAttribute{}
+			for _, attr := range destComposite.Attributes {
+				destAttributes[attr.Id] = attr
+			}
+
+			// The id here is unique to the attribute and doesn't get reused when deleted.
+			for id, attr := range srcAttributes {
+				if destAttr, ok := destAttributes[id]; ok {
+					if attr.Datatype != destAttr.Datatype {
+						changedAttributesDatatype[destAttr.Name] = attr.Datatype
+					}
+					if attr.Name != destAttr.Name {
+						changedAttributesName[destAttr.Name] = attr.Name
+					}
+				} else {
+					newAttributes[attr.Name] = attr.Datatype
+				}
+			}
+
+			for id, attr := range destAttributes {
+				if _, ok := srcAttributes[id]; !ok {
+					removedAttributes = append(removedAttributes, attr.Name)
+				}
+			}
+
+			b.diff.ExistsInBoth.Different.Composites = append(b.diff.ExistsInBoth.Different.Composites, &CompositeDiff{
+				Composite:                srcComposite,
+				ChangedAttributeDatatype: changedAttributesDatatype,
+				NewAttributes:            newAttributes,
+				RemovedAttributes:        removedAttributes,
+				ChangedAttributeName:     changedAttributesName,
+			})
+		} else {
+			b.diff.ExistsInSource.Composites = append(b.diff.ExistsInSource.Composites, srcComposite)
+		}
+	}
+
+	for key, destComposite := range b.destination.Composites {
+		if _, ok := b.source.Composites[key]; !ok {
+			b.diff.ExistsInDestination.Composites = append(b.diff.ExistsInDestination.Composites, destComposite)
 		}
 	}
 }

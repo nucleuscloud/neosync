@@ -144,9 +144,10 @@ SELECT
     JSON_AGG(
         JSON_BUILD_OBJECT(
             'name', a.attname,
-            'type', pg_catalog.format_type(a.atttypid, a.atttypmod)
-        )
-    )::JSONB AS fields
+            'type', pg_catalog.format_type(a.atttypid, a.atttypmod),
+            'id', a.attnum
+        ) ORDER BY a.attnum
+    )::JSONB AS attributes
 FROM relevant_custom_types rct
 JOIN pg_catalog.pg_type t ON rct.type_oid = t.oid
 JOIN pg_catalog.pg_class c ON c.oid = t.typrelid
@@ -159,9 +160,9 @@ GROUP BY
 `
 
 type GetCompositeTypesByTablesRow struct {
-	Schema string
-	Name   string
-	Fields json.RawMessage
+	Schema     string
+	Name       string
+	Attributes json.RawMessage
 }
 
 func (q *Queries) GetCompositeTypesByTables(ctx context.Context, db DBTX, schematables []string) ([]*GetCompositeTypesByTablesRow, error) {
@@ -173,7 +174,7 @@ func (q *Queries) GetCompositeTypesByTables(ctx context.Context, db DBTX, schema
 	var items []*GetCompositeTypesByTablesRow
 	for rows.Next() {
 		var i GetCompositeTypesByTablesRow
-		if err := rows.Scan(&i.Schema, &i.Name, &i.Fields); err != nil {
+		if err := rows.Scan(&i.Schema, &i.Name, &i.Attributes); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
@@ -1078,7 +1079,6 @@ FROM
 	relevant_custom_types rct
 	JOIN pg_catalog.pg_type t ON rct.type_oid = t.oid
 	LEFT JOIN pg_catalog.pg_constraint c ON t.oid = c.contypid
-
 GROUP BY rct.schema_name, rct.type_name, t.typbasetype, t.typtypmod, t.typnotnull, t.typdefaultbin, t.typnamespace, t.typdefault
 `
 

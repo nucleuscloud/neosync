@@ -123,3 +123,21 @@ ALTER TYPE employment_status
 
 ALTER TABLE jobs DROP COLUMN job_category;
 DROP TYPE IF EXISTS job_category;
+
+ALTER TYPE comp_address
+ADD ATTRIBUTE id text;
+
+ALTER TYPE comp_address
+RENAME ATTRIBUTE apt_number TO unit_number;
+
+ALTER TYPE comp_address
+DROP ATTRIBUTE state;
+
+ALTER TABLE dummy_comp_table DROP COLUMN comp;
+DROP TYPE IF EXISTS comp_dummy;
+
+CREATE TYPE comp_new AS (
+    id text
+);
+
+ALTER TABLE dummy_comp_table ADD COLUMN comp_col_new comp_new;

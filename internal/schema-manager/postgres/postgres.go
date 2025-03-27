@@ -262,10 +262,16 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, d
 	for _, enum := range diff.ExistsInDestination.Enums {
 		dropDatatypesStatements = append(dropDatatypesStatements, sqlmanager_postgres.BuildDropDatatypesStatement(enum.Schema, enum.Name))
 	}
+	for _, composite := range diff.ExistsInDestination.Composites {
+		dropDatatypesStatements = append(dropDatatypesStatements, sqlmanager_postgres.BuildDropDatatypesStatement(composite.Schema, composite.Name))
+	}
 
 	updateDatatypesStatements := []string{}
 	for _, enum := range diff.ExistsInBoth.Different.Enums {
 		updateDatatypesStatements = append(updateDatatypesStatements, sqlmanager_postgres.BuildUpdateEnumStatements(enum.Enum.Schema, enum.Enum.Name, enum.NewValues, enum.ChangedValues)...)
+	}
+	for _, composite := range diff.ExistsInBoth.Different.Composites {
+		updateDatatypesStatements = append(updateDatatypesStatements, sqlmanager_postgres.BuildUpdateCompositeStatements(composite.Composite.Schema, composite.Composite.Name, composite.ChangedAttributeDatatype, composite.ChangedAttributeName, composite.NewAttributes, composite.RemovedAttributes)...)
 	}
 
 	return []*sqlmanager_shared.InitSchemaStatements{

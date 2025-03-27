@@ -258,11 +258,13 @@ func (p *PostgresManager) GetDataTypesByTables(ctx context.Context, tables []*sq
 			return err
 		}
 		for _, row := range enums {
-			enumTypes = append(enumTypes, &sqlmanager_shared.EnumDataType{
+			enum := &sqlmanager_shared.EnumDataType{
 				Schema: row.Schema,
 				Name:   row.Name,
 				Values: row.Values,
-			})
+			}
+			enum.Fingerprint = sqlmanager_shared.BuildEnumDataTypeFingerprint(enum)
+			enumTypes = append(enumTypes, enum)
 		}
 		return nil
 	})
@@ -275,15 +277,17 @@ func (p *PostgresManager) GetDataTypesByTables(ctx context.Context, tables []*sq
 			return err
 		}
 		for _, row := range composites {
-			var fields []*sqlmanager_shared.CompositeField
-			if err := json.Unmarshal(row.Fields, &fields); err != nil {
+			var attributes []*sqlmanager_shared.CompositeAttribute
+			if err := json.Unmarshal(row.Attributes, &attributes); err != nil {
 				return err
 			}
-			compositeTypes = append(compositeTypes, &sqlmanager_shared.CompositeDataType{
-				Schema: row.Schema,
-				Name:   row.Name,
-				Fields: fields,
-			})
+			composite := &sqlmanager_shared.CompositeDataType{
+				Schema:     row.Schema,
+				Name:       row.Name,
+				Attributes: attributes,
+			}
+			composite.Fingerprint = sqlmanager_shared.BuildCompositeDataTypeFingerprint(composite)
+			compositeTypes = append(compositeTypes, composite)
 		}
 		return nil
 	})
@@ -300,11 +304,13 @@ func (p *PostgresManager) GetDataTypesByTables(ctx context.Context, tables []*sq
 			if err := json.Unmarshal(row.Constraints, &constraints); err != nil {
 				return err
 			}
-			domainTypes = append(domainTypes, &sqlmanager_shared.DomainDataType{
+			domain := &sqlmanager_shared.DomainDataType{
 				Schema:      row.Schema,
 				Name:        row.Name,
 				Constraints: constraints,
-			})
+			}
+			domain.Fingerprint = sqlmanager_shared.BuildDomainDataTypeFingerprint(domain)
+			domainTypes = append(domainTypes, domain)
 		}
 		return nil
 	})
@@ -1237,6 +1243,27 @@ func BuildUpdateEnumStatements(schema, enumName string, newValues []string, chan
 	}
 	for value, newVal := range changedValues {
 		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q RENAME VALUE '%s' TO '%s';", schema, enumName, value, newVal))
+	}
+	return statements
+}
+
+func BuildUpdateCompositeStatements(
+	schema, compositeName string,
+	changedAttributesDatatype, changedAttributesName, newAttributes map[string]string,
+	removedAttributes []string,
+) []string {
+	statements := []string{}
+	for attribute, newDatatype := range changedAttributesDatatype {
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q ALTER ATTRIBUTE '%s' SET DATA TYPE '%s';", schema, compositeName, attribute, newDatatype))
+	}
+	for oldName, newName := range changedAttributesName {
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q RENAME ATTRIBUTE '%s' TO '%s';", schema, compositeName, oldName, newName))
+	}
+	for attribute, datatype := range newAttributes {
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q ADD ATTRIBUTE '%s' %s;", schema, compositeName, attribute, datatype))
+	}
+	for _, attribute := range removedAttributes {
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q DROP ATTRIBUTE IF EXISTS '%s';", schema, compositeName, attribute))
 	}
 	return statements
 }

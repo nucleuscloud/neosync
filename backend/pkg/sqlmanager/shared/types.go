@@ -158,12 +158,13 @@ type CompositeDataType struct {
 	Fingerprint string
 	Schema      string
 	Name        string
-	Fields      []*CompositeField
+	Attributes  []*CompositeAttribute
 }
 
-type CompositeField struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
+type CompositeAttribute struct {
+	Name     string `json:"name"`
+	Datatype string `json:"datatype"`
+	Id       int    `json:"id"` // helps track when attributes are added or removed
 }
 
 func (c *CompositeDataType) GetFingerprint() string {

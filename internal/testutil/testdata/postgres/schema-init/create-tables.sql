@@ -72,6 +72,37 @@ CREATE TABLE dependents (
 	FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE TYPE comp_address AS (
+    street   text,
+    city     text,
+    state    text,
+    zip_code text,
+		apt_number integer
+);
+
+CREATE TABLE office_locations (
+    location_id  serial PRIMARY KEY,
+    address      comp_address
+);
+
+INSERT INTO office_locations (address)
+VALUES (ROW('123 Main St', 'Springfield', 'IL', 62704, 4));
+
+
+CREATE TYPE comp_dummy AS (
+    street   text,
+    city     text,
+    state    text,
+    zip_code text,
+		apt_number integer
+);
+
+CREATE TABLE dummy_comp_table (
+    id  serial PRIMARY KEY,
+    comp      comp_dummy
+);
+
+
 
 CREATE OR REPLACE FUNCTION other_trigger_function()
 RETURNS trigger
