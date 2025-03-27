@@ -238,6 +238,8 @@ func (s *Service) ConvertPersonalToTeamAccount(
 		return nil, err
 	}
 
+	// todo: need to re-upsert rbac for the new personal account.
+
 	var checkoutSessionUrl *string
 	if s.cfg.IsNeosyncCloud && !resp.TeamAccount.StripeCustomerID.Valid && s.billingclient != nil {
 		account, err := s.db.UpsertStripeCustomerId(
