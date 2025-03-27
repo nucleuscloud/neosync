@@ -38,7 +38,10 @@ import {
   CheckSSHConnectionResult,
   ConnectionService,
 } from '@neosync/sdk';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import {
+  CheckCircledIcon,
+  ExclamationTriangleIcon,
+} from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -475,7 +478,7 @@ function SSHTunnel(props: SSHTunnelProps): ReactElement {
           placeholder="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAlkjd9s7aJkfdLk3jSLkfj2lk3j2lkfj2l3kjf2lkfj2l"
         />
         <FormErrorMessage message={errors['tunnel.knownHostPublicKey']} />
-        <div>
+        <div className="flex justify-end py-2">
           <CheckSSHConnectionButton
             onCheckRequest={onCheckRequest}
             onCheckIdRequest={onCheckIdRequest}
@@ -513,6 +516,8 @@ function CheckSSHConnectionButton(
       return;
     }
     try {
+      setCheckResponse(undefined);
+      setIsChecking(true);
       if (isViewMode) {
         const res = await checkSSHConnectionById(onCheckIdRequest());
         setCheckResponse(res.result);
@@ -532,19 +537,23 @@ function CheckSSHConnectionButton(
 
   return (
     <div className="flex flex-col gap-2">
-      <Button variant="outline" onClick={onClick}>
-        <ButtonText
-          leftIcon={isChecking ? <Spinner /> : undefined}
-          text="Check Connection"
-        />
-      </Button>
+      <div className="flex flex-row gap-2 items-center">
+        {checkResponse?.isSuccessful && (
+          <CheckCircledIcon className="h-4 w-4 text-green-500" />
+        )}
+        {checkResponse && !checkResponse.isSuccessful && (
+          <ExclamationTriangleIcon className="h-4 w-4 text-red-500" />
+        )}
+
+        <Button variant="outline" onClick={onClick} type="button">
+          <ButtonText
+            leftIcon={isChecking ? <Spinner /> : undefined}
+            text="Check Tunnel Connection"
+          />
+        </Button>
+      </div>
       {checkResponse && (
         <div>
-          <p>
-            {checkResponse.isSuccessful
-              ? 'Connection successful'
-              : 'Connection failed'}
-          </p>
           {checkResponse.errorMessage && (
             <ErrorAlert
               title="Tunnel Connection Failed"
