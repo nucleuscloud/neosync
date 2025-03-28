@@ -37,7 +37,10 @@ type javascriptProcessor struct {
 	vmPool  sync.Pool
 }
 
-func newJavascriptProcessorFromConfig(conf *service.ParsedConfig, mgr *service.Resources) (*javascriptProcessor, error) {
+func newJavascriptProcessorFromConfig(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+) (*javascriptProcessor, error) {
 	code, err := conf.FieldString(codeField)
 	if err != nil {
 		return nil, err
@@ -72,7 +75,10 @@ type vmPoolItem struct {
 	valueApi *benthosValueApi
 }
 
-func (j *javascriptProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) (result []service.MessageBatch, err error) {
+func (j *javascriptProcessor) ProcessBatch(
+	ctx context.Context,
+	batch service.MessageBatch,
+) (result []service.MessageBatch, err error) {
 	var runner *javascript_vm.Runner
 	var valueApi *benthosValueApi
 
@@ -96,7 +102,11 @@ func (j *javascriptProcessor) ProcessBatch(ctx context.Context, batch service.Me
 	// This here acts as a final catch-all defense for anything we missed so prevent the process from crashing.
 	defer func() {
 		if r := recover(); r != nil {
-			j.slogger.Error("recovered from panic in neosync_javascript batch processor", "error", fmt.Sprintf("%v", r))
+			j.slogger.Error(
+				"recovered from panic in neosync_javascript batch processor",
+				"error",
+				fmt.Sprintf("%v", r),
+			)
 			// Set the named return value 'err'
 			err = fmt.Errorf("neosync_javascript batch processor panic recovered: %v", r)
 			return

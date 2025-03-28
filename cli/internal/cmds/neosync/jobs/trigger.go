@@ -49,7 +49,8 @@ func newTriggerCmd() *cobra.Command {
 			return triggerJob(cmd.Context(), debugMode, jobUuid.String(), &apiKey, &accountId)
 		},
 	}
-	cmd.Flags().String("account-id", "", "Account that job is in. Defaults to account id in cli context")
+	cmd.Flags().
+		String("account-id", "", "Account that job is in. Defaults to account id in cli context")
 	return cmd
 }
 
@@ -79,18 +80,24 @@ func triggerJob(
 		httpclient,
 		neosyncurl,
 	)
-	job, err := jobclient.GetJob(ctx, connect.NewRequest[mgmtv1alpha1.GetJobRequest](&mgmtv1alpha1.GetJobRequest{
-		Id: jobId,
-	}))
+	job, err := jobclient.GetJob(
+		ctx,
+		connect.NewRequest[mgmtv1alpha1.GetJobRequest](&mgmtv1alpha1.GetJobRequest{
+			Id: jobId,
+		}),
+	)
 	if err != nil {
 		return err
 	}
 	if job.Msg.GetJob().GetAccountId() != accountId {
-		return fmt.Errorf("Unable to trigger job run. Job not found. AccountId: %s", accountId)
+		return fmt.Errorf("unable to trigger job run. job not found. accountId: %s", accountId)
 	}
-	_, err = jobclient.CreateJobRun(ctx, connect.NewRequest[mgmtv1alpha1.CreateJobRunRequest](&mgmtv1alpha1.CreateJobRunRequest{
-		JobId: jobId,
-	}))
+	_, err = jobclient.CreateJobRun(
+		ctx,
+		connect.NewRequest[mgmtv1alpha1.CreateJobRunRequest](&mgmtv1alpha1.CreateJobRunRequest{
+			JobId: jobId,
+		}),
+	)
 	if err != nil {
 		return err
 	}

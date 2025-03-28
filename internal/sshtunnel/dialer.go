@@ -57,7 +57,13 @@ func DefaultSSHDialerConfig() *SSHDialerConfig {
 				backoff.WithMaxTries(10),
 				backoff.WithMaxElapsedTime(5 * time.Minute),
 				backoff.WithNotify(func(err error, d time.Duration) {
-					logger.Warn(fmt.Sprintf("ssh error with retry: %s, retrying in %s", err.Error(), d.String()))
+					logger.Warn(
+						fmt.Sprintf(
+							"ssh error with retry: %s, retrying in %s",
+							err.Error(),
+							d.String(),
+						),
+					)
 				}),
 			}
 		},
@@ -67,11 +73,22 @@ func DefaultSSHDialerConfig() *SSHDialerConfig {
 	}
 }
 
-func NewLazySSHDialer(addr string, ccfg *ssh.ClientConfig, dialCfg *SSHDialerConfig, logger *slog.Logger) *SSHDialer {
+func NewLazySSHDialer(
+	addr string,
+	ccfg *ssh.ClientConfig,
+	dialCfg *SSHDialerConfig,
+	logger *slog.Logger,
+) *SSHDialer {
 	if dialCfg == nil {
 		dialCfg = DefaultSSHDialerConfig()
 	}
-	return &SSHDialer{addr: addr, ccfg: ccfg, clientmu: &sync.Mutex{}, dialCfg: dialCfg, logger: logger}
+	return &SSHDialer{
+		addr:     addr,
+		ccfg:     ccfg,
+		clientmu: &sync.Mutex{},
+		dialCfg:  dialCfg,
+		logger:   logger,
+	}
 }
 
 func NewSSHDialer(client *ssh.Client, logger *slog.Logger) *SSHDialer {
@@ -83,7 +100,8 @@ func (s *SSHDialer) DialContext(ctx context.Context, network, addr string) (net.
 	if err != nil {
 		return nil, fmt.Errorf("unable to get or create ssh client during DialContext: %w", err)
 	}
-	conn, err := client.DialContext(ctx, network, addr)
+	s.logger.Debug("dialing", "network", network, "addr", addr)
+	conn, err := client.Dial(network, addr)
 	if err != nil {
 		return nil, fmt.Errorf("unable to dial address: %w", err)
 	}
@@ -121,7 +139,12 @@ func (s *SSHDialer) getClient(ctx context.Context) (*ssh.Client, error) {
 		if err == nil {
 			return s.client, nil
 		}
-		s.logger.Warn(fmt.Sprintf("SSH client was dead, closing and attempting to re-open connection: %s", err.Error()))
+		s.logger.Warn(
+			fmt.Sprintf(
+				"SSH client was dead, closing and attempting to re-open connection: %s",
+				err.Error(),
+			),
+		)
 		s.client.Close()
 		s.client = nil
 	}
@@ -207,6 +230,8 @@ func (s *SSHDialer) startKeepAlive(client *ssh.Client) {
 					s.logger.Error("keepalive failed", "error", err)
 					s.client = nil
 					client.Close()
+				} else {
+					s.logger.Debug("keepalive successful")
 				}
 			case <-ctx.Done():
 				s.logger.Error("keepalive timed out")

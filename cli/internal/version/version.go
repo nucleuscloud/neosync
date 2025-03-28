@@ -10,11 +10,11 @@ import (
 
 type VersionInfo struct {
 	GitVersion string `json:"gitVersion" yaml:"gitVersion"`
-	GitCommit  string `json:"gitCommit" yaml:"gitCommit"`
-	BuildDate  string `json:"buildDate" yaml:"buildDate"`
-	GoVersion  string `json:"goVersion" yaml:"goVersion"`
-	Compiler   string `json:"compiler" yaml:"compiler"`
-	Platform   string `json:"platform" yaml:"platform"`
+	GitCommit  string `json:"gitCommit"  yaml:"gitCommit"`
+	BuildDate  string `json:"buildDate"  yaml:"buildDate"`
+	GoVersion  string `json:"goVersion"  yaml:"goVersion"`
+	Compiler   string `json:"compiler"   yaml:"compiler"`
+	Platform   string `json:"platform"   yaml:"platform"`
 }
 
 func (info *VersionInfo) String() string {
@@ -31,8 +31,15 @@ func (info *VersionInfo) Headers() map[string]string {
 }
 
 func constructUserAgent(info *VersionInfo) string {
-	return fmt.Sprintf("neosync/%s (commit: %s; build: %s; go: %s; compiler: %s; platform: %s)",
-		info.GitVersion, info.GitCommit, info.BuildDate, info.GoVersion, info.Compiler, info.Platform)
+	return fmt.Sprintf(
+		"neosync/%s (commit: %s; build: %s; go: %s; compiler: %s; platform: %s)",
+		info.GitVersion,
+		info.GitCommit,
+		info.BuildDate,
+		info.GoVersion,
+		info.Compiler,
+		info.Platform,
+	)
 }
 
 func (info *VersionInfo) GrpcMetadata() metadata.MD {

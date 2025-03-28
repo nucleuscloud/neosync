@@ -27,14 +27,38 @@ type Service struct {
 var _ Interface = (*Service)(nil)
 
 type Interface interface {
-	GetJobHooks(ctx context.Context, req *mgmtv1alpha1.GetJobHooksRequest) (*mgmtv1alpha1.GetJobHooksResponse, error)
-	GetJobHook(ctx context.Context, req *mgmtv1alpha1.GetJobHookRequest) (*mgmtv1alpha1.GetJobHookResponse, error)
-	CreateJobHook(ctx context.Context, req *mgmtv1alpha1.CreateJobHookRequest) (*mgmtv1alpha1.CreateJobHookResponse, error)
-	DeleteJobHook(ctx context.Context, req *mgmtv1alpha1.DeleteJobHookRequest) (*mgmtv1alpha1.DeleteJobHookResponse, error)
-	IsJobHookNameAvailable(ctx context.Context, req *mgmtv1alpha1.IsJobHookNameAvailableRequest) (*mgmtv1alpha1.IsJobHookNameAvailableResponse, error)
-	UpdateJobHook(ctx context.Context, req *mgmtv1alpha1.UpdateJobHookRequest) (*mgmtv1alpha1.UpdateJobHookResponse, error)
-	SetJobHookEnabled(ctx context.Context, req *mgmtv1alpha1.SetJobHookEnabledRequest) (*mgmtv1alpha1.SetJobHookEnabledResponse, error)
-	GetActiveJobHooksByTiming(ctx context.Context, req *mgmtv1alpha1.GetActiveJobHooksByTimingRequest) (*mgmtv1alpha1.GetActiveJobHooksByTimingResponse, error)
+	GetJobHooks(
+		ctx context.Context,
+		req *mgmtv1alpha1.GetJobHooksRequest,
+	) (*mgmtv1alpha1.GetJobHooksResponse, error)
+	GetJobHook(
+		ctx context.Context,
+		req *mgmtv1alpha1.GetJobHookRequest,
+	) (*mgmtv1alpha1.GetJobHookResponse, error)
+	CreateJobHook(
+		ctx context.Context,
+		req *mgmtv1alpha1.CreateJobHookRequest,
+	) (*mgmtv1alpha1.CreateJobHookResponse, error)
+	DeleteJobHook(
+		ctx context.Context,
+		req *mgmtv1alpha1.DeleteJobHookRequest,
+	) (*mgmtv1alpha1.DeleteJobHookResponse, error)
+	IsJobHookNameAvailable(
+		ctx context.Context,
+		req *mgmtv1alpha1.IsJobHookNameAvailableRequest,
+	) (*mgmtv1alpha1.IsJobHookNameAvailableResponse, error)
+	UpdateJobHook(
+		ctx context.Context,
+		req *mgmtv1alpha1.UpdateJobHookRequest,
+	) (*mgmtv1alpha1.UpdateJobHookResponse, error)
+	SetJobHookEnabled(
+		ctx context.Context,
+		req *mgmtv1alpha1.SetJobHookEnabledRequest,
+	) (*mgmtv1alpha1.SetJobHookEnabledResponse, error)
+	GetActiveJobHooksByTiming(
+		ctx context.Context,
+		req *mgmtv1alpha1.GetActiveJobHooksByTimingRequest,
+	) (*mgmtv1alpha1.GetActiveJobHooksByTimingResponse, error)
 }
 
 type config struct {
@@ -67,7 +91,9 @@ func (s *Service) GetJobHooks(
 	req *mgmtv1alpha1.GetJobHooksRequest,
 ) (*mgmtv1alpha1.GetJobHooksResponse, error) {
 	if !s.cfg.isEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.JobServiceGetJobHooksProcedure)
+		return nil, nucleuserrors.NewNotImplementedProcedure(
+			mgmtv1alpha1connect.JobServiceGetJobHooksProcedure,
+		)
 	}
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
@@ -98,7 +124,9 @@ func (s *Service) GetJobHook(
 	req *mgmtv1alpha1.GetJobHookRequest,
 ) (*mgmtv1alpha1.GetJobHookResponse, error) {
 	if !s.cfg.isEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.JobServiceGetJobHookProcedure)
+		return nil, nucleuserrors.NewNotImplementedProcedure(
+			mgmtv1alpha1connect.JobServiceGetJobHookProcedure,
+		)
 	}
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
@@ -116,7 +144,11 @@ func (s *Service) GetJobHook(
 		return nil, nucleuserrors.NewNotFound("unable to find job hook by id")
 	}
 
-	verifyResp, err := s.verifyUserHasJob(ctx, neosyncdb.UUIDString(hook.JobID), rbac.JobAction_View)
+	verifyResp, err := s.verifyUserHasJob(
+		ctx,
+		neosyncdb.UUIDString(hook.JobID),
+		rbac.JobAction_View,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +171,9 @@ func (s *Service) DeleteJobHook(
 	req *mgmtv1alpha1.DeleteJobHookRequest,
 ) (*mgmtv1alpha1.DeleteJobHookResponse, error) {
 	if !s.cfg.isEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.JobServiceGetJobHooksProcedure)
+		return nil, nucleuserrors.NewNotImplementedProcedure(
+			mgmtv1alpha1connect.JobServiceGetJobHooksProcedure,
+		)
 	}
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
@@ -158,7 +192,11 @@ func (s *Service) DeleteJobHook(
 		return &mgmtv1alpha1.DeleteJobHookResponse{}, nil
 	}
 
-	verifyResp, err := s.verifyUserHasJob(ctx, neosyncdb.UUIDString(hook.JobID), rbac.JobAction_Delete)
+	verifyResp, err := s.verifyUserHasJob(
+		ctx,
+		neosyncdb.UUIDString(hook.JobID),
+		rbac.JobAction_Delete,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +217,9 @@ func (s *Service) IsJobHookNameAvailable(
 	req *mgmtv1alpha1.IsJobHookNameAvailableRequest,
 ) (*mgmtv1alpha1.IsJobHookNameAvailableResponse, error) {
 	if !s.cfg.isEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.JobServiceIsJobHookNameAvailableProcedure)
+		return nil, nucleuserrors.NewNotImplementedProcedure(
+			mgmtv1alpha1connect.JobServiceIsJobHookNameAvailableProcedure,
+		)
 	}
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
@@ -213,7 +253,9 @@ func (s *Service) CreateJobHook(
 	req *mgmtv1alpha1.CreateJobHookRequest,
 ) (*mgmtv1alpha1.CreateJobHookResponse, error) {
 	if !s.cfg.isEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.JobServiceCreateJobHookProcedure)
+		return nil, nucleuserrors.NewNotImplementedProcedure(
+			mgmtv1alpha1connect.JobServiceCreateJobHookProcedure,
+		)
 	}
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
@@ -245,7 +287,9 @@ func (s *Service) CreateJobHook(
 	}
 	if !isValid {
 		logger.Debug("job hook creation did not pass connection id verification")
-		return nil, nucleuserrors.NewBadRequest("connection id specified in hook is not a part of job")
+		return nil, nucleuserrors.NewBadRequest(
+			"connection id specified in hook is not a part of job",
+		)
 	}
 
 	config, err := hookReq.GetConfig().MarshalJSON()
@@ -307,7 +351,9 @@ func (s *Service) UpdateJobHook(
 	}
 	if !isValid {
 		logger.Debug("job hook creation did not pass connection id verification")
-		return nil, nucleuserrors.NewBadRequest("connection id specified in hook is not a part of job")
+		return nil, nucleuserrors.NewBadRequest(
+			"connection id specified in hook is not a part of job",
+		)
 	}
 
 	config, err := req.GetConfig().MarshalJSON()
@@ -382,7 +428,13 @@ func (s *Service) SetJobHookEnabled(
 		return nil, err
 	}
 
-	logger.Debug(fmt.Sprintf("attempting to update job hook enabled status from %v to %v", getResp.GetHook().GetEnabled(), req.GetEnabled()))
+	logger.Debug(
+		fmt.Sprintf(
+			"attempting to update job hook enabled status from %v to %v",
+			getResp.GetHook().GetEnabled(),
+			req.GetEnabled(),
+		),
+	)
 	updatedHook, err := s.db.Q.SetJobHookEnabled(ctx, s.db.Db, db_queries.SetJobHookEnabledParams{
 		Enabled:         req.GetEnabled(),
 		UpdatedByUserID: verifyResp.UserUuid,
@@ -405,7 +457,9 @@ func (s *Service) GetActiveJobHooksByTiming(
 	req *mgmtv1alpha1.GetActiveJobHooksByTimingRequest,
 ) (*mgmtv1alpha1.GetActiveJobHooksByTimingResponse, error) {
 	if !s.cfg.isEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure)
+		return nil, nucleuserrors.NewNotImplementedProcedure(
+			mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure,
+		)
 	}
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
@@ -443,7 +497,9 @@ func (s *Service) GetActiveJobHooksByTiming(
 			return nil, err
 		}
 	default:
-		return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("invalid hook timing: %T", req.GetTiming()))
+		return nil, nucleuserrors.NewBadRequest(
+			fmt.Sprintf("invalid hook timing: %T", req.GetTiming()),
+		)
 	}
 
 	logger.Debug(fmt.Sprintf("found %d hooks", len(hooks)))
@@ -462,7 +518,11 @@ type verifyUserJobResponse struct {
 	UserUuid    pgtype.UUID
 }
 
-func (s *Service) verifyUserHasJob(ctx context.Context, jobId string, permission rbac.JobAction) (*verifyUserJobResponse, error) {
+func (s *Service) verifyUserHasJob(
+	ctx context.Context,
+	jobId string,
+	permission rbac.JobAction,
+) (*verifyUserJobResponse, error) {
 	jobuuid, err := neosyncdb.ToUuid(jobId)
 	if err != nil {
 		return nil, err

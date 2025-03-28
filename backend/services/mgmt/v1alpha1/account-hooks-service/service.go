@@ -23,7 +23,10 @@ func New(
 	}
 }
 
-func (s *Service) GetAccountHooks(ctx context.Context, req *connect.Request[mgmtv1alpha1.GetAccountHooksRequest]) (*connect.Response[mgmtv1alpha1.GetAccountHooksResponse], error) {
+func (s *Service) GetAccountHooks(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetAccountHooksRequest],
+) (*connect.Response[mgmtv1alpha1.GetAccountHooksResponse], error) {
 	resp, err := s.hookservice.GetAccountHooks(ctx, req.Msg)
 	if err != nil {
 		return nil, err
@@ -31,7 +34,10 @@ func (s *Service) GetAccountHooks(ctx context.Context, req *connect.Request[mgmt
 	return connect.NewResponse(resp), nil
 }
 
-func (s *Service) GetAccountHook(ctx context.Context, req *connect.Request[mgmtv1alpha1.GetAccountHookRequest]) (*connect.Response[mgmtv1alpha1.GetAccountHookResponse], error) {
+func (s *Service) GetAccountHook(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetAccountHookRequest],
+) (*connect.Response[mgmtv1alpha1.GetAccountHookResponse], error) {
 	resp, err := s.hookservice.GetAccountHook(ctx, req.Msg)
 	if err != nil {
 		return nil, err
@@ -39,7 +45,10 @@ func (s *Service) GetAccountHook(ctx context.Context, req *connect.Request[mgmtv
 	return connect.NewResponse(resp), nil
 }
 
-func (s *Service) CreateAccountHook(ctx context.Context, req *connect.Request[mgmtv1alpha1.CreateAccountHookRequest]) (*connect.Response[mgmtv1alpha1.CreateAccountHookResponse], error) {
+func (s *Service) CreateAccountHook(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.CreateAccountHookRequest],
+) (*connect.Response[mgmtv1alpha1.CreateAccountHookResponse], error) {
 	resp, err := s.hookservice.CreateAccountHook(ctx, req.Msg)
 	if err != nil {
 		return nil, err
@@ -47,7 +56,10 @@ func (s *Service) CreateAccountHook(ctx context.Context, req *connect.Request[mg
 	return connect.NewResponse(resp), nil
 }
 
-func (s *Service) DeleteAccountHook(ctx context.Context, req *connect.Request[mgmtv1alpha1.DeleteAccountHookRequest]) (*connect.Response[mgmtv1alpha1.DeleteAccountHookResponse], error) {
+func (s *Service) DeleteAccountHook(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.DeleteAccountHookRequest],
+) (*connect.Response[mgmtv1alpha1.DeleteAccountHookResponse], error) {
 	resp, err := s.hookservice.DeleteAccountHook(ctx, req.Msg)
 	if err != nil {
 		return nil, err
@@ -55,7 +67,10 @@ func (s *Service) DeleteAccountHook(ctx context.Context, req *connect.Request[mg
 	return connect.NewResponse(resp), nil
 }
 
-func (s *Service) IsAccountHookNameAvailable(ctx context.Context, req *connect.Request[mgmtv1alpha1.IsAccountHookNameAvailableRequest]) (*connect.Response[mgmtv1alpha1.IsAccountHookNameAvailableResponse], error) {
+func (s *Service) IsAccountHookNameAvailable(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.IsAccountHookNameAvailableRequest],
+) (*connect.Response[mgmtv1alpha1.IsAccountHookNameAvailableResponse], error) {
 	resp, err := s.hookservice.IsAccountHookNameAvailable(ctx, req.Msg)
 	if err != nil {
 		return nil, err
@@ -63,7 +78,10 @@ func (s *Service) IsAccountHookNameAvailable(ctx context.Context, req *connect.R
 	return connect.NewResponse(resp), nil
 }
 
-func (s *Service) UpdateAccountHook(ctx context.Context, req *connect.Request[mgmtv1alpha1.UpdateAccountHookRequest]) (*connect.Response[mgmtv1alpha1.UpdateAccountHookResponse], error) {
+func (s *Service) UpdateAccountHook(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.UpdateAccountHookRequest],
+) (*connect.Response[mgmtv1alpha1.UpdateAccountHookResponse], error) {
 	resp, err := s.hookservice.UpdateAccountHook(ctx, req.Msg)
 	if err != nil {
 		return nil, err
@@ -71,7 +89,10 @@ func (s *Service) UpdateAccountHook(ctx context.Context, req *connect.Request[mg
 	return connect.NewResponse(resp), nil
 }
 
-func (s *Service) SetAccountHookEnabled(ctx context.Context, req *connect.Request[mgmtv1alpha1.SetAccountHookEnabledRequest]) (*connect.Response[mgmtv1alpha1.SetAccountHookEnabledResponse], error) {
+func (s *Service) SetAccountHookEnabled(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.SetAccountHookEnabledRequest],
+) (*connect.Response[mgmtv1alpha1.SetAccountHookEnabledResponse], error) {
 	resp, err := s.hookservice.SetAccountHookEnabled(ctx, req.Msg)
 	if err != nil {
 		return nil, err
@@ -79,7 +100,10 @@ func (s *Service) SetAccountHookEnabled(ctx context.Context, req *connect.Reques
 	return connect.NewResponse(resp), nil
 }
 
-func (s *Service) GetActiveAccountHooksByEvent(ctx context.Context, req *connect.Request[mgmtv1alpha1.GetActiveAccountHooksByEventRequest]) (*connect.Response[mgmtv1alpha1.GetActiveAccountHooksByEventResponse], error) {
+func (s *Service) GetActiveAccountHooksByEvent(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetActiveAccountHooksByEventRequest],
+) (*connect.Response[mgmtv1alpha1.GetActiveAccountHooksByEventResponse], error) {
 	resp, err := s.hookservice.GetActiveAccountHooksByEvent(ctx, req.Msg)
 	if err != nil {
 		return nil, err
@@ -87,7 +111,10 @@ func (s *Service) GetActiveAccountHooksByEvent(ctx context.Context, req *connect
 	return connect.NewResponse(resp), nil
 }
 
-func (s *Service) GetSlackConnectionUrl(ctx context.Context, req *connect.Request[mgmtv1alpha1.GetSlackConnectionUrlRequest]) (*connect.Response[mgmtv1alpha1.GetSlackConnectionUrlResponse], error) {
+func (s *Service) GetSlackConnectionUrl(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetSlackConnectionUrlRequest],
+) (*connect.Response[mgmtv1alpha1.GetSlackConnectionUrlResponse], error) {
 	resp, err := s.hookservice.GetSlackConnectionUrl(ctx, req.Msg)
 	if err != nil {
 		return nil, err
@@ -95,7 +122,10 @@ func (s *Service) GetSlackConnectionUrl(ctx context.Context, req *connect.Reques
 	return connect.NewResponse(resp), nil
 }
 
-func (s *Service) HandleSlackOAuthCallback(ctx context.Context, req *connect.Request[mgmtv1alpha1.HandleSlackOAuthCallbackRequest]) (*connect.Response[mgmtv1alpha1.HandleSlackOAuthCallbackResponse], error) {
+func (s *Service) HandleSlackOAuthCallback(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.HandleSlackOAuthCallbackRequest],
+) (*connect.Response[mgmtv1alpha1.HandleSlackOAuthCallbackResponse], error) {
 	resp, err := s.hookservice.HandleSlackOAuthCallback(ctx, req.Msg)
 	if err != nil {
 		return nil, err
@@ -103,7 +133,10 @@ func (s *Service) HandleSlackOAuthCallback(ctx context.Context, req *connect.Req
 	return connect.NewResponse(resp), nil
 }
 
-func (s *Service) TestSlackConnection(ctx context.Context, req *connect.Request[mgmtv1alpha1.TestSlackConnectionRequest]) (*connect.Response[mgmtv1alpha1.TestSlackConnectionResponse], error) {
+func (s *Service) TestSlackConnection(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.TestSlackConnectionRequest],
+) (*connect.Response[mgmtv1alpha1.TestSlackConnectionResponse], error) {
 	resp, err := s.hookservice.TestSlackConnection(ctx, req.Msg)
 	if err != nil {
 		return nil, err
@@ -111,7 +144,10 @@ func (s *Service) TestSlackConnection(ctx context.Context, req *connect.Request[
 	return connect.NewResponse(resp), nil
 }
 
-func (s *Service) SendSlackMessage(ctx context.Context, req *connect.Request[mgmtv1alpha1.SendSlackMessageRequest]) (*connect.Response[mgmtv1alpha1.SendSlackMessageResponse], error) {
+func (s *Service) SendSlackMessage(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.SendSlackMessageRequest],
+) (*connect.Response[mgmtv1alpha1.SendSlackMessageResponse], error) {
 	resp, err := s.hookservice.SendSlackMessage(ctx, req.Msg)
 	if err != nil {
 		return nil, err

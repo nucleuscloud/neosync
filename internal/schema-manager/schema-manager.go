@@ -18,12 +18,29 @@ import (
 )
 
 type SchemaManagerService interface {
-	InitializeSchema(ctx context.Context, uniqueTables map[string]struct{}) ([]*schema_shared.InitSchemaError, error)
-	TruncateData(ctx context.Context, uniqueTables map[string]struct{}, uniqueSchemas []string) error
+	InitializeSchema(
+		ctx context.Context,
+		uniqueTables map[string]struct{},
+	) ([]*schema_shared.InitSchemaError, error)
+	TruncateData(
+		ctx context.Context,
+		uniqueTables map[string]struct{},
+		uniqueSchemas []string,
+	) error
 
-	CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*schema_shared.SchemaDifferences, error)
-	BuildSchemaDiffStatements(ctx context.Context, diff *schema_shared.SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error)
-	ReconcileDestinationSchema(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable, schemaStatements []*sqlmanager_shared.InitSchemaStatements) ([]*schema_shared.InitSchemaError, error)
+	CalculateSchemaDiff(
+		ctx context.Context,
+		uniqueTables map[string]*sqlmanager_shared.SchemaTable,
+	) (*schema_shared.SchemaDifferences, error)
+	BuildSchemaDiffStatements(
+		ctx context.Context,
+		diff *schema_shared.SchemaDifferences,
+	) ([]*sqlmanager_shared.InitSchemaStatements, error)
+	ReconcileDestinationSchema(
+		ctx context.Context,
+		uniqueTables map[string]*sqlmanager_shared.SchemaTable,
+		schemaStatements []*sqlmanager_shared.InitSchemaStatements,
+	) ([]*schema_shared.InitSchemaError, error)
 	TruncateTables(ctx context.Context, schemaDiff *schema_shared.SchemaDifferences) error
 
 	CloseConnections()
@@ -51,7 +68,12 @@ func NewSchemaManager(
 	logger *slog.Logger,
 	eelicense license.EEInterface,
 ) SchemaManager {
-	return &DefaultSchemaManager{sqlmanagerclient: sqlmanagerclient, session: session, logger: logger, eelicense: eelicense}
+	return &DefaultSchemaManager{
+		sqlmanagerclient: sqlmanagerclient,
+		session:          session,
+		logger:           logger,
+		eelicense:        eelicense,
+	}
 }
 
 func (d *DefaultSchemaManager) New(

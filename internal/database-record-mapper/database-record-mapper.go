@@ -30,7 +30,9 @@ func NewDatabaseRecordMapper(dbType string) (builder.DatabaseRecordMapper[any], 
 	}
 }
 
-func NewDatabaseRecordMapperFromConnection(connection *mgmtv1alpha1.Connection) (builder.DatabaseRecordMapper[any], error) {
+func NewDatabaseRecordMapperFromConnection(
+	connection *mgmtv1alpha1.Connection,
+) (builder.DatabaseRecordMapper[any], error) {
 	switch connection.GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		return NewDatabaseRecordMapper(sqlmanager_shared.PostgresDriver)

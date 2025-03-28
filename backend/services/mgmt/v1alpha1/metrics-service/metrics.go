@@ -41,12 +41,23 @@ func (s *Service) GetDailyMetricCount(
 
 	timeDiff := end.Sub(start)
 	if timeDiff > timeLimit {
-		return nil, nucleuserrors.NewBadRequest("duration between start and end must not exceed 60 days")
+		return nil, nucleuserrors.NewBadRequest(
+			"duration between start and end must not exceed 60 days",
+		)
 	}
 
 	queryLabels := metrics.MetricLabels{
-		metrics.NewNotEqLabel(metrics.IsUpdateConfigLabel, "true"), // we want to always exclude update configs
-		metrics.NewRegexMatchLabel(metrics.NeosyncDateLabel, strings.Join(metrics.GenerateMonthRegexRange(req.Msg.GetStart(), req.Msg.GetEnd()), metricDateSeparator)),
+		metrics.NewNotEqLabel(
+			metrics.IsUpdateConfigLabel,
+			"true",
+		), // we want to always exclude update configs
+		metrics.NewRegexMatchLabel(
+			metrics.NeosyncDateLabel,
+			strings.Join(
+				metrics.GenerateMonthRegexRange(req.Msg.GetStart(), req.Msg.GetEnd()),
+				metricDateSeparator,
+			),
+		),
 	}
 
 	switch identifier := req.Msg.Identifier.(type) {
@@ -126,12 +137,23 @@ func (s *Service) GetMetricCount(
 
 	timeDiff := end.Sub(start)
 	if timeDiff > timeLimit {
-		return nil, nucleuserrors.NewBadRequest("duration between start and end must not exceed 60 days")
+		return nil, nucleuserrors.NewBadRequest(
+			"duration between start and end must not exceed 60 days",
+		)
 	}
 
 	queryLabels := metrics.MetricLabels{
-		metrics.NewNotEqLabel(metrics.IsUpdateConfigLabel, "true"), // we want to always exclude update configs
-		metrics.NewRegexMatchLabel(metrics.NeosyncDateLabel, strings.Join(metrics.GenerateMonthRegexRange(req.Msg.GetStartDay(), req.Msg.GetEndDay()), metricDateSeparator)),
+		metrics.NewNotEqLabel(
+			metrics.IsUpdateConfigLabel,
+			"true",
+		), // we want to always exclude update configs
+		metrics.NewRegexMatchLabel(
+			metrics.NeosyncDateLabel,
+			strings.Join(
+				metrics.GenerateMonthRegexRange(req.Msg.GetStartDay(), req.Msg.GetEndDay()),
+				metricDateSeparator,
+			),
+		),
 	}
 
 	switch identifier := req.Msg.Identifier.(type) {

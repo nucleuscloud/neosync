@@ -54,19 +54,31 @@ func NewAnonymizer(opts ...Option) (*JsonAnonymizer, error) {
 	}
 
 	if len(a.transformerMappings) == 0 && a.defaultTransformers == nil {
-		return nil, fmt.Errorf("failed to initialize JSON anonymizer. must provide either default transformers or transformer mappings.")
+		return nil, fmt.Errorf(
+			"failed to initialize JSON anonymizer. must provide either default transformers or transformer mappings",
+		)
 	}
 
 	// Initialize transformerExecutors
 	var err error
-	a.transformerExecutors, err = initTransformerExecutors(a.transformerMappings, a.anonymizeConfig, a.transformerClient, a.logger)
+	a.transformerExecutors, err = initTransformerExecutors(
+		a.transformerMappings,
+		a.anonymizeConfig,
+		a.transformerClient,
+		a.logger,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	// Initialize defaultTransformerExecutor if needed
 	if a.defaultTransformers != nil {
-		a.defaultTransformerExecutor, err = initDefaultTransformerExecutors(a.defaultTransformers, a.anonymizeConfig, a.transformerClient, a.logger)
+		a.defaultTransformerExecutor, err = initDefaultTransformerExecutors(
+			a.defaultTransformers,
+			a.anonymizeConfig,
+			a.transformerClient,
+			a.logger,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -92,7 +104,12 @@ func WithTransformerClient(transformerClient mgmtv1alpha1connect.TransformersSer
 }
 
 // WithAnonymizeConfig sets the analyze and anonymize clients for use by the presidio transformers only if isEnabled is true
-func WithConditionalAnonymizeConfig(isEnabled bool, analyze presidioapi.AnalyzeInterface, anonymize presidioapi.AnonymizeInterface, defaultLanguage *string) Option {
+func WithConditionalAnonymizeConfig(
+	isEnabled bool,
+	analyze presidioapi.AnalyzeInterface,
+	anonymize presidioapi.AnonymizeInterface,
+	defaultLanguage *string,
+) Option {
 	return func(ja *JsonAnonymizer) {
 		if isEnabled && analyze != nil && anonymize != nil {
 			ja.anonymizeConfig = &anonymizeConfig{
@@ -142,14 +159,21 @@ func (a *JsonAnonymizer) initializeJq() error {
 		fnName := functionNames[idx]
 		exec := a.transformerExecutors[idx]
 		path := mapping.GetExpression()
-		compilerOpts = append(compilerOpts, gojq.WithFunction(fnName, 1, 1, func(_ any, args []any) any {
-			value := args[0]
-			result, err := exec.Mutate(value, exec.Opts)
-			if err != nil {
-				return fmt.Errorf("unable to anonymize value. expression: %s  error: %w", path, err)
-			}
-			return derefPointer(result)
-		}))
+		compilerOpts = append(
+			compilerOpts,
+			gojq.WithFunction(fnName, 1, 1, func(_ any, args []any) any {
+				value := args[0]
+				result, err := exec.Mutate(value, exec.Opts)
+				if err != nil {
+					return fmt.Errorf(
+						"unable to anonymize value. expression: %s  error: %w",
+						path,
+						err,
+					)
+				}
+				return derefPointer(result)
+			}),
+		)
 
 		sanitizedPath := strings.ReplaceAll(path, "?", "")
 		a.skipPaths[sanitizedPath] = struct{}{}
@@ -162,7 +186,10 @@ func (a *JsonAnonymizer) initializeJq() error {
 		}
 		return gojq.NewIter(result)
 	}
-	compilerOpts = append(compilerOpts, gojq.WithIterFunction("applyDefaultTransformers", 0, 0, applyDefaultTransformersFunc))
+	compilerOpts = append(
+		compilerOpts,
+		gojq.WithIterFunction("applyDefaultTransformers", 0, 0, applyDefaultTransformersFunc),
+	)
 
 	compiledQuery, err := gojq.Compile(query, compilerOpts...)
 	if err != nil {
@@ -190,7 +217,8 @@ func (a *JsonAnonymizer) buildJqQuery() (query string, transformerFunctions []st
 	functionNames := []string{}
 
 	if a.defaultTransformers != nil {
-		if a.defaultTransformers.S != nil || a.defaultTransformers.N != nil || a.defaultTransformers.Boolean != nil {
+		if a.defaultTransformers.S != nil || a.defaultTransformers.N != nil ||
+			a.defaultTransformers.Boolean != nil {
 			queryParts = append(queryParts, "applyDefaultTransformers")
 		}
 	}
@@ -365,17 +393,29 @@ func initTransformerExecutors(
 		transformer_executor.WithLogger(logger),
 		transformer_executor.WithUserDefinedTransformerResolver(newUdtResolver(transformerClient)),
 	}
-	if anonymizeConfig != nil && anonymizeConfig.analyze != nil && anonymizeConfig.anonymize != nil {
+	if anonymizeConfig != nil && anonymizeConfig.analyze != nil &&
+		anonymizeConfig.anonymize != nil {
 		execOpts = append(
 			execOpts,
-			transformer_executor.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, newNeosyncOperatorApi(execOpts), anonymizeConfig.defaultLanguage),
+			transformer_executor.WithTransformPiiTextConfig(
+				anonymizeConfig.analyze,
+				anonymizeConfig.anonymize,
+				newNeosyncOperatorApi(execOpts),
+				anonymizeConfig.defaultLanguage,
+			),
 		)
 	}
 
 	for _, mapping := range transformerMappings {
-		executor, err := transformer_executor.InitializeTransformerByConfigType(mapping.GetTransformer(), execOpts...)
+		executor, err := transformer_executor.InitializeTransformerByConfigType(
+			mapping.GetTransformer(),
+			execOpts...)
 		if err != nil {
-			return nil, fmt.Errorf("failed to initialize transformer for expression '%s': %v", mapping.GetExpression(), err)
+			return nil, fmt.Errorf(
+				"failed to initialize transformer for expression '%s': %v",
+				mapping.GetExpression(),
+				err,
+			)
 		}
 		executors = append(executors, executor)
 	}
@@ -399,26 +439,41 @@ func initDefaultTransformerExecutors(
 		transformer_executor.WithLogger(logger),
 		transformer_executor.WithUserDefinedTransformerResolver(newUdtResolver(transformerClient)),
 	}
-	if anonymizeConfig != nil && anonymizeConfig.analyze != nil && anonymizeConfig.anonymize != nil {
-		execOpts = append(execOpts, transformer_executor.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize, newNeosyncOperatorApi(execOpts), anonymizeConfig.defaultLanguage))
+	if anonymizeConfig != nil && anonymizeConfig.analyze != nil &&
+		anonymizeConfig.anonymize != nil {
+		execOpts = append(
+			execOpts,
+			transformer_executor.WithTransformPiiTextConfig(
+				anonymizeConfig.analyze,
+				anonymizeConfig.anonymize,
+				newNeosyncOperatorApi(execOpts),
+				anonymizeConfig.defaultLanguage,
+			),
+		)
 	}
 
 	var stringExecutor, numberExecutor, booleanExecutor *transformer_executor.TransformerExecutor
 	var err error
 	if defaultTransformer.S != nil {
-		stringExecutor, err = transformer_executor.InitializeTransformerByConfigType(defaultTransformer.S, execOpts...)
+		stringExecutor, err = transformer_executor.InitializeTransformerByConfigType(
+			defaultTransformer.S,
+			execOpts...)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if defaultTransformer.N != nil {
-		numberExecutor, err = transformer_executor.InitializeTransformerByConfigType(defaultTransformer.N, execOpts...)
+		numberExecutor, err = transformer_executor.InitializeTransformerByConfigType(
+			defaultTransformer.N,
+			execOpts...)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if defaultTransformer.Boolean != nil {
-		booleanExecutor, err = transformer_executor.InitializeTransformerByConfigType(defaultTransformer.Boolean, execOpts...)
+		booleanExecutor, err = transformer_executor.InitializeTransformerByConfigType(
+			defaultTransformer.Boolean,
+			execOpts...)
 		if err != nil {
 			return nil, err
 		}

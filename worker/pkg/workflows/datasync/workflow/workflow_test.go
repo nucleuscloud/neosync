@@ -706,7 +706,7 @@ func Test_Workflow_Halts_Activities_On_InvalidAccountStatus(t *testing.T) {
 	require.Error(t, err)
 	var applicationErr *temporal.ApplicationError
 	require.True(t, errors.As(err, &applicationErr))
-	require.ErrorContains(t, applicationErr, invalidAccountStatusError.Error())
+	require.ErrorContains(t, applicationErr, errInvalidAccountStatusError.Error())
 
 	env.AssertExpectations(t)
 }
@@ -1006,34 +1006,6 @@ func Test_updateCompletedMap(t *testing.T) {
 	assert.Equal(t, []string{"name", "id"}, val)
 }
 
-func Test_isReadyForCleanUp(t *testing.T) {
-	assert.True(t, isReadyForCleanUp("", "", nil), "no dependencies")
-
-	assert.False(
-		t,
-		isReadyForCleanUp(
-			"table",
-			"col",
-			map[string]map[string][]string{
-				"other_table": {"table": []string{"col"}},
-			},
-		),
-		"has dependency",
-	)
-
-	assert.True(
-		t,
-		isReadyForCleanUp(
-			"table",
-			"col",
-			map[string]map[string][]string{
-				"other_table": {"table": []string{"col1"}},
-			},
-		),
-		"no dependency",
-	)
-}
-
 func Test_Workflow_Initial_AccountStatus(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
@@ -1064,7 +1036,7 @@ func Test_Workflow_Initial_AccountStatus(t *testing.T) {
 	assert.Error(t, err)
 	var applicationErr *temporal.ApplicationError
 	assert.True(t, errors.As(err, &applicationErr))
-	assert.ErrorContains(t, applicationErr, invalidAccountStatusError.Error())
+	assert.ErrorContains(t, applicationErr, errInvalidAccountStatusError.Error())
 
 	env.AssertExpectations(t)
 }

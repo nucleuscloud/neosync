@@ -43,7 +43,10 @@ func (c *otlpCounter) Incr(count int64) {
 	c.counter.Add(context.Background(), count, metric.WithAttributes(c.labels...))
 }
 
-func (om *otlpMetricsExporter) NewCounterCtor(path string, labelNames ...string) service.MetricsExporterCounterCtor {
+func (om *otlpMetricsExporter) NewCounterCtor(
+	path string,
+	labelNames ...string,
+) service.MetricsExporterCounterCtor {
 	return func(labelValues ...string) service.MetricsExporterCounter {
 		var attrs []attribute.KeyValue
 		for idx, label := range labelNames {
@@ -71,7 +74,10 @@ func (c *otlpTimer) Timing(delta int64) {
 	c.timer.Record(context.Background(), delta, metric.WithAttributes(c.labels...))
 }
 
-func (om *otlpMetricsExporter) NewTimerCtor(path string, labelNames ...string) service.MetricsExporterTimerCtor {
+func (om *otlpMetricsExporter) NewTimerCtor(
+	path string,
+	labelNames ...string,
+) service.MetricsExporterTimerCtor {
 	return func(labelValues ...string) service.MetricsExporterTimer {
 		var attrs []attribute.KeyValue
 		for idx, label := range labelNames {
@@ -103,7 +109,10 @@ func (c *otlpGauge) Set(value int64) {
 	c.gaugeChan <- value
 }
 
-func (om *otlpMetricsExporter) NewGaugeCtor(path string, labelNames ...string) service.MetricsExporterGaugeCtor {
+func (om *otlpMetricsExporter) NewGaugeCtor(
+	path string,
+	labelNames ...string,
+) service.MetricsExporterGaugeCtor {
 	return func(labelValues ...string) service.MetricsExporterGauge {
 		var attrs []attribute.KeyValue
 		for idx, label := range labelNames {

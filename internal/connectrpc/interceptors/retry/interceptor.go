@@ -31,7 +31,13 @@ func DefaultRetryInterceptor(logger *slog.Logger) *Interceptor {
 				backoff.WithMaxTries(10),
 				backoff.WithMaxElapsedTime(1 * time.Minute),
 				backoff.WithNotify(func(err error, d time.Duration) {
-					logger.Warn(fmt.Sprintf("error with retry: %s, retrying in %s", err.Error(), d.String()))
+					logger.Warn(
+						fmt.Sprintf(
+							"error with retry: %s, retrying in %s",
+							err.Error(),
+							d.String(),
+						),
+					)
 				}),
 			}
 		}),
@@ -75,7 +81,9 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 	}
 }
 
-func (i *Interceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {
+func (i *Interceptor) WrapStreamingClient(
+	next connect.StreamingClientFunc,
+) connect.StreamingClientFunc {
 	return func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
 		conn := next(ctx, spec)
 
@@ -138,7 +146,9 @@ func (r *retryStreamingClientConn) Receive(msg any) error {
 	return unwrapPermanentError(err)
 }
 
-func (i *Interceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
+func (i *Interceptor) WrapStreamingHandler(
+	next connect.StreamingHandlerFunc,
+) connect.StreamingHandlerFunc {
 	return func(ctx context.Context, conn connect.StreamingHandlerConn) error {
 		operation := func() (any, error) {
 			err := next(ctx, conn)

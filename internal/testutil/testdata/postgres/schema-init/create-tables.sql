@@ -7,7 +7,11 @@ CREATE TABLE countries (
 	country_id CHARACTER (2) PRIMARY KEY,
 	country_name CHARACTER VARYING (40),
 	region_id INTEGER NOT NULL,
-	FOREIGN KEY (region_id) REFERENCES regions (region_id) ON UPDATE CASCADE ON DELETE CASCADE
+	-- Added for testing column drops:
+	temp_col CHARACTER (5),
+	FOREIGN KEY (region_id) REFERENCES regions (region_id) ON UPDATE CASCADE ON DELETE CASCADE,
+	-- Added for testing constraint drops:
+	CONSTRAINT countries_country_name_uniq UNIQUE (country_name)
 );
 
 CREATE TABLE locations (
@@ -45,6 +49,11 @@ CREATE TABLE employees (
 	salary NUMERIC (8, 2) NOT NULL,
 	manager_id INTEGER,
 	department_id INTEGER,
+	-- Added for testing column drops:
+	temp_col INT,
+	-- Added for testing constraint drops:
+	CONSTRAINT employees_salary_check CHECK (salary >= 0),
+	CONSTRAINT employees_temp_col_check CHECK (temp_col IS NULL OR temp_col > 0),
 	FOREIGN KEY (job_id) REFERENCES jobs (job_id) ON UPDATE CASCADE ON DELETE CASCADE,
 	FOREIGN KEY (department_id) REFERENCES departments (department_id) ON UPDATE CASCADE ON DELETE CASCADE,
 	FOREIGN KEY (manager_id) REFERENCES employees (employee_id) ON UPDATE CASCADE ON DELETE CASCADE
@@ -59,8 +68,56 @@ CREATE TABLE dependents (
 	FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-/*Data for the table regions */
 
+CREATE OR REPLACE FUNCTION other_trigger_function()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN NEW;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION dummy_trigger_function()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN NEW;
+END;
+$$;
+
+CREATE TABLE dummy_table (
+    id SERIAL PRIMARY KEY,
+    data TEXT
+);
+
+CREATE TRIGGER no_op_trigger
+AFTER INSERT 
+ON dummy_table
+FOR EACH ROW
+EXECUTE FUNCTION dummy_trigger_function();
+
+CREATE TRIGGER other_trigger
+AFTER INSERT 
+ON dummy_table
+FOR EACH ROW
+EXECUTE FUNCTION other_trigger_function();
+
+CREATE TABLE test_table_single_col (
+ 	name TEXT PRIMARY KEY
+);
+
+INSERT INTO test_table_single_col (name) VALUES ('TEST_VAL');
+
+
+INSERT INTO dummy_table(id,data) VALUES (1,'Europe Data');
+INSERT INTO dummy_table(id,data) VALUES (2,'Americas Data');
+INSERT INTO dummy_table(id,data) VALUES (3,'Asia Data');
+INSERT INTO dummy_table(id,data) VALUES (4,'Middle East and Africa Data');
+
+/*Data for the table regions */
 INSERT INTO regions(region_id,region_name) VALUES (1,'Europe');
 INSERT INTO regions(region_id,region_name) VALUES (2,'Americas');
 INSERT INTO regions(region_id,region_name) VALUES (3,'Asia');
@@ -105,7 +162,6 @@ INSERT INTO locations(location_id,street_address,postal_code,city,state_province
 
 
 /*Data for the table jobs */
-
 INSERT INTO jobs(job_id,job_title,min_salary,max_salary) VALUES (1,'Public Accountant',4200.00,9000.00);
 INSERT INTO jobs(job_id,job_title,min_salary,max_salary) VALUES (2,'Accounting Manager',8200.00,16000.00);
 INSERT INTO jobs(job_id,job_title,min_salary,max_salary) VALUES (3,'Administration Assistant',3000.00,6000.00);
@@ -128,7 +184,6 @@ INSERT INTO jobs(job_id,job_title,min_salary,max_salary) VALUES (19,'Stock Manag
 
 
 /*Data for the table departments */
-
 INSERT INTO departments(department_id,department_name,location_id) VALUES (1,'Administration',1700);
 INSERT INTO departments(department_id,department_name,location_id) VALUES (2,'Marketing',1800);
 INSERT INTO departments(department_id,department_name,location_id) VALUES (3,'Purchasing',1700);
@@ -144,7 +199,6 @@ INSERT INTO departments(department_id,department_name,location_id) VALUES (11,'A
 
 
 /*Data for the table employees */
-
 INSERT INTO employees(employee_id,first_name,last_name,email,phone_number,hire_date,job_id,salary,manager_id,department_id) VALUES (100,'Steven','King','steven.king@sqltutorial.org','515.123.4567','1987-06-17',4,24000.00,NULL,9);
 INSERT INTO employees(employee_id,first_name,last_name,email,phone_number,hire_date,job_id,salary,manager_id,department_id) VALUES (101,'Neena','Kochhar','neena.kochhar@sqltutorial.org','515.123.4568','1989-09-21',5,17000.00,100,9);
 INSERT INTO employees(employee_id,first_name,last_name,email,phone_number,hire_date,job_id,salary,manager_id,department_id) VALUES (102,'Lex','De Haan','lex.de haan@sqltutorial.org','515.123.4569','1993-01-13',5,17000.00,100,9);
@@ -188,7 +242,6 @@ INSERT INTO employees(employee_id,first_name,last_name,email,phone_number,hire_d
 
 
 /*Data for the table dependents */
-
 INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_id) VALUES (1,'Penelope','Gietz','Child',206);
 INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_id) VALUES (2,'Nick','Higgins','Child',205);
 INSERT INTO dependents(dependent_id,first_name,last_name,relationship,employee_id) VALUES (3,'Ed','Whalen','Child',200);

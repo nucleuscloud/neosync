@@ -21,16 +21,6 @@ import (
 const (
 	columnDefaultDefault = "Default"
 	columnDefaultString  = "String"
-
-	SchemasLabel                      = "schemas"
-	CreateTablesLabel                 = "create table"
-	AddColumnsLabel                   = "add columns"
-	DropColumnsLabel                  = "drop columns"
-	DropTriggersLabel                 = "drop triggers"
-	DropFunctionsLabel                = "drop functions"
-	DropNonForeignKeyConstraintsLabel = "drop non-foreign key constraints"
-	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
-	UpdateColumnsLabel                = "update columns"
 )
 
 type MysqlManager struct {
@@ -39,11 +29,17 @@ type MysqlManager struct {
 	close   func()
 }
 
-func NewManager(querier mysql_queries.Querier, pool mysql_queries.DBTX, closer func()) *MysqlManager {
+func NewManager(
+	querier mysql_queries.Querier,
+	pool mysql_queries.DBTX,
+	closer func(),
+) *MysqlManager {
 	return &MysqlManager{querier: querier, pool: pool, close: closer}
 }
 
-func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
+func (m *MysqlManager) GetDatabaseSchema(
+	ctx context.Context,
+) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.querier.GetDatabaseSchema(ctx, m.pool)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
@@ -53,7 +49,8 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 	result := []*sqlmanager_shared.DatabaseSchemaRow{}
 	for _, row := range dbSchemas {
 		var generatedType *string
-		if row.Extra.Valid && strings.Contains(row.Extra.String, "GENERATED") && !strings.Contains(row.Extra.String, "DEFAULT_GENERATED") {
+		if row.Extra.Valid && strings.Contains(row.Extra.String, "GENERATED") &&
+			!strings.Contains(row.Extra.String, "DEFAULT_GENERATED") {
 			generatedTypeCopy := row.Extra.String
 			generatedType = &generatedTypeCopy
 		}
@@ -96,6 +93,7 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 			TableName:              row.TableName,
 			ColumnName:             row.ColumnName,
 			DataType:               row.DataType,
+			MysqlColumnType:        row.ColumnType,
 			ColumnDefault:          columnDefaultStr,
 			ColumnDefaultType:      columnDefaultType,
 			IsNullable:             row.IsNullable != "NO",
@@ -114,13 +112,17 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 
 func isColumnUpdateAllowed(generatedType sql.NullString) bool {
 	// generated always stored columns cannot be updated
-	if generatedType.Valid && (strings.EqualFold(generatedType.String, "STORED GENERATED") || strings.EqualFold(generatedType.String, "VIRTUAL GENERATED")) {
+	if generatedType.Valid &&
+		(strings.EqualFold(generatedType.String, "STORED GENERATED") || strings.EqualFold(generatedType.String, "VIRTUAL GENERATED")) {
 		return false
 	}
 	return true
 }
 
-func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
+func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	if len(tables) == 0 {
 		return []*sqlmanager_shared.DatabaseSchemaRow{}, nil
 	}
@@ -137,17 +139,24 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 	var colDefMapMu sync.Mutex
 	for schema, tables := range schemaset {
 		errgrp.Go(func() error {
-			columnDefs, err := m.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, m.pool, &mysql_queries.GetDatabaseTableSchemasBySchemasAndTablesParams{
-				Schema: schema,
-				Tables: tables,
-			})
+			columnDefs, err := m.querier.GetDatabaseTableSchemasBySchemasAndTables(
+				errctx,
+				m.pool,
+				&mysql_queries.GetDatabaseTableSchemasBySchemasAndTablesParams{
+					Schema: schema,
+					Tables: tables,
+				},
+			)
 			if err != nil {
 				return err
 			}
 			colDefMapMu.Lock()
 			defer colDefMapMu.Unlock()
 			for _, columnDefinition := range columnDefs {
-				key := sqlmanager_shared.SchemaTable{Schema: columnDefinition.SchemaName, Table: columnDefinition.TableName}
+				key := sqlmanager_shared.SchemaTable{
+					Schema: columnDefinition.SchemaName,
+					Table:  columnDefinition.TableName,
+				}
 				dbSchemas[key.String()] = append(dbSchemas[key.String()], columnDefinition)
 			}
 			return nil
@@ -161,7 +170,9 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 	for _, rows := range dbSchemas {
 		for _, row := range rows {
 			var generatedType *string
-			if row.IdentityGeneration.Valid && strings.Contains(row.IdentityGeneration.String, "GENERATED") && !strings.Contains(row.IdentityGeneration.String, "DEFAULT_GENERATED") {
+			if row.IdentityGeneration.Valid &&
+				strings.Contains(row.IdentityGeneration.String, "GENERATED") &&
+				!strings.Contains(row.IdentityGeneration.String, "DEFAULT_GENERATED") {
 				generatedTypeCopy := row.IdentityGeneration.String
 				generatedType = &generatedTypeCopy
 			}
@@ -177,7 +188,8 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 			}
 
 			var columnDefaultType *string
-			if row.IdentityGeneration.Valid && columnDefaultStr != "" && row.IdentityGeneration.String == "" {
+			if row.IdentityGeneration.Valid && columnDefaultStr != "" &&
+				row.IdentityGeneration.String == "" {
 				val := columnDefaultString // With this type columnDefaultStr will be surrounded by quotes when translated to SQL
 				columnDefaultType = &val
 			} else if row.IdentityGeneration.Valid && columnDefaultStr != "" && row.IdentityGeneration.String != "" {
@@ -197,6 +209,7 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 				TableName:              row.TableName,
 				ColumnName:             row.ColumnName,
 				DataType:               row.DataType,
+				MysqlColumnType:        row.ColumnType,
 				ColumnDefault:          columnDefaultStr,
 				ColumnDefaultType:      columnDefaultType,
 				IsNullable:             row.IsNullable == 1,
@@ -215,7 +228,10 @@ func (m *MysqlManager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Con
 	return result, nil
 }
 
-func (m *MysqlManager) GetColumnsByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableColumn, error) {
+func (m *MysqlManager) GetColumnsByTables(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) ([]*sqlmanager_shared.TableColumn, error) {
 	rows, err := m.GetDatabaseTableSchemasBySchemasAndTables(ctx, tables)
 	if err != nil {
 		return nil, err
@@ -241,7 +257,9 @@ func (m *MysqlManager) GetColumnsByTables(ctx context.Context, tables []*sqlmana
 	return columns, nil
 }
 
-func (m *MysqlManager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
+func (m *MysqlManager) GetAllSchemas(
+	ctx context.Context,
+) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
 	rows, err := m.querier.GetAllSchemas(ctx, m.pool)
 	if err != nil {
 		return nil, err
@@ -255,7 +273,9 @@ func (m *MysqlManager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.
 	return result, nil
 }
 
-func (m *MysqlManager) GetAllTables(ctx context.Context) ([]*sqlmanager_shared.DatabaseTableRow, error) {
+func (m *MysqlManager) GetAllTables(
+	ctx context.Context,
+) ([]*sqlmanager_shared.DatabaseTableRow, error) {
 	rows, err := m.querier.GetAllTables(ctx, m.pool)
 	if err != nil {
 		return nil, err
@@ -271,7 +291,9 @@ func (m *MysqlManager) GetAllTables(ctx context.Context) ([]*sqlmanager_shared.D
 }
 
 // returns: {public.users: { id: struct{}{}, created_at: struct{}{}}}
-func (m *MysqlManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
+func (m *MysqlManager) GetSchemaColumnMap(
+	ctx context.Context,
+) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.GetDatabaseSchema(ctx)
 	if err != nil {
 		return nil, err
@@ -280,7 +302,10 @@ func (m *MysqlManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[s
 	return result, nil
 }
 
-func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*sqlmanager_shared.TableConstraints, error) {
+func (m *MysqlManager) GetTableConstraintsBySchema(
+	ctx context.Context,
+	schemas []string,
+) (*sqlmanager_shared.TableConstraints, error) {
 	if len(schemas) == 0 {
 		return &sqlmanager_shared.TableConstraints{}, nil
 	}
@@ -317,25 +342,41 @@ func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas 
 				notNullable = append(notNullable, notNullableInt == 1)
 			}
 			if len(constraintCols) != len(fkCols) {
-				return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(constraintCols), len(fkCols))
+				return nil, fmt.Errorf(
+					"length of columns was not equal to length of foreign key cols: %d %d",
+					len(constraintCols),
+					len(fkCols),
+				)
 			}
 			if len(constraintCols) != len(notNullable) {
-				return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(constraintCols), len(notNullable))
+				return nil, fmt.Errorf(
+					"length of columns was not equal to length of not nullable cols: %d %d",
+					len(constraintCols),
+					len(notNullable),
+				)
 			}
 
-			foreignKeyMap[tableName] = append(foreignKeyMap[tableName], &sqlmanager_shared.ForeignConstraint{
-				Columns:     constraintCols,
-				NotNullable: notNullable,
-				ForeignKey: &sqlmanager_shared.ForeignKey{
-					Table:   sqlmanager_shared.BuildTable(row.ReferencedSchemaName, row.ReferencedTableName),
-					Columns: fkCols,
+			foreignKeyMap[tableName] = append(
+				foreignKeyMap[tableName],
+				&sqlmanager_shared.ForeignConstraint{
+					Columns:     constraintCols,
+					NotNullable: notNullable,
+					ForeignKey: &sqlmanager_shared.ForeignKey{
+						Table: sqlmanager_shared.BuildTable(
+							row.ReferencedSchemaName,
+							row.ReferencedTableName,
+						),
+						Columns: fkCols,
+					},
 				},
-			})
+			)
 		case "PRIMARY KEY":
 			if _, exists := primaryKeyMap[tableName]; !exists {
 				primaryKeyMap[tableName] = []string{}
 			}
-			primaryKeyMap[tableName] = append(primaryKeyMap[tableName], sqlmanager_shared.DedupeSlice(constraintCols)...)
+			primaryKeyMap[tableName] = append(
+				primaryKeyMap[tableName],
+				sqlmanager_shared.DedupeSlice(constraintCols)...)
 		case "UNIQUE":
 			columns := sqlmanager_shared.DedupeSlice(constraintCols)
 			uniqueConstraintsMap[tableName] = append(uniqueConstraintsMap[tableName], columns)
@@ -384,7 +425,10 @@ type indexInfo struct {
 	columns   []string
 }
 
-func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error) {
+func (m *MysqlManager) GetTableInitStatements(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) ([]*sqlmanager_shared.TableInitStatement, error) {
 	if len(tables) == 0 {
 		return []*sqlmanager_shared.TableInitStatement{}, nil
 	}
@@ -401,17 +445,27 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 	var colDefMapMu sync.Mutex
 	for schema, tables := range schemaset {
 		errgrp.Go(func() error {
-			columnDefs, err := m.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, m.pool, &mysql_queries.GetDatabaseTableSchemasBySchemasAndTablesParams{
-				Schema: schema,
-				Tables: tables,
-			})
+			columnDefs, err := m.querier.GetDatabaseTableSchemasBySchemasAndTables(
+				errctx,
+				m.pool,
+				&mysql_queries.GetDatabaseTableSchemasBySchemasAndTablesParams{
+					Schema: schema,
+					Tables: tables,
+				},
+			)
 			if err != nil {
-				return fmt.Errorf("failed to build mysql database table schemas by schemas and tables: %w", err)
+				return fmt.Errorf(
+					"failed to build mysql database table schemas by schemas and tables: %w",
+					err,
+				)
 			}
 			colDefMapMu.Lock()
 			defer colDefMapMu.Unlock()
 			for _, columnDefinition := range columnDefs {
-				key := sqlmanager_shared.SchemaTable{Schema: columnDefinition.SchemaName, Table: columnDefinition.TableName}
+				key := sqlmanager_shared.SchemaTable{
+					Schema: columnDefinition.SchemaName,
+					Table:  columnDefinition.TableName,
+				}
 				colDefMap[key.String()] = append(colDefMap[key.String()], columnDefinition)
 			}
 			return nil
@@ -422,17 +476,24 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 	var constraintMapMu sync.Mutex
 	for schema, tables := range schemaset {
 		errgrp.Go(func() error {
-			constraints, err := m.querier.GetTableConstraints(errctx, m.pool, &mysql_queries.GetTableConstraintsParams{
-				Schema: schema,
-				Tables: tables,
-			})
+			constraints, err := m.querier.GetTableConstraints(
+				errctx,
+				m.pool,
+				&mysql_queries.GetTableConstraintsParams{
+					Schema: schema,
+					Tables: tables,
+				},
+			)
 			if err != nil {
 				return fmt.Errorf("failed to build mysql table constraints: %w", err)
 			}
 			constraintMapMu.Lock()
 			defer constraintMapMu.Unlock()
 			for _, constraint := range constraints {
-				key := sqlmanager_shared.SchemaTable{Schema: constraint.SchemaName, Table: constraint.TableName}
+				key := sqlmanager_shared.SchemaTable{
+					Schema: constraint.SchemaName,
+					Table:  constraint.TableName,
+				}
 				constraintmap[key.String()] = append(constraintmap[key.String()], constraint)
 			}
 			return nil
@@ -443,10 +504,14 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 	var indexMapMu sync.Mutex
 	for schema, tables := range schemaset {
 		errgrp.Go(func() error {
-			idxrecords, err := m.querier.GetIndicesBySchemasAndTables(errctx, m.pool, &mysql_queries.GetIndicesBySchemasAndTablesParams{
-				Schema: schema,
-				Tables: tables,
-			})
+			idxrecords, err := m.querier.GetIndicesBySchemasAndTables(
+				errctx,
+				m.pool,
+				&mysql_queries.GetIndicesBySchemasAndTablesParams{
+					Schema: schema,
+					Tables: tables,
+				},
+			)
 			if err != nil {
 				return fmt.Errorf("failed to build mysql indices by schemas and tables: %w", err)
 			}
@@ -454,7 +519,10 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			indexMapMu.Lock()
 			defer indexMapMu.Unlock()
 			for _, record := range idxrecords {
-				key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
+				key := sqlmanager_shared.SchemaTable{
+					Schema: record.SchemaName,
+					Table:  record.TableName,
+				}
 				if _, exists := indexmap[key.String()]; !exists {
 					indexmap[key.String()] = make(map[string]*indexInfo)
 				}
@@ -541,14 +609,22 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 		}
 
 		info := &sqlmanager_shared.TableInitStatement{
-			CreateTableStatement: fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s`.`%s` (%s);", tableData[0].SchemaName, tableData[0].TableName, strings.Join(columns, ", ")),
+			CreateTableStatement: fmt.Sprintf(
+				"CREATE TABLE IF NOT EXISTS `%s`.`%s` (%s);",
+				tableData[0].SchemaName,
+				tableData[0].TableName,
+				strings.Join(columns, ", "),
+			),
 			AlterTableStatements: []*sqlmanager_shared.AlterTableStatement{},
 			IndexStatements:      []string{},
 		}
 		for _, constraint := range constraintmap[key] {
 			stmt, err := buildAlterStatementByConstraint(constraint)
 			if err != nil {
-				return nil, fmt.Errorf("failed to build alter table statement by constraint: %w", err)
+				return nil, fmt.Errorf(
+					"failed to build alter table statement by constraint: %w",
+					err,
+				)
 			}
 			info.AlterTableStatements = append(info.AlterTableStatements, stmt)
 		}
@@ -565,7 +641,11 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 	return output, nil
 }
 
-func (m *MysqlManager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
+func (m *MysqlManager) GetSequencesByTables(
+	ctx context.Context,
+	schema string,
+	tables []string,
+) ([]*sqlmanager_shared.DataType, error) {
 	return nil, errors.ErrUnsupported
 }
 
@@ -577,11 +657,19 @@ func convertUInt8ToString(value any) (string, error) {
 	return string(convertedType), nil
 }
 
-func (m *MysqlManager) GetTableConstraintsByTables(ctx context.Context, schema string, tables []string) (map[string]*sqlmanager_shared.AllTableConstraints, error) {
-	constraints, err := m.querier.GetTableConstraints(ctx, m.pool, &mysql_queries.GetTableConstraintsParams{
-		Schema: schema,
-		Tables: tables,
-	})
+func (m *MysqlManager) GetTableConstraintsByTables(
+	ctx context.Context,
+	schema string,
+	tables []string,
+) (map[string]*sqlmanager_shared.AllTableConstraints, error) {
+	constraints, err := m.querier.GetTableConstraints(
+		ctx,
+		m.pool,
+		&mysql_queries.GetTableConstraintsParams{
+			Schema: schema,
+			Tables: tables,
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get table constraints by schemas: %w", err)
 	}
@@ -604,7 +692,10 @@ func (m *MysqlManager) GetTableConstraintsByTables(ctx context.Context, schema s
 		for _, notNullableInt := range notNullableInts {
 			notNullable = append(notNullable, notNullableInt == 1)
 		}
-		key := sqlmanager_shared.SchemaTable{Schema: constraint.SchemaName, Table: constraint.TableName}.String()
+		key := sqlmanager_shared.SchemaTable{
+			Schema: constraint.SchemaName,
+			Table:  constraint.TableName,
+		}.String()
 		if allConstraints[key] == nil {
 			allConstraints[key] = &sqlmanager_shared.AllTableConstraints{
 				ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
@@ -626,7 +717,10 @@ func (m *MysqlManager) GetTableConstraintsByTables(ctx context.Context, schema s
 				DeleteRule:         nullStringToPtr(constraint.DeleteRule),
 			}
 			fk.Fingerprint = sqlmanager_shared.BuildForeignKeyConstraintFingerprint(fk)
-			allConstraints[key].ForeignKeyConstraints = append(allConstraints[key].ForeignKeyConstraints, fk)
+			allConstraints[key].ForeignKeyConstraints = append(
+				allConstraints[key].ForeignKeyConstraints,
+				fk,
+			)
 		} else {
 			checkStr, err := convertUInt8ToString(constraint.CheckClause)
 			if err != nil {
@@ -663,7 +757,10 @@ func BuildUpdateColumnStatement(column *sqlmanager_shared.TableColumn) (string, 
 }
 
 func buildColumnStatement(keyword string, column *sqlmanager_shared.TableColumn) (string, error) {
-	columnDefaultStr, err := EscapeMysqlDefaultColumn(column.ColumnDefault, column.ColumnDefaultType)
+	columnDefaultStr, err := EscapeMysqlDefaultColumn(
+		column.ColumnDefault,
+		column.ColumnDefaultType,
+	)
 	if err != nil {
 		return "", fmt.Errorf("failed to escape column default: %w", err)
 	}
@@ -690,32 +787,61 @@ func buildColumnStatement(keyword string, column *sqlmanager_shared.TableColumn)
 		col = buildTableColForCreate(colReq)
 	}
 
-	return fmt.Sprintf("ALTER TABLE %s.%s %s COLUMN %s;", EscapeMysqlColumn(column.Schema), EscapeMysqlColumn(column.Table), keyword, col), nil
+	return fmt.Sprintf(
+		"ALTER TABLE %s.%s %s COLUMN %s;",
+		EscapeMysqlColumn(column.Schema),
+		EscapeMysqlColumn(column.Table),
+		keyword,
+		col,
+	), nil
 }
 
 func BuildDropColumnStatement(column *sqlmanager_shared.TableColumn) string {
-	return fmt.Sprintf("ALTER TABLE %s.%s DROP COLUMN %s;", EscapeMysqlColumn(column.Schema), EscapeMysqlColumn(column.Table), EscapeMysqlColumn(column.Name))
+	return fmt.Sprintf(
+		"ALTER TABLE %s.%s DROP COLUMN %s;",
+		EscapeMysqlColumn(column.Schema),
+		EscapeMysqlColumn(column.Table),
+		EscapeMysqlColumn(column.Name),
+	)
 }
 
 func BuildDropConstraintStatement(schema, table, constraintType, constraintName string) string {
 	if strings.EqualFold(constraintType, "PRIMARY KEY") {
-		return fmt.Sprintf("ALTER TABLE %s.%s DROP PRIMARY KEY;", EscapeMysqlColumn(schema), EscapeMysqlColumn(table))
+		return fmt.Sprintf(
+			"ALTER TABLE %s.%s DROP PRIMARY KEY;",
+			EscapeMysqlColumn(schema),
+			EscapeMysqlColumn(table),
+		)
 	}
 	if strings.EqualFold(constraintType, "UNIQUE") {
 		constraintType = "INDEX"
 	}
-	return fmt.Sprintf("ALTER TABLE %s.%s DROP %s %s;", EscapeMysqlColumn(schema), EscapeMysqlColumn(table), constraintType, EscapeMysqlColumn(constraintName))
+	return fmt.Sprintf(
+		"ALTER TABLE %s.%s DROP %s %s;",
+		EscapeMysqlColumn(schema),
+		EscapeMysqlColumn(table),
+		constraintType,
+		EscapeMysqlColumn(constraintName),
+	)
 }
 
 func BuildDropTriggerStatement(schema *string, triggerName string) string {
 	if schema == nil {
 		return fmt.Sprintf("DROP TRIGGER IF EXISTS %s;", EscapeMysqlColumn(triggerName))
 	}
-	return fmt.Sprintf("DROP TRIGGER IF EXISTS %s.%s;", EscapeMysqlColumn(*schema), EscapeMysqlColumn(triggerName))
+	return fmt.Sprintf(
+		"DROP TRIGGER IF EXISTS %s.%s;",
+		EscapeMysqlColumn(*schema),
+		EscapeMysqlColumn(triggerName),
+	)
 }
 
 func BuildDropFunctionStatement(schema, functionName string) string {
-	return fmt.Sprintf("DROP FUNCTION IF EXISTS %s.%s;", EscapeMysqlColumn(schema), EscapeMysqlColumn(functionName))
+	return fmt.Sprintf(
+		"DROP FUNCTION IF EXISTS %s.%s;",
+		EscapeMysqlColumn(schema),
+		EscapeMysqlColumn(functionName),
+	)
 }
 
 func buildTableColForModifyColumn(record *buildTableColRequest) string {
@@ -747,7 +873,10 @@ func buildTableCol(record *buildTableColRequest, isModifyColumn bool) string {
 		} else if record.IdentityType != nil && *record.IdentityType == "VIRTUAL GENERATED" {
 			genType = "VIRTUAL"
 		}
-		pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS (%s) %s", record.GeneratedExpression, genType))
+		pieces = append(
+			pieces,
+			fmt.Sprintf("GENERATED ALWAYS AS (%s) %s", record.GeneratedExpression, genType),
+		)
 	} else {
 		pieces = append(pieces, buildNullableText(record.IsNullable))
 	}
@@ -766,7 +895,10 @@ func buildTableCol(record *buildTableColRequest, isModifyColumn bool) string {
 	}
 
 	if record.Comment != nil && *record.Comment != "" {
-		pieces = append(pieces, fmt.Sprintf("COMMENT '%s'", strings.ReplaceAll(*record.Comment, "'", `\'`)))
+		pieces = append(
+			pieces,
+			fmt.Sprintf("COMMENT '%s'", strings.ReplaceAll(*record.Comment, "'", `\'`)),
+		)
 	}
 
 	return strings.Join(pieces, " ")
@@ -779,7 +911,9 @@ func buildNullableText(isNullable bool) string {
 	return "NOT NULL"
 }
 
-func buildAlterStatementByConstraint(c *mysql_queries.GetTableConstraintsRow) (*sqlmanager_shared.AlterTableStatement, error) {
+func buildAlterStatementByConstraint(
+	c *mysql_queries.GetTableConstraintsRow,
+) (*sqlmanager_shared.AlterTableStatement, error) {
 	constraintCols, err := jsonRawToSlice[string](c.ConstraintColumns)
 	if err != nil {
 		return nil, err
@@ -790,19 +924,41 @@ func buildAlterStatementByConstraint(c *mysql_queries.GetTableConstraintsRow) (*
 	}
 	switch c.ConstraintType {
 	case "PRIMARY KEY":
-		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD PRIMARY KEY (%s);", c.SchemaName, c.TableName, strings.Join(EscapeMysqlColumns(constraintCols), ","))
+		stmt := fmt.Sprintf(
+			"ALTER TABLE `%s`.`%s` ADD PRIMARY KEY (%s);",
+			c.SchemaName,
+			c.TableName,
+			strings.Join(EscapeMysqlColumns(constraintCols), ","),
+		)
 		return &sqlmanager_shared.AlterTableStatement{
-			Statement:      wrapIdempotentConstraint(c.SchemaName, c.TableName, c.ConstraintName, stmt),
+			Statement: wrapIdempotentConstraint(
+				c.SchemaName,
+				c.TableName,
+				c.ConstraintName,
+				stmt,
+			),
 			ConstraintType: sqlmanager_shared.PrimaryConstraintType,
 		}, nil
 	case "UNIQUE":
-		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT `%s` UNIQUE (%s);", c.SchemaName, c.TableName, c.ConstraintName, strings.Join(EscapeMysqlColumns(constraintCols), ","))
+		stmt := fmt.Sprintf(
+			"ALTER TABLE `%s`.`%s` ADD CONSTRAINT `%s` UNIQUE (%s);",
+			c.SchemaName,
+			c.TableName,
+			c.ConstraintName,
+			strings.Join(EscapeMysqlColumns(constraintCols), ","),
+		)
 		return &sqlmanager_shared.AlterTableStatement{
-			Statement:      wrapIdempotentConstraint(c.SchemaName, c.TableName, c.ConstraintName, stmt),
+			Statement: wrapIdempotentConstraint(
+				c.SchemaName,
+				c.TableName,
+				c.ConstraintName,
+				stmt,
+			),
 			ConstraintType: sqlmanager_shared.UniqueConstraintType,
 		}, nil
 	case "FOREIGN KEY":
-		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT `%s` FOREIGN KEY (%s) REFERENCES `%s`.`%s`(%s) ON DELETE %s ON UPDATE %s;",
+		stmt := fmt.Sprintf(
+			"ALTER TABLE `%s`.`%s` ADD CONSTRAINT `%s` FOREIGN KEY (%s) REFERENCES `%s`.`%s`(%s) ON DELETE %s ON UPDATE %s;",
 			c.SchemaName,
 			c.TableName,
 			c.ConstraintName,
@@ -814,7 +970,12 @@ func buildAlterStatementByConstraint(c *mysql_queries.GetTableConstraintsRow) (*
 			c.UpdateRule.String,
 		)
 		return &sqlmanager_shared.AlterTableStatement{
-			Statement:      wrapIdempotentConstraint(c.SchemaName, c.TableName, c.ConstraintName, stmt),
+			Statement: wrapIdempotentConstraint(
+				c.SchemaName,
+				c.TableName,
+				c.ConstraintName,
+				stmt,
+			),
 			ConstraintType: sqlmanager_shared.ForeignConstraintType,
 		}, nil
 	case "CHECK":
@@ -822,16 +983,30 @@ func buildAlterStatementByConstraint(c *mysql_queries.GetTableConstraintsRow) (*
 		if err != nil {
 			return nil, err
 		}
-		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT %s CHECK (%s);", c.SchemaName, c.TableName, c.ConstraintName, checkStr)
+		stmt := fmt.Sprintf(
+			"ALTER TABLE `%s`.`%s` ADD CONSTRAINT %s CHECK (%s);",
+			c.SchemaName,
+			c.TableName,
+			c.ConstraintName,
+			checkStr,
+		)
 		return &sqlmanager_shared.AlterTableStatement{
-			Statement:      wrapIdempotentConstraint(c.SchemaName, c.TableName, c.ConstraintName, stmt),
+			Statement: wrapIdempotentConstraint(
+				c.SchemaName,
+				c.TableName,
+				c.ConstraintName,
+				stmt,
+			),
 			ConstraintType: sqlmanager_shared.CheckConstraintType,
 		}, nil
 	}
 	return nil, errors.ErrUnsupported
 }
 
-func (m *MysqlManager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
+func (m *MysqlManager) GetSchemaTableDataTypes(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
 	if len(tables) == 0 {
 		return &sqlmanager_shared.SchemaTableDataTypeResponse{}, nil
 	}
@@ -855,7 +1030,10 @@ func (m *MysqlManager) GetSchemaTableDataTypes(ctx context.Context, tables []*sq
 	return output, nil
 }
 
-func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error) {
+func (m *MysqlManager) GetSchemaTableTriggers(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) ([]*sqlmanager_shared.TableTrigger, error) {
 	if len(tables) == 0 {
 		return []*sqlmanager_shared.TableTrigger{}, nil
 	}
@@ -876,10 +1054,14 @@ func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sql
 		schema := schema
 		tables := tables
 		errgrp.Go(func() error {
-			rows, err := m.querier.GetCustomTriggersBySchemaAndTables(errctx, m.pool, &mysql_queries.GetCustomTriggersBySchemaAndTablesParams{
-				Schema: schema,
-				Tables: tables,
-			})
+			rows, err := m.querier.GetCustomTriggersBySchemaAndTables(
+				errctx,
+				m.pool,
+				&mysql_queries.GetCustomTriggersBySchemaAndTablesParams{
+					Schema: schema,
+					Tables: tables,
+				},
+			)
 			if err != nil && !neosyncdb.IsNoRows(err) {
 				return err
 			} else if err != nil && neosyncdb.IsNoRows(err) {
@@ -907,7 +1089,16 @@ func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sql
 				Table:         row.TableName,
 				TriggerSchema: &row.TriggerSchema,
 				TriggerName:   row.TriggerName,
-				Definition:    wrapIdempotentTrigger(row.SchemaName, row.TableName, row.TriggerName, row.TriggerSchema, row.Timing, row.EventType, row.Orientation, row.Statement),
+				Definition: wrapIdempotentTrigger(
+					row.SchemaName,
+					row.TableName,
+					row.TriggerName,
+					row.TriggerSchema,
+					row.Timing,
+					row.EventType,
+					row.Orientation,
+					row.Statement,
+				),
 			}
 			trigger.Fingerprint = sqlmanager_shared.BuildTriggerFingerprint(trigger)
 			output = append(output, trigger)
@@ -930,7 +1121,10 @@ func (m *MysqlManager) GetSchemaInitStatements(
 			uniqueSchemas[table.Schema] = struct{}{}
 		}
 		for schema := range uniqueSchemas {
-			schemaStmts = append(schemaStmts, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS `%s`;", schema))
+			schemaStmts = append(
+				schemaStmts,
+				fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS `%s`;", schema),
+			)
 		}
 		return nil
 	})
@@ -985,9 +1179,9 @@ func (m *MysqlManager) GetSchemaInitStatements(
 	}
 
 	return []*sqlmanager_shared.InitSchemaStatements{
-		{Label: SchemasLabel, Statements: schemaStmts},
+		{Label: sqlmanager_shared.SchemasLabel, Statements: schemaStmts},
 		{Label: "data types", Statements: dataTypeStmts},
-		{Label: CreateTablesLabel, Statements: createTables},
+		{Label: sqlmanager_shared.CreateTablesLabel, Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
 		{Label: "table index", Statements: idxStmts},
 		{Label: "fk alter table", Statements: fkAlterStmts},
@@ -995,7 +1189,10 @@ func (m *MysqlManager) GetSchemaInitStatements(
 	}, nil
 }
 
-func (m *MysqlManager) getFunctionsBySchemas(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
+func (m *MysqlManager) getFunctionsBySchemas(
+	ctx context.Context,
+	schemas []string,
+) ([]*sqlmanager_shared.DataType, error) {
 	rows, err := m.querier.GetCustomFunctionsBySchemas(ctx, m.pool, schemas)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
@@ -1010,17 +1207,31 @@ func (m *MysqlManager) getFunctionsBySchemas(ctx context.Context, schemas []stri
 			return nil, err
 		}
 		function := &sqlmanager_shared.DataType{
-			Schema:     row.SchemaName,
-			Name:       row.FunctionName,
-			Definition: wrapIdempotentFunction(row.SchemaName, row.FunctionName, functionSignatureStr, row.ReturnDataType, row.Definition, row.IsDeterministic == 1),
+			Schema: row.SchemaName,
+			Name:   row.FunctionName,
+			Definition: wrapIdempotentFunction(
+				row.SchemaName,
+				row.FunctionName,
+				functionSignatureStr,
+				row.ReturnDataType,
+				row.Definition,
+				row.IsDeterministic == 1,
+			),
 		}
-		function.Fingerprint = sqlmanager_shared.BuildFingerprint(function.Schema, function.Name, function.Definition)
+		function.Fingerprint = sqlmanager_shared.BuildFingerprint(
+			function.Schema,
+			function.Name,
+			function.Definition,
+		)
 		output = append(output, function)
 	}
 	return output, nil
 }
 
-func (m *MysqlManager) GetFunctionsByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DataType, error) {
+func (m *MysqlManager) GetFunctionsByTables(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) ([]*sqlmanager_shared.DataType, error) {
 	schemaMap := map[string]struct{}{}
 	for _, t := range tables {
 		schemaMap[t.Schema] = struct{}{}
@@ -1070,10 +1281,25 @@ func hashInput(input ...string) string {
 }
 
 func createIndexStmt(schema, table string, idxInfo *indexInfo, columnInput []string) string {
-	if strings.EqualFold(idxInfo.indexType, "spatial") || strings.EqualFold(idxInfo.indexType, "fulltext") {
-		return fmt.Sprintf("ALTER TABLE %s.%s ADD %s INDEX %s (%s);", EscapeMysqlColumn(schema), EscapeMysqlColumn(table), idxInfo.indexType, EscapeMysqlColumn(idxInfo.indexName), strings.Join(columnInput, ", "))
+	if strings.EqualFold(idxInfo.indexType, "spatial") ||
+		strings.EqualFold(idxInfo.indexType, "fulltext") {
+		return fmt.Sprintf(
+			"ALTER TABLE %s.%s ADD %s INDEX %s (%s);",
+			EscapeMysqlColumn(schema),
+			EscapeMysqlColumn(table),
+			idxInfo.indexType,
+			EscapeMysqlColumn(idxInfo.indexName),
+			strings.Join(columnInput, ", "),
+		)
 	}
-	return fmt.Sprintf("ALTER TABLE %s.%s ADD INDEX %s (%s) USING %s;", EscapeMysqlColumn(schema), EscapeMysqlColumn(table), EscapeMysqlColumn(idxInfo.indexName), strings.Join(columnInput, ", "), idxInfo.indexType)
+	return fmt.Sprintf(
+		"ALTER TABLE %s.%s ADD INDEX %s (%s) USING %s;",
+		EscapeMysqlColumn(schema),
+		EscapeMysqlColumn(table),
+		EscapeMysqlColumn(idxInfo.indexName),
+		strings.Join(columnInput, ", "),
+		idxInfo.indexType,
+	)
 }
 
 func wrapIdempotentIndex(
@@ -1156,7 +1382,12 @@ FOR EACH %s
 	return strings.TrimSpace(stmt)
 }
 
-func (m *MysqlManager) BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error {
+func (m *MysqlManager) BatchExec(
+	ctx context.Context,
+	batchSize int,
+	statements []string,
+	opts *sqlmanager_shared.BatchExecOpts,
+) error {
 	for i := 0; i < len(statements); i += batchSize {
 		end := i + batchSize
 		if end > len(statements) {
@@ -1240,7 +1471,10 @@ func EscapeMysqlColumn(col string) string {
 	return fmt.Sprintf("`%s`", col)
 }
 
-func EscapeMysqlDefaultColumn(defaultColumnValue string, defaultColumnType *string) (string, error) {
+func EscapeMysqlDefaultColumn(
+	defaultColumnValue string,
+	defaultColumnType *string,
+) (string, error) {
 	defaultColumnTypes := []string{columnDefaultString, columnDefaultDefault}
 	if defaultColumnType == nil {
 		return defaultColumnValue, nil
@@ -1251,10 +1485,19 @@ func EscapeMysqlDefaultColumn(defaultColumnValue string, defaultColumnType *stri
 	if *defaultColumnType == columnDefaultDefault {
 		return fmt.Sprintf("(%s)", defaultColumnValue), nil
 	}
-	return fmt.Sprintf("(%s)", defaultColumnValue), fmt.Errorf("unsupported default column type: %s, currently supported types are: %v", *defaultColumnType, defaultColumnTypes)
+	return fmt.Sprintf(
+			"(%s)",
+			defaultColumnValue,
+		), fmt.Errorf(
+			"unsupported default column type: %s, currently supported types are: %v",
+			*defaultColumnType,
+			defaultColumnTypes,
+		)
 }
 
-func GetMysqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool) {
+func GetMysqlColumnOverrideAndResetProperties(
+	columnInfo *sqlmanager_shared.DatabaseSchemaRow,
+) (needsOverride, needsReset bool) {
 	needsOverride = false
 	needsReset = false
 	return

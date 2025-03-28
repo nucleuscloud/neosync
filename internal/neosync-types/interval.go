@@ -8,8 +8,8 @@ import (
 )
 
 type Interval struct {
-	BaseType     `json:",inline"`
-	JsonScanner  `json:"-"`
+	BaseType     `      json:",inline"`
+	JsonScanner  `      json:"-"`
 	Microseconds int64 `json:"microseconds"`
 	Days         int32 `json:"days"`
 	Months       int32 `json:"months"`
@@ -96,7 +96,11 @@ func NewInterval(opts ...NeosyncTypeOption) (*Interval, error) {
 	return interval, nil
 }
 
-func NewIntervalArrayFromPgx(elements []*pgtype.Interval, opts []NeosyncTypeOption, arrayOpts ...NeosyncTypeOption) (*NeosyncArray, error) {
+func NewIntervalArrayFromPgx(
+	elements []*pgtype.Interval,
+	opts []NeosyncTypeOption,
+	arrayOpts ...NeosyncTypeOption,
+) (*NeosyncArray, error) {
 	neosyncAdapters := make([]NeosyncAdapter, len(elements))
 	for i, e := range elements {
 		newInterval, err := NewInterval(opts...)

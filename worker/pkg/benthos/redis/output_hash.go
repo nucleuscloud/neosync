@@ -43,14 +43,16 @@ func redisHashOutputConfig() *service.ConfigSpec {
 
 func init() {
 	err := service.RegisterOutput(
-		"redis_hash_output", redisHashOutputConfig(),
+		"redis_hash_output",
+		redisHashOutputConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (out service.Output, maxInFlight int, err error) {
 			if maxInFlight, err = conf.FieldMaxInFlight(); err != nil {
-				return
+				return nil, 0, err
 			}
 			out, err = newRedisHashWriter(conf, mgr)
-			return
-		})
+			return out, maxInFlight, err
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -69,7 +71,10 @@ type redisHashWriter struct {
 	connMut    sync.RWMutex
 }
 
-func newRedisHashWriter(conf *service.ParsedConfig, mgr *service.Resources) (r *redisHashWriter, err error) {
+func newRedisHashWriter(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+) (r *redisHashWriter, err error) {
 	r = &redisHashWriter{
 		clientCtor: func() (redis.UniversalClient, error) {
 			return getClient(conf)
@@ -77,17 +82,17 @@ func newRedisHashWriter(conf *service.ParsedConfig, mgr *service.Resources) (r *
 		log: mgr.Logger(),
 	}
 	if _, err = getClient(conf); err != nil {
-		return
+		return nil, err
 	}
 
 	if r.key, err = conf.FieldInterpolatedString(hoFieldKey); err != nil {
-		return
+		return nil, err
 	}
 	if r.walkMetadata, err = conf.FieldBool(hoFieldWalkMetadata); err != nil {
-		return
+		return nil, err
 	}
 	if r.walkJSON, err = conf.FieldBool(hoFieldWalkJSON); err != nil {
-		return
+		return nil, err
 	}
 	if r.fieldsMapping, err = conf.FieldBloblang(hoFieldFieldsMapping); err != nil {
 		return nil, err
@@ -96,7 +101,7 @@ func newRedisHashWriter(conf *service.ParsedConfig, mgr *service.Resources) (r *
 	if !r.walkMetadata && !r.walkJSON && r.fieldsMapping == nil {
 		return nil, errors.New("at least one mechanism for setting fields must be enabled")
 	}
-	return
+	return r, nil
 }
 
 func (r *redisHashWriter) Connect(ctx context.Context) error {
@@ -175,7 +180,7 @@ func (r *redisHashWriter) Write(ctx context.Context, msg *service.Message) error
 		}
 
 		if mapVal != nil {
-			fieldMappings, ok := mapVal.(map[string]interface{}) //nolint:gofmt
+			fieldMappings, ok := mapVal.(map[string]any)
 			if !ok {
 				return fmt.Errorf("fieldMappings resulted in a non-object mapping: %T", mapVal)
 			}

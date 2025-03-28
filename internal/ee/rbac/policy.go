@@ -19,21 +19,70 @@ type Db interface {
 
 // Interface that handles enforcing entity level policies
 type EntityEnforcer interface {
-	Job(ctx context.Context, user EntityString, account EntityString, job EntityString, action JobAction) (bool, error)
-	EnforceJob(ctx context.Context, user EntityString, account EntityString, job EntityString, action JobAction) error
-	Connection(ctx context.Context, user EntityString, account EntityString, connection EntityString, action ConnectionAction) (bool, error)
-	EnforceConnection(ctx context.Context, user EntityString, account EntityString, connection EntityString, action ConnectionAction) error
-	Account(ctx context.Context, user EntityString, account EntityString, action AccountAction) (bool, error)
-	EnforceAccount(ctx context.Context, user EntityString, account EntityString, action AccountAction) error
+	Job(
+		ctx context.Context,
+		user EntityString,
+		account EntityString,
+		job EntityString,
+		action JobAction,
+	) (bool, error)
+	EnforceJob(
+		ctx context.Context,
+		user EntityString,
+		account EntityString,
+		job EntityString,
+		action JobAction,
+	) error
+	Connection(
+		ctx context.Context,
+		user EntityString,
+		account EntityString,
+		connection EntityString,
+		action ConnectionAction,
+	) (bool, error)
+	EnforceConnection(
+		ctx context.Context,
+		user EntityString,
+		account EntityString,
+		connection EntityString,
+		action ConnectionAction,
+	) error
+	Account(
+		ctx context.Context,
+		user EntityString,
+		account EntityString,
+		action AccountAction,
+	) (bool, error)
+	EnforceAccount(
+		ctx context.Context,
+		user EntityString,
+		account EntityString,
+		action AccountAction,
+	) error
 }
 
 // Interface that handles setting and removing roles for users
 type RoleAdmin interface {
-	SetAccountRole(ctx context.Context, user EntityString, account EntityString, role mgmtv1alpha1.AccountRole) error
-	RemoveAccountRole(ctx context.Context, user EntityString, account EntityString, role mgmtv1alpha1.AccountRole) error
+	SetAccountRole(
+		ctx context.Context,
+		user EntityString,
+		account EntityString,
+		role mgmtv1alpha1.AccountRole,
+	) error
+	RemoveAccountRole(
+		ctx context.Context,
+		user EntityString,
+		account EntityString,
+		role mgmtv1alpha1.AccountRole,
+	) error
 	RemoveAccountUser(ctx context.Context, user EntityString, account EntityString) error
 	SetupNewAccount(ctx context.Context, accountId string, logger *slog.Logger) error
-	GetUserRoles(ctx context.Context, users []EntityString, account EntityString, logger *slog.Logger) map[string]Role
+	GetUserRoles(
+		ctx context.Context,
+		users []EntityString,
+		account EntityString,
+		logger *slog.Logger,
+	) map[string]Role
 }
 
 // Initialize default policies for existing accounts at startup
@@ -59,8 +108,14 @@ func (r *Rbac) InitPolicies(
 	return nil
 }
 
-func setupAccountPolicies(enforcer casbin.IEnforcer, accountIds []string, logger *slog.Logger) error {
-	logger.Debug(fmt.Sprintf("found %d account ids to associate with rbac policies", len(accountIds)))
+func setupAccountPolicies(
+	enforcer casbin.IEnforcer,
+	accountIds []string,
+	logger *slog.Logger,
+) error {
+	logger.Debug(
+		fmt.Sprintf("found %d account ids to associate with rbac policies", len(accountIds)),
+	)
 
 	policyRules := [][]string{}
 	for _, accountId := range accountIds {
@@ -73,10 +128,20 @@ func setupAccountPolicies(enforcer casbin.IEnforcer, accountIds []string, logger
 
 	if len(policyRules) > 0 {
 		logger.Debug(fmt.Sprintf("adding %d policy rules to rbac engine", len(policyRules)))
+		shouldReloadPolicy := false
 		for _, policy := range policyRules {
-			err := setPolicy(enforcer, policy)
+			result, err := setPolicy(enforcer, policy)
 			if err != nil {
 				return err
+			}
+			if result.DidConflict {
+				shouldReloadPolicy = true
+			}
+		}
+		if shouldReloadPolicy {
+			err := enforcer.LoadPolicy()
+			if err != nil {
+				return fmt.Errorf("unable to reload policy: %w", err)
 			}
 		}
 	}
@@ -84,7 +149,13 @@ func setupAccountPolicies(enforcer casbin.IEnforcer, accountIds []string, logger
 }
 
 // For the given accounts, assign users to the account admin role if the account does not currently have any role assignments
-func setupUserAssignments(ctx context.Context, db Db, enforcer casbin.IEnforcer, accountIds []string, logger *slog.Logger) error {
+func setupUserAssignments(
+	ctx context.Context,
+	db Db,
+	enforcer casbin.IEnforcer,
+	accountIds []string,
+	logger *slog.Logger,
+) error {
 	policiesByDomain, err := getGroupingPoliciesByDomain(enforcer)
 	if err != nil {
 		return err
@@ -106,7 +177,13 @@ func setupUserAssignments(ctx context.Context, db Db, enforcer casbin.IEnforcer,
 			logger.Debug(fmt.Sprintf("no users found for account %s, skipping", accountId))
 			continue
 		}
-		logger.Debug(fmt.Sprintf("found %d users for account %s, assigning all account admin role", len(users), accountId))
+		logger.Debug(
+			fmt.Sprintf(
+				"found %d users for account %s, assigning all account admin role",
+				len(users),
+				accountId,
+			),
+		)
 		for _, user := range users {
 			groupedRules = append(groupedRules, []string{
 				NewUserIdEntity(user).String(),
@@ -151,11 +228,27 @@ func (r *Rbac) SetupNewAccount(
 ) error {
 	accountRules := getAccountPolicyRules(accountId)
 	if len(accountRules) > 0 {
-		logger.Debug(fmt.Sprintf("adding %d policy rules to rbac engine for account %s", len(accountRules), accountId))
+		logger.Debug(
+			fmt.Sprintf(
+				"adding %d policy rules to rbac engine for account %s",
+				len(accountRules),
+				accountId,
+			),
+		)
+		shouldReloadPolicy := false
 		for _, policy := range accountRules {
-			err := setPolicy(r.e, policy)
+			result, err := setPolicy(r.e, policy)
 			if err != nil {
 				return fmt.Errorf("unable to add policy for account %s: %w", accountId, err)
+			}
+			if result.DidConflict {
+				shouldReloadPolicy = true
+			}
+		}
+		if shouldReloadPolicy {
+			err := r.e.LoadPolicy()
+			if err != nil {
+				return fmt.Errorf("unable to reload policy: %w", err)
 			}
 		}
 	}
@@ -331,7 +424,9 @@ func (r *Rbac) EnforceJob(
 		return err
 	}
 	if !ok {
-		return nucleuserrors.NewUnauthorized(fmt.Sprintf("user does not have permission to %s job", action))
+		return nucleuserrors.NewUnauthorized(
+			fmt.Sprintf("user does not have permission to %s job", action),
+		)
 	}
 	return nil
 }
@@ -358,7 +453,9 @@ func (r *Rbac) EnforceConnection(
 		return err
 	}
 	if !ok {
-		return nucleuserrors.NewUnauthorized(fmt.Sprintf("user does not have permission to %s connection", action))
+		return nucleuserrors.NewUnauthorized(
+			fmt.Sprintf("user does not have permission to %s connection", action),
+		)
 	}
 	return nil
 }
@@ -383,25 +480,37 @@ func (r *Rbac) EnforceAccount(
 		return err
 	}
 	if !ok {
-		return nucleuserrors.NewUnauthorized(fmt.Sprintf("user does not have permission to %s account", action))
+		return nucleuserrors.NewUnauthorized(
+			fmt.Sprintf("user does not have permission to %s account", action),
+		)
 	}
 	return nil
 }
 
-func setPolicy(e casbin.IEnforcer, policy []string) error {
+// After we are sure the sql-adapter changes work, we can most likely remove the conflict checking
+// since the sql adapter inserts handle on conflict do nothing.
+type setPolicyResult struct {
+	DidConflict bool
+}
+
+func setPolicy(e casbin.IEnforcer, policy []string) (*setPolicyResult, error) {
 	// AddPoliciesEx is what should be uesd here but is resulting in duplicates (and errors with unique constraint)
 	// AddPolicies handles the unique constraint but fails if even one policy already exists..
 
 	// This logic here seems to handle what I want it to do instead strangely...
 	ok, err := e.HasPolicy(policy)
 	if err != nil {
-		return fmt.Errorf("unable to check if policy exists: %w", err)
+		return nil, fmt.Errorf("unable to check if policy exists: %w", err)
 	}
 	if !ok {
-		_, err = e.AddPolicy(policy) // always resolves to true even if it was not added, may be adapter dependent
+		_, err = e.AddPolicy(
+			policy,
+		) // always resolves to true even if it was not added, may be adapter dependent
 		if err != nil && !neosyncdb.IsConflict(err) {
-			return fmt.Errorf("unable to add policy: %w", err)
+			return nil, fmt.Errorf("unable to add policy: %w", err)
+		} else if err != nil && neosyncdb.IsConflict(err) {
+			return &setPolicyResult{DidConflict: true}, nil
 		}
 	}
-	return nil
+	return &setPolicyResult{DidConflict: false}, nil
 }

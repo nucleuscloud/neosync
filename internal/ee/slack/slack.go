@@ -17,10 +17,18 @@ type IsUserInAccountFunc func(ctx context.Context, userId, accountId string) (bo
 
 type Interface interface {
 	GetAuthorizeUrl(accountId, userId string) (string, error)
-	ValidateState(ctx context.Context, state, userId string, isUserInAccount IsUserInAccountFunc) (*OauthState, error)
+	ValidateState(
+		ctx context.Context,
+		state, userId string,
+		isUserInAccount IsUserInAccountFunc,
+	) (*OauthState, error)
 	ExchangeCodeForAccessToken(ctx context.Context, code string) (*slack.OAuthV2Response, error)
 	Test(ctx context.Context, accessToken string) (*slack.AuthTestResponse, error)
-	SendMessage(ctx context.Context, accessToken, channelId string, options ...slack.MsgOption) error
+	SendMessage(
+		ctx context.Context,
+		accessToken, channelId string,
+		options ...slack.MsgOption,
+	) error
 	JoinChannel(ctx context.Context, accessToken, channelId string, logger *slog.Logger) error
 	GetPublicChannels(ctx context.Context, accessToken string) ([]slack.Channel, error)
 }
@@ -110,7 +118,11 @@ func (c *Client) GetAuthorizeUrl(accountId, userId string) (string, error) {
 	return slackUrl.String(), nil
 }
 
-func (c *Client) ValidateState(ctx context.Context, state, userId string, isUserInAccount IsUserInAccountFunc) (*OauthState, error) {
+func (c *Client) ValidateState(
+	ctx context.Context,
+	state, userId string,
+	isUserInAccount IsUserInAccountFunc,
+) (*OauthState, error) {
 	stateDecrypted, err := c.encryptor.Decrypt(state)
 	if err != nil {
 		return nil, fmt.Errorf("unable to decrypt slack oauth state: %w", err)
@@ -140,8 +152,18 @@ func (c *Client) ValidateState(ctx context.Context, state, userId string, isUser
 	return &decodedState, nil
 }
 
-func (c *Client) ExchangeCodeForAccessToken(ctx context.Context, code string) (*slack.OAuthV2Response, error) {
-	resp, err := slack.GetOAuthV2ResponseContext(ctx, c.cfg.httpClient, c.cfg.authClientId, c.cfg.authClientSecret, code, c.cfg.redirectUrl)
+func (c *Client) ExchangeCodeForAccessToken(
+	ctx context.Context,
+	code string,
+) (*slack.OAuthV2Response, error) {
+	resp, err := slack.GetOAuthV2ResponseContext(
+		ctx,
+		c.cfg.httpClient,
+		c.cfg.authClientId,
+		c.cfg.authClientSecret,
+		code,
+		c.cfg.redirectUrl,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to exchange code for access token: %w", err)
 	}
@@ -161,7 +183,11 @@ func (c *Client) Test(ctx context.Context, accessToken string) (*slack.AuthTestR
 	return resp, nil
 }
 
-func (c *Client) SendMessage(ctx context.Context, accessToken, channelId string, options ...slack.MsgOption) error {
+func (c *Client) SendMessage(
+	ctx context.Context,
+	accessToken, channelId string,
+	options ...slack.MsgOption,
+) error {
 	api := slack.New(accessToken)
 	_, _, err := api.PostMessageContext(ctx, channelId, options...)
 	if err != nil {
@@ -170,7 +196,11 @@ func (c *Client) SendMessage(ctx context.Context, accessToken, channelId string,
 	return nil
 }
 
-func (c *Client) JoinChannel(ctx context.Context, accessToken, channelId string, logger *slog.Logger) error {
+func (c *Client) JoinChannel(
+	ctx context.Context,
+	accessToken, channelId string,
+	logger *slog.Logger,
+) error {
 	api := slack.New(accessToken)
 
 	_, _, warnings, err := api.JoinConversationContext(ctx, channelId)
@@ -183,7 +213,10 @@ func (c *Client) JoinChannel(ctx context.Context, accessToken, channelId string,
 	return nil
 }
 
-func (c *Client) GetPublicChannels(ctx context.Context, accessToken string) ([]slack.Channel, error) {
+func (c *Client) GetPublicChannels(
+	ctx context.Context,
+	accessToken string,
+) ([]slack.Channel, error) {
 	api := slack.New(accessToken)
 
 	channels, _, err := api.GetConversationsContext(ctx, &slack.GetConversationsParameters{

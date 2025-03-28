@@ -6328,6 +6328,138 @@
           ]
         },
         {
+          "name": "CheckSSHConnectionByIdRequest",
+          "longName": "CheckSSHConnectionByIdRequest",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionByIdRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The connection id that the SSH connection will be checked against",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CheckSSHConnectionByIdResponse",
+          "longName": "CheckSSHConnectionByIdResponse",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionByIdResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "result",
+              "description": "The result of the SSH connection check",
+              "label": "",
+              "type": "CheckSSHConnectionResult",
+              "longType": "CheckSSHConnectionResult",
+              "fullType": "mgmt.v1alpha1.CheckSSHConnectionResult",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CheckSSHConnectionRequest",
+          "longName": "CheckSSHConnectionRequest",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "tunnel",
+              "description": "The SSH tunnel configuration to use for the connection",
+              "label": "",
+              "type": "SSHTunnel",
+              "longType": "SSHTunnel",
+              "fullType": "mgmt.v1alpha1.SSHTunnel",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CheckSSHConnectionResponse",
+          "longName": "CheckSSHConnectionResponse",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "result",
+              "description": "The result of the SSH connection check",
+              "label": "",
+              "type": "CheckSSHConnectionResult",
+              "longType": "CheckSSHConnectionResult",
+              "fullType": "mgmt.v1alpha1.CheckSSHConnectionResult",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CheckSSHConnectionResult",
+          "longName": "CheckSSHConnectionResult",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionResult",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_successful",
+              "description": "Whether or not the SSH connection is successful",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "error_message",
+              "description": "The error message returned by the SSH client if the connection is not successful",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_error_message",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "CheckSqlQueryRequest",
           "longName": "CheckSqlQueryRequest",
           "fullName": "mgmt.v1alpha1.CheckSqlQueryRequest",
@@ -8066,6 +8198,30 @@
               "responseType": "CheckSqlQueryResponse",
               "responseLongType": "CheckSqlQueryResponse",
               "responseFullType": "mgmt.v1alpha1.CheckSqlQueryResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "CheckSSHConnection",
+              "description": "Checks if the SSH server is reachable and accessible with the given credentials",
+              "requestType": "CheckSSHConnectionRequest",
+              "requestLongType": "CheckSSHConnectionRequest",
+              "requestFullType": "mgmt.v1alpha1.CheckSSHConnectionRequest",
+              "requestStreaming": false,
+              "responseType": "CheckSSHConnectionResponse",
+              "responseLongType": "CheckSSHConnectionResponse",
+              "responseFullType": "mgmt.v1alpha1.CheckSSHConnectionResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "CheckSSHConnectionById",
+              "description": "Checks if the SSH server is reachable and accessible with the given credentials",
+              "requestType": "CheckSSHConnectionByIdRequest",
+              "requestLongType": "CheckSSHConnectionByIdRequest",
+              "requestFullType": "mgmt.v1alpha1.CheckSSHConnectionByIdRequest",
+              "requestStreaming": false,
+              "responseType": "CheckSSHConnectionByIdResponse",
+              "responseLongType": "CheckSSHConnectionByIdResponse",
+              "responseFullType": "mgmt.v1alpha1.CheckSSHConnectionByIdResponse",
               "responseStreaming": false
             }
           ]
@@ -16224,7 +16380,7 @@
           "fields": [
             {
               "name": "halt_on_new_column_addition",
-              "description": "Whether to halt the job if a new column is added",
+              "description": "Whether to halt the job if a new column is added\nDeprecated: Use new_column_addition_strategy instead",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -16232,7 +16388,10 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "schemas",
@@ -16277,6 +16436,18 @@
               "type": "ColumnRemovalStrategy",
               "longType": "MysqlSourceConnectionOptions.ColumnRemovalStrategy",
               "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "new_column_addition_strategy",
+              "description": "Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.",
+              "label": "",
+              "type": "NewColumnAdditionStrategy",
+              "longType": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy",
+              "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -16335,6 +16506,64 @@
           "name": "HaltJob",
           "longName": "MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob",
           "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob",
+          "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "NewColumnAdditionStrategy",
+          "longName": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy",
+          "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "halt_job",
+              "description": "halt job if a new column is detected.",
+              "label": "",
+              "type": "HaltJob",
+              "longType": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+              "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "auto_map",
+              "description": "automatically handle unmapped columns. It handles this by using the DBs default/nullable values.\nIf this doesn't exist, will fall back to configuring generators for supported datatypes.\nIf none of the criteria above can be met, the job run will fail to prevent leaking of PII.",
+              "label": "",
+              "type": "AutoMap",
+              "longType": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+              "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "AutoMap",
+          "longName": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+          "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+          "description": "Configuration for the AutoMap strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "HaltJob",
+          "longName": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+          "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
           "description": "Configuration for the HaltJob strategy",
           "hasExtensions": false,
           "hasFields": false,

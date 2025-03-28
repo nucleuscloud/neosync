@@ -256,3 +256,35 @@ func Test_getRangeFromCandidates(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkGenerateRandomStringWithInclusiveBounds(b *testing.B) {
+	randomizer := rng.New(42) // Use a fixed seed for reproducibility
+
+	benchCases := []struct {
+		name string
+		min  int64
+		max  int64
+	}{
+		{"SmallRange_1_10", 1, 10},
+		{"MediumRange_10_100", 10, 100},
+		{"LargeRange_100_1000", 100, 1000},
+		{"FixedLength_50_50", 50, 50},
+		{"ZeroLength_0_0", 0, 0},
+		{"Text_1_65535", 1, 65535},                 // TEXT max size
+		{"AboveLimit_1_100000", 1, 100000},         // Should be capped at 65535
+		{"FixedAboveLimit_100000", 100000, 100000}, // Should be capped at 65535
+		{"MaxTextSize_65535", 65535, 65535},        // Maximum TEXT size
+	}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_, err := GenerateRandomStringWithInclusiveBounds(randomizer, bc.min, bc.max)
+				if err != nil {
+					b.Fatalf("Error generating random string: %v", err)
+				}
+			}
+		})
+	}
+}

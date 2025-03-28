@@ -28,10 +28,21 @@ type ConnectionDataService interface {
 		StreamConfig *mgmtv1alpha1.ConnectionStreamConfig,
 		schema, table string,
 	) error
-	GetSchema(ctx context.Context, config *mgmtv1alpha1.ConnectionSchemaConfig) ([]*mgmtv1alpha1.DatabaseColumn, error)
-	GetInitStatements(ctx context.Context, options *mgmtv1alpha1.InitStatementOptions) (*mgmtv1alpha1.GetConnectionInitStatementsResponse, error)
-	GetTableConstraints(ctx context.Context) (*mgmtv1alpha1.GetConnectionTableConstraintsResponse, error)
-	GetTableSchema(ctx context.Context, schema, table string) ([]*mgmtv1alpha1.DatabaseColumn, error)
+	GetSchema(
+		ctx context.Context,
+		config *mgmtv1alpha1.ConnectionSchemaConfig,
+	) ([]*mgmtv1alpha1.DatabaseColumn, error)
+	GetInitStatements(
+		ctx context.Context,
+		options *mgmtv1alpha1.InitStatementOptions,
+	) (*mgmtv1alpha1.GetConnectionInitStatementsResponse, error)
+	GetTableConstraints(
+		ctx context.Context,
+	) (*mgmtv1alpha1.GetConnectionTableConstraintsResponse, error)
+	GetTableSchema(
+		ctx context.Context,
+		schema, table string,
+	) ([]*mgmtv1alpha1.DatabaseColumn, error)
 	GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error)
 	SampleData(
 		ctx context.Context,
@@ -49,7 +60,10 @@ type TableIdentifier struct {
 }
 
 type ConnectionDataBuilder interface {
-	NewDataConnection(logger *slog.Logger, connection *mgmtv1alpha1.Connection) (ConnectionDataService, error)
+	NewDataConnection(
+		logger *slog.Logger,
+		connection *mgmtv1alpha1.Connection,
+	) (ConnectionDataService, error)
 }
 
 type DefaultConnectionDataBuilder struct {

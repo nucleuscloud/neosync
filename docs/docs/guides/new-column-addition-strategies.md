@@ -19,7 +19,7 @@ This is a common occurrence for any company that is adding new columns to a data
 | Strategy | Description                                                                                     | PostgreSQL | MySQL | MS SQL Server |
 | -------- | ----------------------------------------------------------------------------------------------- | ---------- | ----- | ------------- |
 | Halt     | Stops the job run if a new column is detected that is not found in the configured job mappings. | ✅         | ✅    | ✅            |
-| AutoMap  | Automatically generates a fake value. See more below.                                           | ✅         | ❌    | ❌            |
+| AutoMap  | Automatically generates a fake value. See more below.                                           | ✅         | ✅    | ❌            |
 | Continue | Ignores new columns; may fail if column doesn't have default. See more below.                   | ✅         | ✅    | ✅            |
 
 ## Halt Strategy
@@ -109,5 +109,49 @@ Postgres has many data types and not all of them are currently supported in the 
 | daterange        | ❌      |                 |
 | oid              | ❌      |                 |
 | text[]           | ❌      |                 |
+
+<!-- cspell:enable  -->
+
+### MySQL
+
+MySQL has many data types and not all of them are currently supported in the auto map mode. Support will continue to increase over time.
+
+<!-- cspell:disable  -->
+
+| Data Type        | Support | Generator           |
+| ---------------- | ------- | ------------------- |
+| tinyint          | ✅      | GenerateInt64       |
+| smallint         | ✅      | GenerateInt64       |
+| mediumint        | ✅      | GenerateInt64       |
+| integer          | ✅      | GenerateInt64       |
+| int              | ✅      | GenerateInt64       |
+| bigint           | ✅      | GenerateInt64       |
+| float            | ✅      | GenerateFloat64     |
+| decimal          | ✅      | GenerateFloat64     |
+| dec              | ✅      | GenerateFloat64     |
+| double           | ✅      | GenerateFloat64     |
+| double precision | ✅      | GenerateFloat64     |
+| char             | ✅      | GenerateString      |
+| varchar          | ✅      | GenerateString      |
+| tinytext         | ✅      | GenerateString      |
+| text             | ✅      | GenerateString      |
+| mediumtext       | ✅      | GenerateString      |
+| longtext         | ✅      | GenerateString      |
+| boolean          | ✅      | GenerateBool        |
+| bool             | ✅      | GenerateBool        |
+| enum             | ✅      | GenerateCategorical |
+| set              | ✅      | GenerateCategorical |
+| date             | ✅      | GenerateJavaScript  |
+| datetime         | ✅      | GenerateJavaScript  |
+| timestamp        | ✅      | GenerateJavaScript  |
+| time             | ✅      | GenerateJavaScript  |
+| year             | ✅      | GenerateJavaScript  |
+| bit              | ❌      |                     |
+| binary           | ❌      |                     |
+| varbinary        | ❌      |                     |
+| tinyblob         | ❌      |                     |
+| blob             | ❌      |                     |
+| mediumblob       | ❌      |                     |
+| longblob         | ❌      |                     |
 
 <!-- cspell:enable  -->

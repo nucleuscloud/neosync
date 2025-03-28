@@ -64,7 +64,8 @@ func Execute() {
 	rootCmd.PersistentFlags().StringVar(
 		&cfgFilePath, "config", "", fmt.Sprintf("config file (default is $HOME/%s/%s.%s)", neosyncDirName, cliSettingsFileNameNoExt, cliSettingsFileExt),
 	)
-	rootCmd.PersistentFlags().String(apiKeyFlag, "", fmt.Sprintf("Neosync API Key. Takes precedence over $%s", apiKeyEnvVarName))
+	rootCmd.PersistentFlags().
+		String(apiKeyFlag, "", fmt.Sprintf("Neosync API Key. Takes precedence over $%s", apiKeyEnvVarName))
 
 	rootCmd.PersistentFlags().Bool("debug", false, "Run in debug mode")
 
@@ -97,7 +98,14 @@ func migrateOldConfig(cfgFilePath string) {
 	if err != nil {
 		return
 	}
-	err = os.Rename(oldPath, filepath.Join(home, neosyncDirName, fmt.Sprintf("%s.%s", cliSettingsFileNameNoExt, cliSettingsFileExt)))
+	err = os.Rename(
+		oldPath,
+		filepath.Join(
+			home,
+			neosyncDirName,
+			fmt.Sprintf("%s.%s", cliSettingsFileNameNoExt, cliSettingsFileExt),
+		),
+	)
 	if err != nil {
 		return
 	}

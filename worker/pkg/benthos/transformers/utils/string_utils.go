@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+	"unsafe"
 
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
@@ -45,10 +46,58 @@ func GenerateRandomStringWithDefinedLength(randomizer rng.Rand, length int64) (s
 	return strings.ToLower(string(result)), nil
 }
 
+const (
+	// Define size limits and thresholds
+	maxStringLength      = 65535 // Maximum length of a TEXT field
+	smallStringThreshold = 1024  // 1KB - use simple generation for small strings
+	// Pre-generate chunks of 64 bytes for better performance
+	chunkSize = 64
+)
+
+// Pre-generate lowercase alphanumeric for better performance
+var (
+	lowercaseAlphanumeric = func() []byte {
+		result := make([]byte, len(alphanumeric))
+		for i, c := range alphanumeric {
+			result[i] = byte(unicode.ToLower(c))
+		}
+		return result
+	}()
+
+	// Pre-generate random chunks for faster generation
+	randomChunks = func() [][]byte {
+		r := rng.New(1)               // Use fixed seed for deterministic chunks
+		chunks := make([][]byte, 256) // 256 different chunks
+		for i := range chunks {
+			chunk := make([]byte, chunkSize)
+			for j := range chunk {
+				chunk[j] = lowercaseAlphanumeric[r.Intn(len(lowercaseAlphanumeric))]
+			}
+			chunks[i] = chunk
+		}
+		return chunks
+	}()
+)
+
 // Generate a random alphanumeric string within the interval [min, max]
-func GenerateRandomStringWithInclusiveBounds(randomizer rng.Rand, minValue, maxValue int64) (string, error) {
+func GenerateRandomStringWithInclusiveBounds(
+	randomizer rng.Rand,
+	minValue, maxValue int64,
+) (string, error) {
 	if minValue < 0 || maxValue < 0 || minValue > maxValue {
-		return "", fmt.Errorf("invalid bounds when attempting to generate random string: [%d:%d]", minValue, maxValue)
+		return "", fmt.Errorf(
+			"invalid bounds when attempting to generate random string: [%d:%d]",
+			minValue,
+			maxValue,
+		)
+	}
+
+	// Cap the maximum length
+	if maxValue > maxStringLength {
+		maxValue = maxStringLength
+		if minValue > maxValue {
+			minValue = maxValue
+		}
 	}
 
 	var length int64
@@ -62,14 +111,60 @@ func GenerateRandomStringWithInclusiveBounds(randomizer rng.Rand, minValue, maxV
 		length = randlength
 	}
 
-	result := make([]byte, length)
-	for i := int64(0); i < length; i++ {
-		// Generate a random index in the range [0, len(alphabet))
-		index := randomizer.Intn(len(alphanumeric))
-		// Get the character at the generated index and append it to the result
-		result[i] = alphanumeric[index]
+	if length == 0 {
+		return "", nil
 	}
-	return strings.ToLower(string(result)), nil
+
+	// For small strings, use the direct approach
+	if length <= smallStringThreshold {
+		return generateSmallString(randomizer, length)
+	}
+
+	// For larger strings, use the optimized chunk approach
+	return generateLargeString(randomizer, length)
+}
+
+func generateSmallString(randomizer rng.Rand, length int64) (string, error) {
+	result := make([]byte, length)
+	alphaLen := len(lowercaseAlphanumeric)
+
+	// Generate 8 bytes at a time when possible
+	for i := int64(0); i+8 <= length; i += 8 {
+		// Generate a single random number for 8 characters
+		r := randomizer.Int63()
+		for j := 0; j < 8; j++ {
+			result[i+int64(j)] = lowercaseAlphanumeric[int(r>>(j*8))%alphaLen]
+		}
+	}
+
+	// Handle remaining characters
+	for i := length - (length % 8); i < length; i++ {
+		result[i] = lowercaseAlphanumeric[randomizer.Intn(alphaLen)]
+	}
+
+	return *(*string)(unsafe.Pointer(&result)), nil
+}
+
+func generateLargeString(randomizer rng.Rand, length int64) (string, error) {
+	var builder strings.Builder
+	builder.Grow(int(length))
+
+	// Write full chunks
+	remaining := length
+	for remaining >= chunkSize {
+		// Use a random pre-generated chunk
+		chunk := randomChunks[randomizer.Intn(256)]
+		builder.Write(chunk)
+		remaining -= chunkSize
+	}
+
+	// Handle remaining characters (less than chunkSize)
+	if remaining > 0 {
+		chunk := randomChunks[randomizer.Intn(256)]
+		builder.Write(chunk[:remaining])
+	}
+
+	return builder.String(), nil
 }
 
 const (
@@ -88,7 +183,8 @@ func IsValidEmail(email string) bool {
 // use MaxASCII to ensure that the unicode value is only within the ASCII block which only contains latin numbers, letters and characters.
 func IsValidChar(s string) bool {
 	for _, r := range s {
-		if !(r <= unicode.MaxASCII && (unicode.IsNumber(r) || unicode.IsLetter(r) || unicode.IsSpace(r) || IsAllowedSpecialChar(r))) {
+		if r > unicode.MaxASCII ||
+			(!unicode.IsNumber(r) && !unicode.IsLetter(r) && !unicode.IsSpace(r) && !IsAllowedSpecialChar(r)) {
 			return false
 		}
 	}
@@ -135,7 +231,7 @@ func WithoutCharacters(input string, invalidChars []rune) string {
 }
 
 func GetRandomCharacterString(randomizer rng.Rand, size int64) string {
-	var stringBuilder []rune = make([]rune, size)
+	var stringBuilder = make([]rune, size)
 	for i := int64(0); i < size; i++ {
 		num := randomizer.Intn(26)
 		stringBuilder[i] = rune('a' + num)
@@ -162,7 +258,10 @@ func GenerateStringFromCorpus(
 	excludedset := ToSet(exclusions)
 	idxCandidates := ClampInts(mapKeys, minLength, &maxLength)
 	if len(idxCandidates) == 0 {
-		return "", fmt.Errorf("unable to find candidates with range %s", getRangeText(minLength, maxLength))
+		return "", fmt.Errorf(
+			"unable to find candidates with range %s",
+			getRangeText(minLength, maxLength),
+		)
 	}
 
 	rangeIdxs := getRangeFromCandidates(idxCandidates, lengthMap)
@@ -170,7 +269,9 @@ func GenerateStringFromCorpus(
 	rightIdx := rangeIdxs[1]
 
 	if leftIdx == -1 || rightIdx == -1 {
-		return "", errors.New("unable to generate string from corpus due to invalid dictionary ranges")
+		return "", errors.New(
+			"unable to generate string from corpus due to invalid dictionary ranges",
+		)
 	}
 
 	attemptedValues := map[int64]struct{}{}
@@ -188,7 +289,9 @@ func GenerateStringFromCorpus(
 		}
 		return value, nil
 	}
-	return "", errors.New("unable to generate random value given the max length and excluded values")
+	return "", errors.New(
+		"unable to generate random value given the max length and excluded values",
+	)
 }
 
 func getRangeFromCandidates(candidates []int64, lengthMap map[int64][2]int) [2]int64 {

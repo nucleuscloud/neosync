@@ -35,7 +35,9 @@ func NewAwsDynamodbConnectionDataService(
 	}
 }
 
-func (s *AwsDynamodbConnectionDataService) GetAllTables(ctx context.Context) ([]TableIdentifier, error) {
+func (s *AwsDynamodbConnectionDataService) GetAllTables(
+	ctx context.Context,
+) ([]TableIdentifier, error) {
 	return nil, errors.ErrUnsupported
 }
 
@@ -129,11 +131,18 @@ func (s *AwsDynamodbConnectionDataService) GetTableConstraints(
 	return nil, errors.ErrUnsupported
 }
 
-func (s *AwsDynamodbConnectionDataService) GetTableSchema(ctx context.Context, schema, table string) ([]*mgmtv1alpha1.DatabaseColumn, error) {
+func (s *AwsDynamodbConnectionDataService) GetTableSchema(
+	ctx context.Context,
+	schema, table string,
+) ([]*mgmtv1alpha1.DatabaseColumn, error) {
 	return nil, errors.ErrUnsupported
 }
 
-func (s *AwsDynamodbConnectionDataService) GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error) {
+func (s *AwsDynamodbConnectionDataService) GetTableRowCount(
+	ctx context.Context,
+	schema, table string,
+	whereClause *string,
+) (int64, error) {
 	return 0, errors.ErrUnsupported
 }
 

@@ -25,58 +25,73 @@ func init() {
 		Param(bloblang.NewInt64Param("scale").Optional().Description("An optional parameter that defines the number of decimal places for the float.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used for generating deterministic transformations."))
 
-	err := bloblang.RegisterFunctionV2("transform_float64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		value, err := args.Get("value")
-		if err != nil {
-			return nil, err
-		}
-
-		rMin, err := args.GetFloat64("randomization_range_min")
-		if err != nil {
-			return nil, err
-		}
-
-		rMax, err := args.GetFloat64("randomization_range_max")
-		if err != nil {
-			return nil, err
-		}
-
-		precision, err := args.GetOptionalInt64("precision")
-		if err != nil {
-			return nil, err
-		}
-		scale, err := args.GetOptionalInt64("scale")
-		if err != nil {
-			return nil, err
-		}
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-		randomizer := rng.New(seed)
-
-		maxnumgetter := newMaxNumCache()
-
-		return func() (any, error) {
-			res, err := transformFloat(randomizer, maxnumgetter, value, rMin, rMax, precision, scale)
+	err := bloblang.RegisterFunctionV2(
+		"transform_float64",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			value, err := args.Get("value")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run transform_float64: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+
+			rMin, err := args.GetFloat64("randomization_range_min")
+			if err != nil {
+				return nil, err
+			}
+
+			rMax, err := args.GetFloat64("randomization_range_max")
+			if err != nil {
+				return nil, err
+			}
+
+			precision, err := args.GetOptionalInt64("precision")
+			if err != nil {
+				return nil, err
+			}
+			scale, err := args.GetOptionalInt64("scale")
+			if err != nil {
+				return nil, err
+			}
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+			randomizer := rng.New(seed)
+
+			maxnumgetter := newMaxNumCache()
+
+			return func() (any, error) {
+				res, err := transformFloat(
+					randomizer,
+					maxnumgetter,
+					value,
+					rMin,
+					rMax,
+					precision,
+					scale,
+				)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run transform_float64: %w", err)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewTransformFloat64OptsFromConfig(config *mgmtv1alpha1.TransformFloat64, scale, precision *int64) (*TransformFloat64Opts, error) {
+func NewTransformFloat64OptsFromConfig(
+	config *mgmtv1alpha1.TransformFloat64,
+	scale, precision *int64,
+) (*TransformFloat64Opts, error) {
 	if config == nil {
 		return NewTransformFloat64Opts(nil, nil, nil, nil, nil)
 	}
@@ -108,7 +123,13 @@ func (t *TransformFloat64) Transform(value, opts any) (any, error) {
 	)
 }
 
-func transformFloat(randomizer rng.Rand, maxnumgetter maxNum, value any, rMin, rMax float64, precision, scale *int64) (*float64, error) {
+func transformFloat(
+	randomizer rng.Rand,
+	maxnumgetter maxNum,
+	value any,
+	rMin, rMax float64,
+	precision, scale *int64,
+) (*float64, error) {
 	if value == nil {
 		return nil, nil
 	}
@@ -136,7 +157,12 @@ func transformFloat(randomizer rng.Rand, maxnumgetter maxNum, value any, rMin, r
 
 	newVal, err := generateRandomFloat64(randomizer, false, minValue, maxValue, precision, scale)
 	if err != nil {
-		return nil, fmt.Errorf("unable to generate a random float64 with inclusive bounds with length [%f:%f]: %w", minValue, maxValue, err)
+		return nil, fmt.Errorf(
+			"unable to generate a random float64 with inclusive bounds with length [%f:%f]: %w",
+			minValue,
+			maxValue,
+			err,
+		)
 	}
 	return &newVal, nil
 }

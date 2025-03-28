@@ -25,13 +25,22 @@ func (s *Service) LoginCli(
 	req *connect.Request[mgmtv1alpha1.LoginCliRequest],
 ) (*connect.Response[mgmtv1alpha1.LoginCliResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	resp, err := s.authclient.GetTokenResponse(ctx, s.cfg.CliClientId, req.Msg.Code, req.Msg.RedirectUri)
+	resp, err := s.authclient.GetTokenResponse(
+		ctx,
+		s.cfg.CliClientId,
+		req.Msg.Code,
+		req.Msg.RedirectUri,
+	)
 	if err != nil {
 		return nil, err
 	}
 	if resp.Error != nil {
 		logger.Error(
-			fmt.Sprintf("Unable to get access token. Title: %s -- Description: %s", resp.Error.Error, resp.Error.ErrorDescription),
+			fmt.Sprintf(
+				"Unable to get access token. Title: %s -- Description: %s",
+				resp.Error.Error,
+				resp.Error.ErrorDescription,
+			),
 		)
 		return nil, nucleuserrors.NewUnauthenticated("Request unauthenticated")
 	}
@@ -66,7 +75,11 @@ func (s *Service) RefreshCli(
 	}
 	if resp.Error != nil {
 		logger.Error(
-			fmt.Sprintf("Unable to get refreshed token. Title: %s -- Description: %s", resp.Error.Error, resp.Error.ErrorDescription),
+			fmt.Sprintf(
+				"Unable to get refreshed token. Title: %s -- Description: %s",
+				resp.Error.Error,
+				resp.Error.ErrorDescription,
+			),
 		)
 		return nil, nucleuserrors.NewUnauthenticated("Unable to refresh access token")
 	}

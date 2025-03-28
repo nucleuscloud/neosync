@@ -42,7 +42,8 @@ func sqlUpdateOutputSpec() *service.ConfigSpec {
 // Registers an output on a benthos environment called pooled_sql_raw
 func RegisterPooledSqlUpdateOutput(env *service.Environment, dbprovider ConnectionProvider) error {
 	return env.RegisterBatchOutput(
-		"pooled_sql_update", sqlUpdateOutputSpec(),
+		"pooled_sql_update",
+		sqlUpdateOutputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
 			batchPolicy, err := conf.FieldBatchPolicy("batching")
 			if err != nil {
@@ -79,7 +80,11 @@ type pooledUpdateOutput struct {
 	skipForeignKeyViolations bool
 }
 
-func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provider ConnectionProvider) (*pooledUpdateOutput, error) {
+func newUpdateOutput(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+	provider ConnectionProvider,
+) (*pooledUpdateOutput, error) {
 	connectionId, err := conf.FieldString("connection_id")
 	if err != nil {
 		return nil, err
@@ -168,12 +173,20 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 			return fmt.Errorf("message returned non-map result: %T", msgMap)
 		}
 
-		query, err := querybuilder.BuildUpdateQuery(s.driver, s.schema, s.table, s.columns, s.whereCols, msgMap)
+		query, err := querybuilder.BuildUpdateQuery(
+			s.driver,
+			s.schema,
+			s.table,
+			s.columns,
+			s.whereCols,
+			msgMap,
+		)
 		if err != nil {
 			return err
 		}
 		if _, err := db.ExecContext(ctx, query); err != nil {
-			if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
+			if !s.skipForeignKeyViolations ||
+				!neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 				return err
 			}
 		}

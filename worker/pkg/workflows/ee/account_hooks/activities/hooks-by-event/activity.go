@@ -62,10 +62,13 @@ func (a *Activity) GetAccountHooksByEvent(
 
 	slogger.Debug("retrieving hooks by event")
 
-	resp, err := a.accounthookclient.GetActiveAccountHooksByEvent(ctx, connect.NewRequest(&mgmtv1alpha1.GetActiveAccountHooksByEventRequest{
-		AccountId: req.AccountId,
-		Event:     req.EventName,
-	}))
+	resp, err := a.accounthookclient.GetActiveAccountHooksByEvent(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetActiveAccountHooksByEventRequest{
+			AccountId: req.AccountId,
+			Event:     req.EventName,
+		}),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve active hooks by event: %w", err)
 	}

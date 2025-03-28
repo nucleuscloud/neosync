@@ -4,13 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 	"sync"
 	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
-	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
@@ -48,7 +46,7 @@ func New(eelicense license.EEInterface) *Workflow {
 }
 
 var (
-	invalidAccountStatusError = errors.New("exiting workflow due to invalid account status")
+	errInvalidAccountStatusError = errors.New("exiting workflow due to invalid account status")
 )
 
 func withGenerateBenthosConfigsActivityOptions(ctx workflow.Context) workflow.Context {
@@ -129,12 +127,19 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 	err = workflow.ExecuteActivity(
 		withCheckAccountStatusActivityOptions(ctx),
 		a.CheckAccountStatus,
-		&accountstatus_activity.CheckAccountStatusRequest{AccountId: actOptResp.AccountId, RequestedRecordCount: actOptResp.RequestedRecordCount}).
+		&accountstatus_activity.CheckAccountStatusRequest{
+			AccountId:            actOptResp.AccountId,
+			RequestedRecordCount: actOptResp.RequestedRecordCount,
+		},
+	).
 		Get(ctx, &initialCheckAccountStatusResponse)
 	if err != nil {
 		logger.Error("encountered error while checking account status", "error", err)
 		cancelHandler()
-		return nil, fmt.Errorf("unable to continue workflow due to error when checking account status: %w", err)
+		return nil, fmt.Errorf(
+			"unable to continue workflow due to error when checking account status: %w",
+			err,
+		)
 	}
 	if !initialCheckAccountStatusResponse.IsValid {
 		logger.Warn("account is no longer is valid state")
@@ -143,7 +148,11 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 		if initialCheckAccountStatusResponse.Reason != nil {
 			reason = *initialCheckAccountStatusResponse.Reason
 		}
-		return nil, fmt.Errorf("halting job run due to account in invalid state. Reason: %q: %w", reason, invalidAccountStatusError)
+		return nil, fmt.Errorf(
+			"halting job run due to account in invalid state. Reason: %q: %w",
+			reason,
+			errInvalidAccountStatusError,
+		)
 	}
 
 	info := workflow.GetInfo(ctx)
@@ -167,23 +176,29 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 		return &WorkflowResponse{}, nil
 	}
 
-	err = execRunJobHooksByTiming(ctx, &jobhooks_by_timing_activity.RunJobHooksByTimingRequest{JobId: req.JobId, Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC}, logger)
+	err = execRunJobHooksByTiming(
+		ctx,
+		&jobhooks_by_timing_activity.RunJobHooksByTimingRequest{
+			JobId:  req.JobId,
+			Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_PRESYNC,
+		},
+		logger,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	err = runSchemaInitWorkflowByDestination(ctx, logger, actOptResp.AccountId, req.JobId, info.WorkflowExecution.ID, actOptResp.Destinations, actOptResp.PostgresSchemaDrift)
+	err = runSchemaInitWorkflowByDestination(
+		ctx,
+		logger,
+		actOptResp.AccountId,
+		req.JobId,
+		info.WorkflowExecution.ID,
+		actOptResp.Destinations,
+		actOptResp.PostgresSchemaDrift,
+	)
 	if err != nil {
 		return nil, err
-	}
-
-	redisDependsOn := map[string]map[string][]string{} // schema.table -> dependson
-	redisConfigs := map[string]*benthosbuilder_shared.BenthosRedisConfig{}
-	for _, cfg := range bcResp.BenthosConfigs {
-		for _, redisCfg := range cfg.RedisConfig {
-			redisConfigs[redisCfg.Key] = redisCfg
-		}
-		redisDependsOn[cfg.Name] = cfg.RedisDependsOn
 	}
 
 	// spawn account status checker in loop
@@ -210,10 +225,17 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 						err = workflow.ExecuteActivity(
 							withCheckAccountStatusActivityOptions(ctx),
 							a.CheckAccountStatus,
-							&accountstatus_activity.CheckAccountStatusRequest{AccountId: actOptResp.AccountId}).
+							&accountstatus_activity.CheckAccountStatusRequest{
+								AccountId: actOptResp.AccountId,
+							},
+						).
 							Get(ctx, &result)
 						if err != nil {
-							logger.Error("encountered error while checking account status", "error", err)
+							logger.Error(
+								"encountered error while checking account status",
+								"error",
+								err,
+							)
 							stopChan.Send(ctx, true)
 							shouldStop = true
 							cancelHandler()
@@ -235,7 +257,11 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 						return
 					}
 					if ctx.Err() != nil {
-						logger.Warn("workflow canceled due to error or stop signal", "error", ctx.Err())
+						logger.Warn(
+							"workflow canceled due to error or stop signal",
+							"error",
+							ctx.Err(),
+						)
 						return
 					}
 				}
@@ -248,7 +274,7 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 	workselector.AddReceive(stopChan, func(c workflow.ReceiveChannel, more bool) {
 		// Stop signal received, exit the routing
 		logger.Warn("received signal to stop workflow based on account status")
-		activityErr = invalidAccountStatusError
+		activityErr = errInvalidAccountStatusError
 		cancelHandler()
 	})
 
@@ -264,7 +290,15 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 	completed := sync.Map{}
 
 	executeSyncActivity := func(bc *benthosbuilder.BenthosConfigResponse, logger log.Logger) {
-		future := invokeSync(bc, ctx, &started, &completed, logger, &bcResp.AccountId, actOptResp.SyncActivityOptions)
+		future := invokeSync(
+			bc,
+			ctx,
+			&started,
+			&completed,
+			logger,
+			&bcResp.AccountId,
+			actOptResp.SyncActivityOptions,
+		)
 		inFlight++
 		workselector.AddFuture(future, func(f workflow.Future) {
 			var wfResult tablesync_workflow.TableSyncResponse
@@ -276,9 +310,13 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 				activityErr = err
 				cancelHandler()
 
-				// empty depends on map will clean up all redis inserts
 				detachedCtx, _ := workflow.NewDisconnectedContext(ctx)
-				redisErr := runRedisCleanUpActivity(detachedCtx, logger, map[string]map[string][]string{}, req.JobId, redisConfigs)
+				redisErr := runRedisCleanUpActivity(
+					detachedCtx,
+					logger,
+					req.JobId,
+					bcResp.BenthosConfigs,
+				)
 				if redisErr != nil {
 					logger.Error("redis clean up activity did not complete")
 				}
@@ -287,12 +325,13 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 			logger.Info("config sync completed", "name", bc.Name)
 			err = runPostTableSyncActivity(ctx, logger, actOptResp, bc.Name)
 			if err != nil {
-				logger.Error(fmt.Sprintf("post table sync activity did not complete: %s", err.Error()), "schema", bc.TableSchema, "table", bc.TableName)
-			}
-			delete(redisDependsOn, bc.Name)
-			err = runRedisCleanUpActivity(ctx, logger, redisDependsOn, req.JobId, redisConfigs)
-			if err != nil {
-				logger.Error(fmt.Sprintf("redis clean up activity did not complete: %s", err))
+				logger.Error(
+					fmt.Sprintf("post table sync activity did not complete: %s", err.Error()),
+					"schema",
+					bc.TableSchema,
+					"table",
+					bc.TableName,
+				)
 			}
 		})
 	}
@@ -317,7 +356,10 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 
 		if ctx.Err() != nil {
 			if errors.Is(ctx.Err(), context.Canceled) {
-				return nil, fmt.Errorf("workflow canceled due to error or stop signal: %w", ctx.Err())
+				return nil, fmt.Errorf(
+					"workflow canceled due to error or stop signal: %w",
+					ctx.Err(),
+				)
 			}
 			return nil, ctx.Err()
 		}
@@ -338,7 +380,10 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 
 		if ctx.Err() != nil {
 			if errors.Is(ctx.Err(), context.Canceled) {
-				return nil, fmt.Errorf("workflow canceled due to error or stop signal: %w", ctx.Err())
+				return nil, fmt.Errorf(
+					"workflow canceled due to error or stop signal: %w",
+					ctx.Err(),
+				)
 			}
 			return nil, fmt.Errorf("exiting workflow in root sync due to err: %w", ctx.Err())
 		}
@@ -347,7 +392,10 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 		for _, bc := range splitConfigs.Dependents {
 			if ctx.Err() != nil {
 				if errors.Is(ctx.Err(), context.Canceled) {
-					return nil, fmt.Errorf("workflow canceled due to error or stop signal: %w", ctx.Err())
+					return nil, fmt.Errorf(
+						"workflow canceled due to error or stop signal: %w",
+						ctx.Err(),
+					)
 				}
 				return nil, fmt.Errorf("exiting workflow in dependent sync due err: %w", ctx.Err())
 			}
@@ -366,16 +414,24 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 
 			// Ensures concurrency limits are respected.
 			if inFlight >= maxConcurrency {
-				logger.Debug("max concurrency reached; blocking until one sync finishes for a dependent")
+				logger.Debug(
+					"max concurrency reached; blocking until one sync finishes for a dependent",
+				)
 				workselector.Select(ctx)
 				if activityErr != nil {
 					return nil, activityErr
 				}
 				if ctx.Err() != nil {
 					if errors.Is(ctx.Err(), context.Canceled) {
-						return nil, fmt.Errorf("workflow canceled due to error or stop signal: %w", ctx.Err())
+						return nil, fmt.Errorf(
+							"workflow canceled due to error or stop signal: %w",
+							ctx.Err(),
+						)
 					}
-					return nil, fmt.Errorf("exiting workflow in dependent sync due to err: %w", ctx.Err())
+					return nil, fmt.Errorf(
+						"exiting workflow in dependent sync due to err: %w",
+						ctx.Err(),
+					)
 				}
 			}
 
@@ -385,7 +441,19 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 
 	logger.Info("data syncs completed")
 
-	err = execRunJobHooksByTiming(ctx, &jobhooks_by_timing_activity.RunJobHooksByTimingRequest{JobId: req.JobId, Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC}, logger)
+	err = execRunJobHooksByTiming(
+		ctx,
+		&jobhooks_by_timing_activity.RunJobHooksByTimingRequest{
+			JobId:  req.JobId,
+			Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC,
+		},
+		logger,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	err = runRedisCleanUpActivity(ctx, logger, req.JobId, bcResp.BenthosConfigs)
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +462,11 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 	return &WorkflowResponse{}, nil
 }
 
-func execRunJobHooksByTiming(ctx workflow.Context, req *jobhooks_by_timing_activity.RunJobHooksByTimingRequest, logger log.Logger) error {
+func execRunJobHooksByTiming(
+	ctx workflow.Context,
+	req *jobhooks_by_timing_activity.RunJobHooksByTimingRequest,
+	logger log.Logger,
+) error {
 	logger.Info(fmt.Sprintf("scheduling %q RunJobHooksByTiming for execution", req.Timing))
 	var resp *jobhooks_by_timing_activity.RunJobHooksByTimingResponse
 	var timingActivity *jobhooks_by_timing_activity.Activity
@@ -427,7 +499,11 @@ func runSchemaInitWorkflowByDestination(
 	for _, destination := range destinations {
 		// right now only mysql supports schema drift
 		schemaDrift := shouldUseSchemaDrift(destination, postgresSchemaDrift)
-		logger.Info("scheduling Schema Initialization workflow for execution.", "destinationId", destination.GetId())
+		logger.Info(
+			"scheduling Schema Initialization workflow for execution.",
+			"destinationId",
+			destination.GetId(),
+		)
 		siWf := &schemainit_workflow.Workflow{}
 		var wfResult schemainit_workflow.SchemaInitResponse
 		id := fmt.Sprintf("init-schema-%s", destination.GetId())
@@ -444,11 +520,16 @@ func runSchemaInitWorkflowByDestination(
 			JobRunId:                  jobRunId,
 			DestinationId:             destination.GetId(),
 			UseSchemaDrift:            schemaDrift,
-		}).Get(ctx, &wfResult)
+		}).
+			Get(ctx, &wfResult)
 		if err != nil {
 			return err
 		}
-		logger.Info("completed Schema Initialization workflow.", "destinationId", destination.GetId())
+		logger.Info(
+			"completed Schema Initialization workflow.",
+			"destinationId",
+			destination.GetId(),
+		)
 	}
 	return nil
 }
@@ -520,16 +601,12 @@ func runPostTableSyncActivity(
 func runRedisCleanUpActivity(
 	ctx workflow.Context,
 	logger log.Logger,
-	dependsOnMap map[string]map[string][]string,
 	jobId string,
-	redisConfigs map[string]*benthosbuilder_shared.BenthosRedisConfig,
+	configs []*benthosbuilder.BenthosConfigResponse,
 ) error {
-	if len(redisConfigs) > 0 {
-		for k, cfg := range redisConfigs {
-			if !isReadyForCleanUp(cfg.Table, cfg.Column, dependsOnMap) {
-				continue
-			}
-			logger.Debug("executing redis clean up activity")
+	for _, cfg := range configs {
+		for _, redisCfg := range cfg.RedisConfig {
+			logger.Debug("executing redis clean up activity", "hashKey", redisCfg.Key)
 			var resp *syncrediscleanup_activity.DeleteRedisHashResponse
 			var redisCleanUpActivity *syncrediscleanup_activity.Activity
 			err := workflow.ExecuteActivity(
@@ -543,26 +620,14 @@ func runRedisCleanUpActivity(
 				redisCleanUpActivity.DeleteRedisHash,
 				&syncrediscleanup_activity.DeleteRedisHashRequest{
 					JobId:   jobId,
-					HashKey: cfg.Key,
+					HashKey: redisCfg.Key,
 				}).Get(ctx, &resp)
 			if err != nil {
 				return err
 			}
-			delete(redisConfigs, k)
 		}
 	}
 	return nil
-}
-
-func isReadyForCleanUp(table, col string, dependsOnMap map[string]map[string][]string) bool {
-	for _, dependsOn := range dependsOnMap {
-		for t, cols := range dependsOn {
-			if t == table && slices.Contains(cols, col) {
-				return false
-			}
-		}
-	}
-	return true
 }
 
 func withBenthosConfigResponseLoggerTags(bc *benthosbuilder.BenthosConfigResponse) []any {
@@ -624,7 +689,8 @@ func invokeSync(
 			TableSchema:           config.TableSchema,
 			TableName:             config.TableName,
 			ColumnIdentityCursors: config.ColumnIdentityCursors,
-		}).Get(ctx, &wfResult)
+		}).
+			Get(ctx, &wfResult)
 		if err == nil {
 			tn := neosync_benthos.BuildBenthosTable(config.TableSchema, config.TableName)
 			err = updateCompletedMap(tn, completed, config.Columns)
@@ -642,7 +708,10 @@ func updateCompletedMap(tableName string, completed *sync.Map, columns []string)
 	if loaded {
 		currCols, ok := val.([]string)
 		if !ok {
-			return fmt.Errorf("unable to retrieve completed columns from completed map. Expected []string, received: %T", val)
+			return fmt.Errorf(
+				"unable to retrieve completed columns from completed map. Expected []string, received: %T",
+				val,
+			)
 		}
 		currCols = append(currCols, columns...)
 		completed.Store(tableName, currCols)
@@ -670,7 +739,10 @@ func toStringSliceMap(m *sync.Map) (map[string][]string, error) {
 	return result, typeErr
 }
 
-func isConfigReady(config *benthosbuilder.BenthosConfigResponse, completed *sync.Map) (bool, error) {
+func isConfigReady(
+	config *benthosbuilder.BenthosConfigResponse,
+	completed *sync.Map,
+) (bool, error) {
 	if completed == nil {
 		return false, fmt.Errorf("completed map is nil: cannot determine if config is ready")
 	}

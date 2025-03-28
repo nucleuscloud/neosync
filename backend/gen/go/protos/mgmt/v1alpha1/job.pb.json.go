@@ -298,6 +298,36 @@ func (msg *MysqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJob) Unmar
 }
 
 // MarshalJSON implements json.Marshaler
+func (msg *MysqlSourceConnectionOptions_NewColumnAdditionStrategy) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *MysqlSourceConnectionOptions_NewColumnAdditionStrategy) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap) MarshalJSON() ([]byte, error) {
+	return protojson.MarshalOptions{}.Marshal(msg)
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap) UnmarshalJSON(b []byte) error {
+	return protojson.UnmarshalOptions{}.Unmarshal(b, msg)
+}
+
+// MarshalJSON implements json.Marshaler
 func (msg *MysqlSourceSchemaOption) MarshalJSON() ([]byte, error) {
 	return protojson.MarshalOptions{}.Marshal(msg)
 }

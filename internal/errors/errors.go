@@ -65,7 +65,8 @@ func IsNotFound(err error) bool {
 		if status.Code(err) == codes.NotFound {
 			return true
 		}
-		if connectErr := new(connect.Error); errors.As(err, &connectErr) && connectErr.Code() == connect.CodeNotFound {
+		if connectErr := new(connect.Error); errors.As(err, &connectErr) &&
+			connectErr.Code() == connect.CodeNotFound {
 			return true
 		}
 	}

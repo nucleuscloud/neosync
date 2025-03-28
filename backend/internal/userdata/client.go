@@ -13,8 +13,14 @@ import (
 )
 
 type UserServiceClient interface {
-	GetUser(ctx context.Context, req *connect.Request[mgmtv1alpha1.GetUserRequest]) (*connect.Response[mgmtv1alpha1.GetUserResponse], error)
-	IsUserInAccount(ctx context.Context, req *connect.Request[mgmtv1alpha1.IsUserInAccountRequest]) (*connect.Response[mgmtv1alpha1.IsUserInAccountResponse], error)
+	GetUser(
+		ctx context.Context,
+		req *connect.Request[mgmtv1alpha1.GetUserRequest],
+	) (*connect.Response[mgmtv1alpha1.GetUserResponse], error)
+	IsUserInAccount(
+		ctx context.Context,
+		req *connect.Request[mgmtv1alpha1.IsUserInAccountRequest],
+	) (*connect.Response[mgmtv1alpha1.IsUserInAccountResponse], error)
 }
 
 type Client struct {
@@ -44,7 +50,10 @@ func NewClient(
 }
 
 func (c *Client) GetUser(ctx context.Context) (*User, error) {
-	resp, err := c.userServiceClient.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	resp, err := c.userServiceClient.GetUser(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get user: %w", err)
 	}

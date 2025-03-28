@@ -12,7 +12,13 @@ func BuildOrderedForeignKeyConstraintsToDrop(
 	logger *slog.Logger,
 	diff *SchemaDifferences,
 ) []*sqlmanager_shared.ForeignKeyConstraint {
-	allFks := diff.ExistsInDestination.ForeignKeyConstraints
+	allFks := []*sqlmanager_shared.ForeignKeyConstraint{}
+	if diff.ExistsInDestination != nil {
+		allFks = append(allFks, diff.ExistsInDestination.ForeignKeyConstraints...)
+	}
+	if diff.ExistsInBoth != nil && diff.ExistsInBoth.Different != nil {
+		allFks = append(allFks, diff.ExistsInBoth.Different.ForeignKeyConstraints...)
+	}
 	if len(allFks) == 0 {
 		return nil
 	}
@@ -94,7 +100,9 @@ func BuildOrderedForeignKeyConstraintsToDrop(
 	// Either forcibly drop them or return an error. Here, we forcibly handle them (like your code).
 	hadCycle := (len(topoOrder) < len(inDegree))
 	if hadCycle {
-		logger.Warn("Cycle detected among foreign keys. Forcibly dropping all remaining constraints.")
+		logger.Warn(
+			"Cycle detected among foreign keys. Forcibly dropping all remaining constraints.",
+		)
 	}
 
 	// If no cycle, we can produce a stable drop order for "normal" FKs:

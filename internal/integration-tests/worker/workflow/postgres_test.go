@@ -1343,6 +1343,13 @@ func test_postgres_schema_reconciliation(
 		{schema: schema, table: "jobs", rowCount: 19},
 		{schema: schema, table: "employees", rowCount: 40},
 		{schema: schema, table: "dependents", rowCount: 30},
+		{schema: schema, table: "dummy_table", rowCount: 4},
+		{schema: schema, table: "test_table_single_col", rowCount: 1},
+	}
+
+	tables := []string{}
+	for _, expected := range expectedResults {
+		tables = append(tables, expected.table)
 	}
 
 	for _, expected := range expectedResults {
@@ -1375,7 +1382,7 @@ func test_postgres_schema_reconciliation(
 	require.NoError(t, err)
 	defer target.Close()
 
-	verify_postgres_schemas(t, ctx, source, target, schema)
+	verify_postgres_schemas(t, ctx, source, target, schema, tables)
 
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "regions", sqlmanager_shared.PostgresDriver, []string{"region_id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "employees", sqlmanager_shared.PostgresDriver, []string{"employee_id"})
@@ -1384,6 +1391,8 @@ func test_postgres_schema_reconciliation(
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "departments", sqlmanager_shared.PostgresDriver, []string{"department_id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "countries", sqlmanager_shared.PostgresDriver, []string{"country_id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "locations", sqlmanager_shared.PostgresDriver, []string{"location_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "dummy_table", sqlmanager_shared.PostgresDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "test_table_single_col", sqlmanager_shared.PostgresDriver, []string{"name"})
 
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
@@ -1395,6 +1404,7 @@ func verify_postgres_schemas(
 	ctx context.Context,
 	source, target *sql.DB,
 	schema string,
+	tables []string,
 ) {
 	srcManager := sqlmanager_postgres.NewManager(pg_queries.New(), source, func() {})
 	destManager := sqlmanager_postgres.NewManager(pg_queries.New(), target, func() {})
@@ -1417,7 +1427,6 @@ func verify_postgres_schemas(
 		destColumnsMap[key] = column
 	}
 
-	require.Len(t, srcColumns, len(destColumns), "source and destination have different number of columns")
 	for _, column := range srcColumns {
 		srcKey := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
 		destColumn, exists := destColumnsMap[srcKey]
@@ -1428,6 +1437,65 @@ func verify_postgres_schemas(
 		destKey := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
 		_, exists := srcColumnsMap[destKey]
 		require.True(t, exists, "destination column %s not found in source", destKey)
+	}
+
+	t.Logf("checking table constraints are the same in source and destination")
+	srcConstraints, err := srcManager.GetTableConstraintsByTables(ctx, schema, tables)
+	require.NoError(t, err, "failed to get source table constraints")
+	destConstraints, err := destManager.GetTableConstraintsByTables(ctx, schema, tables)
+	require.NoError(t, err, "failed to get destination table constraints")
+
+	require.Len(t, srcConstraints, len(destConstraints), "source and destination have different number of tables with constraints")
+	for table, constraint := range srcConstraints {
+		srcfk := constraint.ForeignKeyConstraints
+		srcNonFk := constraint.NonForeignKeyConstraints
+		destfk := destConstraints[table].ForeignKeyConstraints
+		destNonFk := destConstraints[table].NonForeignKeyConstraints
+		require.Equal(t, srcfk, destfk, "foreign key constraints do not match for table %s", table)
+		require.Equal(t, srcNonFk, destNonFk, "non-foreign key constraints do not match for table %s", table)
+
+		for _, fk := range srcfk {
+			require.Contains(t, destfk, fk, "destination missing foreign key constraint in table %s", table)
+		}
+		for _, fk := range destfk {
+			require.Contains(t, srcfk, fk, "source missing foreign key constraint in table %s", table)
+		}
+
+		for _, nonFk := range srcNonFk {
+			require.Contains(t, destNonFk, nonFk, "destination missing non-foreign key constraint in table %s", table)
+		}
+		for _, nonFk := range destNonFk {
+			require.Contains(t, srcNonFk, nonFk, "source missing non-foreign key constraint in table %s", table)
+		}
+	}
+
+	t.Logf("checking triggers are the same in source and destination")
+	srcTriggers, err := srcManager.GetSchemaTableTriggers(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "astronaut"}})
+	require.NoError(t, err, "failed to get source triggers")
+	destTriggers, err := destManager.GetSchemaTableTriggers(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "astronaut"}})
+	require.NoError(t, err, "failed to get destination triggers")
+
+	destTriggersMap := make(map[string]*sqlmanager_shared.TableTrigger)
+	for _, trigger := range destTriggers {
+		destTriggersMap[trigger.Fingerprint] = trigger
+	}
+	for _, trigger := range srcTriggers {
+		destTrigger, ok := destTriggersMap[trigger.Fingerprint]
+		require.True(t, ok, "destination missing trigger with fingerprint %s", trigger.Fingerprint)
+		require.Equal(t, trigger.Definition, destTrigger.Definition, "trigger definitions do not match for fingerprint %s", trigger.Fingerprint)
+	}
+
+	t.Logf("checking functions are the same in source and destination")
+	srcFunctions, err := srcManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get source functions")
+	destFunctions, err := destManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get destination functions")
+
+	for _, function := range srcFunctions.Functions {
+		require.Contains(t, destFunctions.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
+	}
+	for _, function := range destFunctions.Functions {
+		require.Contains(t, srcFunctions.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
 	}
 }
 

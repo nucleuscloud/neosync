@@ -69,7 +69,7 @@ func ExtractBenthosSpec(fileSet *token.FileSet) ([]*BenthosSpec, error) {
 		if !d.IsDir() && filepath.Ext(path) == ".go" {
 			node, err := parser.ParseFile(fileSet, path, nil, parser.ParseComments)
 			if err != nil {
-				return fmt.Errorf("Failed to parse file %s: %v", path, err)
+				return fmt.Errorf("failed to parse file %s: %v", path, err)
 			}
 			for _, cgroup := range node.Comments {
 				for _, comment := range cgroup.List {
@@ -96,7 +96,9 @@ func ExtractBenthosSpec(fileSet *token.FileSet) ([]*BenthosSpec, error) {
 }
 
 func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
-	paramRegex := regexp.MustCompile(`bloblang\.New(\w+)Param\("(\w+)"\)(?:\.Optional\(\))?(?:\.Default\(([^()]*(?:\([^()]*\))?[^()]*)\))?(?:\.Description\("([^"]*)"\))?`)
+	paramRegex := regexp.MustCompile(
+		`bloblang\.New(\w+)Param\("(\w+)"\)(?:\.Optional\(\))?(?:\.Default\(([^()]*(?:\([^()]*\))?[^()]*)\))?(?:\.Description\("([^"]*)"\))?`,
+	)
 	specDescriptionRegex := regexp.MustCompile(`\.Description\("([^"]*)"\)`)
 	params := []*BenthosSpecParam{}
 	readFile, err := os.Open(benthosSpec.SourceFile)
@@ -110,23 +112,31 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 
 	var benthosSpecStr string
 	start := false
+	foundRegister := false
 	for fileScanner.Scan() {
 		line := fileScanner.Text()
 		if strings.Contains(line, "bloblang.NewPluginSpec") {
 			start = true
-			benthosSpecStr += strings.TrimSpace(fileScanner.Text())
+			benthosSpecStr += strings.TrimSpace(line)
 		} else if start {
-			if strings.Contains(line, ".RegisterFunctionV2") {
-				benthosSpecStr += strings.TrimSpace(fileScanner.Text())
-				break
+			benthosSpecStr += strings.TrimSpace(line)
+			if foundRegister {
+				break // Now we break after capturing one more line after RegisterFunctionV2
 			}
-			benthosSpecStr += strings.TrimSpace(fileScanner.Text())
+			if strings.Contains(line, "RegisterFunctionV2") {
+				foundRegister = true
+			}
 		}
+	}
+	if !foundRegister {
+		return nil, fmt.Errorf("RegisterFunctionV2 not found in file: %s", filepath.Base(benthosSpec.SourceFile))
 	}
 
 	categoryRegex := regexp.MustCompile(`\.Category\("([^"]*)"\)`)
 	var category string
-	if categoryMatches := categoryRegex.FindStringSubmatch(benthosSpecStr); len(categoryMatches) > 0 {
+	if categoryMatches := categoryRegex.FindStringSubmatch(benthosSpecStr); len(
+		categoryMatches,
+	) > 0 {
 		category = categoryMatches[1]
 	}
 	if category == "" {
@@ -149,7 +159,9 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 				// seed hack
 				if strings.Contains(line, "Default(time.Now().UnixNano())") {
 					defaultVal = "time.Now().UnixNano()"
-					if specMatches := specDescriptionRegex.FindStringSubmatch(line); len(specMatches) > 0 {
+					if specMatches := specDescriptionRegex.FindStringSubmatch(line); len(
+						specMatches,
+					) > 0 {
 						description = specMatches[1]
 					}
 				}
@@ -182,15 +194,13 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 
 func extractBloblangFunctionName(input, sourceFile string) (string, error) {
 	// Looks for bloblang.RegisterFunctionV2 and captures the function name in quotes
-	re := regexp.MustCompile(`\.RegisterFunctionV2\("([^"]+)"`)
-
+	re := regexp.MustCompile(`RegisterFunctionV2\s*\(\s*"([^"]+)"`)
 	matches := re.FindStringSubmatch(input)
 
-	if len(matches) > 1 {
-		return matches[1], nil
+	if len(matches) == 0 {
+		return "", fmt.Errorf("bloblang function name not found: %s", filepath.Base(sourceFile))
 	}
-
-	return "", fmt.Errorf("bloblang function name not found: %s", sourceFile)
+	return matches[1], nil
 }
 
 func lowercaseFirst(s string) string {

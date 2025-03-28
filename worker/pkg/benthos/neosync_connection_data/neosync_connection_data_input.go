@@ -136,7 +136,9 @@ func (g *neosyncInput) Connect(ctx context.Context) error {
 		awsS3Cfg := &mgmtv1alpha1.AwsS3StreamConfig{}
 		if g.connectionOpts != nil {
 			if g.connectionOpts.jobRunId != nil && *g.connectionOpts.jobRunId != "" {
-				awsS3Cfg.Id = &mgmtv1alpha1.AwsS3StreamConfig_JobRunId{JobRunId: *g.connectionOpts.jobRunId}
+				awsS3Cfg.Id = &mgmtv1alpha1.AwsS3StreamConfig_JobRunId{
+					JobRunId: *g.connectionOpts.jobRunId,
+				}
 			} else if g.connectionOpts.jobId != nil && *g.connectionOpts.jobId != "" {
 				awsS3Cfg.Id = &mgmtv1alpha1.AwsS3StreamConfig_JobId{JobId: *g.connectionOpts.jobId}
 			}
@@ -164,12 +166,15 @@ func (g *neosyncInput) Connect(ctx context.Context) error {
 		}
 	}
 
-	resp, err := g.neosyncConnectApi.GetConnectionDataStream(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionDataStreamRequest{
-		ConnectionId: g.connectionId,
-		Schema:       g.schema,
-		Table:        g.table,
-		StreamConfig: streamCfg,
-	}))
+	resp, err := g.neosyncConnectApi.GetConnectionDataStream(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionDataStreamRequest{
+			ConnectionId: g.connectionId,
+			Schema:       g.schema,
+			Table:        g.table,
+			StreamConfig: streamCfg,
+		}),
+	)
 	if err != nil {
 		return err
 	}
@@ -203,7 +208,10 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 		decoder := gob.NewDecoder(bytes.NewReader(rowBytes))
 		err := decoder.Decode(&dynamoDBItem)
 		if err != nil {
-			return nil, nil, fmt.Errorf("error decoding data connection stream response with gob decoder: %w", err)
+			return nil, nil, fmt.Errorf(
+				"error decoding data connection stream response with gob decoder: %w",
+				err,
+			)
 		}
 
 		resMap, keyTypeMap := unmarshalDynamoDBItem(dynamoDBItem)
@@ -220,7 +228,10 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 	decoder := gob.NewDecoder(bytes.NewReader(rowBytes))
 	err := decoder.Decode(&valuesMap)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error decoding data connection stream response with gob decoder: %w", err)
+		return nil, nil, fmt.Errorf(
+			"error decoding data connection stream response with gob decoder: %w",
+			err,
+		)
 	}
 	msg := service.NewMessage(nil)
 	msg.SetStructuredMut(valuesMap)
@@ -245,7 +256,9 @@ func (g *neosyncInput) Close(ctx context.Context) error {
 	return nil
 }
 
-func unmarshalDynamoDBItem(item map[string]any) (standardMap map[string]any, keyTypeMap map[string]neosync_types.KeyType) {
+func unmarshalDynamoDBItem(
+	item map[string]any,
+) (standardMap map[string]any, keyTypeMap map[string]neosync_types.KeyType) {
 	result := make(map[string]any)
 	ktm := make(map[string]neosync_types.KeyType)
 	for key, value := range item {
@@ -255,7 +268,11 @@ func unmarshalDynamoDBItem(item map[string]any) (standardMap map[string]any, key
 	return result, ktm
 }
 
-func parseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]neosync_types.KeyType) any {
+func parseDynamoDBAttributeValue(
+	key string,
+	value any,
+	keyTypeMap map[string]neosync_types.KeyType,
+) any {
 	if m, ok := value.(map[string]any); ok {
 		for dynamoType, dynamoValue := range m {
 			switch dynamoType {
@@ -288,7 +305,11 @@ func parseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]ne
 				list := dynamoValue.([]any)
 				result := make([]any, len(list))
 				for i, item := range list {
-					result[i] = parseDynamoDBAttributeValue(fmt.Sprintf("%s[%d]", key, i), item, keyTypeMap)
+					result[i] = parseDynamoDBAttributeValue(
+						fmt.Sprintf("%s[%d]", key, i),
+						item,
+						keyTypeMap,
+					)
 				}
 				return result
 			case "M":

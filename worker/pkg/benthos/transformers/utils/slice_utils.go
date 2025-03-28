@@ -30,7 +30,9 @@ func FindClosestPair(sortedSlice1, sortedSlice2 []int64, maxValue int64) (leftid
 	// Initialize variables to track the best pair found so far and the best individual value.
 	bestPair := [2]int64{-1, -1}        // Initialize to (-1, -1) to indicate failure.
 	closestDiff := int64(math.MaxInt64) // Initialize with the largest int64 value.
-	maxSum := int64(0)                  // Track the maximum sum less than or equal to maxLength with the smallest difference.
+	maxSum := int64(
+		0,
+	) // Track the maximum sum less than or equal to maxLength with the smallest difference.
 
 	// Check if any of the lists is empty and handle accordingly
 	if len(sortedSlice1) == 0 || len(sortedSlice2) == 0 {

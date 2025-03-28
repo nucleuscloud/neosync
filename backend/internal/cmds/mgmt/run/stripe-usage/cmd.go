@@ -56,7 +56,9 @@ func run(ctx context.Context) error {
 	if meterName == "" {
 		return errors.New("must provide valid meter name")
 	}
-	eventIdSuffix := viper.GetString("EVENT_ID_SUFFIX") // optionally add an event id suffix to allow reprocessing
+	eventIdSuffix := viper.GetString(
+		"EVENT_ID_SUFFIX",
+	) // optionally add an event id suffix to allow reprocessing
 
 	ingestDate, err := getIngestDate(ingestDateStr, ingestDateOffset)
 	if err != nil {
@@ -77,21 +79,35 @@ func run(ctx context.Context) error {
 		clientInterceptors = append(clientInterceptors, otelinterceptors...)
 		defer func() {
 			if err := otelshutdown(context.Background()); err != nil {
-				slogger.ErrorContext(ctx, fmt.Errorf("unable to gracefully shutdown otel providers: %w", err).Error())
+				slogger.ErrorContext(
+					ctx,
+					fmt.Errorf("unable to gracefully shutdown otel providers: %w", err).Error(),
+				)
 			}
 		}()
 	}
 
-	usersclient := mgmtv1alpha1connect.NewUserAccountServiceClient(httpclient, neosyncurl, connect.WithInterceptors(clientInterceptors...))
-	metricsclient := mgmtv1alpha1connect.NewMetricsServiceClient(httpclient, neosyncurl, connect.WithInterceptors(clientInterceptors...))
+	usersclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
+		httpclient,
+		neosyncurl,
+		connect.WithInterceptors(clientInterceptors...),
+	)
+	metricsclient := mgmtv1alpha1connect.NewMetricsServiceClient(
+		httpclient,
+		neosyncurl,
+		connect.WithInterceptors(clientInterceptors...),
+	)
 
 	if len(accountIds) > 0 {
 		slogger.DebugContext(ctx, fmt.Sprintf("%d accounts provided as input", len(accountIds)))
 	}
 
-	accountsResp, err := usersclient.GetBillingAccounts(ctx, connect.NewRequest(&mgmtv1alpha1.GetBillingAccountsRequest{
-		AccountIds: accountIds,
-	}))
+	accountsResp, err := usersclient.GetBillingAccounts(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetBillingAccountsRequest{
+			AccountIds: accountIds,
+		}),
+	)
 	if err != nil {
 		return err
 	}
@@ -108,7 +124,12 @@ func run(ctx context.Context) error {
 			slogger.With("accountId", account.GetId()),
 		)
 		if err != nil {
-			slogger.ErrorContext(ctx, fmt.Errorf("unable to process account: %w", err).Error(), "accountId", account.GetId())
+			slogger.ErrorContext(
+				ctx,
+				fmt.Errorf("unable to process account: %w", err).Error(),
+				"accountId",
+				account.GetId(),
+			)
 			return fmt.Errorf("unable to process account: %w", err)
 		}
 	}
@@ -117,10 +138,17 @@ func run(ctx context.Context) error {
 	return nil
 }
 
-func getOtelConfig(ctx context.Context, otelconfig neosyncotel.OtelEnvConfig, logger *slog.Logger) (interceptors []connect.Interceptor, shutdown func(context.Context) error, err error) {
+func getOtelConfig(
+	ctx context.Context,
+	otelconfig neosyncotel.OtelEnvConfig,
+	logger *slog.Logger,
+) (interceptors []connect.Interceptor, shutdown func(context.Context) error, err error) {
 	logger.DebugContext(ctx, "otel is enabled")
 	tmPropagator := neosyncotel.NewDefaultPropagator()
-	otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes(), otelconnect.WithPropagator(tmPropagator)}
+	otelconnopts := []otelconnect.Option{
+		otelconnect.WithoutServerPeerAttributes(),
+		otelconnect.WithPropagator(tmPropagator),
+	}
 
 	meterProviders := []neosyncotel.MeterProvider{}
 	traceProviders := []neosyncotel.TracerProvider{}
@@ -187,14 +215,17 @@ func processAccount(
 	logger *slog.Logger,
 ) error {
 	logger.DebugContext(ctx, "retrieving daily metric count")
-	resp, err := metricsclient.GetDailyMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetDailyMetricCountRequest{
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
-		Start:  ingestdate,
-		End:    ingestdate,
-		Identifier: &mgmtv1alpha1.GetDailyMetricCountRequest_AccountId{
-			AccountId: account.GetId(),
-		},
-	}))
+	resp, err := metricsclient.GetDailyMetricCount(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetDailyMetricCountRequest{
+			Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+			Start:  ingestdate,
+			End:    ingestdate,
+			Identifier: &mgmtv1alpha1.GetDailyMetricCountRequest_AccountId{
+				AccountId: account.GetId(),
+			},
+		}),
+	)
 	if err != nil {
 		return fmt.Errorf("unable to get daily metric count: %w", err)
 	}
@@ -206,13 +237,19 @@ func processAccount(
 			if recordCount > 0 {
 				ts := getEventTimestamp(ingestdate)
 				logger.DebugContext(ctx, "record count was greater than 0, creating meter event")
-				_, err := userclient.SetBillingMeterEvent(ctx, connect.NewRequest(&mgmtv1alpha1.SetBillingMeterEventRequest{
-					AccountId: account.GetId(),
-					EventName: meterName,
-					Value:     strconv.FormatUint(recordCount, 10),
-					EventId:   withSuffix(getEventId(account.GetId(), ingestdate), eventIdSuffix),
-					Timestamp: &ts,
-				}))
+				_, err := userclient.SetBillingMeterEvent(
+					ctx,
+					connect.NewRequest(&mgmtv1alpha1.SetBillingMeterEventRequest{
+						AccountId: account.GetId(),
+						EventName: meterName,
+						Value:     strconv.FormatUint(recordCount, 10),
+						EventId: withSuffix(
+							getEventId(account.GetId(), ingestdate),
+							eventIdSuffix,
+						),
+						Timestamp: &ts,
+					}),
+				)
 				if err != nil {
 					return fmt.Errorf("unable to set billing meter event: %w", err)
 				}
@@ -226,9 +263,19 @@ func processAccount(
 
 func getEventTimestamp(date *mgmtv1alpha1.Date) uint64 {
 	now := time.Now().UTC()
-	inputDate := time.Date(int(date.GetYear()), time.Month(date.GetMonth()), int(date.GetDay()), 12, 0, 0, 0, time.UTC)
+	inputDate := time.Date(
+		int(date.GetYear()),
+		time.Month(date.GetMonth()),
+		int(date.GetDay()),
+		12,
+		0,
+		0,
+		0,
+		time.UTC,
+	)
 
-	if inputDate.Year() == now.Year() && inputDate.Month() == now.Month() && inputDate.Day() == now.Day() {
+	if inputDate.Year() == now.Year() && inputDate.Month() == now.Month() &&
+		inputDate.Day() == now.Day() {
 		// If the input date is today, use the current time as Stripe does not allow timestamps more than 5min into the future
 		return uint64(now.Unix()) //nolint:gosec
 	}

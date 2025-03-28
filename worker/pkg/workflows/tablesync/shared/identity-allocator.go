@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
-	"go.temporal.io/sdk/client"
 	temporalclient "go.temporal.io/sdk/client"
 )
 
@@ -42,7 +41,10 @@ type TemporalBlockAllocator struct {
 	runId          string
 }
 
-func NewTemporalBlockAllocator(temporalclient temporalclient.Client, workflowId, runId string) *TemporalBlockAllocator {
+func NewTemporalBlockAllocator(
+	temporalclient temporalclient.Client,
+	workflowId, runId string,
+) *TemporalBlockAllocator {
 	return &TemporalBlockAllocator{
 		temporalclient: temporalclient,
 		workflowId:     workflowId,
@@ -50,8 +52,12 @@ func NewTemporalBlockAllocator(temporalclient temporalclient.Client, workflowId,
 	}
 }
 
-func (i *TemporalBlockAllocator) GetNextBlock(ctx context.Context, token string, blockSize uint) (*IdentityRange, error) {
-	handle, err := i.temporalclient.UpdateWorkflow(ctx, client.UpdateWorkflowOptions{
+func (i *TemporalBlockAllocator) GetNextBlock(
+	ctx context.Context,
+	token string,
+	blockSize uint,
+) (*IdentityRange, error) {
+	handle, err := i.temporalclient.UpdateWorkflow(ctx, temporalclient.UpdateWorkflowOptions{
 		WorkflowID: i.workflowId,
 		RunID:      i.runId,
 		UpdateName: AllocateIdentityBlock,
@@ -59,10 +65,14 @@ func (i *TemporalBlockAllocator) GetNextBlock(ctx context.Context, token string,
 			Id:        token,
 			BlockSize: blockSize,
 		}},
-		WaitForStage: client.WorkflowUpdateStageCompleted,
+		WaitForStage: temporalclient.WorkflowUpdateStageCompleted,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to send update to get next block size for identity %s: %w", token, err)
+		return nil, fmt.Errorf(
+			"unable to send update to get next block size for identity %s: %w",
+			token,
+			err,
+		)
 	}
 	var resp *AllocateIdentityBlockResponse
 	err = handle.Get(ctx, &resp)
@@ -90,7 +100,11 @@ type MultiIdentityAllocator struct {
 	allocators map[string]*SingleIdentityAllocator
 }
 
-func NewMultiIdentityAllocator(blockAllocator BlockAllocator, blockSize uint, seed uint64) *MultiIdentityAllocator {
+func NewMultiIdentityAllocator(
+	blockAllocator BlockAllocator,
+	blockSize uint,
+	seed uint64,
+) *MultiIdentityAllocator {
 	return &MultiIdentityAllocator{
 		blockAllocator: blockAllocator,
 		blockSize:      blockSize,
@@ -100,13 +114,21 @@ func NewMultiIdentityAllocator(blockAllocator BlockAllocator, blockSize uint, se
 	}
 }
 
-func (i *MultiIdentityAllocator) GetIdentity(ctx context.Context, token string, value *uint) (uint, error) {
+func (i *MultiIdentityAllocator) GetIdentity(
+	ctx context.Context,
+	token string,
+	value *uint,
+) (uint, error) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 
 	allocator, ok := i.allocators[token]
 	if !ok {
-		allocator = NewSingleIdentityAllocator(i.blockAllocator, i.blockSize, rng.NewSplit(i.seed, hashToSeed(token)))
+		allocator = NewSingleIdentityAllocator(
+			i.blockAllocator,
+			i.blockSize,
+			rng.NewSplit(i.seed, hashToSeed(token)),
+		)
 		i.allocators[token] = allocator
 	}
 	return allocator.GetIdentity(ctx, token, value)
@@ -133,7 +155,11 @@ type SingleIdentityAllocator struct {
 	usedValues   map[uint]struct{}
 }
 
-func NewSingleIdentityAllocator(blockAllocator BlockAllocator, blockSize uint, rand rng.Rand) *SingleIdentityAllocator {
+func NewSingleIdentityAllocator(
+	blockAllocator BlockAllocator,
+	blockSize uint,
+	rand rng.Rand,
+) *SingleIdentityAllocator {
 	return &SingleIdentityAllocator{
 		blockAllocator: blockAllocator,
 		blockSize:      blockSize,
@@ -142,7 +168,11 @@ func NewSingleIdentityAllocator(blockAllocator BlockAllocator, blockSize uint, r
 	}
 }
 
-func (i *SingleIdentityAllocator) GetIdentity(ctx context.Context, token string, value *uint) (uint, error) {
+func (i *SingleIdentityAllocator) GetIdentity(
+	ctx context.Context,
+	token string,
+	value *uint,
+) (uint, error) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 

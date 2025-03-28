@@ -44,7 +44,11 @@ func NewTypeRegistry(logger *slog.Logger) *TypeRegistry {
 	return registry
 }
 
-func (r *TypeRegistry) Register(typeId string, version Version, newTypeFunc func() (NeosyncAdapter, error)) {
+func (r *TypeRegistry) Register(
+	typeId string,
+	version Version,
+	newTypeFunc func() (NeosyncAdapter, error),
+) {
 	if _, exists := r.types[typeId]; !exists {
 		r.types[typeId] = make(map[Version]func() (NeosyncAdapter, error))
 	}
@@ -63,12 +67,22 @@ func (r *TypeRegistry) New(typeId string, version Version) (NeosyncAdapter, erro
 	}
 
 	// Try LatestVersion
-	r.logger.Warn(fmt.Sprintf("version %d not registered for Type Id: %s using latest version instead", version, typeId))
+	r.logger.Warn(
+		fmt.Sprintf(
+			"version %d not registered for Type Id: %s using latest version instead",
+			version,
+			typeId,
+		),
+	)
 	if newTypeFunc, ok := versionedTypes[LatestVersion]; ok {
 		return newTypeFunc()
 	}
 
-	return nil, fmt.Errorf("unknown version %d for type Id: %s. latest version not found.", version, typeId)
+	return nil, fmt.Errorf(
+		"unknown version %d for type Id: %s. latest version not found",
+		version,
+		typeId,
+	)
 }
 
 // UnmarshalAny deserializes a value of type any into an appropriate type based on the Neosync type system.

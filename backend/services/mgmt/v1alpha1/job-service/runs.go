@@ -90,7 +90,12 @@ func (s *Service) GetJobRuns(
 		return nil, err
 	}
 
-	workflows, err := s.temporalmgr.GetWorkflowExecutionsByScheduleIds(ctx, accountId, jobIds, logger)
+	workflows, err := s.temporalmgr.GetWorkflowExecutionsByScheduleIds(
+		ctx,
+		accountId,
+		jobIds,
+		logger,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +117,12 @@ func (s *Service) GetJobRun(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobRunId", req.Msg.JobRunId)
 
-	res, err := s.temporalmgr.DescribeWorklowExecution(ctx, req.Msg.GetAccountId(), req.Msg.GetJobRunId(), logger)
+	res, err := s.temporalmgr.DescribeWorklowExecution(
+		ctx,
+		req.Msg.GetAccountId(),
+		req.Msg.GetJobRunId(),
+		logger,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to describe workflow execution: %w", err)
 	}
@@ -157,7 +167,11 @@ func (s *Service) GetJobRunEvents(
 	return connect.NewResponse(resp), nil
 }
 
-func (s *Service) getEventsByWorkflowId(ctx context.Context, accountId, workflowId string, logger *slog.Logger) (*mgmtv1alpha1.GetJobRunEventsResponse, error) {
+func (s *Service) getEventsByWorkflowId(
+	ctx context.Context,
+	accountId, workflowId string,
+	logger *slog.Logger,
+) (*mgmtv1alpha1.GetJobRunEventsResponse, error) {
 	isRunComplete := false
 	activityOrder := []int64{}
 	activityMap := map[int64]*mgmtv1alpha1.JobRunEvent{}
@@ -195,9 +209,12 @@ func (s *Service) getEventsByWorkflowId(ctx context.Context, accountId, workflow
 			}
 			if len(attributes.Input.Payloads) > 1 {
 				var rawMap map[string]string
-				err := converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[1], &rawMap)
+				err := converter.GetDefaultDataConverter().
+					FromPayload(attributes.Input.Payloads[1], &rawMap)
 				if err != nil {
-					logger.Error(fmt.Errorf("unable to convert to event input payload: %w", err).Error())
+					logger.Error(
+						fmt.Errorf("unable to convert to event input payload: %w", err).Error(),
+					)
 				}
 
 				schema, schemaExists := rawMap["Schema"]
@@ -277,9 +294,12 @@ func (s *Service) getEventsByWorkflowId(ctx context.Context, accountId, workflow
 				switch attributes.GetWorkflowType().GetName() {
 				case "TableSync":
 					var tableSyncRequest tablesync_workflow.TableSyncRequest
-					err := converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[0], &tableSyncRequest)
+					err := converter.GetDefaultDataConverter().
+						FromPayload(attributes.Input.Payloads[0], &tableSyncRequest)
 					if err != nil {
-						logger.Error(fmt.Errorf("unable to convert to event input payload: %w", err).Error())
+						logger.Error(
+							fmt.Errorf("unable to convert to event input payload: %w", err).Error(),
+						)
 					}
 
 					metadata := &mgmtv1alpha1.JobRunEventMetadata{}
@@ -292,9 +312,12 @@ func (s *Service) getEventsByWorkflowId(ctx context.Context, accountId, workflow
 					jobRunEvent.Metadata = metadata
 				case "TablePiiDetect":
 					var piiDetectTableRequest piidetect_table_workflow.TablePiiDetectRequest
-					err := converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[0], &piiDetectTableRequest)
+					err := converter.GetDefaultDataConverter().
+						FromPayload(attributes.Input.Payloads[0], &piiDetectTableRequest)
 					if err != nil {
-						logger.Error(fmt.Errorf("unable to convert to event input payload: %w", err).Error())
+						logger.Error(
+							fmt.Errorf("unable to convert to event input payload: %w", err).Error(),
+						)
 					}
 					metadata := &mgmtv1alpha1.JobRunEventMetadata{}
 					metadata.Metadata = &mgmtv1alpha1.JobRunEventMetadata_SyncMetadata{
@@ -369,9 +392,20 @@ func (s *Service) getEventsByWorkflowId(ctx context.Context, accountId, workflow
 				continue
 			}
 			logger.Debug("child workflow is not complete, checking if it is closed")
-			info, err := s.temporalmgr.GetWorkflowExecutionById(ctx, accountId, childWorkflowId, logger)
+			info, err := s.temporalmgr.GetWorkflowExecutionById(
+				ctx,
+				accountId,
+				childWorkflowId,
+				logger,
+			)
 			if err != nil {
-				logger.Warn(fmt.Sprintf("unable to get workflow execution info for %s: %s", childWorkflowId, err))
+				logger.Warn(
+					fmt.Sprintf(
+						"unable to get workflow execution info for %s: %s",
+						childWorkflowId,
+						err,
+					),
+				)
 				continue
 			}
 
@@ -383,16 +417,25 @@ func (s *Service) getEventsByWorkflowId(ctx context.Context, accountId, workflow
 			switch info.GetStatus() {
 			case enums.WORKFLOW_EXECUTION_STATUS_COMPLETED:
 				highestEventId++
-				childEvent.Tasks = append(childEvent.Tasks, dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
-					EventId:    highestEventId,
-					EventTime:  info.GetCloseTime(),
-					EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_COMPLETED,
-					Attributes: nil,
-				}, nil))
+				childEvent.Tasks = append(
+					childEvent.Tasks,
+					dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
+						EventId:    highestEventId,
+						EventTime:  info.GetCloseTime(),
+						EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_COMPLETED,
+						Attributes: nil,
+					}, nil),
+				)
 			case enums.WORKFLOW_EXECUTION_STATUS_FAILED:
 				resp, err := s.getEventsByWorkflowId(ctx, accountId, childWorkflowId, logger)
 				if err != nil {
-					logger.Warn(fmt.Sprintf("unable to get events by workflow id for %s: %s", childWorkflowId, err))
+					logger.Warn(
+						fmt.Sprintf(
+							"unable to get events by workflow id for %s: %s",
+							childWorkflowId,
+							err,
+						),
+					)
 					continue
 				}
 				var eventErr *mgmtv1alpha1.JobRunEventTaskError
@@ -405,36 +448,48 @@ func (s *Service) getEventsByWorkflowId(ctx context.Context, accountId, workflow
 					}
 				}
 				highestEventId++
-				childEvent.Tasks = append(childEvent.Tasks, dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
-					EventId:    highestEventId,
-					EventTime:  info.GetCloseTime(),
-					EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_FAILED,
-					Attributes: nil,
-				}, eventErr))
+				childEvent.Tasks = append(
+					childEvent.Tasks,
+					dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
+						EventId:    highestEventId,
+						EventTime:  info.GetCloseTime(),
+						EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_FAILED,
+						Attributes: nil,
+					}, eventErr),
+				)
 			case enums.WORKFLOW_EXECUTION_STATUS_TIMED_OUT:
 				highestEventId++
-				childEvent.Tasks = append(childEvent.Tasks, dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
-					EventId:    highestEventId,
-					EventTime:  info.GetCloseTime(),
-					EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_TIMED_OUT,
-					Attributes: nil,
-				}, nil))
+				childEvent.Tasks = append(
+					childEvent.Tasks,
+					dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
+						EventId:    highestEventId,
+						EventTime:  info.GetCloseTime(),
+						EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_TIMED_OUT,
+						Attributes: nil,
+					}, nil),
+				)
 			case enums.WORKFLOW_EXECUTION_STATUS_CANCELED:
 				highestEventId++
-				childEvent.Tasks = append(childEvent.Tasks, dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
-					EventId:    highestEventId,
-					EventTime:  info.GetCloseTime(),
-					EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_CANCELED,
-					Attributes: nil,
-				}, nil))
+				childEvent.Tasks = append(
+					childEvent.Tasks,
+					dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
+						EventId:    highestEventId,
+						EventTime:  info.GetCloseTime(),
+						EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_CANCELED,
+						Attributes: nil,
+					}, nil),
+				)
 			case enums.WORKFLOW_EXECUTION_STATUS_TERMINATED:
 				highestEventId++
-				childEvent.Tasks = append(childEvent.Tasks, dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
-					EventId:    highestEventId,
-					EventTime:  info.GetCloseTime(),
-					EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_TERMINATED,
-					Attributes: nil,
-				}, nil))
+				childEvent.Tasks = append(
+					childEvent.Tasks,
+					dtomaps.ToJobRunEventTaskDto(&history.HistoryEvent{
+						EventId:    highestEventId,
+						EventTime:  info.GetCloseTime(),
+						EventType:  enums.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_TERMINATED,
+						Attributes: nil,
+					}, nil),
+				)
 			}
 		}
 	}
@@ -542,7 +597,12 @@ func (s *Service) TerminateJobRun(
 		return nil, err
 	}
 
-	err = s.temporalmgr.TerminateWorkflow(ctx, req.Msg.GetAccountId(), req.Msg.GetJobRunId(), logger)
+	err = s.temporalmgr.TerminateWorkflow(
+		ctx,
+		req.Msg.GetAccountId(),
+		req.Msg.GetJobRunId(),
+		logger,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to terminate job run: %w", err)
 	}
@@ -574,7 +634,12 @@ func (s *Service) DeleteJobRun(
 		return nil, err
 	}
 
-	err = s.temporalmgr.DeleteWorkflowExecution(ctx, req.Msg.GetAccountId(), req.Msg.GetJobRunId(), logger)
+	err = s.temporalmgr.DeleteWorkflowExecution(
+		ctx,
+		req.Msg.GetAccountId(),
+		req.Msg.GetJobRunId(),
+		logger,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to delete job run: %w", err)
 	}
@@ -596,7 +661,12 @@ func (s *Service) GetJobRunLogsStream(
 	logger = logger.With("jobRunId", req.Msg.GetJobRunId())
 
 	onLogLine := func(logline *mgmtv1alpha1.GetJobRunLogsResponse_LogLine) error {
-		return stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: logline.LogLine, Timestamp: logline.Timestamp})
+		return stream.Send(
+			&mgmtv1alpha1.GetJobRunLogsStreamResponse{
+				LogLine:   logline.LogLine,
+				Timestamp: logline.Timestamp,
+			},
+		)
 	}
 	return s.streamLogs(ctx, req.Msg, &logLineStreamer{onLogLine: onLogLine}, logger)
 }
@@ -640,8 +710,11 @@ func (s *Service) streamLogs(
 	stream logStreamer,
 	logger *slog.Logger,
 ) error {
-	if s.cfg.RunLogConfig == nil || !s.cfg.RunLogConfig.IsEnabled || s.cfg.RunLogConfig.RunLogType == nil {
-		return nucleuserrors.NewNotImplemented("job run logs is not enabled. please configure or contact system administrator to enable logs.")
+	if s.cfg.RunLogConfig == nil || !s.cfg.RunLogConfig.IsEnabled ||
+		s.cfg.RunLogConfig.RunLogType == nil {
+		return nucleuserrors.NewNotImplemented(
+			"job run logs is not enabled. please configure or contact system administrator to enable logs.",
+		)
 	}
 
 	jobRunResp, err := s.GetJobRun(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRunRequest{
@@ -674,7 +747,9 @@ func (s *Service) streamLogs(
 		}
 		return nil
 	default:
-		return nucleuserrors.NewNotImplemented("streaming log pods not implemented for this container type")
+		return nucleuserrors.NewNotImplemented(
+			"streaming log pods not implemented for this container type",
+		)
 	}
 }
 
@@ -708,7 +783,12 @@ func (s *Service) streamK8sWorkerPodLogs(
 	if s.cfg.RunLogConfig.RunLogPodConfig == nil {
 		return nucleuserrors.NewInternalError("run logs configured but no config provided")
 	}
-	workflowExecution, err := s.temporalmgr.GetWorkflowExecutionById(ctx, req.GetAccountId(), req.GetJobRunId(), logger)
+	workflowExecution, err := s.temporalmgr.GetWorkflowExecutionById(
+		ctx,
+		req.GetAccountId(),
+		req.GetJobRunId(),
+		logger,
+	)
 	if err != nil {
 		return err
 	}
@@ -723,7 +803,11 @@ func (s *Service) streamK8sWorkerPodLogs(
 		return fmt.Errorf("unable to create kubernetes clientset: %w", err)
 	}
 
-	appNameSelector, err := labels.NewRequirement("app", selection.Equals, []string{s.cfg.RunLogConfig.RunLogPodConfig.WorkerAppName})
+	appNameSelector, err := labels.NewRequirement(
+		"app",
+		selection.Equals,
+		[]string{s.cfg.RunLogConfig.RunLogPodConfig.WorkerAppName},
+	)
 	if err != nil {
 		return fmt.Errorf("unable to build label selector when finding k8s logs: %w", err)
 	}
@@ -798,13 +882,19 @@ func (s *Service) streamLokiWorkerLogs(
 	stream logStreamer,
 	logger *slog.Logger,
 ) error {
-	if s.cfg.RunLogConfig == nil || !s.cfg.RunLogConfig.IsEnabled || s.cfg.RunLogConfig.LokiRunLogConfig == nil {
+	if s.cfg.RunLogConfig == nil || !s.cfg.RunLogConfig.IsEnabled ||
+		s.cfg.RunLogConfig.LokiRunLogConfig == nil {
 		return nucleuserrors.NewInternalError("run logs configured but no config provided")
 	}
 	if s.cfg.RunLogConfig.LokiRunLogConfig.LabelsQuery == "" {
 		return nucleuserrors.NewInternalError("must provide a labels query for loki to filter by")
 	}
-	workflowExecution, err := s.temporalmgr.GetWorkflowExecutionById(ctx, req.GetAccountId(), req.GetJobRunId(), logger)
+	workflowExecution, err := s.temporalmgr.GetWorkflowExecutionById(
+		ctx,
+		req.GetAccountId(),
+		req.GetJobRunId(),
+		logger,
+	)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve workflow execution: %w", err)
 	}
@@ -863,7 +953,13 @@ func (s *Service) streamLokiWorkerLogs(
 	}
 
 	for _, entry := range entries {
-		err := stream.Send(&mgmtv1alpha1.GetJobRunLogsResponse_LogLine{LogLine: entry.Line, Labels: entry.Labels.Map(), Timestamp: timestamppb.New(entry.Timestamp)})
+		err := stream.Send(
+			&mgmtv1alpha1.GetJobRunLogsResponse_LogLine{
+				LogLine:   entry.Line,
+				Labels:    entry.Labels.Map(),
+				Timestamp: timestamppb.New(entry.Timestamp),
+			},
+		)
 		if err != nil {
 			return err
 		}
@@ -902,7 +998,12 @@ func logLevelToString(loglevel mgmtv1alpha1.LogLevel) string {
 	}
 }
 
-func buildLokiQuery(lokiLables string, keep []string, workflowId string, loglevels []string) string {
+func buildLokiQuery(
+	lokiLables string,
+	keep []string,
+	workflowId string,
+	loglevels []string,
+) string {
 	query := fmt.Sprintf("{%s} | json", lokiLables)
 	query = fmt.Sprintf("%s | JobRunId=%q", query, workflowId)
 
@@ -981,7 +1082,9 @@ func (s *Service) SetRunContext(
 	}
 
 	if s.cfg.IsNeosyncCloud && !user.IsWorkerApiKey() {
-		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+		return nil, nucleuserrors.NewUnauthenticated(
+			"must provide valid authentication credentials for this endpoint",
+		)
 	}
 
 	accountUuid, err := neosyncdb.ToUuid(id.GetAccountId())
@@ -1020,7 +1123,9 @@ func (s *Service) SetRunContexts(
 		}
 
 		if s.cfg.IsNeosyncCloud && !user.IsWorkerApiKey() {
-			return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+			return nil, nucleuserrors.NewUnauthenticated(
+				"must provide valid authentication credentials for this endpoint",
+			)
 		}
 
 		accountUuid, err := neosyncdb.ToUuid(id.GetAccountId())
@@ -1079,11 +1184,15 @@ func (s *Service) GetPiiDetectionReport(
 	// this allows us to effectively stream in the latest reports while the job is running
 	if len(tableRunContexts) == 0 {
 		logger.Debug("no table run contexts found in job report, fetching table level reports")
-		runContexts, err := s.db.Q.GetRunContextsByExternalIdSuffix(ctx, s.db.Db, db_queries.GetRunContextsByExternalIdSuffixParams{
-			WorkflowId:       jobRun.GetId(),
-			ExternalIdSuffix: piidetect_table_activities.PiiTableReportSuffix,
-			AccountId:        accountUuid,
-		})
+		runContexts, err := s.db.Q.GetRunContextsByExternalIdSuffix(
+			ctx,
+			s.db.Db,
+			db_queries.GetRunContextsByExternalIdSuffixParams{
+				WorkflowId:       jobRun.GetId(),
+				ExternalIdSuffix: piidetect_table_activities.PiiTableReportSuffix,
+				AccountId:        accountUuid,
+			},
+		)
 		if err != nil && !neosyncdb.IsNoRows(err) {
 			return nil, fmt.Errorf("unable to retrieve run contexts: %w", err)
 		}
@@ -1115,7 +1224,11 @@ func (s *Service) GetPiiDetectionReport(
 	}), nil
 }
 
-func (s *Service) getTableRunContextsFromJobReport(ctx context.Context, jobRun *mgmtv1alpha1.JobRun, accountUuid pgtype.UUID) ([]*db_queries.NeosyncApiRuncontext, error) {
+func (s *Service) getTableRunContextsFromJobReport(
+	ctx context.Context,
+	jobRun *mgmtv1alpha1.JobRun,
+	accountUuid pgtype.UUID,
+) ([]*db_queries.NeosyncApiRuncontext, error) {
 	runContext, err := s.db.Q.GetRunContextByKey(ctx, s.db.Db, db_queries.GetRunContextByKeyParams{
 		WorkflowId: jobRun.GetId(),
 		ExternalId: piidetect_job_activities.BuildJobReportExternalId(jobRun.GetJobId()),
@@ -1131,7 +1244,11 @@ func (s *Service) getTableRunContextsFromJobReport(ctx context.Context, jobRun *
 	if err != nil {
 		return nil, fmt.Errorf("unable to unmarshal run context for job pii detect report: %w", err)
 	}
-	tableRunContextKeys := make([]*mgmtv1alpha1.RunContextKey, 0, len(jobReport.SuccessfulTableReports))
+	tableRunContextKeys := make(
+		[]*mgmtv1alpha1.RunContextKey,
+		0,
+		len(jobReport.SuccessfulTableReports),
+	)
 	for _, tableReport := range jobReport.SuccessfulTableReports {
 		tableRunContextKeys = append(tableRunContextKeys, tableReport.ReportKey)
 	}
@@ -1142,7 +1259,10 @@ func (s *Service) getTableRunContextsFromJobReport(ctx context.Context, jobRun *
 	return tableRunContexts, nil
 }
 
-func (s *Service) getDbRunContextsFromKeys(ctx context.Context, keys []*mgmtv1alpha1.RunContextKey) ([]*db_queries.NeosyncApiRuncontext, error) {
+func (s *Service) getDbRunContextsFromKeys(
+	ctx context.Context,
+	keys []*mgmtv1alpha1.RunContextKey,
+) ([]*db_queries.NeosyncApiRuncontext, error) {
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.SetLimit(10)
 	runContexts := []*db_queries.NeosyncApiRuncontext{}
@@ -1158,11 +1278,15 @@ func (s *Service) getDbRunContextsFromKeys(ctx context.Context, keys []*mgmtv1al
 			if err != nil {
 				return fmt.Errorf("unable to convert account id to uuid: %w", err)
 			}
-			runContext, err := s.db.Q.GetRunContextByKey(errctx, s.db.Db, db_queries.GetRunContextByKeyParams{
-				WorkflowId: key.GetJobRunId(),
-				ExternalId: key.GetExternalId(),
-				AccountId:  accountUuid,
-			})
+			runContext, err := s.db.Q.GetRunContextByKey(
+				errctx,
+				s.db.Db,
+				db_queries.GetRunContextByKeyParams{
+					WorkflowId: key.GetJobRunId(),
+					ExternalId: key.GetExternalId(),
+					AccountId:  accountUuid,
+				},
+			)
 			if err != nil {
 				return fmt.Errorf("unable to get run context: %w", err)
 			}
@@ -1178,7 +1302,9 @@ func (s *Service) getDbRunContextsFromKeys(ctx context.Context, keys []*mgmtv1al
 	return runContexts, nil
 }
 
-func getReportsFromTableContexts(tableContexts []*db_queries.NeosyncApiRuncontext) ([]*piidetect_table_activities.TableReport, error) {
+func getReportsFromTableContexts(
+	tableContexts []*db_queries.NeosyncApiRuncontext,
+) ([]*piidetect_table_activities.TableReport, error) {
 	reports := make([]*piidetect_table_activities.TableReport, len(tableContexts))
 	for i := range tableContexts {
 		runContext := tableContexts[i]
@@ -1192,13 +1318,19 @@ func getReportsFromTableContexts(tableContexts []*db_queries.NeosyncApiRuncontex
 	return reports, nil
 }
 
-func getTableReportDtos(reports []*piidetect_table_activities.TableReport) []*mgmtv1alpha1.PiiDetectionReport_TableReport {
+func getTableReportDtos(
+	reports []*piidetect_table_activities.TableReport,
+) []*mgmtv1alpha1.PiiDetectionReport_TableReport {
 	reportDtos := make([]*mgmtv1alpha1.PiiDetectionReport_TableReport, len(reports))
 	for i, report := range reports {
 		reportDtos[i] = &mgmtv1alpha1.PiiDetectionReport_TableReport{
-			Schema:  report.TableSchema,
-			Table:   report.TableName,
-			Columns: make([]*mgmtv1alpha1.PiiDetectionReport_TableReport_ColumnReport, 0, len(report.ColumnReports)),
+			Schema: report.TableSchema,
+			Table:  report.TableName,
+			Columns: make(
+				[]*mgmtv1alpha1.PiiDetectionReport_TableReport_ColumnReport,
+				0,
+				len(report.ColumnReports),
+			),
 		}
 		for _, columnReport := range report.ColumnReports {
 			columnReportDto := &mgmtv1alpha1.PiiDetectionReport_TableReport_ColumnReport{

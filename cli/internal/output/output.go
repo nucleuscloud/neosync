@@ -31,7 +31,8 @@ func AttachOutputFlag(cmd *cobra.Command) {
 		outputVals = append(outputVals, outputType)
 	}
 
-	cmd.Flags().StringP("output", "o", string(autoOutput), fmt.Sprintf("Set type of output (%s).", strings.Join(outputVals, ", ")))
+	cmd.Flags().
+		StringP("output", "o", string(autoOutput), fmt.Sprintf("Set type of output (%s).", strings.Join(outputVals, ", ")))
 }
 
 func ValidateAndRetrieveOutputFlag(cmd *cobra.Command) (OutputType, error) {

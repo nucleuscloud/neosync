@@ -34,7 +34,13 @@ func (s *Service) AnonymizeMany(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	if !s.cfg.IsNeosyncCloud {
 		return nil, nucleuserrors.NewNotImplemented(
-			fmt.Sprintf("%s is not implemented in the OSS version of Neosync.", strings.TrimPrefix(mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure, "/")),
+			fmt.Sprintf(
+				"%s is not implemented in the OSS version of Neosync.",
+				strings.TrimPrefix(
+					mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure,
+					"/",
+				),
+			),
 		)
 	}
 
@@ -58,7 +64,13 @@ func (s *Service) AnonymizeMany(
 	}
 	if account.AccountType == int16(neosyncdb.AccountType_Personal) {
 		return nil, nucleuserrors.NewForbidden(
-			fmt.Sprintf("%s is not implemented for personal accounts", strings.TrimPrefix(mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure, "/")),
+			fmt.Sprintf(
+				"%s is not implemented for personal accounts",
+				strings.TrimPrefix(
+					mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure,
+					"/",
+				),
+			),
 		)
 	}
 
@@ -69,23 +81,36 @@ func (s *Service) AnonymizeMany(
 	}
 
 	requestedCount := uint64(len(req.Msg.InputData))
-	resp, err := s.useraccountService.IsAccountStatusValid(ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
-		AccountId:            req.Msg.GetAccountId(),
-		RequestedRecordCount: &requestedCount,
-	}))
+	resp, err := s.useraccountService.IsAccountStatusValid(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+			AccountId:            req.Msg.GetAccountId(),
+			RequestedRecordCount: &requestedCount,
+		}),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve account status: %w", err)
 	}
 
 	if !resp.Msg.IsValid {
-		return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("unable to anonymize due to account in invalid state. Reason: %q", *resp.Msg.Reason))
+		return nil, nucleuserrors.NewBadRequest(
+			fmt.Sprintf(
+				"unable to anonymize due to account in invalid state. Reason: %q",
+				*resp.Msg.Reason,
+			),
+		)
 	}
 
 	anonymizer, err := jsonanonymizer.NewAnonymizer(
 		jsonanonymizer.WithTransformerMappings(req.Msg.TransformerMappings),
 		jsonanonymizer.WithDefaultTransformers(req.Msg.DefaultTransformers),
 		jsonanonymizer.WithHaltOnFailure(req.Msg.HaltOnFailure),
-		jsonanonymizer.WithConditionalAnonymizeConfig(s.cfg.IsPresidioEnabled, s.analyze, s.anonymize, s.cfg.PresidioDefaultLanguage),
+		jsonanonymizer.WithConditionalAnonymizeConfig(
+			s.cfg.IsPresidioEnabled,
+			s.analyze,
+			s.anonymize,
+			s.cfg.PresidioDefaultLanguage,
+		),
 		jsonanonymizer.WithTransformerClient(s.transformerClient),
 		jsonanonymizer.WithLogger(logger),
 	)
@@ -168,14 +193,18 @@ func (s *Service) AnonymizeSingle(
 	if !s.cfg.IsNeosyncCloud || account.AccountType == int16(neosyncdb.AccountType_Personal) {
 		for _, mapping := range req.Msg.GetTransformerMappings() {
 			if mapping.GetTransformer().GetTransformPiiTextConfig() != nil {
-				return nil, nucleuserrors.NewForbidden("TransformPiiText is not available for use. Please contact us to upgrade your account.")
+				return nil, nucleuserrors.NewForbidden(
+					"TransformPiiText is not available for use. Please contact us to upgrade your account.",
+				)
 			}
 		}
 		defaultTransforms := req.Msg.GetDefaultTransformers()
 		if defaultTransforms.GetBoolean().GetTransformPiiTextConfig() != nil ||
 			defaultTransforms.GetN().GetTransformPiiTextConfig() != nil ||
 			defaultTransforms.GetS().GetTransformPiiTextConfig() != nil {
-			return nil, nucleuserrors.NewForbidden("TransformPiiText is not available for use. Please contact us to upgrade your account.")
+			return nil, nucleuserrors.NewForbidden(
+				"TransformPiiText is not available for use. Please contact us to upgrade your account.",
+			)
 		}
 	}
 
@@ -186,22 +215,35 @@ func (s *Service) AnonymizeSingle(
 	}
 
 	requestedCount := uint64(len(req.Msg.InputData))
-	resp, err := s.useraccountService.IsAccountStatusValid(ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
-		AccountId:            req.Msg.GetAccountId(),
-		RequestedRecordCount: &requestedCount,
-	}))
+	resp, err := s.useraccountService.IsAccountStatusValid(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+			AccountId:            req.Msg.GetAccountId(),
+			RequestedRecordCount: &requestedCount,
+		}),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve account status: %w", err)
 	}
 
 	if !resp.Msg.IsValid {
-		return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("unable to anonymize due to account in invalid state. Reason: %q", *resp.Msg.Reason))
+		return nil, nucleuserrors.NewBadRequest(
+			fmt.Sprintf(
+				"unable to anonymize due to account in invalid state. Reason: %q",
+				*resp.Msg.Reason,
+			),
+		)
 	}
 
 	anonymizer, err := jsonanonymizer.NewAnonymizer(
 		jsonanonymizer.WithTransformerMappings(req.Msg.TransformerMappings),
 		jsonanonymizer.WithDefaultTransformers(req.Msg.DefaultTransformers),
-		jsonanonymizer.WithConditionalAnonymizeConfig(s.cfg.IsPresidioEnabled, s.analyze, s.anonymize, s.cfg.PresidioDefaultLanguage),
+		jsonanonymizer.WithConditionalAnonymizeConfig(
+			s.cfg.IsPresidioEnabled,
+			s.analyze,
+			s.anonymize,
+			s.cfg.PresidioDefaultLanguage,
+		),
 		jsonanonymizer.WithTransformerClient(s.transformerClient),
 		jsonanonymizer.WithLogger(logger),
 	)
@@ -254,7 +296,10 @@ func getMetricLabels(ctx context.Context, requestName, accountId string) []attri
 		attribute.String(metrics.AccountIdLabel, accountId),
 		attribute.String(metrics.ApiRequestId, requestId),
 		attribute.String(metrics.ApiRequestName, requestName),
-		attribute.String(metrics.NeosyncDateLabel, time.Now().UTC().Format(metrics.NeosyncDateFormat)),
+		attribute.String(
+			metrics.NeosyncDateLabel,
+			time.Now().UTC().Format(metrics.NeosyncDateFormat),
+		),
 	}
 }
 
@@ -281,14 +326,21 @@ func validateTransformerConfig(cfg *mgmtv1alpha1.TransformerConfig) error {
 	if defaultAnonymizer != nil {
 		child := defaultAnonymizer.GetTransform().GetConfig().GetTransformPiiTextConfig()
 		if child != nil {
-			return nucleuserrors.NewBadRequest("found nested TransformPiiText config in default anonymizer. TransformPiiText may not be used deeply nested within itself.")
+			return nucleuserrors.NewBadRequest(
+				"found nested TransformPiiText config in default anonymizer. TransformPiiText may not be used deeply nested within itself.",
+			)
 		}
 	}
 	entityAnonymizers := root.GetEntityAnonymizers()
 	for entity, entityAnonymizer := range entityAnonymizers {
 		child := entityAnonymizer.GetTransform().GetConfig().GetTransformPiiTextConfig()
 		if child != nil {
-			return nucleuserrors.NewBadRequest(fmt.Sprintf("found nested TransformPiiText config in entity (%s) anonymizer. TransformPiiText may not be used deeply nested within itself.", entity))
+			return nucleuserrors.NewBadRequest(
+				fmt.Sprintf(
+					"found nested TransformPiiText config in entity (%s) anonymizer. TransformPiiText may not be used deeply nested within itself.",
+					entity,
+				),
+			)
 		}
 	}
 	return nil
@@ -299,7 +351,9 @@ type transformerMsgToValidate interface {
 	GetTransformerMappings() []*mgmtv1alpha1.TransformerMapping
 }
 
-func getTransformerConfigsToValidate(msg transformerMsgToValidate) iter.Seq[*mgmtv1alpha1.TransformerConfig] {
+func getTransformerConfigsToValidate(
+	msg transformerMsgToValidate,
+) iter.Seq[*mgmtv1alpha1.TransformerConfig] {
 	return func(yield func(*mgmtv1alpha1.TransformerConfig) bool) {
 		if msg.GetDefaultTransformers().GetBoolean() != nil {
 			if !yield(msg.GetDefaultTransformers().GetBoolean()) {

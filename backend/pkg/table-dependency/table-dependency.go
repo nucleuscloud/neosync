@@ -41,7 +41,10 @@ func GetTablesOrderedByDependency(dependencyMap map[string][]string) (*OrderedTa
 		dep, ok := dependencyMap[table]
 		if !ok || len(dep) == 0 {
 			s, t := sqlmanager_shared.SplitTableKey(table)
-			orderedTables = append(orderedTables, &sqlmanager_shared.SchemaTable{Schema: s, Table: t})
+			orderedTables = append(
+				orderedTables,
+				&sqlmanager_shared.SchemaTable{Schema: s, Table: t},
+			)
 			seenTables[table] = struct{}{}
 			delete(tableMap, table)
 		}
@@ -58,7 +61,10 @@ func GetTablesOrderedByDependency(dependencyMap map[string][]string) (*OrderedTa
 			deps := dependencyMap[table]
 			if isReady(seenTables, deps, table, cycles) {
 				s, t := sqlmanager_shared.SplitTableKey(table)
-				orderedTables = append(orderedTables, &sqlmanager_shared.SchemaTable{Schema: s, Table: t})
+				orderedTables = append(
+					orderedTables,
+					&sqlmanager_shared.SchemaTable{Schema: s, Table: t},
+				)
 				seenTables[table] = struct{}{}
 				delete(tableMap, table)
 			}

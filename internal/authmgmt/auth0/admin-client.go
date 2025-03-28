@@ -14,7 +14,10 @@ type Auth0MgmtClient struct {
 }
 
 func New(domain, clientId, clientSecret string) (*Auth0MgmtClient, error) {
-	client, err := management.New(domain, management.WithClientCredentials(context.Background(), clientId, clientSecret))
+	client, err := management.New(
+		domain,
+		management.WithClientCredentials(context.Background(), clientId, clientSecret),
+	)
 	if err != nil {
 		return nil, err
 	}

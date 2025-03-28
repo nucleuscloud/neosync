@@ -22,39 +22,45 @@ func init() {
 		Param(bloblang.NewBoolParam("valid_luhn").Default(false).Description("A boolean indicating whether the generated value should pass the Luhn algorithm check.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_card_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		luhn, err := args.GetBool("valid_luhn")
-		if err != nil {
-			return nil, err
-		}
-
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			res, err := generateCardNumber(randomizer, luhn)
+	err := bloblang.RegisterFunctionV2(
+		"generate_card_number",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			luhn, err := args.GetBool("valid_luhn")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run generate_card_number: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				res, err := generateCardNumber(randomizer, luhn)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run generate_card_number: %w", err)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewGenerateCardNumberOptsFromConfig(config *mgmtv1alpha1.GenerateCardNumber) (*GenerateCardNumberOpts, error) {
+func NewGenerateCardNumberOptsFromConfig(
+	config *mgmtv1alpha1.GenerateCardNumber,
+) (*GenerateCardNumberOpts, error) {
 	if config == nil {
 		return NewGenerateCardNumberOpts(nil, nil)
 	}

@@ -22,7 +22,9 @@ func (m *DynamoDBMapper) MapRecord(item map[string]types.AttributeValue) (map[st
 	return nil, errors.ErrUnsupported
 }
 
-func (m *DynamoDBMapper) MapRecordWithKeyType(item map[string]types.AttributeValue) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
+func (m *DynamoDBMapper) MapRecordWithKeyType(
+	item map[string]types.AttributeValue,
+) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
 	standardJSON := make(map[string]any)
 	ktm := make(map[string]neosync_types.KeyType)
 	for k, v := range item {
@@ -36,7 +38,11 @@ func (m *DynamoDBMapper) MapRecordWithKeyType(item map[string]types.AttributeVal
 }
 
 // ParseAttributeValue converts a DynamoDB AttributeValue to a standard value
-func parseAttributeValue(key string, v types.AttributeValue, keyTypeMap map[string]neosync_types.KeyType) (any, error) {
+func parseAttributeValue(
+	key string,
+	v types.AttributeValue,
+	keyTypeMap map[string]neosync_types.KeyType,
+) (any, error) {
 	switch t := v.(type) {
 	case *types.AttributeValueMemberB:
 		return t.Value, nil

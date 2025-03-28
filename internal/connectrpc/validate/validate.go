@@ -96,7 +96,9 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 }
 
 // WrapStreamingClient implements connect.Interceptor.
-func (i *Interceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {
+func (i *Interceptor) WrapStreamingClient(
+	next connect.StreamingClientFunc,
+) connect.StreamingClientFunc {
 	return func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
 		return &streamingClientInterceptor{
 			StreamingClientConn: next(ctx, spec),
@@ -106,7 +108,9 @@ func (i *Interceptor) WrapStreamingClient(next connect.StreamingClientFunc) conn
 }
 
 // WrapStreamingHandler implements connect.Interceptor.
-func (i *Interceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
+func (i *Interceptor) WrapStreamingHandler(
+	next connect.StreamingHandlerFunc,
+) connect.StreamingHandlerFunc {
 	return func(ctx context.Context, conn connect.StreamingHandlerConn) error {
 		return next(ctx, &streamingHandlerInterceptor{
 			StreamingHandlerConn: conn,

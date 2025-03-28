@@ -8,8 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net"
-	"strconv"
 	"sync"
 	"time"
 
@@ -21,7 +19,6 @@ import (
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mssqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mysqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/postgrestunconnector"
-	"golang.org/x/crypto/ssh"
 )
 
 // interface used by SqlConnector to abstract away the opening and closing of a sqldb that includes tunnelingff
@@ -54,12 +51,20 @@ func WithConnectionTimeout(timeoutSeconds uint32) SqlConnectorOption {
 }
 
 type SqlConnector interface {
-	NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, logger *slog.Logger, opts ...SqlConnectorOption) (SqlDbContainer, error)
+	NewDbFromConnectionConfig(
+		connectionConfig *mgmtv1alpha1.ConnectionConfig,
+		logger *slog.Logger,
+		opts ...SqlConnectorOption,
+	) (SqlDbContainer, error)
 }
 
 type SqlOpenConnector struct{}
 
-func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig, logger *slog.Logger, opts ...SqlConnectorOption) (SqlDbContainer, error) {
+func (rc *SqlOpenConnector) NewDbFromConnectionConfig(
+	cc *mgmtv1alpha1.ConnectionConfig,
+	logger *slog.Logger,
+	opts ...SqlConnectorOption,
+) (SqlDbContainer, error) {
 	if cc == nil {
 		return nil, errors.New("connectionConfig was nil, expected *mgmtv1alpha1.ConnectionConfig")
 	}
@@ -118,7 +123,11 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 	}
 }
 
-func getPgConnectorFn(dsn string, config *mgmtv1alpha1.PostgresConnectionConfig, logger *slog.Logger) stdlibConnectorGetter {
+func getPgConnectorFn(
+	dsn string,
+	config *mgmtv1alpha1.PostgresConnectionConfig,
+	logger *slog.Logger,
+) stdlibConnectorGetter {
 	return func() (driver.Connector, func(), error) {
 		connectorOpts := []postgrestunconnector.Option{
 			postgrestunconnector.WithLogger(logger),
@@ -128,18 +137,29 @@ func getPgConnectorFn(dsn string, config *mgmtv1alpha1.PostgresConnectionConfig,
 		if config.GetClientTls() != nil {
 			tlsConfig, err := getTLSConfig(config.GetClientTls(), logger)
 			if err != nil {
-				return nil, nil, fmt.Errorf("unable to construct postgres client tls config: %w", err)
+				return nil, nil, fmt.Errorf(
+					"unable to construct postgres client tls config: %w",
+					err,
+				)
 			}
 			logger.Debug("constructed postgres client tls config")
 			connectorOpts = append(connectorOpts, postgrestunconnector.WithTLSConfig(tlsConfig))
 		}
 		if config.GetTunnel() != nil {
-			cfg, err := getTunnelConfig(config.GetTunnel())
+			cfg, err := tun.GetTunnelConfigFromSSHDto(config.GetTunnel())
 			if err != nil {
-				return nil, nil, fmt.Errorf("unable to construct postgres client tunnel config: %w", err)
+				return nil, nil, fmt.Errorf(
+					"unable to construct postgres client tunnel config: %w",
+					err,
+				)
 			}
 			logger.Debug("constructed postgres tunnel config")
-			dialer := tun.NewLazySSHDialer(cfg.Addr, cfg.ClientConfig, tun.DefaultSSHDialerConfig(), logger)
+			dialer := tun.NewLazySSHDialer(
+				cfg.Addr,
+				cfg.ClientConfig,
+				tun.DefaultSSHDialerConfig(),
+				logger,
+			)
 			connectorOpts = append(connectorOpts, postgrestunconnector.WithDialer(dialer))
 			closers = append(closers, func() {
 				logger.Debug("closing postgres ssh dialer")
@@ -165,7 +185,11 @@ func getPgConnectorFn(dsn string, config *mgmtv1alpha1.PostgresConnectionConfig,
 	}
 }
 
-func getMysqlConnectorFn(dsn string, config *mgmtv1alpha1.MysqlConnectionConfig, logger *slog.Logger) stdlibConnectorGetter {
+func getMysqlConnectorFn(
+	dsn string,
+	config *mgmtv1alpha1.MysqlConnectionConfig,
+	logger *slog.Logger,
+) stdlibConnectorGetter {
 	return func() (driver.Connector, func(), error) {
 		connectorOpts := []mysqltunconnector.Option{}
 		closers := []func(){}
@@ -179,12 +203,20 @@ func getMysqlConnectorFn(dsn string, config *mgmtv1alpha1.MysqlConnectionConfig,
 			connectorOpts = append(connectorOpts, mysqltunconnector.WithTLSConfig(tlsConfig))
 		}
 		if config.GetTunnel() != nil {
-			cfg, err := getTunnelConfig(config.GetTunnel())
+			cfg, err := tun.GetTunnelConfigFromSSHDto(config.GetTunnel())
 			if err != nil {
-				return nil, nil, fmt.Errorf("unable to construct mysql client tunnel config: %w", err)
+				return nil, nil, fmt.Errorf(
+					"unable to construct mysql client tunnel config: %w",
+					err,
+				)
 			}
 			logger.Debug("constructed mysql tunnel config")
-			dialer := tun.NewLazySSHDialer(cfg.Addr, cfg.ClientConfig, tun.DefaultSSHDialerConfig(), logger)
+			dialer := tun.NewLazySSHDialer(
+				cfg.Addr,
+				cfg.ClientConfig,
+				tun.DefaultSSHDialerConfig(),
+				logger,
+			)
 			connectorOpts = append(connectorOpts, mysqltunconnector.WithDialer(dialer))
 			closers = append(closers, func() {
 				logger.Debug("closing mysql ssh dialer")
@@ -210,7 +242,11 @@ func getMysqlConnectorFn(dsn string, config *mgmtv1alpha1.MysqlConnectionConfig,
 	}
 }
 
-func getMssqlConnectorFn(dsn string, config *mgmtv1alpha1.MssqlConnectionConfig, logger *slog.Logger) stdlibConnectorGetter {
+func getMssqlConnectorFn(
+	dsn string,
+	config *mgmtv1alpha1.MssqlConnectionConfig,
+	logger *slog.Logger,
+) stdlibConnectorGetter {
 	return func() (driver.Connector, func(), error) {
 		connectorOpts := []mssqltunconnector.Option{}
 		closers := []func(){}
@@ -224,12 +260,17 @@ func getMssqlConnectorFn(dsn string, config *mgmtv1alpha1.MssqlConnectionConfig,
 			connectorOpts = append(connectorOpts, mssqltunconnector.WithTLSConfig(tlsConfig))
 		}
 		if config.GetTunnel() != nil {
-			cfg, err := getTunnelConfig(config.GetTunnel())
+			cfg, err := tun.GetTunnelConfigFromSSHDto(config.GetTunnel())
 			if err != nil {
 				return nil, nil, fmt.Errorf("unable to construct mssql tunnel config: %w", err)
 			}
 			logger.Debug("constructed mssql tunnel config")
-			dialer := tun.NewLazySSHDialer(cfg.Addr, cfg.ClientConfig, tun.DefaultSSHDialerConfig(), logger)
+			dialer := tun.NewLazySSHDialer(
+				cfg.Addr,
+				cfg.ClientConfig,
+				tun.DefaultSSHDialerConfig(),
+				logger,
+			)
 			connectorOpts = append(connectorOpts, mssqltunconnector.WithDialer(dialer))
 			closers = append(closers, func() {
 				logger.Debug("closing mssql ssh dialer")
@@ -255,7 +296,9 @@ func getMssqlConnectorFn(dsn string, config *mgmtv1alpha1.MssqlConnectionConfig,
 	}
 }
 
-func getConnectionOptsFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig) (*DbConnectionOptions, error) {
+func getConnectionOptsFromConnectionConfig(
+	cc *mgmtv1alpha1.ConnectionConfig,
+) (*DbConnectionOptions, error) {
 	switch config := cc.GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		return sqlConnOptsToDbConnOpts(config.MysqlConfig.GetConnectionOptions())
@@ -302,52 +345,6 @@ func convertInt32PtrToIntPtr(input *int32) *int {
 	}
 	value := int(*input)
 	return &value
-}
-
-type tunnelConfig struct {
-	Addr         string
-	ClientConfig *ssh.ClientConfig
-}
-
-func getTunnelConfig(tunnel *mgmtv1alpha1.SSHTunnel) (*tunnelConfig, error) {
-	var hostcallback ssh.HostKeyCallback
-	if tunnel.GetKnownHostPublicKey() != "" {
-		publickey, err := tun.ParseSshKey(tunnel.GetKnownHostPublicKey())
-		if err != nil {
-			return nil, fmt.Errorf("unable to parse ssh known host public key: %w", err)
-		}
-		hostcallback = ssh.FixedHostKey(publickey)
-	} else {
-		hostcallback = ssh.InsecureIgnoreHostKey() //nolint:gosec // the user has chosen to not provide a known host public key
-	}
-	authmethod, err := tun.GetTunnelAuthMethodFromSshConfig(tunnel.GetAuthentication())
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse ssh auth method: %w", err)
-	}
-
-	authmethods := []ssh.AuthMethod{}
-	if authmethod != nil {
-		authmethods = append(authmethods, authmethod)
-	}
-
-	return &tunnelConfig{
-		Addr: getSshAddr(tunnel),
-		ClientConfig: &ssh.ClientConfig{
-			User:            tunnel.GetUser(),
-			Auth:            authmethods,
-			HostKeyCallback: hostcallback,
-			Timeout:         15 * time.Second, // todo: make configurable
-		},
-	}, nil
-}
-
-func getSshAddr(tunnel *mgmtv1alpha1.SSHTunnel) string {
-	host := tunnel.GetHost()
-	port := tunnel.GetPort()
-	if port > 0 {
-		return net.JoinHostPort(host, strconv.FormatInt(int64(port), 10))
-	}
-	return host
 }
 
 type stdlibConnectorGetter func() (driver.Connector, func(), error)
@@ -461,7 +458,9 @@ func getTLSConfig(cfg *mgmtv1alpha1.ClientTlsConfig, logger *slog.Logger) (*tls.
 	clientCert := cfg.GetClientCert()
 	clientKey := cfg.GetClientKey()
 	if clientCert != "" && clientKey != "" {
-		logger.Debug("client cert and key provided, adding to certificates for client tls connection")
+		logger.Debug(
+			"client cert and key provided, adding to certificates for client tls connection",
+		)
 		cert, err := tls.X509KeyPair([]byte(cfg.GetClientCert()), []byte(cfg.GetClientKey()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to load client certificate and key: %w", err)

@@ -24,19 +24,20 @@ func NewCmd() *cobra.Command {
 			}
 			versionInfo := version.Get()
 
-			if output == "json" {
+			switch output {
+			case "json":
 				marshaled, err := json.MarshalIndent(&versionInfo, "", "  ")
 				if err != nil {
 					return err
 				}
 				fmt.Println(string(marshaled)) //nolint:forbidigo
-			} else if output == "yaml" {
+			case "yaml":
 				marshaled, err := yaml.Marshal(&versionInfo)
 				if err != nil {
 					return err
 				}
 				fmt.Println(string(marshaled)) //nolint:forbidigo
-			} else {
+			default:
 				fmt.Println("Git Version:", versionInfo.GitVersion) //nolint:forbidigo
 				fmt.Println("Git Commit:", versionInfo.GitCommit)   //nolint:forbidigo
 				fmt.Println("Build Date:", versionInfo.BuildDate)   //nolint:forbidigo

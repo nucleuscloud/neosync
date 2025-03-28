@@ -79,7 +79,39 @@ UPDATE employees
 SET profile = '{"hobbies":["hiking"],"location":"On-site"}'
 WHERE employee_id = 101;
 
--- Example: set a more complex JSON structure for a different employee
 UPDATE employees
 SET profile = '{"languages":["English","German"],"certifications":["CPA","MBA"]}'
 WHERE employee_id = 108;
+
+ALTER TABLE employees 
+    DROP CONSTRAINT employees_temp_col_check;
+
+ALTER TABLE employees
+    DROP CONSTRAINT employees_salary_check;
+
+ALTER TABLE employees
+    DROP COLUMN temp_col;
+
+ALTER TABLE countries
+    DROP CONSTRAINT countries_country_name_uniq;
+
+ALTER TABLE countries
+    DROP COLUMN temp_col;
+
+
+CREATE OR REPLACE FUNCTION dummy_trigger_function()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF TG_OP = 'UPDATE' THEN
+    NEW.data := NEW.data || ' - updated again';
+  END IF;
+
+  -- Return the new row
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS other_trigger ON dummy_table;
+DROP FUNCTION IF EXISTS other_trigger_function();

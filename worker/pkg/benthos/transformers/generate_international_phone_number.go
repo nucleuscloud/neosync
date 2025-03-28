@@ -20,44 +20,53 @@ func init() {
 		Param(bloblang.NewInt64Param("max").Default(15).Description("Specifies the maximum value for the generated phone number.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_e164_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		min, err := args.GetInt64("min")
-		if err != nil {
-			return nil, err
-		}
-
-		max, err := args.GetInt64("max")
-		if err != nil {
-			return nil, err
-		}
-
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			res, err := generateInternationalPhoneNumber(randomizer, min, max)
+	err := bloblang.RegisterFunctionV2(
+		"generate_e164_phone_number",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			min, err := args.GetInt64("min")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run generate_international_phone_number: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+
+			max, err := args.GetInt64("max")
+			if err != nil {
+				return nil, err
+			}
+
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				res, err := generateInternationalPhoneNumber(randomizer, min, max)
+				if err != nil {
+					return nil, fmt.Errorf(
+						"unable to run generate_international_phone_number: %w",
+						err,
+					)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewGenerateInternationalPhoneNumberOptsFromConfig(config *mgmtv1alpha1.GenerateE164PhoneNumber) (*GenerateInternationalPhoneNumberOpts, error) {
+func NewGenerateInternationalPhoneNumberOptsFromConfig(
+	config *mgmtv1alpha1.GenerateE164PhoneNumber,
+) (*GenerateInternationalPhoneNumberOpts, error) {
 	if config == nil {
 		return NewGenerateInternationalPhoneNumberOpts(
 			nil,
@@ -83,7 +92,10 @@ func (t *GenerateInternationalPhoneNumber) Generate(opts any) (any, error) {
 
 /*  Generates a random phone number in e164 format in the length interval [min, max] with the min length == 9 and the max length == 15.
  */
-func generateInternationalPhoneNumber(randomizer rng.Rand, minValue, maxValue int64) (string, error) {
+func generateInternationalPhoneNumber(
+	randomizer rng.Rand,
+	minValue, maxValue int64,
+) (string, error) {
 	if minValue < 9 || maxValue > 15 {
 		return "", errors.New("the length has between 9 and 15 characters long")
 	}

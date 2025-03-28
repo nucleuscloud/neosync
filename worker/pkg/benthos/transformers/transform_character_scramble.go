@@ -28,49 +28,55 @@ func init() {
 		Param(bloblang.NewStringParam("user_provided_regex").Optional().Description("A custom regular expression. This regex is used to manipulate input data during the transformation process.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("transform_character_scramble", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		value, err := args.GetOptionalString("value")
-		if err != nil {
-			return nil, err
-		}
-
-		regexPtr, err := args.GetOptionalString("user_provided_regex")
-		if err != nil {
-			return nil, err
-		}
-
-		var regex string
-		if regexPtr != nil {
-			regex = *regexPtr
-		}
-
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			res, err := transformCharacterScramble(randomizer, value, regex)
+	err := bloblang.RegisterFunctionV2(
+		"transform_character_scramble",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			value, err := args.GetOptionalString("value")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run transform_character_scramble: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+
+			regexPtr, err := args.GetOptionalString("user_provided_regex")
+			if err != nil {
+				return nil, err
+			}
+
+			var regex string
+			if regexPtr != nil {
+				regex = *regexPtr
+			}
+
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				res, err := transformCharacterScramble(randomizer, value, regex)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run transform_character_scramble: %w", err)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewTransformCharacterScrambleOptsFromConfig(config *mgmtv1alpha1.TransformCharacterScramble) (*TransformCharacterScrambleOpts, error) {
+func NewTransformCharacterScrambleOptsFromConfig(
+	config *mgmtv1alpha1.TransformCharacterScramble,
+) (*TransformCharacterScrambleOpts, error) {
 	if config == nil {
 		return NewTransformCharacterScrambleOpts(nil, nil)
 	}
@@ -137,7 +143,10 @@ func transformCharacterScramble(randomizer rng.Rand, value *string, regex string
 		for _, match := range matches {
 			start, end := match[0], match[1]
 			// run the scrambler for the substring
-			matchTransformed := strings.Map(randomizedScrambleChar(randomizer), transformedString[start:end])
+			matchTransformed := strings.Map(
+				randomizedScrambleChar(randomizer),
+				transformedString[start:end],
+			)
 			// replace the original substring with its transformed version
 			transformedString = transformedString[:start] + matchTransformed + transformedString[end:]
 		}

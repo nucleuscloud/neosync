@@ -18,11 +18,17 @@ func NewGcpCloudStorageSyncBuilder() bb_internal.BenthosBuilder {
 	return &gcpCloudStorageSyncBuilder{}
 }
 
-func (b *gcpCloudStorageSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
+func (b *gcpCloudStorageSyncBuilder) BuildSourceConfigs(
+	ctx context.Context,
+	params *bb_internal.SourceParams,
+) ([]*bb_internal.BenthosSourceConfig, error) {
 	return nil, errors.ErrUnsupported
 }
 
-func (b *gcpCloudStorageSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
+func (b *gcpCloudStorageSyncBuilder) BuildDestinationConfig(
+	ctx context.Context,
+	params *bb_internal.DestinationParams,
+) (*bb_internal.BenthosDestinationConfig, error) {
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	benthosConfig := params.SourceConfig

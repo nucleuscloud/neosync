@@ -61,10 +61,13 @@ func (a *Activity) CheckAccountStatus(
 
 	logger.Debug("checking account status")
 
-	resp, err := a.userclient.IsAccountStatusValid(ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
-		AccountId:            req.AccountId,
-		RequestedRecordCount: req.RequestedRecordCount,
-	}))
+	resp, err := a.userclient.IsAccountStatusValid(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+			AccountId:            req.AccountId,
+			RequestedRecordCount: req.RequestedRecordCount,
+		}),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve account status: %w", err)
 	}
@@ -74,7 +77,11 @@ func (a *Activity) CheckAccountStatus(
 		"reason", withReasonOrDefault(resp.Msg.GetReason()),
 	)
 
-	return &CheckAccountStatusResponse{IsValid: resp.Msg.GetIsValid(), Reason: resp.Msg.Reason, ShouldPoll: resp.Msg.GetShouldPoll()}, nil
+	return &CheckAccountStatusResponse{
+		IsValid:    resp.Msg.GetIsValid(),
+		Reason:     resp.Msg.Reason,
+		ShouldPoll: resp.Msg.GetShouldPoll(),
+	}, nil
 }
 
 const defaultReason = "no reason provided"

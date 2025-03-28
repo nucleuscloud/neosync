@@ -33,13 +33,17 @@ func getSpec() *service.ConfigSpec {
 }
 
 func RegisterOpenaiGenerate(env *service.Environment) error {
-	return env.RegisterBatchInput("openai_generate", getSpec(), func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchInput, error) {
-		rdr, err := newGenerateReader(conf, mgr)
-		if err != nil {
-			return nil, err
-		}
-		return service.AutoRetryNacksBatched(rdr), nil
-	})
+	return env.RegisterBatchInput(
+		"openai_generate",
+		getSpec(),
+		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchInput, error) {
+			rdr, err := newGenerateReader(conf, mgr)
+			if err != nil {
+				return nil, err
+			}
+			return service.AutoRetryNacksBatched(rdr), nil
+		},
+	)
 }
 
 type generateReader struct {
@@ -63,7 +67,10 @@ type generateReader struct {
 	log *service.Logger
 }
 
-func newGenerateReader(conf *service.ParsedConfig, mgr *service.Resources) (*generateReader, error) {
+func newGenerateReader(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+) (*generateReader, error) {
 	apiUrl, err := conf.FieldString("api_url")
 	if err != nil {
 		return nil, err
@@ -90,7 +97,11 @@ func newGenerateReader(conf *service.ParsedConfig, mgr *service.Resources) (*gen
 		return nil, err
 	}
 	if len(columns) != len(dataTypes) {
-		return nil, fmt.Errorf("length of columns and data types was not the same: %d v %d", len(columns), len(dataTypes))
+		return nil, fmt.Errorf(
+			"length of columns and data types was not the same: %d v %d",
+			len(columns),
+			len(dataTypes),
+		)
 	}
 
 	count, err := conf.FieldInt("count")
@@ -165,7 +176,11 @@ func (b *generateReader) Connect(ctx context.Context) error {
 	if b.client != nil {
 		return nil
 	}
-	client, err := azopenai.NewClientForOpenAI(b.apiUrl, azcore.NewKeyCredential(b.apikey), &azopenai.ClientOptions{})
+	client, err := azopenai.NewClientForOpenAI(
+		b.apiUrl,
+		azcore.NewKeyCredential(b.apikey),
+		&azopenai.ClientOptions{},
+	)
 	if err != nil {
 		return err
 	}
@@ -173,7 +188,9 @@ func (b *generateReader) Connect(ctx context.Context) error {
 	return nil
 }
 
-func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, service.AckFunc, error) {
+func (b *generateReader) ReadBatch(
+	ctx context.Context,
+) (service.MessageBatch, service.AckFunc, error) {
 	b.promptMut.Lock()
 	defer b.promptMut.Unlock()
 	if b.client == nil {
@@ -209,18 +226,29 @@ func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 		b.log.Warn("openai_generate: hit token limit reached, trimmed conversation")
 		b.conversation = trimNonSystemMessages(b.conversation, 1)
 	case azopenai.CompletionsFinishReasonContentFiltered:
-		return nil, nil, errors.New("openai: generation stopped due to openai content being filtered due to moderation policies")
+		return nil, nil, errors.New(
+			"openai: generation stopped due to openai content being filtered due to moderation policies",
+		)
 	default:
 	}
 	b.conversation = append(
 		b.conversation,
-		&azopenai.ChatRequestAssistantMessage{Content: azopenai.NewChatRequestAssistantMessageContent(*choice.Message.Content)},
-		&azopenai.ChatRequestUserMessage{Content: azopenai.NewChatRequestUserMessageContent(fmt.Sprintf("%d more records", batchSize))},
+		&azopenai.ChatRequestAssistantMessage{
+			Content: azopenai.NewChatRequestAssistantMessageContent(*choice.Message.Content),
+		},
+		&azopenai.ChatRequestUserMessage{
+			Content: azopenai.NewChatRequestUserMessageContent(
+				fmt.Sprintf("%d more records", batchSize),
+			),
+		},
 	)
 
 	records, err := getCsvRecordsFromInput(*choice.Message.Content, b.log)
 	if err != nil {
-		return nil, nil, fmt.Errorf("openai_generate: unable to fully process records retrieved from openai: %w", err)
+		return nil, nil, fmt.Errorf(
+			"openai_generate: unable to fully process records retrieved from openai: %w",
+			err,
+		)
 	}
 	if len(records) == 0 {
 		b.log.Warn("openai_generate: no records were returned from message")
@@ -235,7 +263,9 @@ func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 	// skipping the first record as it returns the headers
 	for _, record := range records[1:] {
 		if b.count == 0 {
-			b.log.Infof("stopping openai_generate as we've reached a count of 0 even though we had more records to process")
+			b.log.Infof(
+				"stopping openai_generate as we've reached a count of 0 even though we had more records to process",
+			)
 			break
 		}
 		structuredRecord, err := convertCsvToStructuredRecord(record, b.columns, b.dataTypes)
@@ -249,7 +279,9 @@ func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 		b.count -= 1
 	}
 	if len(messageBatch) == 0 {
-		return nil, nil, errors.New("openai_generate: received response from openai but was unable to successfully process records to a structured format. see logs for more details.")
+		return nil, nil, errors.New(
+			"openai_generate: received response from openai but was unable to successfully process records to a structured format. see logs for more details",
+		)
 	}
 	return messageBatch, emptyAck, nil
 }
@@ -274,7 +306,9 @@ func ptr[T any](val T) *T {
 
 func convertCsvToStructuredRecord(record, headers, types []string) (map[string]any, error) {
 	if len(record) != len(headers) && len(headers) != len(types) && len(record) != len(types) {
-		return nil, fmt.Errorf("error converting csv record to structured record, record headers and types not equivalent in length")
+		return nil, fmt.Errorf(
+			"error converting csv record to structured record, record headers and types not equivalent in length",
+		)
 	}
 	output := map[string]any{}
 	for idx, value := range record {
@@ -323,7 +357,9 @@ func toStructuredRecordValueType(value, dataType string) (any, error) {
 		// return time.Parse("15:04:05Z07:00", value)
 		return strings.TrimSpace(value), nil
 	case "interval":
-		return strings.TrimSpace(value), nil // Parsing intervals can be complex; keeping it as string
+		return strings.TrimSpace(
+			value,
+		), nil // Parsing intervals can be complex; keeping it as string
 	case "boolean":
 		return strconv.ParseBool(strings.TrimSpace(value))
 	case "uuid":
@@ -368,7 +404,9 @@ func getCsvRecordsFromInput(input string, logger *service.Logger) ([][]string, e
 		row, err := reader.Read()
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				return nil, errors.New("openai_generate: unable to process generated csv record response from openai")
+				return nil, errors.New(
+					"openai_generate: unable to process generated csv record response from openai",
+				)
 			}
 			return nil, fmt.Errorf("unable to process CSV row to retrieve headers: %w", err)
 		}
@@ -416,7 +454,10 @@ func getCsvRecordsFromInput(input string, logger *service.Logger) ([][]string, e
 	}
 }
 
-func trimNonSystemMessages(messages []azopenai.ChatRequestMessageClassification, count int) []azopenai.ChatRequestMessageClassification {
+func trimNonSystemMessages(
+	messages []azopenai.ChatRequestMessageClassification,
+	count int,
+) []azopenai.ChatRequestMessageClassification {
 	if len(messages) <= count {
 		return messages[:0] // Return an empty slice
 	}

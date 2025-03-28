@@ -27,13 +27,26 @@ type Manager struct {
 	ee_sqlmanager_mssql.Manager
 }
 
-func NewManager(querier mssql_queries.Querier, db mysql_queries.DBTX, closer func(), logger *slog.Logger) *Manager {
-	return &Manager{querier: querier, db: db, close: closer, logger: logger, Manager: *ee_sqlmanager_mssql.NewManager(querier, db, closer, logger)}
+func NewManager(
+	querier mssql_queries.Querier,
+	db mysql_queries.DBTX,
+	closer func(),
+	logger *slog.Logger,
+) *Manager {
+	return &Manager{
+		querier: querier,
+		db:      db,
+		close:   closer,
+		logger:  logger,
+		Manager: *ee_sqlmanager_mssql.NewManager(querier, db, closer, logger),
+	}
 }
 
 const defaultIdentity string = "IDENTITY(1,1)"
 
-func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
+func (m *Manager) GetDatabaseSchema(
+	ctx context.Context,
+) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.querier.GetDatabaseSchema(ctx, m.db)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
@@ -107,7 +120,10 @@ func isColumnUpdateAllowed(isIdentity, isComputed bool) bool {
 	return true
 }
 
-func (m *Manager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
+func (m *Manager) GetDatabaseTableSchemasBySchemasAndTables(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	if len(tables) == 0 {
 		return []*sqlmanager_shared.DatabaseSchemaRow{}, nil
 	}
@@ -187,19 +203,32 @@ func (m *Manager) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 
 	return output, nil
 }
-func (m *Manager) GetColumnsByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableColumn, error) {
+
+func (m *Manager) GetColumnsByTables(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) ([]*sqlmanager_shared.TableColumn, error) {
 	return nil, errors.ErrUnsupported
 }
 
-func (m *Manager) GetTableConstraintsByTables(ctx context.Context, schema string, tables []string) (map[string]*sqlmanager_shared.AllTableConstraints, error) {
+func (m *Manager) GetTableConstraintsByTables(
+	ctx context.Context,
+	schema string,
+	tables []string,
+) (map[string]*sqlmanager_shared.AllTableConstraints, error) {
 	return nil, errors.ErrUnsupported
 }
 
-func (m *Manager) GetFunctionsBySchemas(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
+func (m *Manager) GetFunctionsBySchemas(
+	ctx context.Context,
+	schemas []string,
+) ([]*sqlmanager_shared.DataType, error) {
 	return nil, errors.ErrUnsupported
 }
 
-func (m *Manager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
+func (m *Manager) GetAllSchemas(
+	ctx context.Context,
+) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
 	rows, err := m.querier.GetAllSchemas(ctx, m.db)
 	if err != nil {
 		return nil, err
@@ -228,7 +257,9 @@ func (m *Manager) GetAllTables(ctx context.Context) ([]*sqlmanager_shared.Databa
 	return result, nil
 }
 
-func (m *Manager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
+func (m *Manager) GetSchemaColumnMap(
+	ctx context.Context,
+) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.GetDatabaseSchema(ctx)
 	if err != nil {
 		return nil, err
@@ -237,7 +268,10 @@ func (m *Manager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string
 	return result, nil
 }
 
-func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*sqlmanager_shared.TableConstraints, error) {
+func (m *Manager) GetTableConstraintsBySchema(
+	ctx context.Context,
+	schemas []string,
+) (*sqlmanager_shared.TableConstraints, error) {
 	if len(schemas) == 0 {
 		return &sqlmanager_shared.TableConstraints{}, nil
 	}
@@ -289,31 +323,47 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 					notNullable = append(notNullable, nullability == "NOT NULL")
 				}
 				if len(constraintCols) != len(fkCols) {
-					return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(constraintCols), len(fkCols))
+					return nil, fmt.Errorf(
+						"length of columns was not equal to length of foreign key cols: %d %d",
+						len(constraintCols),
+						len(fkCols),
+					)
 				}
 				if len(constraintCols) != len(notNullable) {
-					return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(constraintCols), len(notNullable))
+					return nil, fmt.Errorf(
+						"length of columns was not equal to length of not nullable cols: %d %d",
+						len(constraintCols),
+						len(notNullable),
+					)
 				}
 
 				if isInvalidCircularSelfReferencingFk(row, constraintCols, fkCols) {
 					continue
 				}
 
-				foreignKeyMap[tableName] = append(foreignKeyMap[tableName], &sqlmanager_shared.ForeignConstraint{
-					Columns:     constraintCols,
-					NotNullable: notNullable,
-					ForeignKey: &sqlmanager_shared.ForeignKey{
-						Table:   sqlmanager_shared.BuildTable(row.ReferencedSchema.String, row.ReferencedTable.String),
-						Columns: fkCols,
+				foreignKeyMap[tableName] = append(
+					foreignKeyMap[tableName],
+					&sqlmanager_shared.ForeignConstraint{
+						Columns:     constraintCols,
+						NotNullable: notNullable,
+						ForeignKey: &sqlmanager_shared.ForeignKey{
+							Table: sqlmanager_shared.BuildTable(
+								row.ReferencedSchema.String,
+								row.ReferencedTable.String,
+							),
+							Columns: fkCols,
+						},
 					},
-				})
+				)
 			}
 
 		case "PRIMARY KEY":
 			if _, exists := primaryKeyMap[tableName]; !exists {
 				primaryKeyMap[tableName] = []string{}
 			}
-			primaryKeyMap[tableName] = append(primaryKeyMap[tableName], sqlmanager_shared.DedupeSlice(constraintCols)...)
+			primaryKeyMap[tableName] = append(
+				primaryKeyMap[tableName],
+				sqlmanager_shared.DedupeSlice(constraintCols)...)
 		case "UNIQUE":
 			columns := sqlmanager_shared.DedupeSlice(constraintCols)
 			uniqueConstraintsMap[tableName] = append(uniqueConstraintsMap[tableName], columns)
@@ -322,7 +372,10 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 
 	for _, row := range uniqueIndexes {
 		tableName := sqlmanager_shared.BuildTable(row.TableSchema, row.TableName)
-		uniqueIndexesMap[tableName] = append(uniqueIndexesMap[tableName], splitAndStrip(row.IndexColumns, ", "))
+		uniqueIndexesMap[tableName] = append(
+			uniqueIndexesMap[tableName],
+			splitAndStrip(row.IndexColumns, ", "),
+		)
 	}
 
 	return &sqlmanager_shared.TableConstraints{
@@ -336,7 +389,10 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 // Checks if a foreign key constraint is self-referencing (points to the same table)
 // and all constraint columns match their referenced columns, indicating a circular reference.
 // example  public.users.id has a foreign key to public.users.id
-func isInvalidCircularSelfReferencingFk(row *mssql_queries.GetTableConstraintsBySchemasRow, constraintColumns, referencedColumns []string) bool {
+func isInvalidCircularSelfReferencingFk(
+	row *mssql_queries.GetTableConstraintsBySchemasRow,
+	constraintColumns, referencedColumns []string,
+) bool {
 	// Check if the foreign key references the same table
 	isSameTable := row.SchemaName == row.ReferencedSchema.String &&
 		row.TableName == row.ReferencedTable.String
@@ -382,7 +438,12 @@ func splitAndStrip(input, delim string) []string { //nolint:unparam
 	return output
 }
 
-func (m *Manager) BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error {
+func (m *Manager) BatchExec(
+	ctx context.Context,
+	batchSize int,
+	statements []string,
+	opts *sqlmanager_shared.BatchExecOpts,
+) error {
 	// mssql does not support batching statements
 	total := len(statements)
 	for idx, stmt := range statements {
@@ -429,7 +490,9 @@ func (m *Manager) Close() {
 	}
 }
 
-func GetMssqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool) {
+func GetMssqlColumnOverrideAndResetProperties(
+	columnInfo *sqlmanager_shared.DatabaseSchemaRow,
+) (needsOverride, needsReset bool) {
 	needsOverride = false
 	needsReset = false
 
@@ -441,7 +504,8 @@ func GetMssqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.Data
 	}
 
 	// check if column default is sequence
-	if columnInfo.ColumnDefault != "" && gotypeutil.CaseInsensitiveContains(columnInfo.ColumnDefault, "NEXT VALUE") {
+	if columnInfo.ColumnDefault != "" &&
+		gotypeutil.CaseInsensitiveContains(columnInfo.ColumnDefault, "NEXT VALUE") {
 		needsReset = true
 		return
 	}

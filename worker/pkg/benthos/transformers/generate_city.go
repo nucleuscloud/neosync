@@ -19,37 +19,44 @@ func init() {
 		Param(bloblang.NewInt64Param("max_length").Default(100).Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_city", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		maxLength, err := args.GetInt64("max_length")
-		if err != nil {
-			return nil, err
-		}
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			res, err := generateRandomCity(randomizer, maxLength)
+	err := bloblang.RegisterFunctionV2(
+		"generate_city",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			maxLength, err := args.GetInt64("max_length")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run generate_city: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				res, err := generateRandomCity(randomizer, maxLength)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run generate_city: %w", err)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewGenerateCityOptsFromConfig(config *mgmtv1alpha1.GenerateCity, maxLength *int64) (*GenerateCityOpts, error) {
+func NewGenerateCityOptsFromConfig(
+	config *mgmtv1alpha1.GenerateCity,
+	maxLength *int64,
+) (*GenerateCityOpts, error) {
 	if config == nil {
 		return NewGenerateCityOpts(
 			nil,

@@ -21,7 +21,12 @@ func NewLogger(l *slog.Logger, omitArgs bool) *Logger {
 	return &Logger{l: l, omitArgs: omitArgs}
 }
 
-func (l *Logger) Log(ctx context.Context, level tracelog.LogLevel, msg string, data map[string]any) {
+func (l *Logger) Log(
+	ctx context.Context,
+	level tracelog.LogLevel,
+	msg string,
+	data map[string]any,
+) {
 	if level == tracelog.LogLevelNone {
 		return
 	}

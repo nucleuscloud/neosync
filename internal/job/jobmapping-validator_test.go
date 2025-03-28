@@ -429,7 +429,7 @@ func TestValidateCircularDependencies(t *testing.T) {
 		require.Len(t, errs, 1)
 		require.Len(t, errs, 1)
 		assert.Equal(t, mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE, errs[0].Code)
-		assert.Contains(t, errs[0].Message, "Unsupported circular dependency detected. At least one foreign key in circular dependency must be nullable")
+		assert.Contains(t, errs[0].Message, "unsupported circular dependency detected. at least one foreign key in circular dependency must be nullable")
 	})
 
 	t.Run("should not return error when cycle has nullable foreign key", func(t *testing.T) {
@@ -591,7 +591,7 @@ func TestValidateCircularDependencies(t *testing.T) {
 		require.NotEmpty(t, errs)
 		require.Len(t, errs, 1)
 		assert.Equal(t, mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE, errs[0].Code)
-		assert.Contains(t, errs[0].Message, "Unsupported circular dependency detected. At least one foreign key in circular dependency must be nullable")
+		assert.Contains(t, errs[0].Message, "unsupported circular dependency detected. at least one foreign key in circular dependency must be nullable")
 	})
 
 	t.Run("should skip tables not in mappings", func(t *testing.T) {

@@ -21,49 +21,56 @@ func init() {
 		Param(bloblang.NewInt64Param("max_length").Default(100).Description("Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("transform_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		value, err := args.GetOptionalString("value")
-		if err != nil {
-			return nil, err
-		}
-
-		preserveLength, err := args.GetBool("preserve_length")
-		if err != nil {
-			return nil, err
-		}
-
-		maxLength, err := args.GetInt64("max_length")
-		if err != nil {
-			return nil, err
-		}
-
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			res, err := transformPhoneNumber(randomizer, value, preserveLength, maxLength)
+	err := bloblang.RegisterFunctionV2(
+		"transform_phone_number",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			value, err := args.GetOptionalString("value")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run transform_phone_number: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+
+			preserveLength, err := args.GetBool("preserve_length")
+			if err != nil {
+				return nil, err
+			}
+
+			maxLength, err := args.GetInt64("max_length")
+			if err != nil {
+				return nil, err
+			}
+
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				res, err := transformPhoneNumber(randomizer, value, preserveLength, maxLength)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run transform_phone_number: %w", err)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewTransformStringPhoneNumberOptsFromConfig(config *mgmtv1alpha1.TransformPhoneNumber, maxLength *int64) (*TransformStringPhoneNumberOpts, error) {
+func NewTransformStringPhoneNumberOptsFromConfig(
+	config *mgmtv1alpha1.TransformPhoneNumber,
+	maxLength *int64,
+) (*TransformStringPhoneNumberOpts, error) {
 	if config == nil {
 		return NewTransformStringPhoneNumberOpts(nil, nil, nil)
 	}
@@ -84,11 +91,21 @@ func (t *TransformStringPhoneNumber) Transform(value, opts any) (any, error) {
 		return nil, errors.New("value is not a string")
 	}
 
-	return transformPhoneNumber(parsedOpts.randomizer, &valueStr, parsedOpts.preserveLength, parsedOpts.maxLength)
+	return transformPhoneNumber(
+		parsedOpts.randomizer,
+		&valueStr,
+		parsedOpts.preserveLength,
+		parsedOpts.maxLength,
+	)
 }
 
 // Generates a random phone number and returns it as a string
-func transformPhoneNumber(randomizer rng.Rand, value *string, preserveLength bool, maxLength int64) (*string, error) {
+func transformPhoneNumber(
+	randomizer rng.Rand,
+	value *string,
+	preserveLength bool,
+	maxLength int64,
+) (*string, error) {
 	if value == nil || *value == "" {
 		return value, nil
 	}
@@ -106,7 +123,12 @@ func transformPhoneNumber(randomizer rng.Rand, value *string, preserveLength boo
 	}
 	val, err := generateStringPhoneNumber(randomizer, minL, maxL)
 	if err != nil {
-		return nil, fmt.Errorf("unable to transform phone number with length: [%d:%d]: %w", minL, maxL, err)
+		return nil, fmt.Errorf(
+			"unable to transform phone number with length: [%d:%d]: %w",
+			minL,
+			maxL,
+			err,
+		)
 	}
 	return &val, nil
 }
