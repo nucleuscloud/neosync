@@ -236,6 +236,7 @@ func (p *PostgresManager) GetTableConstraintsByTables(ctx context.Context, schem
 		result[key].ForeignKeyConstraints = append(result[key].ForeignKeyConstraints, constraint)
 	}
 	return result, nil
+<<<<<<< HEAD
 }
 
 func (p *PostgresManager) GetDataTypesByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.AllTableDataTypes, error) {
@@ -355,6 +356,8 @@ func (p *PostgresManager) GetDataTypesByTables(ctx context.Context, tables []*sq
 		Composites: compositeTypes,
 		Domains:    domainTypes,
 	}, nil
+=======
+>>>>>>> main
 }
 
 func (p *PostgresManager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
@@ -1242,6 +1245,7 @@ func BuildDropFunctionStatement(schema, functionName string) string {
 }
 
 func BuildUpdateFunctionStatement(schema, functionName, createStatement string) string {
+<<<<<<< HEAD
 	if strings.Contains(strings.ToUpper(createStatement), "CREATE FUNCTION") && !strings.Contains(strings.ToUpper(createStatement), "CREATE OR REPLACE FUNCTION") {
 		createStatement = strings.Replace(strings.ToUpper(createStatement), "CREATE FUNCTION", "CREATE OR REPLACE FUNCTION", 1)
 	}
@@ -1313,6 +1317,9 @@ func BuildUpdateDomainNotNullStatement(schema, domainName string, isNullable boo
 		nullString = "NULL"
 	}
 	return fmt.Sprintf("ALTER DOMAIN %q.%q SET %s;", schema, domainName, nullString)
+=======
+	return fmt.Sprintf("CREATE OR REPLACE FUNCTION %q.%q %s;", schema, functionName, addSuffixIfNotExist(createStatement, ";"))
+>>>>>>> main
 }
 
 type buildTableColRequest struct {

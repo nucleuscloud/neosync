@@ -151,7 +151,16 @@ func (d *PostgresDriver) buildInsertQuery(rows []map[string]any) (sql string, ar
 		if len(rows) == 0 {
 			return "", []any{}, errors.New("no rows to insert")
 		}
-		if len(d.options.conflictConfig.onConflictDoUpdate.conflictColumns) == 0 {
+		updateColumns := make([]string, 0, len(rows[0]))
+		for col := range rows[0] {
+			if _, ok := d.columnUpdatesDisallowed[col]; ok {
+				continue
+			}
+			if !slices.Contains(d.options.conflictConfig.onConflictDoUpdate.conflictColumns, col) {
+				updateColumns = append(updateColumns, col)
+			}
+		}
+		if len(d.options.conflictConfig.onConflictDoUpdate.conflictColumns) == 0 || len(updateColumns) == 0 {
 			d.logger.Warn("no conflict columns specified for on conflict do update, defaulting to on conflict do nothing")
 			onConflictDoNothing := true
 			insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &onConflictDoNothing)
@@ -161,14 +170,7 @@ func (d *PostgresDriver) buildInsertQuery(rows []map[string]any) (sql string, ar
 			return insertQuery, args, nil
 		}
 
-		columns := make([]string, 0, len(rows[0]))
-		for col := range rows[0] {
-			if _, ok := d.columnUpdatesDisallowed[col]; ok {
-				continue
-			}
-			columns = append(columns, col)
-		}
-		return d.buildInsertOnConflictDoUpdateQuery(goquRows, d.options.conflictConfig.onConflictDoUpdate.conflictColumns, columns)
+		return d.buildInsertOnConflictDoUpdateQuery(goquRows, d.options.conflictConfig.onConflictDoUpdate.conflictColumns, updateColumns)
 	}
 
 	onConflictDoNothing := d.options.conflictConfig.onConflictDoNothing != nil
@@ -190,9 +192,7 @@ func (d *PostgresDriver) buildInsertOnConflictDoUpdateQuery(
 
 	updateRecord := goqu.Record{}
 	for _, col := range updateColumns {
-		if !slices.Contains(conflictColumns, col) {
-			updateRecord[col] = goqu.L(fmt.Sprintf("EXCLUDED.%q", col))
-		}
+		updateRecord[col] = goqu.L(fmt.Sprintf("EXCLUDED.%q", col))
 	}
 	targetColumns := strings.Join(conflictColumns, ", ")
 	insert = insert.OnConflict(goqu.DoUpdate(targetColumns, updateRecord))

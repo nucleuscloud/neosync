@@ -4,11 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
-	sqladapter "github.com/Blank-Xu/sql-adapter"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
 	"github.com/casbin/casbin/v2/persist"
+	sqladapter "github.com/nucleuscloud/sql-adapter"
 )
 
 // The default casbin enforcer with a SQL-enabled backend
@@ -36,7 +37,8 @@ func newEnforcer(
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize casbin synced cached enforcer: %w", err)
 	}
-	enforcer.EnableAutoSave(true) // seems to do this automatically but it doesn't hurt
+	enforcer.EnableAutoSave(true)                  // seems to do this automatically but it doesn't hurt
+	enforcer.StartAutoLoadPolicy(time.Second * 10) // allows HA between neosync-api instances or backend changes to RBAC policies to be picked up.
 	return enforcer, nil
 }
 

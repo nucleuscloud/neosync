@@ -17,8 +17,11 @@ const (
 	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
 	UpdateColumnsLabel                = "update columns"
 	UpdateFunctionsLabel              = "update functions"
+<<<<<<< HEAD
 	DropDatatypesLabel                = "drop datatypes"
 	UpdateDatatypesLabel              = "update datatypes"
+=======
+>>>>>>> main
 )
 
 type DatabaseSchemaRow struct {
@@ -26,6 +29,7 @@ type DatabaseSchemaRow struct {
 	TableName              string
 	ColumnName             string
 	DataType               string
+	MysqlColumnType        string // will only be populated for mysql. Same as the DataType but includes length, etc. varchar(255), enum('a', 'b'), etc.
 	ColumnDefault          string
 	ColumnDefaultType      *string
 	IsNullable             bool
@@ -125,6 +129,7 @@ func (t *TableTrigger) GetFingerprint() string {
 	return t.Fingerprint
 }
 
+<<<<<<< HEAD
 type DomainConstraint struct {
 	Name       string `json:"name"`
 	Definition string `json:"definition"`
@@ -178,6 +183,8 @@ type AllTableDataTypes struct {
 	Composites []*CompositeDataType
 }
 
+=======
+>>>>>>> main
 type TableInitStatement struct {
 	CreateTableStatement string
 	AlterTableStatements []*AlterTableStatement

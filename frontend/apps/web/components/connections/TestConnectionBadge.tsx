@@ -1,4 +1,5 @@
 'use client';
+import { getErrorMessage } from '@/util/util';
 import {
   CheckConnectionConfigByIdResponse,
   CheckConnectionConfigResponse,
@@ -92,6 +93,7 @@ function ValidationResponseBadge(
         <div className="text-nowrap text-xs pl-2 font-medium">
           Connection Error - Unable to connect.{' '}
           <span className="underline">More info</span>
+          <p>{getErrorMessage(validationResponse.connectionError)}</p>
         </div>
         <ArrowTopRightIcon />
       </Link>

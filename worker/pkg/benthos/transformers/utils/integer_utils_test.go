@@ -2,6 +2,7 @@ package transformer_utils
 
 import (
 	"fmt"
+	"math"
 	"testing"
 	"time"
 
@@ -46,30 +47,66 @@ func Test_GenerateRandomInt64InLengthRangeError(t *testing.T) {
 }
 
 func Test_GenerateRandomInt64InValueRange(t *testing.T) {
-	type testcase struct {
-		min int64
-		max int64
-	}
-	testcases := []testcase{
-		{min: int64(2), max: int64(5)},
-		{min: int64(23), max: int64(24)},
-		{min: int64(4), max: int64(24)},
-		{min: int64(2), max: int64(2)},
-		{min: int64(2), max: int64(4)},
-		{min: int64(1), max: int64(1)},
-		{min: int64(0), max: int64(0)},
-		{min: int64(-9), max: int64(-2)},
-		{min: int64(-2), max: int64(9)},
-	}
-	for _, tc := range testcases {
-		name := fmt.Sprintf("%s_%d_%d", t.Name(), tc.min, tc.max)
-		t.Run(name, func(t *testing.T) {
-			output, err := GenerateRandomInt64InValueRange(rng.New(time.Now().UnixNano()), tc.min, tc.max)
-			assert.NoError(t, err)
-			assert.GreaterOrEqual(t, output, tc.min, "%d>=%d was not true. output should be greater than or equal to the min. output: %s", output, tc.min, output)
-			assert.LessOrEqual(t, output, tc.max, "%d<=%d was not true. output should be less than or equal to the max. output: %s", output, tc.max, output)
-		})
-	}
+	t.Run("basic range", func(t *testing.T) {
+		output, err := GenerateRandomInt64InValueRange(rng.New(time.Now().UnixNano()), 2, 5)
+		require.NoError(t, err)
+		assert.GreaterOrEqual(t, output, int64(2))
+		assert.LessOrEqual(t, output, int64(5))
+	})
+
+	t.Run("same min and max", func(t *testing.T) {
+		output, err := GenerateRandomInt64InValueRange(rng.New(time.Now().UnixNano()), 2, 2)
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), output)
+	})
+
+	t.Run("negative range", func(t *testing.T) {
+		output, err := GenerateRandomInt64InValueRange(rng.New(time.Now().UnixNano()), -9, -2)
+		require.NoError(t, err)
+		assert.GreaterOrEqual(t, output, int64(-9))
+		assert.LessOrEqual(t, output, int64(-2))
+	})
+
+	t.Run("crossing zero", func(t *testing.T) {
+		output, err := GenerateRandomInt64InValueRange(rng.New(time.Now().UnixNano()), -2, 9)
+		require.NoError(t, err)
+		assert.GreaterOrEqual(t, output, int64(-2))
+		assert.LessOrEqual(t, output, int64(9))
+	})
+
+	t.Run("zero range", func(t *testing.T) {
+		output, err := GenerateRandomInt64InValueRange(rng.New(time.Now().UnixNano()), 0, 0)
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), output)
+	})
+
+	t.Run("swapped min max", func(t *testing.T) {
+		output, err := GenerateRandomInt64InValueRange(rng.New(time.Now().UnixNano()), 5, 2)
+		require.NoError(t, err)
+		assert.GreaterOrEqual(t, output, int64(2))
+		assert.LessOrEqual(t, output, int64(5))
+	})
+
+	t.Run("max int64", func(t *testing.T) {
+		output, err := GenerateRandomInt64InValueRange(rng.New(time.Now().UnixNano()), int64(0), math.MaxInt64)
+		require.NoError(t, err)
+		assert.GreaterOrEqual(t, output, int64(0))
+		assert.LessOrEqual(t, output, int64(math.MaxInt64))
+	})
+
+	t.Run("near max int64", func(t *testing.T) {
+		output, err := GenerateRandomInt64InValueRange(rng.New(time.Now().UnixNano()), math.MaxInt64-int64(10), math.MaxInt64)
+		require.NoError(t, err)
+		assert.GreaterOrEqual(t, output, math.MaxInt64-int64(10))
+		assert.LessOrEqual(t, output, int64(math.MaxInt64))
+	})
+
+	t.Run("large range near max int64", func(t *testing.T) {
+		output, err := GenerateRandomInt64InValueRange(rng.New(time.Now().UnixNano()), math.MaxInt64/int64(2), math.MaxInt64)
+		require.NoError(t, err)
+		assert.GreaterOrEqual(t, output, math.MaxInt64/int64(2))
+		assert.LessOrEqual(t, output, int64(math.MaxInt64))
+	})
 }
 
 func Test_GenerateRandomInt64InValueRange_Swapped_MinMax(t *testing.T) {

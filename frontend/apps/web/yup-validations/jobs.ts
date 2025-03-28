@@ -11,6 +11,10 @@ import {
   MysqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema,
   MysqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema,
   MysqlSourceConnectionOptions_ColumnRemovalStrategySchema,
+  MysqlSourceConnectionOptions_NewColumnAdditionStrategy,
+  MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMapSchema,
+  MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
+  MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
   PostgresSourceConnectionOptions_ColumnRemovalStrategy,
   PostgresSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema,
   PostgresSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema,
@@ -122,7 +126,10 @@ export type PostgresSourceOptionsFormValues = Yup.InferType<
 >;
 
 const MysqlSourceOptionsFormValues = Yup.object({
-  haltOnNewColumnAddition: Yup.boolean().optional().default(false),
+  newColumnAdditionStrategy: Yup.string<NewColumnAdditionStrategy>()
+    .oneOf(['continue', 'halt', 'automap'])
+    .optional()
+    .default('continue'),
   columnRemovalStrategy: Yup.string<ColumnRemovalStrategy>()
     .oneOf(['halt', 'continue'])
     .optional()
@@ -431,7 +438,10 @@ export function toJobSourcePostgresNewColumnAdditionStrategy(
   }
 }
 export function toNewColumnAdditionStrategy(
-  input: PostgresSourceConnectionOptions_NewColumnAdditionStrategy | undefined
+  input:
+    | PostgresSourceConnectionOptions_NewColumnAdditionStrategy
+    | MysqlSourceConnectionOptions_NewColumnAdditionStrategy
+    | undefined
 ): NewColumnAdditionStrategy {
   switch (input?.strategy.case) {
     case 'haltJob': {
@@ -471,6 +481,45 @@ export function toJobSourcePostgresColumnRemovalStrategy(
             case: 'haltJob',
             value: create(
               PostgresSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema
+            ),
+          },
+        }
+      );
+    }
+    default: {
+      return undefined;
+    }
+  }
+}
+
+export function toJobSourceMysqlNewColumnAdditionStrategy(
+  strategy?: NewColumnAdditionStrategy
+): MysqlSourceConnectionOptions_NewColumnAdditionStrategy | undefined {
+  switch (strategy) {
+    case 'continue': {
+      return undefined;
+    }
+    case 'automap': {
+      return create(
+        MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
+        {
+          strategy: {
+            case: 'autoMap',
+            value: create(
+              MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMapSchema
+            ),
+          },
+        }
+      );
+    }
+    case 'halt': {
+      return create(
+        MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
+        {
+          strategy: {
+            case: 'haltJob',
+            value: create(
+              MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema
             ),
           },
         }

@@ -1345,9 +1345,13 @@ func test_postgres_schema_reconciliation(
 		{schema: schema, table: "employees", rowCount: 40},
 		{schema: schema, table: "dependents", rowCount: 30},
 		{schema: schema, table: "dummy_table", rowCount: 4},
+<<<<<<< HEAD
 		{schema: schema, table: "office_locations", rowCount: 0},
 		{schema: schema, table: "dummy_comp_table", rowCount: 0},
 		{schema: schema, table: "example_table", rowCount: 0},
+=======
+		{schema: schema, table: "test_table_single_col", rowCount: 1},
+>>>>>>> main
 	}
 
 	tables := []string{}
@@ -1396,8 +1400,12 @@ func test_postgres_schema_reconciliation(
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "countries", sqlmanager_shared.PostgresDriver, []string{"country_id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "locations", sqlmanager_shared.PostgresDriver, []string{"location_id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "dummy_table", sqlmanager_shared.PostgresDriver, []string{"id"})
+<<<<<<< HEAD
 
 	test_schema_reconciliation_run_context(t, ctx, jobclient, job.GetId(), destinationId, accountId)
+=======
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "test_table_single_col", sqlmanager_shared.PostgresDriver, []string{"name"})
+>>>>>>> main
 
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
@@ -1480,9 +1488,15 @@ func verify_postgres_schemas(
 	}
 
 	t.Logf("checking triggers are the same in source and destination")
+<<<<<<< HEAD
 	srcTriggers, err := srcManager.GetSchemaTableTriggers(ctx, schematables)
 	require.NoError(t, err, "failed to get source triggers")
 	destTriggers, err := destManager.GetSchemaTableTriggers(ctx, schematables)
+=======
+	srcTriggers, err := srcManager.GetSchemaTableTriggers(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "astronaut"}})
+	require.NoError(t, err, "failed to get source triggers")
+	destTriggers, err := destManager.GetSchemaTableTriggers(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "astronaut"}})
+>>>>>>> main
 	require.NoError(t, err, "failed to get destination triggers")
 
 	destTriggersMap := make(map[string]*sqlmanager_shared.TableTrigger)
@@ -1495,6 +1509,7 @@ func verify_postgres_schemas(
 		require.Equal(t, trigger.Definition, destTrigger.Definition, "trigger definitions do not match for fingerprint %s", trigger.Fingerprint)
 	}
 
+<<<<<<< HEAD
 	srcDatatypes, err := srcManager.GetDataTypesByTables(ctx, schematables)
 	require.NoError(t, err, "failed to get source datatypes")
 	destDatatypes, err := destManager.GetDataTypesByTables(ctx, schematables)
@@ -1530,6 +1545,19 @@ func verify_postgres_schemas(
 	}
 	for _, domain := range destDatatypes.Domains {
 		assert.Contains(t, srcDatatypes.Domains, domain, "source missing domain with fingerprint %s", domain.Fingerprint)
+=======
+	t.Logf("checking functions are the same in source and destination")
+	srcFunctions, err := srcManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get source functions")
+	destFunctions, err := destManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	require.NoError(t, err, "failed to get destination functions")
+
+	for _, function := range srcFunctions.Functions {
+		require.Contains(t, destFunctions.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
+	}
+	for _, function := range destFunctions.Functions {
+		require.Contains(t, srcFunctions.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
+>>>>>>> main
 	}
 }
 

@@ -577,7 +577,9 @@ function getClientTlsConfig(
   });
 }
 
-function getTunnelConfig(values?: SshTunnelFormValues): SSHTunnel | undefined {
+export function getTunnelConfig(
+  values?: SshTunnelFormValues
+): SSHTunnel | undefined {
   if (!values || !values.host) {
     return undefined;
   }

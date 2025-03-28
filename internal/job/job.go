@@ -87,13 +87,25 @@ func GetSqlJobSourceOpts(
 				Tables: tableOpts,
 			})
 		}
+		shouldHalt := false
+		shouldGenerateNewColTransforms := false
+		switch jobSourceConfig.Mysql.GetNewColumnAdditionStrategy().GetStrategy().(type) {
+		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
+			shouldHalt = true
+		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_:
+			shouldGenerateNewColTransforms = true
+		}
+		if !shouldHalt && jobSourceConfig.Mysql.GetHaltOnNewColumnAddition() { //nolint:staticcheck
+			shouldHalt = true
+		}
 		shouldHaltOnColumnRemoval := false
 		if jobSourceConfig.Mysql.GetColumnRemovalStrategy().GetHaltJob() != nil {
 			shouldHaltOnColumnRemoval = true
 		}
 		return &SqlJobSourceOpts{
-			HaltOnNewColumnAddition:       jobSourceConfig.Mysql.HaltOnNewColumnAddition,
+			HaltOnNewColumnAddition:       shouldHalt,
 			HaltOnColumnRemoval:           shouldHaltOnColumnRemoval,
+			GenerateNewColumnTransformers: shouldGenerateNewColTransforms,
 			SubsetByForeignKeyConstraints: jobSourceConfig.Mysql.SubsetByForeignKeyConstraints,
 			SchemaOpt:                     schemaOpt,
 		}, nil

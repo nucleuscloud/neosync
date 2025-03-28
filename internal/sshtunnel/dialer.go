@@ -83,7 +83,8 @@ func (s *SSHDialer) DialContext(ctx context.Context, network, addr string) (net.
 	if err != nil {
 		return nil, fmt.Errorf("unable to get or create ssh client during DialContext: %w", err)
 	}
-	conn, err := client.DialContext(ctx, network, addr)
+	s.logger.Debug("dialing", "network", network, "addr", addr)
+	conn, err := client.Dial(network, addr)
 	if err != nil {
 		return nil, fmt.Errorf("unable to dial address: %w", err)
 	}
@@ -207,6 +208,8 @@ func (s *SSHDialer) startKeepAlive(client *ssh.Client) {
 					s.logger.Error("keepalive failed", "error", err)
 					s.client = nil
 					client.Close()
+				} else {
+					s.logger.Debug("keepalive successful")
 				}
 			case <-ctx.Done():
 				s.logger.Error("keepalive timed out")

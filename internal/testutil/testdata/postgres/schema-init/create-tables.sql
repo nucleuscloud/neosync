@@ -149,6 +149,13 @@ ON dummy_table
 FOR EACH ROW
 EXECUTE FUNCTION other_trigger_function();
 
+CREATE TABLE test_table_single_col (
+ 	name TEXT PRIMARY KEY
+);
+
+INSERT INTO test_table_single_col (name) VALUES ('TEST_VAL');
+
+
 INSERT INTO dummy_table(id,data) VALUES (1,'Europe Data');
 INSERT INTO dummy_table(id,data) VALUES (2,'Americas Data');
 INSERT INTO dummy_table(id,data) VALUES (3,'Asia Data');

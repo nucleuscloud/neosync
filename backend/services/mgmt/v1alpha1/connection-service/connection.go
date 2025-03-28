@@ -24,6 +24,8 @@ import (
 	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
+	"github.com/nucleuscloud/neosync/internal/sshtunnel"
+	"golang.org/x/crypto/ssh"
 	"golang.org/x/sync/errgroup"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -51,17 +53,18 @@ func (s *Service) CheckConnectionConfig(
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		role, err := getDbRoleFromConnectionConfig(req.Msg.GetConnectionConfig(), logger)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to retrieve db role/user from connection config prior to checking connection: %w", err)
 		}
 
 		db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), &connInput{cc: req.Msg.GetConnectionConfig(), id: uuid.NewString()}, logger)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to create sql connection: %w", err)
 		}
 		defer db.Db().Close()
 		schematablePrivsMap, err := db.Db().GetRolePermissionsMap(ctx)
 		if err != nil {
 			errmsg := err.Error()
+			logger.Warn(fmt.Sprintf("unable to retrieve role permissions map from sql connection: %s", errmsg))
 			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
 				IsConnected:     false,
 				ConnectionError: &errmsg,
@@ -208,7 +211,7 @@ func (s *Service) CheckConnectionConfigById(
 
 func getDbRoleFromConnectionConfig(cconfig *mgmtv1alpha1.ConnectionConfig, logger *slog.Logger) (string, error) {
 	if cconfig == nil {
-		return "", errors.New("connection config was nil, unable to retrieve db role")
+		return "", errors.New("connection config was nil, unable to retrieve db role/user from config")
 	}
 
 	switch typedconfig := cconfig.GetConfig().(type) {
@@ -231,7 +234,7 @@ func getDbRoleFromConnectionConfig(cconfig *mgmtv1alpha1.ConnectionConfig, logge
 		}
 		return parsedCfg.GetUser(), nil
 	default:
-		return "", fmt.Errorf("invalid database connection config (%T) for retrieving db role: %w", typedconfig, errors.ErrUnsupported)
+		return "", fmt.Errorf("invalid database connection config (%T) for retrieving db role/user: %w", typedconfig, errors.ErrUnsupported)
 	}
 }
 
@@ -550,6 +553,81 @@ func (s *Service) CheckSqlQuery(
 		IsValid:      err == nil,
 		ErorrMessage: errorMsg,
 	}), nil
+}
+
+func (s *Service) CheckSSHConnection(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.CheckSSHConnectionRequest],
+) (*connect.Response[mgmtv1alpha1.CheckSSHConnectionResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	result, err := checkSSHConnection(req.Msg.GetTunnel(), logger)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&mgmtv1alpha1.CheckSSHConnectionResponse{
+		Result: result,
+	}), nil
+}
+
+func (s *Service) CheckSSHConnectionById(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.CheckSSHConnectionByIdRequest],
+) (*connect.Response[mgmtv1alpha1.CheckSSHConnectionByIdResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("connectionId", req.Msg.GetId())
+	connection, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: req.Msg.GetId()}))
+	if err != nil {
+		return nil, err
+	}
+
+	var sshTunnel *mgmtv1alpha1.SSHTunnel
+
+	switch cfg := connection.Msg.GetConnection().GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		sshTunnel = cfg.PgConfig.GetTunnel()
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		sshTunnel = cfg.MssqlConfig.GetTunnel()
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		sshTunnel = cfg.MysqlConfig.GetTunnel()
+	}
+
+	result, err := checkSSHConnection(sshTunnel, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.CheckSSHConnectionByIdResponse{
+		Result: result,
+	}), nil
+}
+
+func checkSSHConnection(sshTunnel *mgmtv1alpha1.SSHTunnel, logger *slog.Logger) (*mgmtv1alpha1.CheckSSHConnectionResult, error) {
+	if sshTunnel == nil {
+		errorMsg := "no ssh tunnel config found"
+		return &mgmtv1alpha1.CheckSSHConnectionResult{
+			IsSuccessful: false,
+			ErrorMessage: &errorMsg,
+		}, nil
+	}
+
+	tunnelConfig, err := sshtunnel.GetTunnelConfigFromSSHDto(sshTunnel)
+	if err != nil {
+		return nil, fmt.Errorf("unable to build tunnel config from dto: %w", err)
+	}
+	client, err := ssh.Dial("tcp", tunnelConfig.Addr, tunnelConfig.ClientConfig)
+	if err != nil {
+		errorMsg := err.Error()
+		logger.Error(fmt.Sprintf("unable to dial ssh: %s", errorMsg))
+		return &mgmtv1alpha1.CheckSSHConnectionResult{
+			IsSuccessful: false,
+			ErrorMessage: &errorMsg,
+		}, nil
+	}
+	client.Close()
+
+	return &mgmtv1alpha1.CheckSSHConnectionResult{
+		IsSuccessful: true,
+	}, nil
 }
 
 type urlEnvVarConfig interface {
