@@ -40,7 +40,7 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 
 		sb.WriteString(fmt.Sprintf("    [%s] ", row.ColumnName))
 
-		if !(row.IsComputed && row.GenerationExpression.Valid) {
+		if !row.IsComputed || !row.GenerationExpression.Valid {
 			switch {
 			case row.CharacterMaximumLength.Valid:
 				if row.CharacterMaximumLength.Int32 == -1 {

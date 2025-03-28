@@ -20,7 +20,6 @@ import (
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	nucleuserrors "github.com/nucleuscloud/neosync/internal/errors"
-	"github.com/nucleuscloud/neosync/internal/job"
 	job_util "github.com/nucleuscloud/neosync/internal/job"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
@@ -1614,7 +1613,7 @@ func (s *Service) ValidateJobMappings(
 		}
 	}
 
-	validator := job_util.NewJobMappingsValidator(req.Msg.Mappings, job.WithJobSourceOptions(sqlSourceOpts))
+	validator := job_util.NewJobMappingsValidator(req.Msg.Mappings, job_util.WithJobSourceOptions(sqlSourceOpts))
 	result, err := validator.Validate(colInfoMap, req.Msg.VirtualForeignKeys, tableConstraints)
 	if err != nil {
 		return nil, err

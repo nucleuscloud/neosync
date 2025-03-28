@@ -247,7 +247,7 @@ func buildBenthosSqlSourceConfigResponses(
 			return nil, err
 		}
 		for _, pc := range processorConfigs {
-			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
+			bc.Pipeline.Processors = append(bc.Pipeline.Processors, *pc)
 		}
 
 		cursors, err := buildIdentityCursors(ctx, transformerclient, mappings.Mappings)

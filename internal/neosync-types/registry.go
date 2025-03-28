@@ -68,7 +68,7 @@ func (r *TypeRegistry) New(typeId string, version Version) (NeosyncAdapter, erro
 		return newTypeFunc()
 	}
 
-	return nil, fmt.Errorf("unknown version %d for type Id: %s. latest version not found.", version, typeId)
+	return nil, fmt.Errorf("unknown version %d for type Id: %s. latest version not found", version, typeId)
 }
 
 // UnmarshalAny deserializes a value of type any into an appropriate type based on the Neosync type system.

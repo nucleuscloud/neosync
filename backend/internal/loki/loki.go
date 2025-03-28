@@ -105,7 +105,7 @@ func GetStreamsFromResponseData(data *QueryResponseData) (Streams, error) {
 	}
 	streams, ok := data.Result.(Streams)
 	if !ok {
-		return nil, fmt.Errorf("Result data type was not Streams, got: %T", data.Result)
+		return nil, fmt.Errorf("result data type was not Streams, got: %T", data.Result)
 	}
 	return streams, nil
 }

@@ -88,7 +88,7 @@ func Test_Client_InjectTokenCtx_Account_Expired(t *testing.T) {
 		"Authorization": []string{fmt.Sprintf("Bearer %s", fakeToken)},
 	}, connect.Spec{})
 	assert.Error(t, err)
-	assert.True(t, errors.Is(err, ApiKeyExpiredErr))
+	assert.True(t, errors.Is(err, ErrApiKeyExpired))
 	assert.Nil(t, newctx)
 }
 

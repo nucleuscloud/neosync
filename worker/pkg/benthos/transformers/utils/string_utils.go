@@ -223,7 +223,7 @@ func WithoutCharacters(input string, invalidChars []rune) string {
 }
 
 func GetRandomCharacterString(randomizer rng.Rand, size int64) string {
-	var stringBuilder []rune = make([]rune, size)
+	var stringBuilder = make([]rune, size)
 	for i := int64(0); i < size; i++ {
 		num := randomizer.Intn(26)
 		stringBuilder[i] = rune('a' + num)

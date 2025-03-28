@@ -139,17 +139,18 @@ func (l *tsqlListener) setToken(startToken, stopToken antlr.Token, text string) 
 func (l *tsqlListener) addNodeText(node antlr.TerminalNode) {
 	if node.GetSymbol().GetTokenType() != antlr.TokenEOF {
 		text := node.GetText()
-		if text == "," {
+		switch text {
+		case ",":
 			// add space after commas
 			l.pop()
 			l.push(text)
 			l.push(" ")
-		} else if text == "." {
+		case ".":
 			// remove space before periods
 			// should be table.column not table . column
 			l.pop()
 			l.push(text)
-		} else {
+		default:
 			// add space after each node text
 			l.push(text)
 			l.push(" ")

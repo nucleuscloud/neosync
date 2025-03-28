@@ -46,7 +46,7 @@ func New(eelicense license.EEInterface) *Workflow {
 }
 
 var (
-	invalidAccountStatusError = errors.New("exiting workflow due to invalid account status")
+	errInvalidAccountStatusError = errors.New("exiting workflow due to invalid account status")
 )
 
 func withGenerateBenthosConfigsActivityOptions(ctx workflow.Context) workflow.Context {
@@ -141,7 +141,7 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 		if initialCheckAccountStatusResponse.Reason != nil {
 			reason = *initialCheckAccountStatusResponse.Reason
 		}
-		return nil, fmt.Errorf("halting job run due to account in invalid state. Reason: %q: %w", reason, invalidAccountStatusError)
+		return nil, fmt.Errorf("halting job run due to account in invalid state. Reason: %q: %w", reason, errInvalidAccountStatusError)
 	}
 
 	info := workflow.GetInfo(ctx)
@@ -237,7 +237,7 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 	workselector.AddReceive(stopChan, func(c workflow.ReceiveChannel, more bool) {
 		// Stop signal received, exit the routing
 		logger.Warn("received signal to stop workflow based on account status")
-		activityErr = invalidAccountStatusError
+		activityErr = errInvalidAccountStatusError
 		cancelHandler()
 	})
 

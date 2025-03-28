@@ -706,7 +706,7 @@ func Test_Workflow_Halts_Activities_On_InvalidAccountStatus(t *testing.T) {
 	require.Error(t, err)
 	var applicationErr *temporal.ApplicationError
 	require.True(t, errors.As(err, &applicationErr))
-	require.ErrorContains(t, applicationErr, invalidAccountStatusError.Error())
+	require.ErrorContains(t, applicationErr, errInvalidAccountStatusError.Error())
 
 	env.AssertExpectations(t)
 }
@@ -1036,7 +1036,7 @@ func Test_Workflow_Initial_AccountStatus(t *testing.T) {
 	assert.Error(t, err)
 	var applicationErr *temporal.ApplicationError
 	assert.True(t, errors.As(err, &applicationErr))
-	assert.ErrorContains(t, applicationErr, invalidAccountStatusError.Error())
+	assert.ErrorContains(t, applicationErr, errInvalidAccountStatusError.Error())
 
 	env.AssertExpectations(t)
 }

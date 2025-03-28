@@ -126,10 +126,7 @@ func (s *NeosyncApiTestClient) setupMux(
 	rbacClient rbac.Interface,
 	logger *slog.Logger,
 ) (*http.ServeMux, error) {
-	isPresidioEnabled := false
-	if isLicensed || isNeosyncCloud {
-		isPresidioEnabled = true
-	}
+	isPresidioEnabled := isLicensed || isNeosyncCloud
 
 	maxAllowed := int64(10000)
 	var license *testutil.FakeEELicense

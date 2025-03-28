@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
-	"go.temporal.io/sdk/client"
 	temporalclient "go.temporal.io/sdk/client"
 )
 
@@ -51,7 +50,7 @@ func NewTemporalBlockAllocator(temporalclient temporalclient.Client, workflowId,
 }
 
 func (i *TemporalBlockAllocator) GetNextBlock(ctx context.Context, token string, blockSize uint) (*IdentityRange, error) {
-	handle, err := i.temporalclient.UpdateWorkflow(ctx, client.UpdateWorkflowOptions{
+	handle, err := i.temporalclient.UpdateWorkflow(ctx, temporalclient.UpdateWorkflowOptions{
 		WorkflowID: i.workflowId,
 		RunID:      i.runId,
 		UpdateName: AllocateIdentityBlock,
@@ -59,7 +58,7 @@ func (i *TemporalBlockAllocator) GetNextBlock(ctx context.Context, token string,
 			Id:        token,
 			BlockSize: blockSize,
 		}},
-		WaitForStage: client.WorkflowUpdateStageCompleted,
+		WaitForStage: temporalclient.WorkflowUpdateStageCompleted,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to send update to get next block size for identity %s: %w", token, err)

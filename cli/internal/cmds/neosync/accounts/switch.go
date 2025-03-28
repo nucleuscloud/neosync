@@ -110,9 +110,10 @@ func switchAccount(
 		personalAccounts := []*mgmtv1alpha1.UserAccount{}
 		teamAccounts := []*mgmtv1alpha1.UserAccount{}
 		for _, a := range accounts {
-			if a.Type == mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_PERSONAL {
+			switch a.Type {
+			case mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_PERSONAL:
 				personalAccounts = append(personalAccounts, a)
-			} else if a.Type == mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_TEAM {
+			case mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_TEAM:
 				teamAccounts = append(teamAccounts, a)
 			}
 		}

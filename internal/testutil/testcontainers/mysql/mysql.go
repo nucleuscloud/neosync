@@ -12,7 +12,6 @@ import (
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mysqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/mysql"
 	testmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"golang.org/x/sync/errgroup"
@@ -131,9 +130,9 @@ func WithTls() Option {
 // Creates and starts a MySQL test container and sets up the connection.
 func setup(ctx context.Context, cfg *mysqlTestContainerConfig) (*MysqlTestContainer, error) {
 	tcopts := []testcontainers.ContainerCustomizer{
-		mysql.WithDatabase(cfg.database),
-		mysql.WithUsername(cfg.username),
-		mysql.WithPassword(cfg.password),
+		testmysql.WithDatabase(cfg.database),
+		testmysql.WithUsername(cfg.username),
+		testmysql.WithPassword(cfg.password),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("port: 3306  MySQL Community Server").WithOccurrence(1).WithStartupTimeout(20 * time.Second),
 		),
@@ -175,7 +174,7 @@ func setup(ctx context.Context, cfg *mysqlTestContainerConfig) (*MysqlTestContai
 			})),
 		)
 	}
-	mysqlContainer, err := mysql.Run(
+	mysqlContainer, err := testmysql.Run(
 		ctx,
 		"mysql:8.0.36",
 		tcopts...,

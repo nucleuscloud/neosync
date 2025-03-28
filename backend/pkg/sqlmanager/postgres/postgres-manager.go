@@ -1157,11 +1157,12 @@ func buildTableCol(record *buildTableColRequest) string {
 	pieces := []string{EscapePgColumn(record.ColumnName), record.DataType, buildNullableText(record.IsNullable)}
 
 	if record.IsSerial {
-		if record.DataType == "smallint" {
+		switch record.DataType {
+		case "smallint":
 			pieces[1] = "SMALLSERIAL"
-		} else if record.DataType == "bigint" {
+		case "bigint":
 			pieces[1] = "BIGSERIAL"
-		} else {
+		default:
 			pieces[1] = "SERIAL"
 		}
 	} else if record.SequenceDefinition != nil && *record.SequenceDefinition != "" {
@@ -1178,9 +1179,10 @@ func buildTableCol(record *buildTableColRequest) string {
 
 func buildSequenceDefinition(identityType string, seqConfig *SequenceConfiguration) string {
 	var seqStr string
-	if identityType == "d" {
+	switch identityType {
+	case "d":
 		seqStr = seqConfig.ToGeneratedDefaultIdentity()
-	} else if identityType == "a" {
+	case "a":
 		seqStr = seqConfig.ToGeneratedAlwaysIdentity()
 	}
 	return seqStr

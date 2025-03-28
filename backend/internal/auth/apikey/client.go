@@ -24,8 +24,8 @@ type TokenContextData struct {
 }
 
 var (
-	InvalidApiKeyErr = errors.New("token is not a valid neosync api key")
-	ApiKeyExpiredErr = nucleuserrors.NewUnauthenticated("token is expired")
+	ErrInvalidApiKey = errors.New("token is not a valid neosync api key")
+	ErrApiKeyExpired = nucleuserrors.NewUnauthenticated("token is expired")
 )
 
 type Queries interface {
@@ -66,11 +66,11 @@ func (c *Client) InjectTokenCtx(ctx context.Context, header http.Header, spec co
 		if err != nil && !neosyncdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && neosyncdb.IsNoRows(err) {
-			return nil, InvalidApiKeyErr
+			return nil, ErrInvalidApiKey
 		}
 
 		if time.Now().After(apiKey.ExpiresAt.Time) {
-			return nil, ApiKeyExpiredErr
+			return nil, ErrApiKeyExpired
 		}
 
 		return SetTokenData(ctx, &TokenContextData{
@@ -87,7 +87,7 @@ func (c *Client) InjectTokenCtx(ctx context.Context, header http.Header, spec co
 			ApiKeyType: apikey.WorkerApiKey,
 		}), nil
 	}
-	return nil, InvalidApiKeyErr
+	return nil, ErrInvalidApiKey
 }
 
 func GetTokenDataFromCtx(ctx context.Context) (*TokenContextData, error) {

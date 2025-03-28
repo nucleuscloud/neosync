@@ -44,7 +44,7 @@ func ResolveAccountIdFromFlag(
 	}
 	accountId, err := userconfig.GetAccountId()
 	if err != nil {
-		return "", fmt.Errorf(`unable to resolve account id from account context, please use the "neosync accounts switch" command to set an active account context.`)
+		return "", fmt.Errorf(`unable to resolve account id from account context, please use the "neosync accounts switch" command to set an active account context: %w`, err)
 	}
 	logger.Debug(fmt.Sprintf("account id %q resolved from user config", accountId))
 	return accountId, nil

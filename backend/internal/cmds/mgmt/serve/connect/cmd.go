@@ -1049,9 +1049,10 @@ func getAuthAdminClient(ctx context.Context, authclient auth_client.Interface, l
 	authApiClientId := getAuthApiClientId()
 	authApiClientSecret := getAuthApiClientSecret()
 	provider := getAuthApiProvider()
-	if provider == "" || provider == "auth0" {
+	switch provider {
+	case "", "auth0":
 		return auth0.New(authApiBaseUrl, authApiClientId, authApiClientSecret)
-	} else if provider == "keycloak" {
+	case "keycloak":
 		tokenurl, err := authclient.GetTokenEndpoint(ctx)
 		if err != nil {
 			return nil, err

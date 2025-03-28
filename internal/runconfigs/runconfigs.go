@@ -230,7 +230,7 @@ func BuildRunConfigs(
 
 	// check run path
 	if !isValidRunOrder(configs) {
-		return nil, errors.New("Unsupported circular dependency detected. At least one foreign key in circular dependency must be nullable")
+		return nil, errors.New("unsupported circular dependency detected. at least one foreign key in circular dependency must be nullable")
 	}
 
 	return configs, nil

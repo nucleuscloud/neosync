@@ -86,7 +86,7 @@ func triggerJob(
 		return err
 	}
 	if job.Msg.GetJob().GetAccountId() != accountId {
-		return fmt.Errorf("Unable to trigger job run. Job not found. AccountId: %s", accountId)
+		return fmt.Errorf("unable to trigger job run. job not found. accountId: %s", accountId)
 	}
 	_, err = jobclient.CreateJobRun(ctx, connect.NewRequest[mgmtv1alpha1.CreateJobRunRequest](&mgmtv1alpha1.CreateJobRunRequest{
 		JobId: jobId,

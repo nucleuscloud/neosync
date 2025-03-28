@@ -17,7 +17,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
@@ -736,14 +735,15 @@ func (c *clisync) runDestinationInitStatements(
 			if len(block.Statements) == 0 {
 				continue
 			}
-			err = db.Db().BatchExec(c.ctx, batchSize, block.Statements, &sql_manager.BatchExecOpts{})
+			err = db.Db().BatchExec(c.ctx, batchSize, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 			if err != nil {
 				c.logger.Error(fmt.Sprintf("Error creating tables: %v", err))
 				return fmt.Errorf("unable to exec pg %s statements: %w", block.Label, err)
 			}
 		}
 	}
-	if c.cmd.Destination.Driver == postgresDriver {
+	switch c.cmd.Destination.Driver {
+	case postgresDriver:
 		if c.cmd.Destination.TruncateCascade {
 			truncateCascadeStmts := []string{}
 			for _, syncCfg := range syncConfigs {
@@ -752,7 +752,7 @@ func (c *clisync) runDestinationInitStatements(
 					truncateCascadeStmts = append(truncateCascadeStmts, stmt)
 				}
 			}
-			err = db.Db().BatchExec(c.ctx, batchSize, truncateCascadeStmts, &sql_manager.BatchExecOpts{})
+			err = db.Db().BatchExec(c.ctx, batchSize, truncateCascadeStmts, &sqlmanager_shared.BatchExecOpts{})
 			if err != nil {
 				c.logger.Error(fmt.Sprintf("Error truncate cascade tables: %v", err))
 				return err
@@ -772,7 +772,7 @@ func (c *clisync) runDestinationInitStatements(
 				return err
 			}
 		}
-	} else if c.cmd.Destination.Driver == mysqlDriver {
+	case mysqlDriver:
 		orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
 		if err != nil {
 			return err
@@ -781,8 +781,8 @@ func (c *clisync) runDestinationInitStatements(
 		for _, t := range orderedTablesResp.OrderedTables {
 			orderedTableTruncateStatements = append(orderedTableTruncateStatements, schemaConfig.TruncateTableStatementsMap[t.String()])
 		}
-		disableFkChecks := sql_manager.DisableForeignKeyChecks
-		err = db.Db().BatchExec(c.ctx, batchSize, orderedTableTruncateStatements, &sql_manager.BatchExecOpts{Prefix: &disableFkChecks})
+		disableFkChecks := sqlmanager_shared.DisableForeignKeyChecks
+		err = db.Db().BatchExec(c.ctx, batchSize, orderedTableTruncateStatements, &sqlmanager_shared.BatchExecOpts{Prefix: &disableFkChecks})
 		if err != nil {
 			c.logger.Error(fmt.Sprintf("Error truncating tables: %v", err))
 			return err
@@ -863,7 +863,7 @@ func getTableInitStatementMap(
 
 type schemaConfig struct {
 	Schemas                    []*mgmtv1alpha1.DatabaseColumn
-	TableConstraints           map[string][]*sql_manager.ForeignConstraint
+	TableConstraints           map[string][]*sqlmanager_shared.ForeignConstraint
 	TablePrimaryKeys           map[string]*mgmtv1alpha1.PrimaryConstraint
 	TruncateTableStatementsMap map[string]string
 	InitSchemaStatements       []*mgmtv1alpha1.SchemaInitStatements
@@ -955,18 +955,18 @@ func (c *clisync) getSourceConnectionSqlSchemaConfig(
 	if err := errgrp.Wait(); err != nil {
 		return nil, err
 	}
-	tc := map[string][]*sql_manager.ForeignConstraint{}
+	tc := map[string][]*sqlmanager_shared.ForeignConstraint{}
 	for table, constraints := range tableConstraints {
-		fkConstraints := []*sql_manager.ForeignConstraint{}
+		fkConstraints := []*sqlmanager_shared.ForeignConstraint{}
 		for _, fk := range constraints.GetConstraints() {
-			var foreignKey *sql_manager.ForeignKey
+			var foreignKey *sqlmanager_shared.ForeignKey
 			if fk.ForeignKey != nil {
-				foreignKey = &sql_manager.ForeignKey{
+				foreignKey = &sqlmanager_shared.ForeignKey{
 					Table:   fk.GetForeignKey().GetTable(),
 					Columns: fk.GetForeignKey().GetColumns(),
 				}
 			}
-			fkConstraints = append(fkConstraints, &sql_manager.ForeignConstraint{
+			fkConstraints = append(fkConstraints, &sqlmanager_shared.ForeignConstraint{
 				Columns:     fk.GetColumns(),
 				NotNullable: fk.GetNotNullable(),
 				ForeignKey:  foreignKey,
@@ -1082,7 +1082,7 @@ func (c *clisync) getDestinationSchemaConfig(
 	}, nil
 }
 
-func (c *clisync) getDestinationTableConstraints(schemas []string) (*sql_manager.TableConstraints, error) {
+func (c *clisync) getDestinationTableConstraints(schemas []string) (*sqlmanager_shared.TableConstraints, error) {
 	cctx, cancel := context.WithDeadline(c.ctx, time.Now().Add(5*time.Second))
 	defer cancel()
 	destConnection := cmdConfigToDestinationConnection(c.cmd)

@@ -11,7 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"golang.org/x/sync/errgroup"
@@ -130,9 +129,9 @@ func WithTls() Option {
 // Creates and starts a PostgreSQL test container and sets up the connection.
 func setup(ctx context.Context, cfg *pgTestContainerConfig) (*PostgresTestContainer, error) {
 	tcopts := []testcontainers.ContainerCustomizer{
-		postgres.WithDatabase(cfg.database),
-		postgres.WithUsername(cfg.username),
-		postgres.WithPassword(cfg.password),
+		testpg.WithDatabase(cfg.database),
+		testpg.WithUsername(cfg.username),
+		testpg.WithPassword(cfg.password),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).WithStartupTimeout(20 * time.Second),
@@ -175,7 +174,7 @@ func setup(ctx context.Context, cfg *pgTestContainerConfig) (*PostgresTestContai
 			})),
 		)
 	}
-	pgContainer, err := postgres.Run(
+	pgContainer, err := testpg.Run(
 		ctx,
 		"postgres:15",
 		tcopts...,

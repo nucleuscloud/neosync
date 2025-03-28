@@ -249,7 +249,7 @@ func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 		b.count -= 1
 	}
 	if len(messageBatch) == 0 {
-		return nil, nil, errors.New("openai_generate: received response from openai but was unable to successfully process records to a structured format. see logs for more details.")
+		return nil, nil, errors.New("openai_generate: received response from openai but was unable to successfully process records to a structured format. see logs for more details")
 	}
 	return messageBatch, emptyAck, nil
 }
