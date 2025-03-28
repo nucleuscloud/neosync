@@ -216,10 +216,10 @@ func newCobraCmdConfig(
 
 func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1alpha1.Connection, sourceConnectionType benthosbuilder_shared.ConnectionType) error {
 	if sourceConnectionType == benthosbuilder_shared.ConnectionTypeAwsS3 && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
-		return errors.New("S3 source connection type requires job-id or job-run-id.")
+		return errors.New("s3 source connection type requires job-id or job-run-id")
 	}
 	if sourceConnectionType == benthosbuilder_shared.ConnectionTypeGCP && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
-		return errors.New("GCP Cloud Storage source connection type requires job-id or job-run-id")
+		return errors.New("gcp cloud storage source connection type requires job-id or job-run-id")
 	}
 
 	if (sourceConnectionType == benthosbuilder_shared.ConnectionTypeAwsS3 || sourceConnectionType == benthosbuilder_shared.ConnectionTypeGCP) && cmd.Destination.InitSchema {

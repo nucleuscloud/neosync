@@ -176,7 +176,7 @@ func IsValidEmail(email string) bool {
 // use MaxASCII to ensure that the unicode value is only within the ASCII block which only contains latin numbers, letters and characters.
 func IsValidChar(s string) bool {
 	for _, r := range s {
-		if !(r <= unicode.MaxASCII && (unicode.IsNumber(r) || unicode.IsLetter(r) || unicode.IsSpace(r) || IsAllowedSpecialChar(r))) {
+		if r > unicode.MaxASCII || (!unicode.IsNumber(r) && !unicode.IsLetter(r) && !unicode.IsSpace(r) && !IsAllowedSpecialChar(r)) {
 			return false
 		}
 	}
