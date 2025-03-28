@@ -47,7 +47,7 @@ linters:
         - performance
         - style
     gocyclo:
-      min-complexity: 15
+      min-complexity: 10
     lll:
       line-length: 140
     misspell:
@@ -105,6 +105,7 @@ formatters:
   enable:
     - gofmt
     - goimports
+    - golines
   settings:
     gofmt:
       rewrite-rules:
