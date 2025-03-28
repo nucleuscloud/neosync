@@ -512,6 +512,28 @@ func test_mysql_complex(
 		require.NoError(t, err)
 		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mysql_complex Table: %s", expected.table))
 	}
+	test_schema_reconciliation_run_context(t, ctx, jobclient, job.GetId(), job.GetDestinations()[0].GetId(), accountId)
+
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "agency", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "astronaut", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "spacecraft", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "celestial_body", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "launch_site", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "mission", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "mission_crew", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "research_project", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "project_mission", sqlmanager_shared.MysqlDriver, []string{"project_id", "mission_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "mission_log", sqlmanager_shared.MysqlDriver, []string{"log_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "observatory", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "telescope", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "instrument", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "observation_session", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "data_set", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "research_paper", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "paper_citation", sqlmanager_shared.MysqlDriver, []string{"citing_paper_id", "cited_paper_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "grant", sqlmanager_shared.MysqlDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "grant_research_project", sqlmanager_shared.MysqlDriver, []string{"grant_id", "research_project_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "instrument_usage", sqlmanager_shared.MysqlDriver, []string{"id"})
 
 	// tear down
 	err = cleanupMysqlDatabases(ctx, mysql, []string{schema})
@@ -673,10 +695,15 @@ func test_mysql_schema_reconciliation_compare_schemas(
 	srcManager := sqlmanager_mysql.NewManager(mysql_queries.New(), mysql.Source.DB, func() {})
 	destManager := sqlmanager_mysql.NewManager(mysql_queries.New(), mysql.Target.DB, func() {})
 
+	schematables := []*sqlmanager_shared.SchemaTable{}
+	for _, table := range tables {
+		schematables = append(schematables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
+	}
+
 	t.Logf("checking triggers are the same in source and destination")
-	srcTriggers, err := srcManager.GetSchemaTableTriggers(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "astronaut"}})
+	srcTriggers, err := srcManager.GetSchemaTableTriggers(ctx, schematables)
 	require.NoError(t, err, "failed to get source triggers")
-	destTriggers, err := destManager.GetSchemaTableTriggers(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "astronaut"}})
+	destTriggers, err := destManager.GetSchemaTableTriggers(ctx, schematables)
 	require.NoError(t, err, "failed to get destination triggers")
 
 	require.Len(t, srcTriggers, len(destTriggers), "source and destination have different number of triggers")
@@ -721,9 +748,9 @@ func test_mysql_schema_reconciliation_compare_schemas(
 	}
 
 	t.Logf("checking functions are the same in source and destination")
-	srcFunctions, err := srcManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	srcFunctions, err := srcManager.GetSchemaTableDataTypes(ctx, schematables)
 	require.NoError(t, err, "failed to get source functions")
-	destFunctions, err := destManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	destFunctions, err := destManager.GetSchemaTableDataTypes(ctx, schematables)
 	require.NoError(t, err, "failed to get destination functions")
 
 	require.Len(t, srcFunctions.Functions, len(destFunctions.Functions), "source and destination have different number of functions")
@@ -735,9 +762,9 @@ func test_mysql_schema_reconciliation_compare_schemas(
 	}
 
 	t.Logf("checking columns are the same in source and destination")
-	srcColumns, err := srcManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	srcColumns, err := srcManager.GetColumnsByTables(ctx, schematables)
 	require.NoError(t, err, "failed to get source columns")
-	destColumns, err := destManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	destColumns, err := destManager.GetColumnsByTables(ctx, schematables)
 	require.NoError(t, err, "failed to get destination columns")
 
 	require.Len(t, srcColumns, len(destColumns), "source and destination have different number of columns")
