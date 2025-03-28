@@ -139,6 +139,66 @@ func (_c *MockQuerier_GetAllTables_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
+// GetCompositeTypesByTables provides a mock function with given fields: ctx, db, schematables
+func (_m *MockQuerier) GetCompositeTypesByTables(ctx context.Context, db DBTX, schematables []string) ([]*GetCompositeTypesByTablesRow, error) {
+	ret := _m.Called(ctx, db, schematables)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCompositeTypesByTables")
+	}
+
+	var r0 []*GetCompositeTypesByTablesRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) ([]*GetCompositeTypesByTablesRow, error)); ok {
+		return rf(ctx, db, schematables)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) []*GetCompositeTypesByTablesRow); ok {
+		r0 = rf(ctx, db, schematables)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*GetCompositeTypesByTablesRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, []string) error); ok {
+		r1 = rf(ctx, db, schematables)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetCompositeTypesByTables_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCompositeTypesByTables'
+type MockQuerier_GetCompositeTypesByTables_Call struct {
+	*mock.Call
+}
+
+// GetCompositeTypesByTables is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - schematables []string
+func (_e *MockQuerier_Expecter) GetCompositeTypesByTables(ctx interface{}, db interface{}, schematables interface{}) *MockQuerier_GetCompositeTypesByTables_Call {
+	return &MockQuerier_GetCompositeTypesByTables_Call{Call: _e.mock.On("GetCompositeTypesByTables", ctx, db, schematables)}
+}
+
+func (_c *MockQuerier_GetCompositeTypesByTables_Call) Run(run func(ctx context.Context, db DBTX, schematables []string)) *MockQuerier_GetCompositeTypesByTables_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].([]string))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetCompositeTypesByTables_Call) Return(_a0 []*GetCompositeTypesByTablesRow, _a1 error) *MockQuerier_GetCompositeTypesByTables_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetCompositeTypesByTables_Call) RunAndReturn(run func(context.Context, DBTX, []string) ([]*GetCompositeTypesByTablesRow, error)) *MockQuerier_GetCompositeTypesByTables_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCustomFunctionsBySchemaAndTables provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomFunctionsBySchemaAndTablesParams) ([]*GetCustomFunctionsBySchemaAndTablesRow, error) {
 	ret := _m.Called(ctx, db, arg)
@@ -498,6 +558,126 @@ func (_c *MockQuerier_GetDatabaseTableSchemasBySchemasAndTables_Call) RunAndRetu
 	return _c
 }
 
+// GetDomainsByTables provides a mock function with given fields: ctx, db, schematables
+func (_m *MockQuerier) GetDomainsByTables(ctx context.Context, db DBTX, schematables []string) ([]*GetDomainsByTablesRow, error) {
+	ret := _m.Called(ctx, db, schematables)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDomainsByTables")
+	}
+
+	var r0 []*GetDomainsByTablesRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) ([]*GetDomainsByTablesRow, error)); ok {
+		return rf(ctx, db, schematables)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) []*GetDomainsByTablesRow); ok {
+		r0 = rf(ctx, db, schematables)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*GetDomainsByTablesRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, []string) error); ok {
+		r1 = rf(ctx, db, schematables)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetDomainsByTables_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDomainsByTables'
+type MockQuerier_GetDomainsByTables_Call struct {
+	*mock.Call
+}
+
+// GetDomainsByTables is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - schematables []string
+func (_e *MockQuerier_Expecter) GetDomainsByTables(ctx interface{}, db interface{}, schematables interface{}) *MockQuerier_GetDomainsByTables_Call {
+	return &MockQuerier_GetDomainsByTables_Call{Call: _e.mock.On("GetDomainsByTables", ctx, db, schematables)}
+}
+
+func (_c *MockQuerier_GetDomainsByTables_Call) Run(run func(ctx context.Context, db DBTX, schematables []string)) *MockQuerier_GetDomainsByTables_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].([]string))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetDomainsByTables_Call) Return(_a0 []*GetDomainsByTablesRow, _a1 error) *MockQuerier_GetDomainsByTables_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetDomainsByTables_Call) RunAndReturn(run func(context.Context, DBTX, []string) ([]*GetDomainsByTablesRow, error)) *MockQuerier_GetDomainsByTables_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetEnumTypesByTables provides a mock function with given fields: ctx, db, schematables
+func (_m *MockQuerier) GetEnumTypesByTables(ctx context.Context, db DBTX, schematables []string) ([]*GetEnumTypesByTablesRow, error) {
+	ret := _m.Called(ctx, db, schematables)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetEnumTypesByTables")
+	}
+
+	var r0 []*GetEnumTypesByTablesRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) ([]*GetEnumTypesByTablesRow, error)); ok {
+		return rf(ctx, db, schematables)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) []*GetEnumTypesByTablesRow); ok {
+		r0 = rf(ctx, db, schematables)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*GetEnumTypesByTablesRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, []string) error); ok {
+		r1 = rf(ctx, db, schematables)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetEnumTypesByTables_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetEnumTypesByTables'
+type MockQuerier_GetEnumTypesByTables_Call struct {
+	*mock.Call
+}
+
+// GetEnumTypesByTables is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - schematables []string
+func (_e *MockQuerier_Expecter) GetEnumTypesByTables(ctx interface{}, db interface{}, schematables interface{}) *MockQuerier_GetEnumTypesByTables_Call {
+	return &MockQuerier_GetEnumTypesByTables_Call{Call: _e.mock.On("GetEnumTypesByTables", ctx, db, schematables)}
+}
+
+func (_c *MockQuerier_GetEnumTypesByTables_Call) Run(run func(ctx context.Context, db DBTX, schematables []string)) *MockQuerier_GetEnumTypesByTables_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].([]string))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetEnumTypesByTables_Call) Return(_a0 []*GetEnumTypesByTablesRow, _a1 error) *MockQuerier_GetEnumTypesByTables_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetEnumTypesByTables_Call) RunAndReturn(run func(context.Context, DBTX, []string) ([]*GetEnumTypesByTablesRow, error)) *MockQuerier_GetEnumTypesByTables_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetExtensionsBySchemas provides a mock function with given fields: ctx, db, schema
 func (_m *MockQuerier) GetExtensionsBySchemas(ctx context.Context, db DBTX, schema []string) ([]*GetExtensionsBySchemasRow, error) {
 	ret := _m.Called(ctx, db, schema)
@@ -618,6 +798,66 @@ func (_c *MockQuerier_GetForeignKeyConstraintsBySchemas_Call) RunAndReturn(run f
 	return _c
 }
 
+// GetForeignKeyConstraintsBySchemasAndTables provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) GetForeignKeyConstraintsBySchemasAndTables(ctx context.Context, db DBTX, arg *GetForeignKeyConstraintsBySchemasAndTablesParams) ([]*GetForeignKeyConstraintsBySchemasAndTablesRow, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForeignKeyConstraintsBySchemasAndTables")
+	}
+
+	var r0 []*GetForeignKeyConstraintsBySchemasAndTablesRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetForeignKeyConstraintsBySchemasAndTablesParams) ([]*GetForeignKeyConstraintsBySchemasAndTablesRow, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetForeignKeyConstraintsBySchemasAndTablesParams) []*GetForeignKeyConstraintsBySchemasAndTablesRow); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*GetForeignKeyConstraintsBySchemasAndTablesRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, *GetForeignKeyConstraintsBySchemasAndTablesParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetForeignKeyConstraintsBySchemasAndTables_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetForeignKeyConstraintsBySchemasAndTables'
+type MockQuerier_GetForeignKeyConstraintsBySchemasAndTables_Call struct {
+	*mock.Call
+}
+
+// GetForeignKeyConstraintsBySchemasAndTables is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg *GetForeignKeyConstraintsBySchemasAndTablesParams
+func (_e *MockQuerier_Expecter) GetForeignKeyConstraintsBySchemasAndTables(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_GetForeignKeyConstraintsBySchemasAndTables_Call {
+	return &MockQuerier_GetForeignKeyConstraintsBySchemasAndTables_Call{Call: _e.mock.On("GetForeignKeyConstraintsBySchemasAndTables", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_GetForeignKeyConstraintsBySchemasAndTables_Call) Run(run func(ctx context.Context, db DBTX, arg *GetForeignKeyConstraintsBySchemasAndTablesParams)) *MockQuerier_GetForeignKeyConstraintsBySchemasAndTables_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(*GetForeignKeyConstraintsBySchemasAndTablesParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetForeignKeyConstraintsBySchemasAndTables_Call) Return(_a0 []*GetForeignKeyConstraintsBySchemasAndTablesRow, _a1 error) *MockQuerier_GetForeignKeyConstraintsBySchemasAndTables_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetForeignKeyConstraintsBySchemasAndTables_Call) RunAndReturn(run func(context.Context, DBTX, *GetForeignKeyConstraintsBySchemasAndTablesParams) ([]*GetForeignKeyConstraintsBySchemasAndTablesRow, error)) *MockQuerier_GetForeignKeyConstraintsBySchemasAndTables_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetIndicesBySchemasAndTables provides a mock function with given fields: ctx, db, schematables
 func (_m *MockQuerier) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetIndicesBySchemasAndTablesRow, error) {
 	ret := _m.Called(ctx, db, schematables)
@@ -734,6 +974,66 @@ func (_c *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call) Return(_a0 
 }
 
 func (_c *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call) RunAndReturn(run func(context.Context, DBTX, []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error)) *MockQuerier_GetNonForeignKeyTableConstraintsBySchema_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetNonForeignKeyTableConstraintsBySchemaAndTables provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) GetNonForeignKeyTableConstraintsBySchemaAndTables(ctx context.Context, db DBTX, arg *GetNonForeignKeyTableConstraintsBySchemaAndTablesParams) ([]*GetNonForeignKeyTableConstraintsBySchemaAndTablesRow, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetNonForeignKeyTableConstraintsBySchemaAndTables")
+	}
+
+	var r0 []*GetNonForeignKeyTableConstraintsBySchemaAndTablesRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetNonForeignKeyTableConstraintsBySchemaAndTablesParams) ([]*GetNonForeignKeyTableConstraintsBySchemaAndTablesRow, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetNonForeignKeyTableConstraintsBySchemaAndTablesParams) []*GetNonForeignKeyTableConstraintsBySchemaAndTablesRow); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*GetNonForeignKeyTableConstraintsBySchemaAndTablesRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, *GetNonForeignKeyTableConstraintsBySchemaAndTablesParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetNonForeignKeyTableConstraintsBySchemaAndTables_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetNonForeignKeyTableConstraintsBySchemaAndTables'
+type MockQuerier_GetNonForeignKeyTableConstraintsBySchemaAndTables_Call struct {
+	*mock.Call
+}
+
+// GetNonForeignKeyTableConstraintsBySchemaAndTables is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg *GetNonForeignKeyTableConstraintsBySchemaAndTablesParams
+func (_e *MockQuerier_Expecter) GetNonForeignKeyTableConstraintsBySchemaAndTables(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_GetNonForeignKeyTableConstraintsBySchemaAndTables_Call {
+	return &MockQuerier_GetNonForeignKeyTableConstraintsBySchemaAndTables_Call{Call: _e.mock.On("GetNonForeignKeyTableConstraintsBySchemaAndTables", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_GetNonForeignKeyTableConstraintsBySchemaAndTables_Call) Run(run func(ctx context.Context, db DBTX, arg *GetNonForeignKeyTableConstraintsBySchemaAndTablesParams)) *MockQuerier_GetNonForeignKeyTableConstraintsBySchemaAndTables_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(*GetNonForeignKeyTableConstraintsBySchemaAndTablesParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetNonForeignKeyTableConstraintsBySchemaAndTables_Call) Return(_a0 []*GetNonForeignKeyTableConstraintsBySchemaAndTablesRow, _a1 error) *MockQuerier_GetNonForeignKeyTableConstraintsBySchemaAndTables_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetNonForeignKeyTableConstraintsBySchemaAndTables_Call) RunAndReturn(run func(context.Context, DBTX, *GetNonForeignKeyTableConstraintsBySchemaAndTablesParams) ([]*GetNonForeignKeyTableConstraintsBySchemaAndTablesRow, error)) *MockQuerier_GetNonForeignKeyTableConstraintsBySchemaAndTables_Call {
 	_c.Call.Return(run)
 	return _c
 }
