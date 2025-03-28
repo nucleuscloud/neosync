@@ -323,11 +323,24 @@ func (p *PostgresManager) GetDataTypesByTables(ctx context.Context, tables []*sq
 	functions := []*sqlmanager_shared.DataType{}
 	errgrp.Go(func() error {
 		for schema, tables := range schemaTablesMap {
-			funcs, err := p.getFunctionsByTables(errctx, schema, tables)
-			if err != nil {
+			rows, err := p.querier.GetCustomFunctionsBySchemaAndTables(ctx, p.db, &pg_queries.GetCustomFunctionsBySchemaAndTablesParams{
+				Schema: schema,
+				Tables: tables,
+			})
+			if err != nil && !neosyncdb.IsNoRows(err) {
 				return err
+			} else if err != nil && neosyncdb.IsNoRows(err) {
+				return nil
 			}
-			functions = append(functions, funcs...)
+			for _, row := range rows {
+				function := &sqlmanager_shared.DataType{
+					Schema:     row.SchemaName,
+					Name:       row.FunctionName,
+					Definition: row.Definition,
+				}
+				function.Fingerprint = sqlmanager_shared.BuildFingerprint(function.Schema, function.Name, function.Definition)
+				functions = append(functions, function)
+			}
 		}
 		return nil
 	})
@@ -1229,7 +1242,10 @@ func BuildDropFunctionStatement(schema, functionName string) string {
 }
 
 func BuildUpdateFunctionStatement(schema, functionName, createStatement string) string {
-	return fmt.Sprintf("CREATE OR REPLACE FUNCTION %q.%q %s;", schema, functionName, addSuffixIfNotExist(createStatement, ";"))
+	if strings.Contains(strings.ToUpper(createStatement), "CREATE FUNCTION") && !strings.Contains(strings.ToUpper(createStatement), "CREATE OR REPLACE FUNCTION") {
+		createStatement = strings.Replace(strings.ToUpper(createStatement), "CREATE FUNCTION", "CREATE OR REPLACE FUNCTION", 1)
+	}
+	return createStatement
 }
 
 func BuildDropDatatypesStatement(schema, enumName string) string {

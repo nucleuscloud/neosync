@@ -379,11 +379,6 @@ func (d *PostgresSchemaManager) ReconcileDestinationSchema(ctx context.Context, 
 		if len(block.Statements) == 0 {
 			continue
 		}
-		for _, stmt := range block.Statements {
-			fmt.Println()
-			fmt.Println(stmt)
-			fmt.Println()
-		}
 		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 		if err != nil {
 			d.logger.Error(fmt.Sprintf("unable to exec postgres %s statements: %s", block.Label, err.Error()))
