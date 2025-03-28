@@ -59,7 +59,9 @@ func (a *Activity) RunPostTableSync(
 	req *RunPostTableSyncRequest,
 ) (*RunPostTableSyncResponse, error) {
 	activityInfo := activity.GetInfo(ctx)
-	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.ID))
+	session := connectionmanager.NewUniqueSession(
+		connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.ID),
+	)
 	externalId := shared.GetPostTableSyncConfigExternalId(req.Name)
 	loggerKeyVals := []any{
 		"accountId", req.AccountId,
@@ -74,13 +76,16 @@ func (a *Activity) RunPostTableSync(
 	logger.Debug("running post table sync activity")
 	slogger := temporallogger.NewSlogger(logger)
 
-	rcResp, err := a.jobclient.GetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
-		Id: &mgmtv1alpha1.RunContextKey{
-			JobRunId:   activityInfo.WorkflowExecution.ID,
-			ExternalId: externalId,
-			AccountId:  req.AccountId,
-		},
-	}))
+	rcResp, err := a.jobclient.GetRunContext(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
+			Id: &mgmtv1alpha1.RunContextKey{
+				JobRunId:   activityInfo.WorkflowExecution.ID,
+				ExternalId: externalId,
+				AccountId:  req.AccountId,
+			},
+		}),
+	)
 	if err != nil && runContextNotFound(err) {
 		slogger.Debug("no runcontext found. continuing")
 		return nil, nil
@@ -97,7 +102,11 @@ func (a *Activity) RunPostTableSync(
 	var config *shared.PostTableSyncConfig
 	err = json.Unmarshal(configBits, &config)
 	if err != nil {
-		return nil, fmt.Errorf("unable to unmarshal posttablesync runcontext for %s: %w", req.Name, err)
+		return nil, fmt.Errorf(
+			"unable to unmarshal posttablesync runcontext for %s: %w",
+			req.Name,
+			err,
+		)
 	}
 
 	if len(config.DestinationConfigs) == 0 {
@@ -114,13 +123,21 @@ func (a *Activity) RunPostTableSync(
 
 	errors := []*PostTableSyncError{}
 	for destConnectionId, destCfg := range config.DestinationConfigs {
-		slogger.Debug(fmt.Sprintf("found %d post table sync statements", len(destCfg.Statements)), "destinationConnectionId", destConnectionId)
+		slogger.Debug(
+			fmt.Sprintf("found %d post table sync statements", len(destCfg.Statements)),
+			"destinationConnectionId",
+			destConnectionId,
+		)
 		if len(destCfg.Statements) == 0 {
 			continue
 		}
 		destinationConnection, err := shared.GetConnectionById(ctx, a.connclient, destConnectionId)
 		if err != nil {
-			return nil, fmt.Errorf("unable to get destination connection (%s) by id: %w", destConnectionId, err)
+			return nil, fmt.Errorf(
+				"unable to get destination connection (%s) by id: %w",
+				destConnectionId,
+				err,
+			)
 		}
 		execErrors := &PostTableSyncError{
 			ConnectionId: destConnectionId,
@@ -161,5 +178,6 @@ func runContextNotFound(err error) bool {
 	if ok && connectErr.Code() == connect.CodeNotFound {
 		return true
 	}
-	return strings.Contains(err.Error(), "unable to find key") || strings.Contains(err.Error(), "no run context exists with the provided key")
+	return strings.Contains(err.Error(), "unable to find key") ||
+		strings.Contains(err.Error(), "no run context exists with the provided key")
 }

@@ -122,7 +122,9 @@ func serve(ctx context.Context) error {
 		slogger = slogger.With("nucleusEnv", neoEnv)
 	}
 
-	slog.SetDefault(slogger) // set default logger for methods that can't easily access the configured logger
+	slog.SetDefault(
+		slogger,
+	) // set default logger for methods that can't easily access the configured logger
 
 	eelicense, err := license.NewFromEnv()
 	if err != nil {
@@ -216,7 +218,11 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		slogger.Debug("DB_AUTO_MIGRATE is enabled, running migrations...", "migrationDir", schemaDir)
+		slogger.Debug(
+			"DB_AUTO_MIGRATE is enabled, running migrations...",
+			"migrationDir",
+			schemaDir,
+		)
 		if err := neomigrate.Up(
 			ctx,
 			neosyncdb.GetDbUrl(dbMigConfig),
@@ -260,7 +266,10 @@ func serve(ctx context.Context) error {
 	if otelconfig.IsEnabled {
 		slogger.Debug("otel is enabled")
 		tmPropagator := neosyncotel.NewDefaultPropagator()
-		otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes(), otelconnect.WithPropagator(tmPropagator)}
+		otelconnopts := []otelconnect.Option{
+			otelconnect.WithoutServerPeerAttributes(),
+			otelconnect.WithPropagator(tmPropagator),
+		}
 		traceProviders := []neosyncotel.TracerProvider{}
 		meterProviders := []neosyncotel.MeterProvider{}
 
@@ -283,14 +292,19 @@ func serve(ctx context.Context) error {
 			otelconnopts = append(otelconnopts, otelconnect.WithoutMetrics())
 		}
 
-		anonymizeMeterProvider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
-			Exporter:   otelconfig.MeterExporter,
-			AppVersion: otelconfig.ServiceVersion,
-			Opts: neosyncotel.MeterExporterOpts{
-				Otlp:    []otlpmetricgrpc.Option{neosyncotel.WithDefaultDeltaTemporalitySelector()},
-				Console: []stdoutmetric.Option{stdoutmetric.WithPrettyPrint()},
+		anonymizeMeterProvider, err := neosyncotel.NewMeterProvider(
+			ctx,
+			&neosyncotel.MeterProviderConfig{
+				Exporter:   otelconfig.MeterExporter,
+				AppVersion: otelconfig.ServiceVersion,
+				Opts: neosyncotel.MeterExporterOpts{
+					Otlp: []otlpmetricgrpc.Option{
+						neosyncotel.WithDefaultDeltaTemporalitySelector(),
+					},
+					Console: []stdoutmetric.Option{stdoutmetric.WithPrettyPrint()},
+				},
 			},
-		})
+		)
 		if err != nil {
 			return err
 		}
@@ -332,7 +346,9 @@ func serve(ctx context.Context) error {
 		})
 		defer func() {
 			if err := otelshutdown(context.Background()); err != nil {
-				slogger.Error(fmt.Errorf("unable to gracefully shutdown otel providers: %w", err).Error())
+				slogger.Error(
+					fmt.Errorf("unable to gracefully shutdown otel providers: %w", err).Error(),
+				)
 			}
 		}()
 	}
@@ -377,24 +393,29 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		apikeyClient := auth_apikey.New(db.Q, db.Db, getAllowedWorkerApiKeys(ncloudlicense.IsValid()), []string{
-			mgmtv1alpha1connect.JobServiceGetJobProcedure,
-			mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
-			mgmtv1alpha1connect.JobServiceSetRunContextProcedure,
-			mgmtv1alpha1connect.JobServiceSetRunContextsProcedure,
-			mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
-			mgmtv1alpha1connect.TransformersServiceGetUserDefinedTransformerByIdProcedure,
-			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionInitStatementsProcedure,
-			mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
-			mgmtv1alpha1connect.UserAccountServiceGetBillingAccountsProcedure,
-			mgmtv1alpha1connect.UserAccountServiceSetBillingMeterEventProcedure,
-			mgmtv1alpha1connect.MetricsServiceGetDailyMetricCountProcedure,
-			mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure,
-			mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure,
-			mgmtv1alpha1connect.AccountHookServiceGetActiveAccountHooksByEventProcedure,
-			mgmtv1alpha1connect.AccountHookServiceGetAccountHookProcedure,
-			mgmtv1alpha1connect.AccountHookServiceSendSlackMessageProcedure,
-		})
+		apikeyClient := auth_apikey.New(
+			db.Q,
+			db.Db,
+			getAllowedWorkerApiKeys(ncloudlicense.IsValid()),
+			[]string{
+				mgmtv1alpha1connect.JobServiceGetJobProcedure,
+				mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
+				mgmtv1alpha1connect.JobServiceSetRunContextProcedure,
+				mgmtv1alpha1connect.JobServiceSetRunContextsProcedure,
+				mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+				mgmtv1alpha1connect.TransformersServiceGetUserDefinedTransformerByIdProcedure,
+				mgmtv1alpha1connect.ConnectionDataServiceGetConnectionInitStatementsProcedure,
+				mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+				mgmtv1alpha1connect.UserAccountServiceGetBillingAccountsProcedure,
+				mgmtv1alpha1connect.UserAccountServiceSetBillingMeterEventProcedure,
+				mgmtv1alpha1connect.MetricsServiceGetDailyMetricCountProcedure,
+				mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure,
+				mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure,
+				mgmtv1alpha1connect.AccountHookServiceGetActiveAccountHooksByEventProcedure,
+				mgmtv1alpha1connect.AccountHookServiceGetAccountHookProcedure,
+				mgmtv1alpha1connect.AccountHookServiceSendSlackMessageProcedure,
+			},
+		)
 		stdAuthInterceptors = append(
 			stdAuthInterceptors,
 			auth_interceptor.NewInterceptor(
@@ -527,20 +548,30 @@ func serve(ctx context.Context) error {
 		accountHookOptions := []accounthooks.Option{accounthooks.WithAppBaseUrl(getAppBaseUrl())}
 		var slackClient ee_slack.Interface
 		if viper.GetBool("SLACK_ACCOUNT_HOOKS_ENABLED") {
-			encryptor, err := sym_encrypt.NewEncryptor(viper.GetString("NEOSYNC_SYM_ENCRYPTION_PASSWORD"))
+			encryptor, err := sym_encrypt.NewEncryptor(
+				viper.GetString("NEOSYNC_SYM_ENCRYPTION_PASSWORD"),
+			)
 			if err != nil {
 				return err
 			}
 			slackClient = ee_slack.NewClient(
 				encryptor,
-				ee_slack.WithAuthClientCreds(viper.GetString("SLACK_AUTH_CLIENT_ID"), viper.GetString("SLACK_AUTH_CLIENT_SECRET")),
+				ee_slack.WithAuthClientCreds(
+					viper.GetString("SLACK_AUTH_CLIENT_ID"),
+					viper.GetString("SLACK_AUTH_CLIENT_SECRET"),
+				),
 				ee_slack.WithScope(viper.GetString("SLACK_SCOPE")),
 				ee_slack.WithRedirectUrl(viper.GetString("SLACK_REDIRECT_URL")),
 			)
-			accountHookOptions = append(accountHookOptions, accounthooks.WithSlackClient(slackClient))
+			accountHookOptions = append(
+				accountHookOptions,
+				accounthooks.WithSlackClient(slackClient),
+			)
 		}
 
-		accountHookService := v1alpha1_accounthookservice.New(accounthooks.New(db, userdataclient, accountHookOptions...))
+		accountHookService := v1alpha1_accounthookservice.New(
+			accounthooks.New(db, userdataclient, accountHookOptions...),
+		)
 
 		api.Handle(
 			mgmtv1alpha1connect.NewAccountHookServiceHandler(
@@ -779,7 +810,11 @@ func getPromClientFromEnvironment() (promapi.Client, error) {
 	roundTripper := promapi.DefaultRoundTripper
 	promApiKey := getPromApiKey()
 	if promApiKey != nil {
-		roundTripper = promconfig.NewAuthorizationCredentialsRoundTripper("Bearer", promconfig.NewInlineSecret(*promApiKey), promapi.DefaultRoundTripper)
+		roundTripper = promconfig.NewAuthorizationCredentialsRoundTripper(
+			"Bearer",
+			promconfig.NewInlineSecret(*promApiKey),
+			promapi.DefaultRoundTripper,
+		)
 	}
 	return promapi.NewClient(promapi.Config{
 		Address:      getPromApiUrl(),
@@ -1044,7 +1079,11 @@ func getAllowedWorkerApiKeys(isNeosyncCloud bool) []string {
 	return []string{}
 }
 
-func getAuthAdminClient(ctx context.Context, authclient auth_client.Interface, logger *slog.Logger) (authmgmt.Interface, error) {
+func getAuthAdminClient(
+	ctx context.Context,
+	authclient auth_client.Interface,
+	logger *slog.Logger,
+) (authmgmt.Interface, error) {
 	authApiBaseUrl := getAuthApiBaseUrl()
 	authApiClientId := getAuthApiClientId()
 	authApiClientSecret := getAuthApiClientSecret()
@@ -1057,10 +1096,21 @@ func getAuthAdminClient(ctx context.Context, authclient auth_client.Interface, l
 		if err != nil {
 			return nil, err
 		}
-		tokenProvider := clientcredtokenprovider.New(tokenurl, authApiClientId, authApiClientSecret, keycloak.DefaultTokenExpirationBuffer, logger)
+		tokenProvider := clientcredtokenprovider.New(
+			tokenurl,
+			authApiClientId,
+			authApiClientSecret,
+			keycloak.DefaultTokenExpirationBuffer,
+			logger,
+		)
 		return keycloak.New(authApiBaseUrl, tokenProvider, logger)
 	}
-	logger.Warn(fmt.Sprintf("unable to initialize auth admin client due to unsupported provider: %q", provider))
+	logger.Warn(
+		fmt.Sprintf(
+			"unable to initialize auth admin client due to unsupported provider: %q",
+			provider,
+		),
+	)
 	return &authmgmt.UnimplementedClient{}, nil
 }
 
@@ -1123,7 +1173,9 @@ func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
 	case v1alpha1_jobservice.LokiRunLogType:
 		lokibaseurl := viper.GetString("RUN_LOGS_LOKICONFIG_BASEURL")
 		if lokibaseurl == "" {
-			return nil, errors.New("must provide loki baseurl when loki run log type has been configured")
+			return nil, errors.New(
+				"must provide loki baseurl when loki run log type has been configured",
+			)
 		}
 		labelsQuery := viper.GetString("RUN_LOGS_LOKICONFIG_LABELSQUERY")
 		if labelsQuery == "" {
@@ -1140,7 +1192,9 @@ func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
 			},
 		}, nil
 	default:
-		return nil, errors.New("unsupported or no run log type configured, but run logs are enabled")
+		return nil, errors.New(
+			"unsupported or no run log type configured, but run logs are enabled",
+		)
 	}
 }
 
@@ -1209,7 +1263,11 @@ func getStripePriceLookupMap() (billing.PriceQuantity, error) {
 		}
 		quantity, err := strconv.Atoi(v)
 		if err != nil {
-			return nil, fmt.Errorf("unable to parse value as int for billing quantity %q: %w", v, err)
+			return nil, fmt.Errorf(
+				"unable to parse value as int for billing quantity %q: %w",
+				v,
+				err,
+			)
 		}
 		output[k] = quantity
 	}
@@ -1239,7 +1297,10 @@ func getPresidioAnonymizeClient() (*presidioapi.ClientWithResponses, bool, error
 func getPresidioClient(endpoint string) (*presidioapi.ClientWithResponses, bool, error) {
 	httpclient := http_client.WithHeaders(&http.Client{}, getPresidioHttpHeaders())
 
-	client, err := presidioapi.NewClientWithResponses(endpoint, presidioapi.WithHTTPClient(httpclient))
+	client, err := presidioapi.NewClientWithResponses(
+		endpoint,
+		presidioapi.WithHTTPClient(httpclient),
+	)
 	if err != nil {
 		return nil, false, err
 	}

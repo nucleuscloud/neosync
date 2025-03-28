@@ -19,7 +19,10 @@ func ToUserDefinedTransformerDto(
 	source := mgmtv1alpha1.TransformerSource(input.Source)
 	transformer, ok := systemTransformers[source]
 	if !ok {
-		return nil, fmt.Errorf("source %d is valid, but was not found in system transformers map", input.Source)
+		return nil, fmt.Errorf(
+			"source %d is valid, but was not found in system transformers map",
+			input.Source,
+		)
 	}
 	return &mgmtv1alpha1.UserDefinedTransformer{
 		Id:          neosyncdb.UUIDString(input.ID),

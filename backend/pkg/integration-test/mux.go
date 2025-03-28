@@ -46,24 +46,26 @@ import (
 var (
 	validAuthUser = &authmgmt.User{Name: "foo", Email: "bar", Picture: "baz"}
 
-	authinterceptor = auth_interceptor.NewInterceptor(func(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
-		// will need to further fill this out as the tests grow
-		authuserid, err := utils.GetBearerTokenFromHeader(header, "Authorization")
-		if err != nil {
-			return nil, err
-		}
-		if apikey.IsValidV1WorkerKey(authuserid) {
-			return auth_apikey.SetTokenData(ctx, &auth_apikey.TokenContextData{
-				RawToken:   authuserid,
-				ApiKey:     nil,
-				ApiKeyType: apikey.WorkerApiKey,
+	authinterceptor = auth_interceptor.NewInterceptor(
+		func(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
+			// will need to further fill this out as the tests grow
+			authuserid, err := utils.GetBearerTokenFromHeader(header, "Authorization")
+			if err != nil {
+				return nil, err
+			}
+			if apikey.IsValidV1WorkerKey(authuserid) {
+				return auth_apikey.SetTokenData(ctx, &auth_apikey.TokenContextData{
+					RawToken:   authuserid,
+					ApiKey:     nil,
+					ApiKeyType: apikey.WorkerApiKey,
+				}), nil
+			}
+			return auth_jwt.SetTokenData(ctx, &auth_jwt.TokenContextData{
+				AuthUserId: authuserid,
+				Claims:     &auth_jwt.CustomClaims{Email: &validAuthUser.Email},
 			}), nil
-		}
-		return auth_jwt.SetTokenData(ctx, &auth_jwt.TokenContextData{
-			AuthUserId: authuserid,
-			Claims:     &auth_jwt.CustomClaims{Email: &validAuthUser.Email},
-		}), nil
-	})
+		},
+	)
 )
 
 const (
@@ -77,7 +79,11 @@ const (
 	neoCloudAuthenticatedLicensedPostfix = "/neosynccloud-authenticated"
 )
 
-func (s *NeosyncApiTestClient) setupOssUnauthenticatedLicensedMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer, logger *slog.Logger) (*http.ServeMux, error) {
+func (s *NeosyncApiTestClient) setupOssUnauthenticatedLicensedMux(
+	ctx context.Context,
+	pgcontainer *tcpostgres.PostgresTestContainer,
+	logger *slog.Logger,
+) (*http.ServeMux, error) {
 	isLicensed := true
 	isAuthEnabled := false
 	isNeosyncCloud := false
@@ -85,10 +91,21 @@ func (s *NeosyncApiTestClient) setupOssUnauthenticatedLicensedMux(ctx context.Co
 	if err != nil {
 		return nil, fmt.Errorf("unable to get enforced rbac client: %w", err)
 	}
-	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient, logger)
+	return s.setupMux(
+		pgcontainer,
+		isAuthEnabled,
+		isLicensed,
+		isNeosyncCloud,
+		enforcedRbacClient,
+		logger,
+	)
 }
 
-func (s *NeosyncApiTestClient) setupOssLicensedAuthMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer, logger *slog.Logger) (*http.ServeMux, error) {
+func (s *NeosyncApiTestClient) setupOssLicensedAuthMux(
+	ctx context.Context,
+	pgcontainer *tcpostgres.PostgresTestContainer,
+	logger *slog.Logger,
+) (*http.ServeMux, error) {
 	isLicensed := true
 	isAuthEnabled := true
 	isNeosyncCloud := false
@@ -96,18 +113,39 @@ func (s *NeosyncApiTestClient) setupOssLicensedAuthMux(ctx context.Context, pgco
 	if err != nil {
 		return nil, fmt.Errorf("unable to get enforced rbac client: %w", err)
 	}
-	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient, logger)
+	return s.setupMux(
+		pgcontainer,
+		isAuthEnabled,
+		isLicensed,
+		isNeosyncCloud,
+		enforcedRbacClient,
+		logger,
+	)
 }
 
-func (s *NeosyncApiTestClient) setupOssUnlicensedMux(pgcontainer *tcpostgres.PostgresTestContainer, logger *slog.Logger) (*http.ServeMux, error) {
+func (s *NeosyncApiTestClient) setupOssUnlicensedMux(
+	pgcontainer *tcpostgres.PostgresTestContainer,
+	logger *slog.Logger,
+) (*http.ServeMux, error) {
 	isLicensed := false
 	isAuthEnabled := false
 	isNeosyncCloud := false
 	permissiveRbacClient := rbac.NewAllowAllClient()
-	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, permissiveRbacClient, logger)
+	return s.setupMux(
+		pgcontainer,
+		isAuthEnabled,
+		isLicensed,
+		isNeosyncCloud,
+		permissiveRbacClient,
+		logger,
+	)
 }
 
-func (s *NeosyncApiTestClient) setupNeoCloudMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer, logger *slog.Logger) (*http.ServeMux, error) {
+func (s *NeosyncApiTestClient) setupNeoCloudMux(
+	ctx context.Context,
+	pgcontainer *tcpostgres.PostgresTestContainer,
+	logger *slog.Logger,
+) (*http.ServeMux, error) {
 	isLicensed := true
 	isAuthEnabled := true
 	isNeosyncCloud := true
@@ -115,7 +153,14 @@ func (s *NeosyncApiTestClient) setupNeoCloudMux(ctx context.Context, pgcontainer
 	if err != nil {
 		return nil, fmt.Errorf("unable to get enforced rbac client: %w", err)
 	}
-	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient, logger)
+	return s.setupMux(
+		pgcontainer,
+		isAuthEnabled,
+		isLicensed,
+		isNeosyncCloud,
+		enforcedRbacClient,
+		logger,
+	)
 }
 
 func (s *NeosyncApiTestClient) setupMux(
@@ -146,7 +191,11 @@ func (s *NeosyncApiTestClient) setupMux(
 	}
 
 	userService := v1alpha1_useraccountservice.New(
-		&v1alpha1_useraccountservice.Config{IsAuthEnabled: isAuthEnabled, IsNeosyncCloud: isNeosyncCloud, DefaultMaxAllowedRecords: &maxAllowed},
+		&v1alpha1_useraccountservice.Config{
+			IsAuthEnabled:            isAuthEnabled,
+			IsNeosyncCloud:           isNeosyncCloud,
+			DefaultMaxAllowedRecords: &maxAllowed,
+		},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		s.Mocks.TemporalConfigProvider,
 		s.Mocks.Authclient,
@@ -228,12 +277,17 @@ func (s *NeosyncApiTestClient) setupMux(
 	var presAnonClient presidioapi.AnonymizeInterface
 
 	anonymizationService := v1alpha_anonymizationservice.New(
-		&v1alpha_anonymizationservice.Config{IsPresidioEnabled: isPresidioEnabled, IsAuthEnabled: isAuthEnabled, IsNeosyncCloud: isNeosyncCloud},
+		&v1alpha_anonymizationservice.Config{
+			IsPresidioEnabled: isPresidioEnabled,
+			IsAuthEnabled:     isAuthEnabled,
+			IsNeosyncCloud:    isNeosyncCloud,
+		},
 		nil, // meter
 		userclient,
 		userService,
 		transformerService,
-		presAnalyzeClient, presAnonClient,
+		presAnalyzeClient,
+		presAnonClient,
 		neosyncDb,
 	)
 
@@ -299,8 +353,15 @@ func (s *NeosyncApiTestClient) setupMux(
 	return mux, nil
 }
 
-func (s *NeosyncApiTestClient) getEnforcedRbacClient(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer) (rbac.Interface, error) {
-	rbacenforcer, err := enforcer.NewActiveEnforcer(ctx, stdlib.OpenDBFromPool(pgcontainer.DB), "neosync_api.casbin_rule")
+func (s *NeosyncApiTestClient) getEnforcedRbacClient(
+	ctx context.Context,
+	pgcontainer *tcpostgres.PostgresTestContainer,
+) (rbac.Interface, error) {
+	rbacenforcer, err := enforcer.NewActiveEnforcer(
+		ctx,
+		stdlib.OpenDBFromPool(pgcontainer.DB),
+		"neosync_api.casbin_rule",
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create rbac enforcer: %w", err)
 	}

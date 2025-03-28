@@ -34,10 +34,13 @@ var (
 	header            = lipgloss.NewStyle().Faint(true).PaddingLeft(4)
 	bold              = lipgloss.NewStyle().Bold(true)
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(2).Height(1)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Height(1).Foreground(lipgloss.Color("170"))
-	paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
-	helpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
-	quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
+	selectedItemStyle = lipgloss.NewStyle().
+				PaddingLeft(2).
+				Height(1).
+				Foreground(lipgloss.Color("170"))
+	paginationStyle = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
+	helpStyle       = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
+	quitTextStyle   = lipgloss.NewStyle().Margin(1, 0, 2, 4)
 )
 
 func newSwitchCmd() *cobra.Command {
@@ -160,7 +163,8 @@ func switchAccount(
 
 	var account *mgmtv1alpha1.UserAccount
 	for _, a := range accounts {
-		if strings.EqualFold(a.Name, *accountIdOrName) || strings.EqualFold(a.Id, *accountIdOrName) {
+		if strings.EqualFold(a.Name, *accountIdOrName) ||
+			strings.EqualFold(a.Id, *accountIdOrName) {
 			account = a
 		}
 	}
@@ -174,7 +178,11 @@ func switchAccount(
 		return fmt.Errorf("unable to set account context: %w", err)
 	}
 
-	fmt.Println(itemStyle.Render(fmt.Sprintf("\n Switched account to %s (%s) \n", account.Name, account.Id))) //nolint:forbidigo
+	fmt.Println(
+		itemStyle.Render(
+			fmt.Sprintf("\n Switched account to %s (%s) \n", account.Name, account.Id),
+		),
+	) //nolint:forbidigo
 
 	return nil
 }
@@ -206,7 +214,13 @@ type itemDelegate struct{}
 func (d itemDelegate) Height() int                             { return 1 }
 func (d itemDelegate) Spacing() int                            { return 0 }
 func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
-func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) { //nolint:gocritic
+
+func (d itemDelegate) Render(
+	w io.Writer,
+	m list.Model,
+	index int,
+	listItem list.Item,
+) { //nolint:gocritic
 	i, ok := listItem.(item)
 	if !ok {
 		return
@@ -229,7 +243,11 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	}
 	if index == m.Index() {
 		fn = func(s ...string) string {
-			return fmt.Sprintf("%s%s", itemHeader, selectedItemStyle.Render("● "+strings.Join(s, " ")))
+			return fmt.Sprintf(
+				"%s%s",
+				itemHeader,
+				selectedItemStyle.Render("● "+strings.Join(s, " ")),
+			)
 		}
 	}
 
@@ -276,9 +294,13 @@ func (m *model) View() string {
 	if m.choice.description != "" {
 		err := userconfig.SetAccountId(m.choice.description)
 		if err != nil {
-			return quitTextStyle.Render(fmt.Sprintf("Failed to switch accounts. Error %s", err.Error()))
+			return quitTextStyle.Render(
+				fmt.Sprintf("Failed to switch accounts. Error %s", err.Error()),
+			)
 		}
-		return quitTextStyle.Render(fmt.Sprintf("Switched account to %s (%s)", m.choice.title, m.choice.description))
+		return quitTextStyle.Render(
+			fmt.Sprintf("Switched account to %s (%s)", m.choice.title, m.choice.description),
+		)
 	}
 	if m.quitting || m.choice.title == "Cancel" {
 		return quitTextStyle.Render("No changes made")

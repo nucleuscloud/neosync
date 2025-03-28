@@ -28,7 +28,8 @@ func (g GenerateEmailType) String() string {
 }
 
 func isValidEmailType(emailType string) bool {
-	return emailType == string(GenerateEmailType_UuidV4) || emailType == string(GenerateEmailType_FullName)
+	return emailType == string(GenerateEmailType_UuidV4) ||
+		emailType == string(GenerateEmailType_FullName)
 }
 
 func init() {
@@ -39,45 +40,57 @@ func init() {
 		Param(bloblang.NewStringParam("email_type").Default(GenerateEmailType_UuidV4.String()).Description("Specifies the type of email type to generate, with options including `uuidv4`, `fullname`, or `any`.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		maxLength, err := args.GetInt64("max_length")
-		if err != nil {
-			return nil, err
-		}
-		emailTypeArg, err := args.GetString("email_type")
-		if err != nil {
-			return nil, err
-		}
-		emailType := getEmailTypeOrDefault(emailTypeArg)
-
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-		randomizer := rng.New(seed)
-
-		var excludedDomains []string
-
-		return func() (any, error) {
-			output, err := generateRandomEmail(randomizer, maxLength, emailType, excludedDomains)
+	err := bloblang.RegisterFunctionV2(
+		"generate_email",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			maxLength, err := args.GetInt64("max_length")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run generate_email: %w", err)
+				return nil, err
 			}
-			return output, nil
-		}, nil
-	})
+			emailTypeArg, err := args.GetString("email_type")
+			if err != nil {
+				return nil, err
+			}
+			emailType := getEmailTypeOrDefault(emailTypeArg)
+
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+			randomizer := rng.New(seed)
+
+			var excludedDomains []string
+
+			return func() (any, error) {
+				output, err := generateRandomEmail(
+					randomizer,
+					maxLength,
+					emailType,
+					excludedDomains,
+				)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run generate_email: %w", err)
+				}
+				return output, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewGenerateEmailOptsFromConfig(config *mgmtv1alpha1.GenerateEmail, maxLength *int64) (*GenerateEmailOpts, error) {
+func NewGenerateEmailOptsFromConfig(
+	config *mgmtv1alpha1.GenerateEmail,
+	maxLength *int64,
+) (*GenerateEmailOpts, error) {
 	if config == nil {
 		return NewGenerateEmailOpts(nil, nil, nil)
 	}
@@ -100,7 +113,12 @@ func (t *GenerateEmail) Generate(opts any) (any, error) {
 
 	var excludedDomains []string
 
-	return generateRandomEmail(parsedOpts.randomizer, parsedOpts.maxLength, getEmailTypeOrDefault(parsedOpts.emailType), excludedDomains)
+	return generateRandomEmail(
+		parsedOpts.randomizer,
+		parsedOpts.maxLength,
+		getEmailTypeOrDefault(parsedOpts.emailType),
+		excludedDomains,
+	)
 }
 
 func getEmailTypeOrDefault(input string) GenerateEmailType {
@@ -110,7 +128,11 @@ func getEmailTypeOrDefault(input string) GenerateEmailType {
 	return GenerateEmailType_UuidV4
 }
 
-func getRandomEmailDomain(randomizer rng.Rand, maxLength int64, excludedDomains []string) (string, error) {
+func getRandomEmailDomain(
+	randomizer rng.Rand,
+	maxLength int64,
+	excludedDomains []string,
+) (string, error) {
 	return transformer_utils.GenerateStringFromCorpus(
 		randomizer,
 		transformers_dataset.EmailDomains,
@@ -123,7 +145,12 @@ func getRandomEmailDomain(randomizer rng.Rand, maxLength int64, excludedDomains 
 }
 
 /* Generates an email in the format <username@domain.tld> such as jdoe@gmail.com */
-func generateRandomEmail(randomizer rng.Rand, maxLength int64, emailType GenerateEmailType, excludedDomains []string) (string, error) {
+func generateRandomEmail(
+	randomizer rng.Rand,
+	maxLength int64,
+	emailType GenerateEmailType,
+	excludedDomains []string,
+) (string, error) {
 	if emailType == GenerateEmailType_Any {
 		emailType = getRandomEmailType(randomizer)
 	}
@@ -141,10 +168,17 @@ func getRandomEmailType(randomizer rng.Rand) GenerateEmailType {
 	return GenerateEmailType_FullName
 }
 
-func generateFullnameEmail(randomizer rng.Rand, maxLength int64, excludedDomains []string) (string, error) {
+func generateFullnameEmail(
+	randomizer rng.Rand,
+	maxLength int64,
+	excludedDomains []string,
+) (string, error) {
 	domainMaxLength := maxLength - 2 // is there enough room for at least one character and an @ sign
 	if (domainMaxLength) <= 0 {
-		return "", fmt.Errorf("for the given max length, unable to generate an email of sufficient length: %d", maxLength)
+		return "", fmt.Errorf(
+			"for the given max length, unable to generate an email of sufficient length: %d",
+			maxLength,
+		)
 	}
 
 	domain, err := getRandomEmailDomain(randomizer, domainMaxLength, excludedDomains)
@@ -152,7 +186,9 @@ func generateFullnameEmail(randomizer rng.Rand, maxLength int64, excludedDomains
 		return "", err
 	}
 
-	fullNameMaxLength := maxLength - int64(len(domain)) - 1 // original full length, minus the computed domain, minus an @ sign
+	fullNameMaxLength := maxLength - int64(
+		len(domain),
+	) - 1 // original full length, minus the computed domain, minus an @ sign
 
 	generatename, err := generateNameForEmail(randomizer, nil, fullNameMaxLength)
 	if err != nil {
@@ -198,8 +234,12 @@ func generateNameForEmail(randomizer rng.Rand, minLength *int64, maxLength int64
 		}
 	}
 
-	randomFirstName = strings.ToLower(transformer_utils.WithoutCharacters(randomFirstName, transformer_utils.SpecialChars))
-	randomLastName = strings.ToLower(transformer_utils.WithoutCharacters(randomLastName, transformer_utils.SpecialChars))
+	randomFirstName = strings.ToLower(
+		transformer_utils.WithoutCharacters(randomFirstName, transformer_utils.SpecialChars),
+	)
+	randomLastName = strings.ToLower(
+		transformer_utils.WithoutCharacters(randomLastName, transformer_utils.SpecialChars),
+	)
 
 	if randomFirstName == "" && randomLastName == "" {
 		return "", errors.New("unable to generate random first and/or last name for email")
@@ -221,19 +261,32 @@ func generateNameForEmail(randomizer rng.Rand, minLength *int64, maxLength int64
 	return fullname, nil
 }
 
-func generateUuidEmail(randomizer rng.Rand, maxLength int64, excludedDomains []string) (string, error) {
+func generateUuidEmail(
+	randomizer rng.Rand,
+	maxLength int64,
+	excludedDomains []string,
+) (string, error) {
 	domainMaxLength := maxLength - 2 // is there enough room for at least one character and an @ sign
 	if (domainMaxLength) <= 0 {
-		return "", fmt.Errorf("for the given max length, unable to generate an email of sufficient length: %d", maxLength)
+		return "", fmt.Errorf(
+			"for the given max length, unable to generate an email of sufficient length: %d",
+			maxLength,
+		)
 	}
 	domain, err := getRandomEmailDomain(randomizer, domainMaxLength, excludedDomains)
 	if err != nil {
-		return "", fmt.Errorf("unable to generate random email domain given the max length when generating a uuid email: %d", maxLength)
+		return "", fmt.Errorf(
+			"unable to generate random email domain given the max length when generating a uuid email: %d",
+			maxLength,
+		)
 	}
 	newuuid := strings.ReplaceAll(uuid.NewString(), "-", "")
 	trimmedUuid := transformer_utils.TrimStringIfExceeds(newuuid, maxLength-int64(len(domain))-1)
 	if trimmedUuid == "" { // todo: if this doesn't work, we should try with a different email domain to see if there is one that works. Maybe we could use the closest pair algorithm to find this
-		return "", fmt.Errorf("for the given max length, unable to use a uuid to generate an email for the given length: %d", maxLength)
+		return "", fmt.Errorf(
+			"for the given max length, unable to use a uuid to generate an email for the given length: %d",
+			maxLength,
+		)
 	}
 
 	return fmt.Sprintf("%s@%s", trimmedUuid, domain), nil

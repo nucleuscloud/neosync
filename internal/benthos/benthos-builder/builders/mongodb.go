@@ -26,7 +26,10 @@ func NewMongoDbSyncBuilder(
 	}
 }
 
-func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
+func (b *mongodbSyncBuilder) BuildSourceConfigs(
+	ctx context.Context,
+	params *bb_internal.SourceParams,
+) ([]*bb_internal.BenthosSourceConfig, error) {
 	sourceConnection := params.SourceConnection
 	job := params.Job
 	groupedMappings := groupMappingsByTable(job.GetMappings())
@@ -75,7 +78,17 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
-			runconfigs.NewRunConfig(runconfigId, schemaTable, runconfigType, []string{}, nil, columns, columns, nil, splitColumnPaths),
+			runconfigs.NewRunConfig(
+				runconfigId,
+				schemaTable,
+				runconfigType,
+				[]string{},
+				nil,
+				columns,
+				columns,
+				nil,
+				splitColumnPaths,
+			),
 			map[string][]*bb_internal.ReferenceKey{},
 			map[string][]*bb_internal.ReferenceKey{},
 			params.Job.Id,
@@ -114,30 +127,39 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_
 	return benthosConfigs, nil
 }
 
-func (b *mongodbSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
+func (b *mongodbSyncBuilder) BuildDestinationConfig(
+	ctx context.Context,
+	params *bb_internal.DestinationParams,
+) (*bb_internal.BenthosDestinationConfig, error) {
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	benthosConfig := params.SourceConfig
-	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.GetId()})
-	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{PooledMongoDB: &neosync_benthos.OutputMongoDb{
-		ConnectionId: params.DestConnection.GetId(),
+	config.BenthosDsns = append(
+		config.BenthosDsns,
+		&bb_shared.BenthosDsn{ConnectionId: params.DestConnection.GetId()},
+	)
+	config.Outputs = append(
+		config.Outputs,
+		neosync_benthos.Outputs{PooledMongoDB: &neosync_benthos.OutputMongoDb{
+			ConnectionId: params.DestConnection.GetId(),
 
-		Database:   benthosConfig.TableSchema,
-		Collection: benthosConfig.TableName,
-		Operation:  "update-one",
-		Upsert:     true,
-		DocumentMap: `
+			Database:   benthosConfig.TableSchema,
+			Collection: benthosConfig.TableName,
+			Operation:  "update-one",
+			Upsert:     true,
+			DocumentMap: `
 			root = {
 				"$set": this
 			}
 		`,
-		FilterMap: `
+			FilterMap: `
 			root._id = this._id
 		`,
-		WriteConcern: &neosync_benthos.MongoWriteConcern{
-			W: "1",
+			WriteConcern: &neosync_benthos.MongoWriteConcern{
+				W: "1",
+			},
 		},
-	},
-	})
+		},
+	)
 	return config, nil
 }

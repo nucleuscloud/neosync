@@ -19,7 +19,11 @@ import (
 )
 
 type ClientInterface interface {
-	GetDbSchemaFromPrefix(ctx context.Context, bucketName string, prefix string) ([]*mgmtv1alpha1.DatabaseColumn, error)
+	GetDbSchemaFromPrefix(
+		ctx context.Context,
+		bucketName string,
+		prefix string,
+	) ([]*mgmtv1alpha1.DatabaseColumn, error)
 	DoesPrefixContainTables(ctx context.Context, bucketName string, prefix string) (bool, error)
 	GetRecordStreamFromPrefix(
 		ctx context.Context,
@@ -146,7 +150,12 @@ func (c *Client) GetRecordStreamFromPrefix(
 			}
 			err = streamRecordsFromReader(reader, onRecord)
 			if closeErr := reader.Close(); closeErr != nil {
-				c.logger.Warn(fmt.Sprintf("failed to close reader while streaming records from prefix: %s", closeErr.Error()))
+				c.logger.Warn(
+					fmt.Sprintf(
+						"failed to close reader while streaming records from prefix: %s",
+						closeErr.Error(),
+					),
+				)
 			}
 			return err
 		})
@@ -154,7 +163,10 @@ func (c *Client) GetRecordStreamFromPrefix(
 	return errgrp.Wait()
 }
 
-func (c *Client) ListObjectPrefixes(ctx context.Context, bucketName, prefix, delimiter string) ([]string, error) {
+func (c *Client) ListObjectPrefixes(
+	ctx context.Context,
+	bucketName, prefix, delimiter string,
+) ([]string, error) {
 	prefixes := []string{}
 	it := c.client.Bucket(bucketName).Objects(ctx, &storage.Query{
 		Prefix:    prefix,
@@ -178,7 +190,10 @@ func (c *Client) getTableColumnsFromFile(
 	bucket *storage.BucketHandle,
 	prefix string,
 ) ([]string, error) {
-	dataiterator := bucket.Objects(ctx, &storage.Query{Prefix: fmt.Sprintf("%s/data", strings.TrimSuffix(prefix, "/"))})
+	dataiterator := bucket.Objects(
+		ctx,
+		&storage.Query{Prefix: fmt.Sprintf("%s/data", strings.TrimSuffix(prefix, "/"))},
+	)
 	columns := []string{}
 
 	var firstFile *storage.ObjectAttrs
@@ -205,7 +220,9 @@ func (c *Client) getTableColumnsFromFile(
 	}
 	defer func() {
 		if closeErr := reader.Close(); closeErr != nil {
-			c.logger.Warn(fmt.Sprintf("unable to successfully close gcs reader: %s", closeErr.Error()))
+			c.logger.Warn(
+				fmt.Sprintf("unable to successfully close gcs reader: %s", closeErr.Error()),
+			)
 		}
 	}()
 
@@ -229,7 +246,10 @@ func getSchemaTableFromPrefix(prefix string) (*sqlmanager_shared.SchemaTable, er
 	if len(schemaTableList) == 1 {
 		return &sqlmanager_shared.SchemaTable{Schema: "", Table: schemaTableList[0]}, nil
 	}
-	return &sqlmanager_shared.SchemaTable{Schema: schemaTableList[0], Table: schemaTableList[1]}, nil
+	return &sqlmanager_shared.SchemaTable{
+		Schema: schemaTableList[0],
+		Table:  schemaTableList[1],
+	}, nil
 }
 
 // Returns the prefix that contains the table folders in GCS
@@ -265,7 +285,10 @@ func getFirstRecordFromReader(reader io.Reader) (map[string]any, error) {
 	return result, nil
 }
 
-func streamRecordsFromReader(reader io.Reader, onRecord func(record map[string][]byte) error) error {
+func streamRecordsFromReader(
+	reader io.Reader,
+	onRecord func(record map[string][]byte) error,
+) error {
 	gzipReader, err := gzip.NewReader(reader)
 	if err != nil {
 		return fmt.Errorf("failed to create gzip reader: %w", err)
@@ -284,7 +307,10 @@ func streamRecordsFromReader(reader io.Reader, onRecord func(record map[string][
 
 		record, err := valToRecord(result)
 		if err != nil {
-			return fmt.Errorf("unable to convert record from map[string]any to map[string][]byte: %w", err)
+			return fmt.Errorf(
+				"unable to convert record from map[string]any to map[string][]byte: %w",
+				err,
+			)
 		}
 		err = onRecord(record)
 		if err != nil {

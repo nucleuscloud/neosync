@@ -81,7 +81,13 @@ func New(
 			addrs := []string{name}
 			resp, err := net.DefaultResolver.LookupHost(ctx, name)
 			if err != nil {
-				cfg.logger.Error("unable to lookup addrs for hostname during postgres tunnel dial", "name", name, "err", err)
+				cfg.logger.Error(
+					"unable to lookup addrs for hostname during postgres tunnel dial",
+					"name",
+					name,
+					"err",
+					err,
+				)
 			} else {
 				addrs = append(addrs, resp...)
 			}

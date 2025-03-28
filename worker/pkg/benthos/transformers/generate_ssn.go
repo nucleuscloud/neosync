@@ -17,22 +17,26 @@ func init() {
 		Category("string").
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_ssn", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
+	err := bloblang.RegisterFunctionV2(
+		"generate_ssn",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
 
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-		randomizer := rng.New(seed)
-		return func() (any, error) {
-			val := generateRandomSSN(randomizer)
-			return val, nil
-		}, nil
-	})
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+			randomizer := rng.New(seed)
+			return func() (any, error) {
+				val := generateRandomSSN(randomizer)
+				return val, nil
+			}, nil
+		},
+	)
 	if err != nil {
 		panic(err)
 	}

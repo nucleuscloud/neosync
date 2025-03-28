@@ -30,7 +30,10 @@ func ResolveAccountIdFromFlag(
 	}
 	if apiKey != nil && *apiKey != "" {
 		logger.Debug("api key detected, attempting to resolve account id from key.")
-		uaResp, err := userclient.GetUserAccounts(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}))
+		uaResp, err := userclient.GetUserAccounts(
+			ctx,
+			connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}),
+		)
 		if err != nil {
 			return "", fmt.Errorf("unable to resolve account id from api key: %w", err)
 		}
@@ -44,7 +47,10 @@ func ResolveAccountIdFromFlag(
 	}
 	accountId, err := userconfig.GetAccountId()
 	if err != nil {
-		return "", fmt.Errorf(`unable to resolve account id from account context, please use the "neosync accounts switch" command to set an active account context: %w`, err)
+		return "", fmt.Errorf(
+			`unable to resolve account id from account context, please use the "neosync accounts switch" command to set an active account context: %w`,
+			err,
+		)
 	}
 	logger.Debug(fmt.Sprintf("account id %q resolved from user config", accountId))
 	return accountId, nil

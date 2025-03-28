@@ -17,33 +17,39 @@ func init() {
 		Category("string").
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_zipcode", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			val, err := generateRandomZipcode(randomizer)
+	err := bloblang.RegisterFunctionV2(
+		"generate_zipcode",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			seedArg, err := args.GetOptionalInt64("seed")
 			if err != nil {
-				return nil, fmt.Errorf("failed to generate_zipcode: %w", err)
+				return nil, err
 			}
-			return val, nil
-		}, nil
-	})
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				val, err := generateRandomZipcode(randomizer)
+				if err != nil {
+					return nil, fmt.Errorf("failed to generate_zipcode: %w", err)
+				}
+				return val, nil
+			}, nil
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewGenerateZipcodeOptsFromConfig(config *mgmtv1alpha1.GenerateZipcode) (*GenerateZipcodeOpts, error) {
+func NewGenerateZipcodeOptsFromConfig(
+	config *mgmtv1alpha1.GenerateZipcode,
+) (*GenerateZipcodeOpts, error) {
 	return NewGenerateZipcodeOpts(nil)
 }
 

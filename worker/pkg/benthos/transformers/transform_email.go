@@ -50,89 +50,96 @@ func init() {
 		Param(bloblang.NewStringParam("email_type").Default(GenerateEmailType_UuidV4.String()).Description("Specifies the type of email to transform, with options including `uuidv4`, `fullname`, or `any`.")).
 		Param(bloblang.NewStringParam("invalid_email_action").Default(InvalidEmailAction_Reject.String()).Description("Specifies the action to take when an invalid email is encountered, with options including `reject`, `passthrough`, `null`, or `generate`."))
 
-	err := bloblang.RegisterFunctionV2("transform_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		emailPtr, err := args.GetOptionalString("value")
-		if err != nil {
-			return nil, err
-		}
-
-		var email string
-		if emailPtr != nil {
-			email = *emailPtr
-		}
-
-		preserveLength, err := args.GetBool("preserve_length")
-		if err != nil {
-			return nil, err
-		}
-
-		preserveDomain, err := args.GetBool("preserve_domain")
-		if err != nil {
-			return nil, err
-		}
-
-		maxLength, err := args.GetInt64("max_length")
-		if err != nil {
-			return nil, err
-		}
-
-		excludedDomainsArg, err := args.Get("excluded_domains")
-		if err != nil {
-			return nil, err
-		}
-
-		excludedDomains, err := fromAnyToStringSlice(excludedDomainsArg)
-		if err != nil {
-			return nil, err
-		}
-
-		emailTypeArg, err := args.GetString("email_type")
-		if err != nil {
-			return nil, err
-		}
-		emailType := getEmailTypeOrDefault(emailTypeArg)
-
-		invalidEmailActionArg, err := args.GetString("invalid_email_action")
-		if err != nil {
-			return nil, err
-		}
-		if !isValidInvalidEmailAction(invalidEmailActionArg) {
-			return nil, errors.New("not a valid invalid_email_action argument")
-		}
-
-		invalidEmailAction := InvalidEmailAction(invalidEmailActionArg)
-
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-		randomizer := rng.New(seed)
-		return func() (any, error) {
-			output, err := transformEmail(randomizer, email, transformeEmailOptions{
-				PreserveLength:     preserveLength,
-				PreserveDomain:     preserveDomain,
-				MaxLength:          maxLength,
-				ExcludedDomains:    excludedDomains,
-				EmailType:          emailType,
-				InvalidEmailAction: invalidEmailAction,
-			})
+	err := bloblang.RegisterFunctionV2(
+		"transform_email",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			emailPtr, err := args.GetOptionalString("value")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run transform_email: %w", err)
+				return nil, err
 			}
-			return output, nil
-		}, nil
-	})
+
+			var email string
+			if emailPtr != nil {
+				email = *emailPtr
+			}
+
+			preserveLength, err := args.GetBool("preserve_length")
+			if err != nil {
+				return nil, err
+			}
+
+			preserveDomain, err := args.GetBool("preserve_domain")
+			if err != nil {
+				return nil, err
+			}
+
+			maxLength, err := args.GetInt64("max_length")
+			if err != nil {
+				return nil, err
+			}
+
+			excludedDomainsArg, err := args.Get("excluded_domains")
+			if err != nil {
+				return nil, err
+			}
+
+			excludedDomains, err := fromAnyToStringSlice(excludedDomainsArg)
+			if err != nil {
+				return nil, err
+			}
+
+			emailTypeArg, err := args.GetString("email_type")
+			if err != nil {
+				return nil, err
+			}
+			emailType := getEmailTypeOrDefault(emailTypeArg)
+
+			invalidEmailActionArg, err := args.GetString("invalid_email_action")
+			if err != nil {
+				return nil, err
+			}
+			if !isValidInvalidEmailAction(invalidEmailActionArg) {
+				return nil, errors.New("not a valid invalid_email_action argument")
+			}
+
+			invalidEmailAction := InvalidEmailAction(invalidEmailActionArg)
+
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+			randomizer := rng.New(seed)
+			return func() (any, error) {
+				output, err := transformEmail(randomizer, email, transformeEmailOptions{
+					PreserveLength:     preserveLength,
+					PreserveDomain:     preserveDomain,
+					MaxLength:          maxLength,
+					ExcludedDomains:    excludedDomains,
+					EmailType:          emailType,
+					InvalidEmailAction: invalidEmailAction,
+				})
+				if err != nil {
+					return nil, fmt.Errorf("unable to run transform_email: %w", err)
+				}
+				return output, nil
+			}, nil
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewTransformEmailOptsFromConfig(config *mgmtv1alpha1.TransformEmail, maxLength *int64) (*TransformEmailOpts, error) {
+func NewTransformEmailOptsFromConfig(
+	config *mgmtv1alpha1.TransformEmail,
+	maxLength *int64,
+) (*TransformEmailOpts, error) {
 	if config == nil {
 		var excludedDomains any = "[]"
 		return NewTransformEmailOpts(nil, nil, &excludedDomains, nil, nil, nil, nil)
@@ -144,7 +151,9 @@ func NewTransformEmailOptsFromConfig(config *mgmtv1alpha1.TransformEmail, maxLen
 	}
 	var invalidEmailAction *string
 	if config.InvalidEmailAction != nil {
-		invalidEmailActionStr := dtoInvalidEmailActionToTransformerInvalidEmailAction(config.GetInvalidEmailAction()).String()
+		invalidEmailActionStr := dtoInvalidEmailActionToTransformerInvalidEmailAction(
+			config.GetInvalidEmailAction(),
+		).String()
 		invalidEmailAction = &invalidEmailActionStr
 	}
 	excludedDomainsStr, err := convertStringSliceToString(config.GetExcludedDomains())
@@ -260,7 +269,12 @@ func transformEmail(
 		case InvalidEmailAction_Null:
 			return nil, nil
 		case InvalidEmailAction_Generate:
-			newEmail, err := generateRandomEmail(randomizer, opts.MaxLength, opts.EmailType, opts.ExcludedDomains)
+			newEmail, err := generateRandomEmail(
+				randomizer,
+				opts.MaxLength,
+				opts.EmailType,
+				opts.ExcludedDomains,
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -293,7 +307,10 @@ func transformEmail(
 		domainMaxLength = int64(len(email)) - 3
 	}
 	if (domainMaxLength) <= 0 {
-		return nil, fmt.Errorf("for the given max length, unable to generate an email of sufficient length: %d", maxLength)
+		return nil, fmt.Errorf(
+			"for the given max length, unable to generate an email of sufficient length: %d",
+			maxLength,
+		)
 	}
 
 	newdomain := domain
@@ -319,7 +336,10 @@ func transformEmail(
 		newuuid := strings.ReplaceAll(uuid.NewString(), "-", "")
 		trimmeduuid := transformer_utils.TrimStringIfExceeds(newuuid, maxNameLength)
 		if trimmeduuid == "" {
-			return nil, fmt.Errorf("for the given max length, unable to use uuid to generate transformed email: %d", maxNameLength)
+			return nil, fmt.Errorf(
+				"for the given max length, unable to use uuid to generate transformed email: %d",
+				maxNameLength,
+			)
 		}
 		newname = trimmeduuid
 	} else {
@@ -343,7 +363,9 @@ func dtoEmailTypeToTransformerEmailType(dto mgmtv1alpha1.GenerateEmailType) Gene
 	}
 }
 
-func dtoInvalidEmailActionToTransformerInvalidEmailAction(dto mgmtv1alpha1.InvalidEmailAction) InvalidEmailAction {
+func dtoInvalidEmailActionToTransformerInvalidEmailAction(
+	dto mgmtv1alpha1.InvalidEmailAction,
+) InvalidEmailAction {
 	switch dto {
 	case mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_GENERATE:
 		return InvalidEmailAction_Generate

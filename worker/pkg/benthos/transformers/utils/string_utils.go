@@ -80,9 +80,16 @@ var (
 )
 
 // Generate a random alphanumeric string within the interval [min, max]
-func GenerateRandomStringWithInclusiveBounds(randomizer rng.Rand, minValue, maxValue int64) (string, error) {
+func GenerateRandomStringWithInclusiveBounds(
+	randomizer rng.Rand,
+	minValue, maxValue int64,
+) (string, error) {
 	if minValue < 0 || maxValue < 0 || minValue > maxValue {
-		return "", fmt.Errorf("invalid bounds when attempting to generate random string: [%d:%d]", minValue, maxValue)
+		return "", fmt.Errorf(
+			"invalid bounds when attempting to generate random string: [%d:%d]",
+			minValue,
+			maxValue,
+		)
 	}
 
 	// Cap the maximum length
@@ -176,7 +183,8 @@ func IsValidEmail(email string) bool {
 // use MaxASCII to ensure that the unicode value is only within the ASCII block which only contains latin numbers, letters and characters.
 func IsValidChar(s string) bool {
 	for _, r := range s {
-		if r > unicode.MaxASCII || (!unicode.IsNumber(r) && !unicode.IsLetter(r) && !unicode.IsSpace(r) && !IsAllowedSpecialChar(r)) {
+		if r > unicode.MaxASCII ||
+			(!unicode.IsNumber(r) && !unicode.IsLetter(r) && !unicode.IsSpace(r) && !IsAllowedSpecialChar(r)) {
 			return false
 		}
 	}
@@ -250,7 +258,10 @@ func GenerateStringFromCorpus(
 	excludedset := ToSet(exclusions)
 	idxCandidates := ClampInts(mapKeys, minLength, &maxLength)
 	if len(idxCandidates) == 0 {
-		return "", fmt.Errorf("unable to find candidates with range %s", getRangeText(minLength, maxLength))
+		return "", fmt.Errorf(
+			"unable to find candidates with range %s",
+			getRangeText(minLength, maxLength),
+		)
 	}
 
 	rangeIdxs := getRangeFromCandidates(idxCandidates, lengthMap)
@@ -258,7 +269,9 @@ func GenerateStringFromCorpus(
 	rightIdx := rangeIdxs[1]
 
 	if leftIdx == -1 || rightIdx == -1 {
-		return "", errors.New("unable to generate string from corpus due to invalid dictionary ranges")
+		return "", errors.New(
+			"unable to generate string from corpus due to invalid dictionary ranges",
+		)
 	}
 
 	attemptedValues := map[int64]struct{}{}
@@ -276,7 +289,9 @@ func GenerateStringFromCorpus(
 		}
 		return value, nil
 	}
-	return "", errors.New("unable to generate random value given the max length and excluded values")
+	return "", errors.New(
+		"unable to generate random value given the max length and excluded values",
+	)
 }
 
 func getRangeFromCandidates(candidates []int64, lengthMap map[int64][2]int) [2]int64 {

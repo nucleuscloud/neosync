@@ -133,7 +133,9 @@ type PostgresDriver struct {
 	options                 *InsertOptions
 }
 
-func (d *PostgresDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {
+func (d *PostgresDriver) BuildInsertQuery(
+	rows []map[string]any,
+) (query string, queryargs []any, err error) {
 	insertQuery, args, err := d.buildInsertQuery(rows)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to build postgres insert query: %w", err)
@@ -145,7 +147,9 @@ func (d *PostgresDriver) BuildInsertQuery(rows []map[string]any) (query string, 
 	return insertQuery, args, nil
 }
 
-func (d *PostgresDriver) buildInsertQuery(rows []map[string]any) (sql string, args []any, err error) {
+func (d *PostgresDriver) buildInsertQuery(
+	rows []map[string]any,
+) (sql string, args []any, err error) {
 	goquRows := toGoquRecords(rows)
 	if d.options.conflictConfig.onConflictDoUpdate != nil {
 		if len(rows) == 0 {
@@ -160,21 +164,43 @@ func (d *PostgresDriver) buildInsertQuery(rows []map[string]any) (sql string, ar
 				updateColumns = append(updateColumns, col)
 			}
 		}
-		if len(d.options.conflictConfig.onConflictDoUpdate.conflictColumns) == 0 || len(updateColumns) == 0 {
-			d.logger.Warn("no conflict columns specified for on conflict do update, defaulting to on conflict do nothing")
+		if len(d.options.conflictConfig.onConflictDoUpdate.conflictColumns) == 0 ||
+			len(updateColumns) == 0 {
+			d.logger.Warn(
+				"no conflict columns specified for on conflict do update, defaulting to on conflict do nothing",
+			)
 			onConflictDoNothing := true
-			insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &onConflictDoNothing)
+			insertQuery, args, err := BuildInsertQuery(
+				d.driver,
+				d.schema,
+				d.table,
+				goquRows,
+				&onConflictDoNothing,
+			)
 			if err != nil {
-				return "", nil, fmt.Errorf("failed to build insert query on conflict do nothing fallback: %w", err)
+				return "", nil, fmt.Errorf(
+					"failed to build insert query on conflict do nothing fallback: %w",
+					err,
+				)
 			}
 			return insertQuery, args, nil
 		}
 
-		return d.buildInsertOnConflictDoUpdateQuery(goquRows, d.options.conflictConfig.onConflictDoUpdate.conflictColumns, updateColumns)
+		return d.buildInsertOnConflictDoUpdateQuery(
+			goquRows,
+			d.options.conflictConfig.onConflictDoUpdate.conflictColumns,
+			updateColumns,
+		)
 	}
 
 	onConflictDoNothing := d.options.conflictConfig.onConflictDoNothing != nil
-	insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &onConflictDoNothing)
+	insertQuery, args, err := BuildInsertQuery(
+		d.driver,
+		d.schema,
+		d.table,
+		goquRows,
+		&onConflictDoNothing,
+	)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to build insert query: %w", err)
 	}
@@ -212,7 +238,9 @@ type MysqlDriver struct {
 	options                 *InsertOptions
 }
 
-func (d *MysqlDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {
+func (d *MysqlDriver) BuildInsertQuery(
+	rows []map[string]any,
+) (query string, queryargs []any, err error) {
 	goquRows := toGoquRecords(rows)
 
 	if d.options.conflictConfig.onConflictDoUpdate != nil {
@@ -235,7 +263,13 @@ func (d *MysqlDriver) BuildInsertQuery(rows []map[string]any) (query string, que
 	}
 
 	onConflictDoNothing := d.options.conflictConfig.onConflictDoNothing != nil
-	insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &onConflictDoNothing)
+	insertQuery, args, err := BuildInsertQuery(
+		d.driver,
+		d.schema,
+		d.table,
+		goquRows,
+		&onConflictDoNothing,
+	)
 	if err != nil {
 		return "", nil, err
 	}
@@ -279,7 +313,9 @@ type MssqlDriver struct {
 	options                 *InsertOptions
 }
 
-func (d *MssqlDriver) BuildInsertQuery(rows []map[string]any) (query string, queryargs []any, err error) {
+func (d *MssqlDriver) BuildInsertQuery(
+	rows []map[string]any,
+) (query string, queryargs []any, err error) {
 	if len(rows) == 0 || areAllRowsEmpty(rows) {
 		return getSqlServerDefaultValuesInsertSql(d.schema, d.table, len(rows)), []any{}, nil
 	}
@@ -287,7 +323,13 @@ func (d *MssqlDriver) BuildInsertQuery(rows []map[string]any) (query string, que
 	goquRows := toGoquRecords(rows)
 
 	onConflictDoNothing := d.options.conflictConfig.onConflictDoNothing != nil
-	insertQuery, args, err := BuildInsertQuery(d.driver, d.schema, d.table, goquRows, &onConflictDoNothing)
+	insertQuery, args, err := BuildInsertQuery(
+		d.driver,
+		d.schema,
+		d.table,
+		goquRows,
+		&onConflictDoNothing,
+	)
 	if err != nil {
 		return "", nil, err
 	}

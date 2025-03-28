@@ -15,7 +15,11 @@ type ConfigProvider interface {
 }
 
 type DB interface {
-	GetTemporalConfigByAccount(ctx context.Context, db db_queries.DBTX, accountId pgtype.UUID) (*pg_models.TemporalConfig, error)
+	GetTemporalConfigByAccount(
+		ctx context.Context,
+		db db_queries.DBTX,
+		accountId pgtype.UUID,
+	) (*pg_models.TemporalConfig, error)
 }
 
 type DBConfigProvider struct {
@@ -24,7 +28,11 @@ type DBConfigProvider struct {
 	dbtx          db_queries.DBTX
 }
 
-func NewDBConfigProvider(defaultConfig *TemporalConfig, db DB, dbtx db_queries.DBTX) *DBConfigProvider {
+func NewDBConfigProvider(
+	defaultConfig *TemporalConfig,
+	db DB,
+	dbtx db_queries.DBTX,
+) *DBConfigProvider {
 	return &DBConfigProvider{
 		defaultConfig: defaultConfig,
 		db:            db,
@@ -32,7 +40,10 @@ func NewDBConfigProvider(defaultConfig *TemporalConfig, db DB, dbtx db_queries.D
 	}
 }
 
-func (p *DBConfigProvider) GetConfig(ctx context.Context, accountID string) (*TemporalConfig, error) {
+func (p *DBConfigProvider) GetConfig(
+	ctx context.Context,
+	accountID string,
+) (*TemporalConfig, error) {
 	accountUuid, err := neosyncdb.ToUuid(accountID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid account ID: %w", err)

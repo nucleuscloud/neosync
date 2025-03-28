@@ -21,7 +21,9 @@ func NewMySQLBuilder() *builder.Builder[*sql.Rows] {
 	}
 }
 
-func (m *MySQLMapper) MapRecordWithKeyType(rows *sql.Rows) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
+func (m *MySQLMapper) MapRecordWithKeyType(
+	rows *sql.Rows,
+) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
 	return nil, nil, errors.ErrUnsupported
 }
 
@@ -55,7 +57,10 @@ func (m *MySQLMapper) MapRecord(rows *sql.Rows) (map[string]any, error) {
 	return jObj, nil
 }
 
-func parseMysqlRowValues(values []any, columnNames, columnDbTypes []string) (map[string]any, error) {
+func parseMysqlRowValues(
+	values []any,
+	columnNames, columnDbTypes []string,
+) (map[string]any, error) {
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]

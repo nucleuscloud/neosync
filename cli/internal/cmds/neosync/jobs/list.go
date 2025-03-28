@@ -39,7 +39,8 @@ func newListCmd() *cobra.Command {
 			return listJobs(cmd.Context(), debugMode, &apiKey, &accountId)
 		},
 	}
-	cmd.Flags().String("account-id", "", "Account to list jobs for. Defaults to account id in cli context")
+	cmd.Flags().
+		String("account-id", "", "Account to list jobs for. Defaults to account id in cli context")
 	return cmd
 }
 
@@ -68,9 +69,12 @@ func listJobs(
 		httpclient,
 		neosyncurl,
 	)
-	res, err := jobclient.GetJobs(ctx, connect.NewRequest[mgmtv1alpha1.GetJobsRequest](&mgmtv1alpha1.GetJobsRequest{
-		AccountId: accountId,
-	}))
+	res, err := jobclient.GetJobs(
+		ctx,
+		connect.NewRequest[mgmtv1alpha1.GetJobsRequest](&mgmtv1alpha1.GetJobsRequest{
+			AccountId: accountId,
+		}),
+	)
 	if err != nil {
 		return err
 	}
@@ -80,9 +84,14 @@ func listJobs(
 	for idx := range res.Msg.Jobs {
 		idx := idx
 		errgrp.Go(func() error {
-			jsres, err := jobclient.GetJobStatus(errctx, connect.NewRequest[mgmtv1alpha1.GetJobStatusRequest](&mgmtv1alpha1.GetJobStatusRequest{
-				JobId: res.Msg.Jobs[idx].Id,
-			}))
+			jsres, err := jobclient.GetJobStatus(
+				errctx,
+				connect.NewRequest[mgmtv1alpha1.GetJobStatusRequest](
+					&mgmtv1alpha1.GetJobStatusRequest{
+						JobId: res.Msg.Jobs[idx].Id,
+					},
+				),
+			)
 			if err != nil {
 				return err
 			}

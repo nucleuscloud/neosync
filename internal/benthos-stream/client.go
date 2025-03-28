@@ -25,7 +25,9 @@ func NewBenthosStreamManager() *BenthosStreamManager {
 	return &BenthosStreamManager{}
 }
 
-func (b *BenthosStreamManager) NewBenthosStreamFromBuilder(streambldr *service.StreamBuilder) (BenthosStreamClient, error) {
+func (b *BenthosStreamManager) NewBenthosStreamFromBuilder(
+	streambldr *service.StreamBuilder,
+) (BenthosStreamClient, error) {
 	stream, err := streambldr.Build()
 	if err != nil {
 		return nil, err

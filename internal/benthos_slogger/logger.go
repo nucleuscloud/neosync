@@ -20,7 +20,10 @@ func (h *benthosLogHandler) Enabled(ctx context.Context, level slog.Level) bool 
 	return true
 }
 
-func (h *benthosLogHandler) Handle(ctx context.Context, r slog.Record) error { //nolint:gocritic // Needs to conform to the slog.Handler interface
+func (h *benthosLogHandler) Handle(
+	ctx context.Context,
+	r slog.Record,
+) error { //nolint:gocritic // Needs to conform to the slog.Handler interface
 	// Combine pre-defined attrs with record attrs
 	allAttrs := make([]slog.Attr, 0, len(h.attrs)+r.NumAttrs())
 	allAttrs = append(allAttrs, h.attrs...)

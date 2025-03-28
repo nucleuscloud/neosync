@@ -24,10 +24,18 @@ func NewProvider(
 	session connectionmanager.SessionInterface,
 	logger *slog.Logger,
 ) *Provider {
-	return &Provider{connmanager: connmanager, getConnection: getConnection, session: session, logger: logger}
+	return &Provider{
+		connmanager:   connmanager,
+		getConnection: getConnection,
+		session:       session,
+		logger:        logger,
+	}
 }
 
-func (p *Provider) GetClient(ctx context.Context, connectionId string) (neosync_benthos_mongodb.MongoClient, error) {
+func (p *Provider) GetClient(
+	ctx context.Context,
+	connectionId string,
+) (neosync_benthos_mongodb.MongoClient, error) {
 	conn, err := p.getConnection(connectionId)
 	if err != nil {
 		return nil, err

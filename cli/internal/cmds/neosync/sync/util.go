@@ -25,7 +25,10 @@ func parseDriverString(str string) (DriverType, bool) {
 	return p, ok
 }
 
-func isConfigReady(config *benthosbuilder.BenthosConfigResponse, queuedMap map[string][]string) bool {
+func isConfigReady(
+	config *benthosbuilder.BenthosConfigResponse,
+	queuedMap map[string][]string,
+) bool {
 	for _, dep := range config.DependsOn {
 		if cols, ok := queuedMap[dep.Table]; ok {
 			for _, dc := range dep.Columns {
@@ -40,7 +43,10 @@ func isConfigReady(config *benthosbuilder.BenthosConfigResponse, queuedMap map[s
 	return true
 }
 
-func groupConfigsByDependency(configs []*benthosbuilder.BenthosConfigResponse, logger *slog.Logger) [][]*benthosbuilder.BenthosConfigResponse {
+func groupConfigsByDependency(
+	configs []*benthosbuilder.BenthosConfigResponse,
+	logger *slog.Logger,
+) [][]*benthosbuilder.BenthosConfigResponse {
 	groupedConfigs := [][]*benthosbuilder.BenthosConfigResponse{}
 	configMap := map[string]*benthosbuilder.BenthosConfigResponse{}
 	queuedMap := map[string][]string{} // map -> table to cols
@@ -119,7 +125,10 @@ func buildDependencyMap(syncConfigs []*runconfigs.RunConfig) map[string][]string
 	return dependencyMap
 }
 
-func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destinationDriver *DriverType) error {
+func areSourceAndDestCompatible(
+	connection *mgmtv1alpha1.Connection,
+	destinationDriver *DriverType,
+) error {
 	switch connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		if destinationDriver != nil && *destinationDriver != postgresDriver {

@@ -24,7 +24,10 @@ type MssqlTestSyncContainer struct {
 	Target *MssqlTestContainer
 }
 
-func NewMssqlTestSyncContainer(ctx context.Context, sourceOpts, destOpts []Option) (*MssqlTestSyncContainer, error) {
+func NewMssqlTestSyncContainer(
+	ctx context.Context,
+	sourceOpts, destOpts []Option,
+) (*MssqlTestSyncContainer, error) {
 	tc := &MssqlTestSyncContainer{}
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
@@ -139,7 +142,8 @@ func setup(ctx context.Context, cfg *mssqlTestContainerConfig) (*MssqlTestContai
 			testutil.WithDockerFile(mssqlDf),
 		)
 	}
-	mssqlcontainer, err := testmssql.Run(ctx,
+	mssqlcontainer, err := testmssql.Run(
+		ctx,
 		"mcr.microsoft.com/mssql/server:2022-latest", // WithDockerFile overrides the image and updates it to be empty
 		tcOpts...,
 	)
@@ -234,7 +238,11 @@ func (m *MssqlTestContainer) TearDown(ctx context.Context) error {
 }
 
 // Executes SQL files within the test container
-func (m *MssqlTestContainer) RunSqlFiles(ctx context.Context, folder *string, files []string) error {
+func (m *MssqlTestContainer) RunSqlFiles(
+	ctx context.Context,
+	folder *string,
+	files []string,
+) error {
 	for _, file := range files {
 		filePath := file
 		if folder != nil && *folder != "" {
@@ -252,7 +260,12 @@ func (m *MssqlTestContainer) RunSqlFiles(ctx context.Context, folder *string, fi
 	return nil
 }
 
-func (m *MssqlTestContainer) RunCreateStmtsInSchema(ctx context.Context, folder string, files []string, schema string) error {
+func (m *MssqlTestContainer) RunCreateStmtsInSchema(
+	ctx context.Context,
+	folder string,
+	files []string,
+	schema string,
+) error {
 	for _, file := range files {
 		filePath := file
 		if folder != "" {
@@ -295,7 +308,10 @@ func (m *MssqlTestContainer) DropSchemas(ctx context.Context, schemas []string) 
 	return nil
 }
 
-func (m *MssqlTestContainer) GetTableRowCount(ctx context.Context, schema, table string) (int, error) {
+func (m *MssqlTestContainer) GetTableRowCount(
+	ctx context.Context,
+	schema, table string,
+) (int, error) {
 	rows := m.DB.QueryRowContext(ctx, fmt.Sprintf("SELECT COUNT(*) FROM [%s].[%s];", schema, table))
 	var count int
 	err := rows.Scan(&count)

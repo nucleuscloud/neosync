@@ -94,7 +94,9 @@ func BuildOrderedForeignKeyConstraintsToDrop(
 	// Either forcibly drop them or return an error. Here, we forcibly handle them (like your code).
 	hadCycle := (len(topoOrder) < len(inDegree))
 	if hadCycle {
-		logger.Warn("Cycle detected among foreign keys. Forcibly dropping all remaining constraints.")
+		logger.Warn(
+			"Cycle detected among foreign keys. Forcibly dropping all remaining constraints.",
+		)
 	}
 
 	// If no cycle, we can produce a stable drop order for "normal" FKs:

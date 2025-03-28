@@ -21,53 +21,60 @@ func init() {
 		Param(bloblang.NewBoolParam("preserve_length").Default(false).Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used for generating deterministic transformations."))
 
-	err := bloblang.RegisterFunctionV2("transform_last_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		valuePtr, err := args.GetOptionalString("value")
-		if err != nil {
-			return nil, err
-		}
-
-		var value string
-		if valuePtr != nil {
-			value = *valuePtr
-		}
-		preserveLength, err := args.GetBool("preserve_length")
-		if err != nil {
-			return nil, err
-		}
-
-		maxLength, err := args.GetInt64("max_length")
-		if err != nil {
-			return nil, err
-		}
-
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			res, err := transformLastName(randomizer, value, preserveLength, maxLength)
+	err := bloblang.RegisterFunctionV2(
+		"transform_last_name",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			valuePtr, err := args.GetOptionalString("value")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run transform_last_name: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+
+			var value string
+			if valuePtr != nil {
+				value = *valuePtr
+			}
+			preserveLength, err := args.GetBool("preserve_length")
+			if err != nil {
+				return nil, err
+			}
+
+			maxLength, err := args.GetInt64("max_length")
+			if err != nil {
+				return nil, err
+			}
+
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				res, err := transformLastName(randomizer, value, preserveLength, maxLength)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run transform_last_name: %w", err)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewTransformLastNameOptsFromConfig(config *mgmtv1alpha1.TransformLastName, maxLength *int64) (*TransformLastNameOpts, error) {
+func NewTransformLastNameOptsFromConfig(
+	config *mgmtv1alpha1.TransformLastName,
+	maxLength *int64,
+) (*TransformLastNameOpts, error) {
 	if config == nil {
 		return NewTransformLastNameOpts(nil, nil, nil)
 	}
@@ -89,11 +96,21 @@ func (t *TransformLastName) Transform(value, opts any) (any, error) {
 		return nil, errors.New("value is not a string")
 	}
 
-	return transformLastName(parsedOpts.randomizer, valueStr, parsedOpts.preserveLength, parsedOpts.maxLength)
+	return transformLastName(
+		parsedOpts.randomizer,
+		valueStr,
+		parsedOpts.preserveLength,
+		parsedOpts.maxLength,
+	)
 }
 
 // Generates a random last name which can be of either random length between [2,12] characters or as long as the input name
-func transformLastName(randomizer rng.Rand, name string, preserveLength bool, maxLength int64) (*string, error) {
+func transformLastName(
+	randomizer rng.Rand,
+	name string,
+	preserveLength bool,
+	maxLength int64,
+) (*string, error) {
 	if name == "" {
 		return nil, nil
 	}
@@ -118,7 +135,10 @@ func transformLastName(randomizer rng.Rand, name string, preserveLength bool, ma
 
 	// pad the string so that we can get the correct value
 	if preserveLength && int64(len(output)) != maxValue {
-		output += transformer_utils.GetRandomCharacterString(randomizer, maxValue-int64(len(output)))
+		output += transformer_utils.GetRandomCharacterString(
+			randomizer,
+			maxValue-int64(len(output)),
+		)
 	}
 	return &output, nil
 }

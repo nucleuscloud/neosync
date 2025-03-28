@@ -21,7 +21,9 @@ func NewMSSQLBuilder() *builder.Builder[*sql.Rows] {
 	}
 }
 
-func (m *MSSQLMapper) MapRecordWithKeyType(rows *sql.Rows) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
+func (m *MSSQLMapper) MapRecordWithKeyType(
+	rows *sql.Rows,
+) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
 	return nil, nil, errors.ErrUnsupported
 }
 

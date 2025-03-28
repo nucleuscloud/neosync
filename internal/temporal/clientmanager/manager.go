@@ -25,24 +25,107 @@ type DescribeSchedulesResponse struct {
 }
 
 type Interface interface {
-	DoesAccountHaveNamespace(ctx context.Context, accountId string, logger *slog.Logger) (bool, error)
+	DoesAccountHaveNamespace(
+		ctx context.Context,
+		accountId string,
+		logger *slog.Logger,
+	) (bool, error)
 	GetSyncJobTaskQueue(ctx context.Context, accountId string, logger *slog.Logger) (string, error)
 
-	CreateSchedule(ctx context.Context, accountId string, opts *temporalclient.ScheduleOptions, logger *slog.Logger) (string, error)
-	TriggerSchedule(ctx context.Context, accountId string, scheduleId string, opts *temporalclient.ScheduleTriggerOptions, logger *slog.Logger) error
-	PauseSchedule(ctx context.Context, accountId string, scheduleId string, opts *temporalclient.SchedulePauseOptions, logger *slog.Logger) error
-	UnpauseSchedule(ctx context.Context, accountId string, scheduleId string, opts *temporalclient.ScheduleUnpauseOptions, logger *slog.Logger) error
-	UpdateSchedule(ctx context.Context, accountId string, scheduleId string, opts *temporalclient.ScheduleUpdateOptions, logger *slog.Logger) error
-	DescribeSchedule(ctx context.Context, accountId string, scheduleId string, logger *slog.Logger) (*temporalclient.ScheduleDescription, error)
-	DescribeSchedules(ctx context.Context, accountId string, scheduleIds []string, logger *slog.Logger) ([]*DescribeSchedulesResponse, error)
-	DeleteSchedule(ctx context.Context, accountId string, scheduleId string, logger *slog.Logger) error
-	GetWorkflowExecutionById(ctx context.Context, accountId string, workflowId string, logger *slog.Logger) (*workflowpb.WorkflowExecutionInfo, error)
-	DeleteWorkflowExecution(ctx context.Context, accountId string, workflowId string, logger *slog.Logger) error
-	GetWorkflowExecutionsByScheduleIds(ctx context.Context, accountId string, scheduleIds []string, logger *slog.Logger) ([]*workflowpb.WorkflowExecutionInfo, error)
-	DescribeWorklowExecution(ctx context.Context, accountId string, workflowId string, logger *slog.Logger) (*workflowservice.DescribeWorkflowExecutionResponse, error)
-	CancelWorkflow(ctx context.Context, accountId string, workflowId string, logger *slog.Logger) error
-	TerminateWorkflow(ctx context.Context, accountId string, workflowId string, logger *slog.Logger) error
-	GetWorkflowHistory(ctx context.Context, accountId string, workflowId string, logger *slog.Logger) (temporalclient.HistoryEventIterator, error)
+	CreateSchedule(
+		ctx context.Context,
+		accountId string,
+		opts *temporalclient.ScheduleOptions,
+		logger *slog.Logger,
+	) (string, error)
+	TriggerSchedule(
+		ctx context.Context,
+		accountId string,
+		scheduleId string,
+		opts *temporalclient.ScheduleTriggerOptions,
+		logger *slog.Logger,
+	) error
+	PauseSchedule(
+		ctx context.Context,
+		accountId string,
+		scheduleId string,
+		opts *temporalclient.SchedulePauseOptions,
+		logger *slog.Logger,
+	) error
+	UnpauseSchedule(
+		ctx context.Context,
+		accountId string,
+		scheduleId string,
+		opts *temporalclient.ScheduleUnpauseOptions,
+		logger *slog.Logger,
+	) error
+	UpdateSchedule(
+		ctx context.Context,
+		accountId string,
+		scheduleId string,
+		opts *temporalclient.ScheduleUpdateOptions,
+		logger *slog.Logger,
+	) error
+	DescribeSchedule(
+		ctx context.Context,
+		accountId string,
+		scheduleId string,
+		logger *slog.Logger,
+	) (*temporalclient.ScheduleDescription, error)
+	DescribeSchedules(
+		ctx context.Context,
+		accountId string,
+		scheduleIds []string,
+		logger *slog.Logger,
+	) ([]*DescribeSchedulesResponse, error)
+	DeleteSchedule(
+		ctx context.Context,
+		accountId string,
+		scheduleId string,
+		logger *slog.Logger,
+	) error
+	GetWorkflowExecutionById(
+		ctx context.Context,
+		accountId string,
+		workflowId string,
+		logger *slog.Logger,
+	) (*workflowpb.WorkflowExecutionInfo, error)
+	DeleteWorkflowExecution(
+		ctx context.Context,
+		accountId string,
+		workflowId string,
+		logger *slog.Logger,
+	) error
+	GetWorkflowExecutionsByScheduleIds(
+		ctx context.Context,
+		accountId string,
+		scheduleIds []string,
+		logger *slog.Logger,
+	) ([]*workflowpb.WorkflowExecutionInfo, error)
+	DescribeWorklowExecution(
+		ctx context.Context,
+		accountId string,
+		workflowId string,
+		logger *slog.Logger,
+	) (*workflowservice.DescribeWorkflowExecutionResponse, error)
+	CancelWorkflow(
+		ctx context.Context,
+		accountId string,
+		workflowId string,
+		logger *slog.Logger,
+	) error
+	TerminateWorkflow(
+		ctx context.Context,
+		accountId string,
+		workflowId string,
+		logger *slog.Logger,
+	) error
+	GetWorkflowHistory(
+		ctx context.Context,
+		accountId string,
+		workflowId string,
+		logger *slog.Logger,
+	) (temporalclient.HistoryEventIterator, error)
 }
 
 var _ Interface = (*ClientManager)(nil)
@@ -64,7 +147,11 @@ func NewClientManager(
 	}
 }
 
-func (m *ClientManager) getClients(ctx context.Context, accountId string, logger *slog.Logger) (*clientHandle, error) {
+func (m *ClientManager) getClients(
+	ctx context.Context,
+	accountId string,
+	logger *slog.Logger,
+) (*clientHandle, error) {
 	config, err := m.configProvider.GetConfig(ctx, accountId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get temporal config: %w", err)
@@ -100,7 +187,11 @@ func (m *ClientManager) DoesAccountHaveNamespace(
 	return true, nil
 }
 
-func (m *ClientManager) GetSyncJobTaskQueue(ctx context.Context, accountId string, logger *slog.Logger) (string, error) {
+func (m *ClientManager) GetSyncJobTaskQueue(
+	ctx context.Context,
+	accountId string,
+	logger *slog.Logger,
+) (string, error) {
 	config, err := m.configProvider.GetConfig(ctx, accountId)
 	if err != nil {
 		return "", fmt.Errorf("failed to get temporal config: %w", err)
@@ -283,7 +374,12 @@ func (m *ClientManager) GetWorkflowExecutionsByScheduleIds(
 	}
 	defer clients.Release()
 
-	return getWorfklowsByScheduleIds(ctx, clients.WorkflowClient(), clients.config.Namespace, scheduleIds)
+	return getWorfklowsByScheduleIds(
+		ctx,
+		clients.WorkflowClient(),
+		clients.config.Namespace,
+		scheduleIds,
+	)
 }
 
 func (m *ClientManager) GetWorkflowExecutionById(
@@ -334,11 +430,17 @@ func (m *ClientManager) DescribeWorklowExecution(
 	}
 	defer clients.Release()
 
-	wf, err := getLatestWorkflow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
+	wf, err := getLatestWorkflow(
+		ctx,
+		clients.WorkflowClient(),
+		clients.config.Namespace,
+		workflowId,
+	)
 	if err != nil {
 		return nil, err
 	}
-	return clients.WorkflowClient().DescribeWorkflowExecution(ctx, wf.GetExecution().GetWorkflowId(), wf.GetExecution().GetRunId())
+	return clients.WorkflowClient().
+		DescribeWorkflowExecution(ctx, wf.GetExecution().GetWorkflowId(), wf.GetExecution().GetRunId())
 }
 
 func (m *ClientManager) DeleteWorkflowExecution(
@@ -359,10 +461,11 @@ func (m *ClientManager) DeleteWorkflowExecution(
 		clients.config.Namespace,
 		func(ctx context.Context, namespace string) ([]*workflowpb.WorkflowExecutionInfo, error) {
 			// todo: should technically paginate this, but the amount of workflows + unique run ids should be only ever 1
-			resp, err := clients.WorkflowClient().ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
-				Namespace: namespace,
-				Query:     fmt.Sprintf("WorkflowId = %q", workflowId),
-			})
+			resp, err := clients.WorkflowClient().
+				ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
+					Namespace: namespace,
+					Query:     fmt.Sprintf("WorkflowId = %q", workflowId),
+				})
 			if err != nil {
 				return nil, err
 			}
@@ -394,10 +497,13 @@ func (m *ClientManager) deleteWorkflows(
 	for _, wf := range workflowExecs {
 		wf := wf
 		errgrp.Go(func() error {
-			_, err := svc.DeleteWorkflowExecution(ctx, &workflowservice.DeleteWorkflowExecutionRequest{
-				Namespace:         namespace,
-				WorkflowExecution: wf.GetExecution(),
-			})
+			_, err := svc.DeleteWorkflowExecution(
+				ctx,
+				&workflowservice.DeleteWorkflowExecutionRequest{
+					Namespace:         namespace,
+					WorkflowExecution: wf.GetExecution(),
+				},
+			)
 			return err
 		})
 	}
@@ -416,11 +522,17 @@ func (m *ClientManager) CancelWorkflow(
 	}
 	defer clients.Release()
 
-	wf, err := getLatestWorkflow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
+	wf, err := getLatestWorkflow(
+		ctx,
+		clients.WorkflowClient(),
+		clients.config.Namespace,
+		workflowId,
+	)
 	if err != nil {
 		return err
 	}
-	return clients.WorkflowClient().CancelWorkflow(ctx, wf.GetExecution().GetWorkflowId(), wf.GetExecution().GetRunId())
+	return clients.WorkflowClient().
+		CancelWorkflow(ctx, wf.GetExecution().GetWorkflowId(), wf.GetExecution().GetRunId())
 }
 
 func (m *ClientManager) TerminateWorkflow(
@@ -435,11 +547,17 @@ func (m *ClientManager) TerminateWorkflow(
 	}
 	defer clients.Release()
 
-	wf, err := getLatestWorkflow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
+	wf, err := getLatestWorkflow(
+		ctx,
+		clients.WorkflowClient(),
+		clients.config.Namespace,
+		workflowId,
+	)
 	if err != nil {
 		return err
 	}
-	return clients.WorkflowClient().TerminateWorkflow(ctx, wf.GetExecution().GetWorkflowId(), wf.GetExecution().GetRunId(), "terminated by user")
+	return clients.WorkflowClient().
+		TerminateWorkflow(ctx, wf.GetExecution().GetWorkflowId(), wf.GetExecution().GetRunId(), "terminated by user")
 }
 
 func (m *ClientManager) GetWorkflowHistory(
@@ -454,7 +572,12 @@ func (m *ClientManager) GetWorkflowHistory(
 	}
 	defer clients.Release()
 
-	wf, err := getLatestWorkflow(ctx, clients.WorkflowClient(), clients.config.Namespace, workflowId)
+	wf, err := getLatestWorkflow(
+		ctx,
+		clients.WorkflowClient(),
+		clients.config.Namespace,
+		workflowId,
+	)
 	if err != nil {
 		return nil, err
 	}

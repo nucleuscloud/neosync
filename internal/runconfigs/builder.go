@@ -156,7 +156,9 @@ func (b *tableConfigsBuilder) computeAllSubsetPaths() map[string][]*SubsetPath {
 			for _, fc := range b.foreignKeys[child] {
 				if fc.ForeignKey != nil && fc.ForeignKey.Table == entry.current {
 					if len(fc.ForeignKey.Columns) > 0 && len(fc.Columns) > 0 {
-						referenceSchema, referenceTable := sqlmanager_shared.SplitTableKey(fc.ForeignKey.Table)
+						referenceSchema, referenceTable := sqlmanager_shared.SplitTableKey(
+							fc.ForeignKey.Table,
+						)
 						js = &JoinStep{
 							ToKey:   entry.current,
 							FromKey: child,
@@ -378,7 +380,15 @@ func (b *runConfigBuilder) buildConstraintHandlingConfigs() []*RunConfig {
 			if len(updateConfigs) > 0 {
 				prevConfig = updateConfigs[len(updateConfigs)-1]
 			}
-			updateConfig := b.buildUpdateConfig(fc, updateCols, updateFkCols, where, orderByColumns, updateConfigCount, prevConfig)
+			updateConfig := b.buildUpdateConfig(
+				fc,
+				updateCols,
+				updateFkCols,
+				where,
+				orderByColumns,
+				updateConfigCount,
+				prevConfig,
+			)
 			updateConfigs = append(updateConfigs, updateConfig)
 		}
 	}

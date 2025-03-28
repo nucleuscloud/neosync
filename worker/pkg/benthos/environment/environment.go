@@ -89,7 +89,11 @@ func NewEnvironment(logger *slog.Logger, opts ...Option) (*service.Environment, 
 	return NewWithEnvironment(service.NewEnvironment(), logger, opts...)
 }
 
-func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...Option) (*service.Environment, error) {
+func NewWithEnvironment(
+	env *service.Environment,
+	logger *slog.Logger,
+	opts ...Option,
+) (*service.Environment, error) {
 	if env == nil {
 		env = service.NewEnvironment()
 	}
@@ -106,18 +110,32 @@ func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...O
 	if config.meter != nil {
 		err := benthos_metrics.RegisterOtelMetricsExporter(env, config.meter)
 		if err != nil {
-			return nil, fmt.Errorf("unable to register otel_collector for benthos metering: %w", err)
+			return nil, fmt.Errorf(
+				"unable to register otel_collector for benthos metering: %w",
+				err,
+			)
 		}
 	}
 
 	if config.sqlConfig != nil {
-		err := neosync_benthos_sql.RegisterPooledSqlInsertOutput(env, config.sqlConfig.Provider, config.sqlConfig.IsRetry, logger)
+		err := neosync_benthos_sql.RegisterPooledSqlInsertOutput(
+			env,
+			config.sqlConfig.Provider,
+			config.sqlConfig.IsRetry,
+			logger,
+		)
 		if err != nil {
-			return nil, fmt.Errorf("unable to register pooled_sql_insert output to benthos instance: %w", err)
+			return nil, fmt.Errorf(
+				"unable to register pooled_sql_insert output to benthos instance: %w",
+				err,
+			)
 		}
 		err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(env, config.sqlConfig.Provider)
 		if err != nil {
-			return nil, fmt.Errorf("unable to register pooled_sql_update output to benthos instance: %w", err)
+			return nil, fmt.Errorf(
+				"unable to register pooled_sql_update output to benthos instance: %w",
+				err,
+			)
 		}
 		err = neosync_benthos_sql.RegisterPooledSqlRawInput(
 			env,
@@ -127,23 +145,36 @@ func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...O
 			config.sqlConfig.InputContinuationToken,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("unable to register pooled_sql_raw input to benthos instance: %w", err)
+			return nil, fmt.Errorf(
+				"unable to register pooled_sql_raw input to benthos instance: %w",
+				err,
+			)
 		}
 	}
 
 	if config.mongoConfig != nil {
 		err := neosync_benthos_mongodb.RegisterPooledMongoDbInput(env, config.mongoConfig.Provider)
 		if err != nil {
-			return nil, fmt.Errorf("unable to register pooled_mongodb input to benthos instance: %w", err)
+			return nil, fmt.Errorf(
+				"unable to register pooled_mongodb input to benthos instance: %w",
+				err,
+			)
 		}
 		err = neosync_benthos_mongodb.RegisterPooledMongoDbOutput(env, config.mongoConfig.Provider)
 		if err != nil {
-			return nil, fmt.Errorf("unable to register pooled_mongodb output to benthos instance: %w", err)
+			return nil, fmt.Errorf(
+				"unable to register pooled_mongodb output to benthos instance: %w",
+				err,
+			)
 		}
 	}
 
 	if config.connectionDataConfig != nil {
-		err := neosync_benthos_connectiondata.RegisterNeosyncConnectionDataInput(env, config.connectionDataConfig.NeosyncConnectionDataApi, logger)
+		err := neosync_benthos_connectiondata.RegisterNeosyncConnectionDataInput(
+			env,
+			config.connectionDataConfig.NeosyncConnectionDataApi,
+			logger,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("unable to register neosync_connection_data input: %w", err)
 		}
@@ -151,7 +182,10 @@ func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...O
 
 	err := openaigenerate.RegisterOpenaiGenerate(env)
 	if err != nil {
-		return nil, fmt.Errorf("unable to register openai_generate input to benthos instance: %w", err)
+		return nil, fmt.Errorf(
+			"unable to register openai_generate input to benthos instance: %w",
+			err,
+		)
 	}
 
 	err = neosync_benthos_error.RegisterErrorProcessor(env, config.stopChannel)
@@ -176,32 +210,50 @@ func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...O
 
 	err = neosync_benthos_defaulttransform.ReisterDefaultTransformerProcessor(env)
 	if err != nil {
-		return nil, fmt.Errorf("unable to register default mapping processor to benthos instance: %w", err)
+		return nil, fmt.Errorf(
+			"unable to register default mapping processor to benthos instance: %w",
+			err,
+		)
 	}
 
 	err = neosync_benthos_json.RegisterNeosyncToJsonProcessor(env)
 	if err != nil {
-		return nil, fmt.Errorf("unable to register Neosync to JSON processor to benthos instance: %w", err)
+		return nil, fmt.Errorf(
+			"unable to register Neosync to JSON processor to benthos instance: %w",
+			err,
+		)
 	}
 
 	err = neosync_benthos_sql.RegisterNeosyncToPgxProcessor(env)
 	if err != nil {
-		return nil, fmt.Errorf("unable to register Neosync to PGX processor to benthos instance: %w", err)
+		return nil, fmt.Errorf(
+			"unable to register Neosync to PGX processor to benthos instance: %w",
+			err,
+		)
 	}
 
 	err = neosync_benthos_sql.RegisterNeosyncToMysqlProcessor(env)
 	if err != nil {
-		return nil, fmt.Errorf("unable to register Neosync to MYSQL processor to benthos instance: %w", err)
+		return nil, fmt.Errorf(
+			"unable to register Neosync to MYSQL processor to benthos instance: %w",
+			err,
+		)
 	}
 
 	err = neosync_benthos_sql.RegisterNeosyncToMssqlProcessor(env)
 	if err != nil {
-		return nil, fmt.Errorf("unable to register Neosync to MSSQL processor to benthos instance: %w", err)
+		return nil, fmt.Errorf(
+			"unable to register Neosync to MSSQL processor to benthos instance: %w",
+			err,
+		)
 	}
 
 	err = javascript_processor.RegisterNeosyncJavascriptProcessor(env)
 	if err != nil {
-		return nil, fmt.Errorf("unable to register javascript processor to benthos instance: %w", err)
+		return nil, fmt.Errorf(
+			"unable to register javascript processor to benthos instance: %w",
+			err,
+		)
 	}
 
 	if config.blobEnv != nil {

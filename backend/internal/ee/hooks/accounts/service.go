@@ -30,18 +30,54 @@ type Service struct {
 var _ Interface = (*Service)(nil)
 
 type Interface interface {
-	GetAccountHooks(ctx context.Context, req *mgmtv1alpha1.GetAccountHooksRequest) (*mgmtv1alpha1.GetAccountHooksResponse, error)
-	GetAccountHook(ctx context.Context, req *mgmtv1alpha1.GetAccountHookRequest) (*mgmtv1alpha1.GetAccountHookResponse, error)
-	CreateAccountHook(ctx context.Context, req *mgmtv1alpha1.CreateAccountHookRequest) (*mgmtv1alpha1.CreateAccountHookResponse, error)
-	UpdateAccountHook(ctx context.Context, req *mgmtv1alpha1.UpdateAccountHookRequest) (*mgmtv1alpha1.UpdateAccountHookResponse, error)
-	DeleteAccountHook(ctx context.Context, req *mgmtv1alpha1.DeleteAccountHookRequest) (*mgmtv1alpha1.DeleteAccountHookResponse, error)
-	IsAccountHookNameAvailable(ctx context.Context, req *mgmtv1alpha1.IsAccountHookNameAvailableRequest) (*mgmtv1alpha1.IsAccountHookNameAvailableResponse, error)
-	SetAccountHookEnabled(ctx context.Context, req *mgmtv1alpha1.SetAccountHookEnabledRequest) (*mgmtv1alpha1.SetAccountHookEnabledResponse, error)
-	GetActiveAccountHooksByEvent(ctx context.Context, req *mgmtv1alpha1.GetActiveAccountHooksByEventRequest) (*mgmtv1alpha1.GetActiveAccountHooksByEventResponse, error)
-	GetSlackConnectionUrl(ctx context.Context, req *mgmtv1alpha1.GetSlackConnectionUrlRequest) (*mgmtv1alpha1.GetSlackConnectionUrlResponse, error)
-	HandleSlackOAuthCallback(ctx context.Context, req *mgmtv1alpha1.HandleSlackOAuthCallbackRequest) (*mgmtv1alpha1.HandleSlackOAuthCallbackResponse, error)
-	TestSlackConnection(ctx context.Context, req *mgmtv1alpha1.TestSlackConnectionRequest) (*mgmtv1alpha1.TestSlackConnectionResponse, error)
-	SendSlackMessage(ctx context.Context, req *mgmtv1alpha1.SendSlackMessageRequest) (*mgmtv1alpha1.SendSlackMessageResponse, error)
+	GetAccountHooks(
+		ctx context.Context,
+		req *mgmtv1alpha1.GetAccountHooksRequest,
+	) (*mgmtv1alpha1.GetAccountHooksResponse, error)
+	GetAccountHook(
+		ctx context.Context,
+		req *mgmtv1alpha1.GetAccountHookRequest,
+	) (*mgmtv1alpha1.GetAccountHookResponse, error)
+	CreateAccountHook(
+		ctx context.Context,
+		req *mgmtv1alpha1.CreateAccountHookRequest,
+	) (*mgmtv1alpha1.CreateAccountHookResponse, error)
+	UpdateAccountHook(
+		ctx context.Context,
+		req *mgmtv1alpha1.UpdateAccountHookRequest,
+	) (*mgmtv1alpha1.UpdateAccountHookResponse, error)
+	DeleteAccountHook(
+		ctx context.Context,
+		req *mgmtv1alpha1.DeleteAccountHookRequest,
+	) (*mgmtv1alpha1.DeleteAccountHookResponse, error)
+	IsAccountHookNameAvailable(
+		ctx context.Context,
+		req *mgmtv1alpha1.IsAccountHookNameAvailableRequest,
+	) (*mgmtv1alpha1.IsAccountHookNameAvailableResponse, error)
+	SetAccountHookEnabled(
+		ctx context.Context,
+		req *mgmtv1alpha1.SetAccountHookEnabledRequest,
+	) (*mgmtv1alpha1.SetAccountHookEnabledResponse, error)
+	GetActiveAccountHooksByEvent(
+		ctx context.Context,
+		req *mgmtv1alpha1.GetActiveAccountHooksByEventRequest,
+	) (*mgmtv1alpha1.GetActiveAccountHooksByEventResponse, error)
+	GetSlackConnectionUrl(
+		ctx context.Context,
+		req *mgmtv1alpha1.GetSlackConnectionUrlRequest,
+	) (*mgmtv1alpha1.GetSlackConnectionUrlResponse, error)
+	HandleSlackOAuthCallback(
+		ctx context.Context,
+		req *mgmtv1alpha1.HandleSlackOAuthCallbackRequest,
+	) (*mgmtv1alpha1.HandleSlackOAuthCallbackResponse, error)
+	TestSlackConnection(
+		ctx context.Context,
+		req *mgmtv1alpha1.TestSlackConnectionRequest,
+	) (*mgmtv1alpha1.TestSlackConnectionResponse, error)
+	SendSlackMessage(
+		ctx context.Context,
+		req *mgmtv1alpha1.SendSlackMessageRequest,
+	) (*mgmtv1alpha1.SendSlackMessageResponse, error)
 }
 
 type config struct {
@@ -78,7 +114,10 @@ func New(
 	return &Service{cfg: cfg, db: db, userdataclient: userdataclient}
 }
 
-func (s *Service) GetAccountHooks(ctx context.Context, req *mgmtv1alpha1.GetAccountHooksRequest) (*mgmtv1alpha1.GetAccountHooksResponse, error) {
+func (s *Service) GetAccountHooks(
+	ctx context.Context,
+	req *mgmtv1alpha1.GetAccountHooksRequest,
+) (*mgmtv1alpha1.GetAccountHooksResponse, error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("accountId", req.GetAccountId())
 
@@ -115,7 +154,10 @@ func (s *Service) GetAccountHooks(ctx context.Context, req *mgmtv1alpha1.GetAcco
 	}, nil
 }
 
-func (s *Service) GetAccountHook(ctx context.Context, req *mgmtv1alpha1.GetAccountHookRequest) (*mgmtv1alpha1.GetAccountHookResponse, error) {
+func (s *Service) GetAccountHook(
+	ctx context.Context,
+	req *mgmtv1alpha1.GetAccountHookRequest,
+) (*mgmtv1alpha1.GetAccountHookResponse, error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("hookId", req.GetId())
 
@@ -151,7 +193,10 @@ func (s *Service) GetAccountHook(ctx context.Context, req *mgmtv1alpha1.GetAccou
 	}, nil
 }
 
-func (s *Service) DeleteAccountHook(ctx context.Context, req *mgmtv1alpha1.DeleteAccountHookRequest) (*mgmtv1alpha1.DeleteAccountHookResponse, error) {
+func (s *Service) DeleteAccountHook(
+	ctx context.Context,
+	req *mgmtv1alpha1.DeleteAccountHookRequest,
+) (*mgmtv1alpha1.DeleteAccountHookResponse, error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("hookId", req.GetId())
 
@@ -184,7 +229,10 @@ func (s *Service) DeleteAccountHook(ctx context.Context, req *mgmtv1alpha1.Delet
 	return &mgmtv1alpha1.DeleteAccountHookResponse{}, nil
 }
 
-func (s *Service) IsAccountHookNameAvailable(ctx context.Context, req *mgmtv1alpha1.IsAccountHookNameAvailableRequest) (*mgmtv1alpha1.IsAccountHookNameAvailableResponse, error) {
+func (s *Service) IsAccountHookNameAvailable(
+	ctx context.Context,
+	req *mgmtv1alpha1.IsAccountHookNameAvailableRequest,
+) (*mgmtv1alpha1.IsAccountHookNameAvailableResponse, error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("hookName", req.GetName(), "accountId", req.GetAccountId())
 
@@ -202,10 +250,14 @@ func (s *Service) IsAccountHookNameAvailable(ctx context.Context, req *mgmtv1alp
 	}
 
 	logger.Debug("checking if hook name is available")
-	ok, err := s.db.Q.IsAccountHookNameAvailable(ctx, s.db.Db, db_queries.IsAccountHookNameAvailableParams{
-		AccountID: accountId,
-		Name:      req.GetName(),
-	})
+	ok, err := s.db.Q.IsAccountHookNameAvailable(
+		ctx,
+		s.db.Db,
+		db_queries.IsAccountHookNameAvailableParams{
+			AccountID: accountId,
+			Name:      req.GetName(),
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +266,10 @@ func (s *Service) IsAccountHookNameAvailable(ctx context.Context, req *mgmtv1alp
 	}, nil
 }
 
-func (s *Service) SetAccountHookEnabled(ctx context.Context, req *mgmtv1alpha1.SetAccountHookEnabledRequest) (*mgmtv1alpha1.SetAccountHookEnabledResponse, error) {
+func (s *Service) SetAccountHookEnabled(
+	ctx context.Context,
+	req *mgmtv1alpha1.SetAccountHookEnabledRequest,
+) (*mgmtv1alpha1.SetAccountHookEnabledResponse, error) {
 	getResp, err := s.GetAccountHook(ctx, &mgmtv1alpha1.GetAccountHookRequest{Id: req.GetId()})
 	if err != nil {
 		return nil, err
@@ -243,12 +298,22 @@ func (s *Service) SetAccountHookEnabled(ctx context.Context, req *mgmtv1alpha1.S
 		return nil, err
 	}
 
-	logger.Debug(fmt.Sprintf("attempting to update account hook enabled status from %v to %v", getResp.GetHook().GetEnabled(), req.GetEnabled()))
-	updatedHook, err := s.db.Q.SetAccountHookEnabled(ctx, s.db.Db, db_queries.SetAccountHookEnabledParams{
-		ID:              hookuuid,
-		Enabled:         req.GetEnabled(),
-		UpdatedByUserID: user.PgId(),
-	})
+	logger.Debug(
+		fmt.Sprintf(
+			"attempting to update account hook enabled status from %v to %v",
+			getResp.GetHook().GetEnabled(),
+			req.GetEnabled(),
+		),
+	)
+	updatedHook, err := s.db.Q.SetAccountHookEnabled(
+		ctx,
+		s.db.Db,
+		db_queries.SetAccountHookEnabledParams{
+			ID:              hookuuid,
+			Enabled:         req.GetEnabled(),
+			UpdatedByUserID: user.PgId(),
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +328,10 @@ func (s *Service) SetAccountHookEnabled(ctx context.Context, req *mgmtv1alpha1.S
 	}, nil
 }
 
-func (s *Service) GetActiveAccountHooksByEvent(ctx context.Context, req *mgmtv1alpha1.GetActiveAccountHooksByEventRequest) (*mgmtv1alpha1.GetActiveAccountHooksByEventResponse, error) {
+func (s *Service) GetActiveAccountHooksByEvent(
+	ctx context.Context,
+	req *mgmtv1alpha1.GetActiveAccountHooksByEventRequest,
+) (*mgmtv1alpha1.GetActiveAccountHooksByEventResponse, error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("event", req.GetEvent())
 
@@ -292,10 +360,14 @@ func (s *Service) GetActiveAccountHooksByEvent(ctx context.Context, req *mgmtv1a
 	}
 	logger.Debug(fmt.Sprintf("searching for active account hooks by events %v", eventStrings))
 
-	hooks, err := s.db.Q.GetActiveAccountHooksByEvent(ctx, s.db.Db, db_queries.GetActiveAccountHooksByEventParams{
-		AccountID: accountId,
-		Events:    validEvents,
-	})
+	hooks, err := s.db.Q.GetActiveAccountHooksByEvent(
+		ctx,
+		s.db.Db,
+		db_queries.GetActiveAccountHooksByEventParams{
+			AccountID: accountId,
+			Events:    validEvents,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +382,10 @@ func (s *Service) GetActiveAccountHooksByEvent(ctx context.Context, req *mgmtv1a
 	}, nil
 }
 
-func (s *Service) CreateAccountHook(ctx context.Context, req *mgmtv1alpha1.CreateAccountHookRequest) (*mgmtv1alpha1.CreateAccountHookResponse, error) {
+func (s *Service) CreateAccountHook(
+	ctx context.Context,
+	req *mgmtv1alpha1.CreateAccountHookRequest,
+) (*mgmtv1alpha1.CreateAccountHookResponse, error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("accountId", req.GetAccountId())
 
@@ -370,7 +445,11 @@ func (s *Service) CreateAccountHook(ctx context.Context, req *mgmtv1alpha1.Creat
 	}, nil
 }
 
-func (s *Service) joinSlackChannel(ctx context.Context, hook *mgmtv1alpha1.AccountHook, logger *slog.Logger) {
+func (s *Service) joinSlackChannel(
+	ctx context.Context,
+	hook *mgmtv1alpha1.AccountHook,
+	logger *slog.Logger,
+) {
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Error("panic when attempting to join slack channel", "error", r)
@@ -384,12 +463,20 @@ func (s *Service) joinSlackChannel(ctx context.Context, hook *mgmtv1alpha1.Accou
 	channelId := slackConfig.GetChannelId()
 	accountId, err := neosyncdb.ToUuid(hook.GetAccountId())
 	if err != nil {
-		logger.Error("unable to parse account id when attempting to join slack channel", "error", err)
+		logger.Error(
+			"unable to parse account id when attempting to join slack channel",
+			"error",
+			err,
+		)
 		return
 	}
 	accessToken, err := s.db.Q.GetSlackAccessToken(ctx, s.db.Db, accountId)
 	if err != nil {
-		logger.Error("unable to get slack access token when attempting to join slack channel", "error", err)
+		logger.Error(
+			"unable to get slack access token when attempting to join slack channel",
+			"error",
+			err,
+		)
 		return
 	}
 
@@ -401,7 +488,10 @@ func (s *Service) joinSlackChannel(ctx context.Context, hook *mgmtv1alpha1.Accou
 	logger.Debug("joined slack channel")
 }
 
-func (s *Service) UpdateAccountHook(ctx context.Context, req *mgmtv1alpha1.UpdateAccountHookRequest) (*mgmtv1alpha1.UpdateAccountHookResponse, error) {
+func (s *Service) UpdateAccountHook(
+	ctx context.Context,
+	req *mgmtv1alpha1.UpdateAccountHookRequest,
+) (*mgmtv1alpha1.UpdateAccountHookResponse, error) {
 	getResp, err := s.GetAccountHook(ctx, &mgmtv1alpha1.GetAccountHookRequest{Id: req.GetId()})
 	if err != nil {
 		return nil, err
@@ -481,7 +571,9 @@ func (s *Service) GetSlackConnectionUrl(
 	req *mgmtv1alpha1.GetSlackConnectionUrlRequest,
 ) (*mgmtv1alpha1.GetSlackConnectionUrlResponse, error) {
 	if !s.cfg.isSlackEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceGetSlackConnectionUrlProcedure)
+		return nil, nucleuserrors.NewNotImplementedProcedure(
+			mgmtv1alpha1connect.AccountHookServiceGetSlackConnectionUrlProcedure,
+		)
 	}
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
@@ -511,7 +603,9 @@ func (s *Service) HandleSlackOAuthCallback(
 	req *mgmtv1alpha1.HandleSlackOAuthCallbackRequest,
 ) (*mgmtv1alpha1.HandleSlackOAuthCallbackResponse, error) {
 	if !s.cfg.isSlackEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceHandleSlackOAuthCallbackProcedure)
+		return nil, nucleuserrors.NewNotImplementedProcedure(
+			mgmtv1alpha1connect.AccountHookServiceHandleSlackOAuthCallbackProcedure,
+		)
 	}
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
@@ -521,20 +615,25 @@ func (s *Service) HandleSlackOAuthCallback(
 		return nil, fmt.Errorf("unable to get user: %w", err)
 	}
 
-	oauthState, err := s.cfg.slackClient.ValidateState(ctx, req.GetState(), user.Id(), func(ctx context.Context, userId, accountId string) (bool, error) {
-		parsedAccountUuid, err := neosyncdb.ToUuid(accountId)
-		if err != nil {
-			return false, err
-		}
-		ok, err := s.db.Q.IsUserInAccount(ctx, s.db.Db, db_queries.IsUserInAccountParams{
-			AccountId: parsedAccountUuid,
-			UserId:    user.PgId(),
-		})
-		if err != nil {
-			return false, fmt.Errorf("unable to check if user is in account: %w", err)
-		}
-		return ok != 0, nil
-	})
+	oauthState, err := s.cfg.slackClient.ValidateState(
+		ctx,
+		req.GetState(),
+		user.Id(),
+		func(ctx context.Context, userId, accountId string) (bool, error) {
+			parsedAccountUuid, err := neosyncdb.ToUuid(accountId)
+			if err != nil {
+				return false, err
+			}
+			ok, err := s.db.Q.IsUserInAccount(ctx, s.db.Db, db_queries.IsUserInAccountParams{
+				AccountId: parsedAccountUuid,
+				UserId:    user.PgId(),
+			})
+			if err != nil {
+				return false, fmt.Errorf("unable to check if user is in account: %w", err)
+			}
+			return ok != 0, nil
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to validate slack oauth state: %w", err)
 	}
@@ -560,12 +659,16 @@ func (s *Service) HandleSlackOAuthCallback(
 		return nil, fmt.Errorf("unable to convert account id to uuid: %w", err)
 	}
 
-	_, err = s.db.Q.CreateSlackOAuthConnection(ctx, s.db.Db, db_queries.CreateSlackOAuthConnectionParams{
-		AccountID:       accountUuid,
-		OauthV2Response: oauthRespBytes,
-		CreatedByUserID: user.PgId(),
-		UpdatedByUserID: user.PgId(),
-	})
+	_, err = s.db.Q.CreateSlackOAuthConnection(
+		ctx,
+		s.db.Db,
+		db_queries.CreateSlackOAuthConnectionParams{
+			AccountID:       accountUuid,
+			OauthV2Response: oauthRespBytes,
+			CreatedByUserID: user.PgId(),
+			UpdatedByUserID: user.PgId(),
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to store slack access token: %w", err)
 	}
@@ -578,7 +681,9 @@ func (s *Service) TestSlackConnection(
 	req *mgmtv1alpha1.TestSlackConnectionRequest,
 ) (*mgmtv1alpha1.TestSlackConnectionResponse, error) {
 	if !s.cfg.isSlackEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceTestSlackConnectionProcedure)
+		return nil, nucleuserrors.NewNotImplementedProcedure(
+			mgmtv1alpha1connect.AccountHookServiceTestSlackConnectionProcedure,
+		)
 	}
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
@@ -643,7 +748,9 @@ func (s *Service) SendSlackMessage(
 	req *mgmtv1alpha1.SendSlackMessageRequest,
 ) (*mgmtv1alpha1.SendSlackMessageResponse, error) {
 	if !s.cfg.isSlackEnabled {
-		return nil, nucleuserrors.NewNotImplementedProcedure(mgmtv1alpha1connect.AccountHookServiceSendSlackMessageProcedure)
+		return nil, nucleuserrors.NewNotImplementedProcedure(
+			mgmtv1alpha1connect.AccountHookServiceSendSlackMessageProcedure,
+		)
 	}
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
@@ -705,7 +812,12 @@ func (s *Service) SendSlackMessage(
 	}
 
 	logger.Debug("sending slack message")
-	err = s.cfg.slackClient.SendMessage(ctx, accessToken, slackChannelId, slack.MsgOptionBlocks(blocks...))
+	err = s.cfg.slackClient.SendMessage(
+		ctx,
+		accessToken,
+		slackChannelId,
+		slack.MsgOptionBlocks(blocks...),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to send slack message: %w", err)
 	}
@@ -714,18 +826,32 @@ func (s *Service) SendSlackMessage(
 }
 
 func buildJobIdUrlForSlack(appBaseUrl, accountName, jobId string) string {
-	return fmt.Sprintf("<%s/jobs/%s|%s>", buildAccountBaseUrl(appBaseUrl, accountName), jobId, jobId)
+	return fmt.Sprintf(
+		"<%s/jobs/%s|%s>",
+		buildAccountBaseUrl(appBaseUrl, accountName),
+		jobId,
+		jobId,
+	)
 }
 
 func buildJobRunUrlForSlack(appBaseUrl, accountName, jobRunId string) string {
-	return fmt.Sprintf("<%s/runs/%s|%s>", buildAccountBaseUrl(appBaseUrl, accountName), jobRunId, jobRunId)
+	return fmt.Sprintf(
+		"<%s/runs/%s|%s>",
+		buildAccountBaseUrl(appBaseUrl, accountName),
+		jobRunId,
+		jobRunId,
+	)
 }
 
 func buildAccountBaseUrl(appBaseUrl, accountName string) string {
 	return fmt.Sprintf("%s/%s", appBaseUrl, accountName)
 }
 
-func getSlackBlocksByEvent(event *accounthook_events.Event, appBaseUrl, accountName string, logger *slog.Logger) []slack.Block {
+func getSlackBlocksByEvent(
+	event *accounthook_events.Event,
+	appBaseUrl, accountName string,
+	logger *slog.Logger,
+) []slack.Block {
 	switch event.Name {
 	case mgmtv1alpha1.AccountHookEvent_ACCOUNT_HOOK_EVENT_JOB_RUN_CREATED:
 		if event.JobRunCreated == nil {
@@ -733,13 +859,43 @@ func getSlackBlocksByEvent(event *accounthook_events.Event, appBaseUrl, accountN
 			return nil
 		}
 
-		headerText := slack.NewTextBlockObject(slack.PlainTextType, "🚀 New Job Run Started", false, false)
+		headerText := slack.NewTextBlockObject(
+			slack.PlainTextType,
+			"🚀 New Job Run Started",
+			false,
+			false,
+		)
 		headerSection := slack.NewHeaderBlock(headerText)
 
 		jobFields := []*slack.TextBlockObject{
-			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job ID:*\n%s", buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunCreated.JobId)), false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job Run ID:*\n%s", buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunCreated.JobRunId)), false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Started At:*\n<!date^%d^{date_short_pretty} at {time}|%s>", event.Timestamp.Unix(), event.Timestamp.Format(time.RFC3339)), false, false),
+			slack.NewTextBlockObject(
+				slack.MarkdownType,
+				fmt.Sprintf(
+					"*Job ID:*\n%s",
+					buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunCreated.JobId),
+				),
+				false,
+				false,
+			),
+			slack.NewTextBlockObject(
+				slack.MarkdownType,
+				fmt.Sprintf(
+					"*Job Run ID:*\n%s",
+					buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunCreated.JobRunId),
+				),
+				false,
+				false,
+			),
+			slack.NewTextBlockObject(
+				slack.MarkdownType,
+				fmt.Sprintf(
+					"*Started At:*\n<!date^%d^{date_short_pretty} at {time}|%s>",
+					event.Timestamp.Unix(),
+					event.Timestamp.Format(time.RFC3339),
+				),
+				false,
+				false,
+			),
 		}
 		fieldsSection := slack.NewSectionBlock(nil, jobFields, nil)
 
@@ -759,13 +915,43 @@ func getSlackBlocksByEvent(event *accounthook_events.Event, appBaseUrl, accountN
 			return nil
 		}
 
-		headerText := slack.NewTextBlockObject(slack.PlainTextType, "🔴 Job Run Failed", false, false)
+		headerText := slack.NewTextBlockObject(
+			slack.PlainTextType,
+			"🔴 Job Run Failed",
+			false,
+			false,
+		)
 		headerSection := slack.NewHeaderBlock(headerText)
 
 		jobFields := []*slack.TextBlockObject{
-			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job ID:*\n%s", buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunFailed.JobId)), false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job Run ID:*\n%s", buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunFailed.JobRunId)), false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Failed At:*\n<!date^%d^{date_short_pretty} at {time}|%s>", event.Timestamp.Unix(), event.Timestamp.Format(time.RFC3339)), false, false),
+			slack.NewTextBlockObject(
+				slack.MarkdownType,
+				fmt.Sprintf(
+					"*Job ID:*\n%s",
+					buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunFailed.JobId),
+				),
+				false,
+				false,
+			),
+			slack.NewTextBlockObject(
+				slack.MarkdownType,
+				fmt.Sprintf(
+					"*Job Run ID:*\n%s",
+					buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunFailed.JobRunId),
+				),
+				false,
+				false,
+			),
+			slack.NewTextBlockObject(
+				slack.MarkdownType,
+				fmt.Sprintf(
+					"*Failed At:*\n<!date^%d^{date_short_pretty} at {time}|%s>",
+					event.Timestamp.Unix(),
+					event.Timestamp.Format(time.RFC3339),
+				),
+				false,
+				false,
+			),
 		}
 		fieldsSection := slack.NewSectionBlock(nil, jobFields, nil)
 
@@ -785,13 +971,43 @@ func getSlackBlocksByEvent(event *accounthook_events.Event, appBaseUrl, accountN
 			return nil
 		}
 
-		headerText := slack.NewTextBlockObject(slack.PlainTextType, "✅ Job Run Succeeded", false, false)
+		headerText := slack.NewTextBlockObject(
+			slack.PlainTextType,
+			"✅ Job Run Succeeded",
+			false,
+			false,
+		)
 		headerSection := slack.NewHeaderBlock(headerText)
 
 		jobFields := []*slack.TextBlockObject{
-			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job ID:*\n%s", buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunSucceeded.JobId)), false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Job Run ID:*\n%s", buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunSucceeded.JobRunId)), false, false),
-			slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Succeeded At:*\n<!date^%d^{date_short_pretty} at {time}|%s>", event.Timestamp.Unix(), event.Timestamp.Format(time.RFC3339)), false, false),
+			slack.NewTextBlockObject(
+				slack.MarkdownType,
+				fmt.Sprintf(
+					"*Job ID:*\n%s",
+					buildJobIdUrlForSlack(appBaseUrl, accountName, event.JobRunSucceeded.JobId),
+				),
+				false,
+				false,
+			),
+			slack.NewTextBlockObject(
+				slack.MarkdownType,
+				fmt.Sprintf(
+					"*Job Run ID:*\n%s",
+					buildJobRunUrlForSlack(appBaseUrl, accountName, event.JobRunSucceeded.JobRunId),
+				),
+				false,
+				false,
+			),
+			slack.NewTextBlockObject(
+				slack.MarkdownType,
+				fmt.Sprintf(
+					"*Succeeded At:*\n<!date^%d^{date_short_pretty} at {time}|%s>",
+					event.Timestamp.Unix(),
+					event.Timestamp.Format(time.RFC3339),
+				),
+				false,
+				false,
+			),
 		}
 		fieldsSection := slack.NewSectionBlock(nil, jobFields, nil)
 

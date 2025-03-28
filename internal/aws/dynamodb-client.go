@@ -13,16 +13,32 @@ type DynamoDbClient struct {
 }
 
 type dynamoDBAPIV2 interface {
-	DescribeTable(ctx context.Context, params *dynamodb.DescribeTableInput, optFns ...func(*dynamodb.Options)) (*dynamodb.DescribeTableOutput, error)
-	Scan(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error)
-	ListTables(ctx context.Context, params *dynamodb.ListTablesInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ListTablesOutput, error)
+	DescribeTable(
+		ctx context.Context,
+		params *dynamodb.DescribeTableInput,
+		optFns ...func(*dynamodb.Options),
+	) (*dynamodb.DescribeTableOutput, error)
+	Scan(
+		ctx context.Context,
+		params *dynamodb.ScanInput,
+		optFns ...func(*dynamodb.Options),
+	) (*dynamodb.ScanOutput, error)
+	ListTables(
+		ctx context.Context,
+		params *dynamodb.ListTablesInput,
+		optFns ...func(*dynamodb.Options),
+	) (*dynamodb.ListTablesOutput, error)
 }
 
 func NewDynamoDbClient(api dynamoDBAPIV2) *DynamoDbClient {
 	return &DynamoDbClient{client: api}
 }
 
-func (d *DynamoDbClient) ListAllTables(ctx context.Context, input *dynamodb.ListTablesInput, optFns ...func(*dynamodb.Options)) ([]string, error) {
+func (d *DynamoDbClient) ListAllTables(
+	ctx context.Context,
+	input *dynamodb.ListTablesInput,
+	optFns ...func(*dynamodb.Options),
+) ([]string, error) {
 	tableNames := []string{}
 	done := false
 	for !done {
@@ -42,7 +58,10 @@ type DynamoDbTableKey struct {
 	RangeKey string
 }
 
-func (d *DynamoDbClient) GetTableKey(ctx context.Context, tableName string) (*DynamoDbTableKey, error) {
+func (d *DynamoDbClient) GetTableKey(
+	ctx context.Context,
+	tableName string,
+) (*DynamoDbTableKey, error) {
 	describeTableOutput, err := d.client.DescribeTable(ctx, &dynamodb.DescribeTableInput{
 		TableName: &tableName,
 	})

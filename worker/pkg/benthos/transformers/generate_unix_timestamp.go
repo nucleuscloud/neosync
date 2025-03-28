@@ -13,31 +13,39 @@ import (
 // +neosyncTransformerBuilder:generate:generateUnixTimestamp
 
 func init() {
-	spec := bloblang.NewPluginSpec().Description("Randomly generates a Unix timestamp that is in the past.").
+	spec := bloblang.NewPluginSpec().
+		Description("Randomly generates a Unix timestamp that is in the past.").
 		Category("int64").
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_unixtimestamp", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
+	err := bloblang.RegisterFunctionV2(
+		"generate_unixtimestamp",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
 
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-		randomizer := rng.New(seed)
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+			randomizer := rng.New(seed)
 
-		return func() (any, error) {
-			return generateRandomUnixTimestamp(randomizer), nil
-		}, nil
-	})
+			return func() (any, error) {
+				return generateRandomUnixTimestamp(randomizer), nil
+			}, nil
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
 }
-func NewGenerateUnixTimestampOptsFromConfig(config *mgmtv1alpha1.GenerateUnixTimestamp) (*GenerateUnixTimestampOpts, error) {
+
+func NewGenerateUnixTimestampOptsFromConfig(
+	config *mgmtv1alpha1.GenerateUnixTimestamp,
+) (*GenerateUnixTimestampOpts, error) {
 	return NewGenerateUnixTimestampOpts(nil)
 }
 

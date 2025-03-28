@@ -96,7 +96,9 @@ func ExtractBenthosSpec(fileSet *token.FileSet) ([]*BenthosSpec, error) {
 }
 
 func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
-	paramRegex := regexp.MustCompile(`bloblang\.New(\w+)Param\("(\w+)"\)(?:\.Optional\(\))?(?:\.Default\(([^()]*(?:\([^()]*\))?[^()]*)\))?(?:\.Description\("([^"]*)"\))?`)
+	paramRegex := regexp.MustCompile(
+		`bloblang\.New(\w+)Param\("(\w+)"\)(?:\.Optional\(\))?(?:\.Default\(([^()]*(?:\([^()]*\))?[^()]*)\))?(?:\.Description\("([^"]*)"\))?`,
+	)
 	specDescriptionRegex := regexp.MustCompile(`\.Description\("([^"]*)"\)`)
 	params := []*BenthosSpecParam{}
 	readFile, err := os.Open(benthosSpec.SourceFile)
@@ -126,7 +128,9 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 
 	categoryRegex := regexp.MustCompile(`\.Category\("([^"]*)"\)`)
 	var category string
-	if categoryMatches := categoryRegex.FindStringSubmatch(benthosSpecStr); len(categoryMatches) > 0 {
+	if categoryMatches := categoryRegex.FindStringSubmatch(benthosSpecStr); len(
+		categoryMatches,
+	) > 0 {
 		category = categoryMatches[1]
 	}
 	if category == "" {
@@ -149,7 +153,9 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 				// seed hack
 				if strings.Contains(line, "Default(time.Now().UnixNano())") {
 					defaultVal = "time.Now().UnixNano()"
-					if specMatches := specDescriptionRegex.FindStringSubmatch(line); len(specMatches) > 0 {
+					if specMatches := specDescriptionRegex.FindStringSubmatch(line); len(
+						specMatches,
+					) > 0 {
 						description = specMatches[1]
 					}
 				}

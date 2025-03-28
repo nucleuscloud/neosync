@@ -43,14 +43,16 @@ func redisHashOutputConfig() *service.ConfigSpec {
 
 func init() {
 	err := service.RegisterOutput(
-		"redis_hash_output", redisHashOutputConfig(),
+		"redis_hash_output",
+		redisHashOutputConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (out service.Output, maxInFlight int, err error) {
 			if maxInFlight, err = conf.FieldMaxInFlight(); err != nil {
 				return
 			}
 			out, err = newRedisHashWriter(conf, mgr)
 			return
-		})
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -69,7 +71,10 @@ type redisHashWriter struct {
 	connMut    sync.RWMutex
 }
 
-func newRedisHashWriter(conf *service.ParsedConfig, mgr *service.Resources) (r *redisHashWriter, err error) {
+func newRedisHashWriter(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+) (r *redisHashWriter, err error) {
 	r = &redisHashWriter{
 		clientCtor: func() (redis.UniversalClient, error) {
 			return getClient(conf)
@@ -175,7 +180,7 @@ func (r *redisHashWriter) Write(ctx context.Context, msg *service.Message) error
 		}
 
 		if mapVal != nil {
-			fieldMappings, ok := mapVal.(map[string]interface{}) //nolint:gofmt
+			fieldMappings, ok := mapVal.(map[string]any) //nolint:gofmt
 			if !ok {
 				return fmt.Errorf("fieldMappings resulted in a non-object mapping: %T", mapVal)
 			}

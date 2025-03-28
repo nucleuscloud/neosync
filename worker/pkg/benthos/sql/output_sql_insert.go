@@ -33,9 +33,15 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider ConnectionProvider, isRetry bool, logger *slog.Logger) error {
+func RegisterPooledSqlInsertOutput(
+	env *service.Environment,
+	dbprovider ConnectionProvider,
+	isRetry bool,
+	logger *slog.Logger,
+) error {
 	return env.RegisterBatchOutput(
-		"pooled_sql_insert", sqlInsertOutputSpec(),
+		"pooled_sql_insert",
+		sqlInsertOutputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
 			batchPolicy, err := conf.FieldBatchPolicy("batching")
 			if err != nil {
@@ -74,7 +80,13 @@ type pooledInsertOutput struct {
 	isRetry                  bool
 }
 
-func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provider ConnectionProvider, isRetry bool, logger *slog.Logger) (*pooledInsertOutput, error) {
+func newInsertOutput(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+	provider ConnectionProvider,
+	isRetry bool,
+	logger *slog.Logger,
+) (*pooledInsertOutput, error) {
 	connectionId, err := conf.FieldString("connection_id")
 	if err != nil {
 		return nil, err
@@ -242,9 +254,19 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		if !shouldRetry {
 			return fmt.Errorf("failed to execute insert query: %w", err)
 		}
-		s.logger.Infof("received error during batch write that is retryable, proceeding with row by row insert: %s", err.Error())
+		s.logger.Infof(
+			"received error during batch write that is retryable, proceeding with row by row insert: %s",
+			err.Error(),
+		)
 
-		err = retryInsertRowByRow(ctx, db, s.queryBuilder, rows, s.skipForeignKeyViolations, s.logger)
+		err = retryInsertRowByRow(
+			ctx,
+			db,
+			s.queryBuilder,
+			rows,
+			s.skipForeignKeyViolations,
+			s.logger,
+		)
 		if err != nil {
 			return fmt.Errorf("failed to retry insert query: %w", err)
 		}
@@ -283,7 +305,12 @@ func retryInsertRowByRow(
 			insertCount++
 		}
 	}
-	logger.Infof("Completed row-by-row insert with %d foreign key violations. Total Skipped rows: %d, Successfully inserted: %d", fkErrorCount, otherErrorCount, insertCount)
+	logger.Infof(
+		"Completed row-by-row insert with %d foreign key violations. Total Skipped rows: %d, Successfully inserted: %d",
+		fkErrorCount,
+		otherErrorCount,
+		insertCount,
+	)
 	return nil
 }
 

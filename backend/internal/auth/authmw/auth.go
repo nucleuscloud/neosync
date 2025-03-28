@@ -10,7 +10,11 @@ import (
 )
 
 type AuthClient interface {
-	InjectTokenCtx(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error)
+	InjectTokenCtx(
+		ctx context.Context,
+		header http.Header,
+		spec connect.Spec,
+	) (context.Context, error)
 }
 
 type AuthMiddleware struct {
@@ -25,7 +29,11 @@ func New(
 	return &AuthMiddleware{jwtClient: jwtClient, apiKeyClient: apiKeyClient}
 }
 
-func (n *AuthMiddleware) InjectTokenCtx(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
+func (n *AuthMiddleware) InjectTokenCtx(
+	ctx context.Context,
+	header http.Header,
+	spec connect.Spec,
+) (context.Context, error) {
 	apiKeyCtx, err := n.apiKeyClient.InjectTokenCtx(ctx, header, spec)
 	if err != nil && !errors.Is(err, auth_apikey.ErrInvalidApiKey) {
 		return nil, err

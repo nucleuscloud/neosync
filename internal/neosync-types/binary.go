@@ -1,8 +1,8 @@
 package neosynctypes
 
 type Binary struct {
-	BaseType    `json:",inline"`
-	JsonScanner `json:"-"`
+	BaseType    `       json:",inline"`
+	JsonScanner `       json:"-"`
 	Bytes       []byte `json:"bytes"`
 }
 
@@ -110,7 +110,11 @@ func NewBinaryFromMssql(value any, opts ...NeosyncTypeOption) (*Binary, error) {
 	return binary, nil
 }
 
-func NewBinaryArrayFromPgx(elements [][]byte, opts []NeosyncTypeOption, arrayOpts ...NeosyncTypeOption) (*NeosyncArray, error) {
+func NewBinaryArrayFromPgx(
+	elements [][]byte,
+	opts []NeosyncTypeOption,
+	arrayOpts ...NeosyncTypeOption,
+) (*NeosyncArray, error) {
 	neosyncAdapters := make([]NeosyncAdapter, len(elements))
 	for i, e := range elements {
 		newBinary, err := NewBinary(opts...)

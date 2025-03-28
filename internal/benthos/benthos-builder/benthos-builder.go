@@ -63,7 +63,11 @@ func NewBuilderProvider(logger *slog.Logger) *BuilderProvider {
 }
 
 // Handles registering new builders
-func (r *BuilderProvider) Register(jobType bb_internal.JobType, connType bb_shared.ConnectionType, builder bb_internal.BenthosBuilder) {
+func (r *BuilderProvider) Register(
+	jobType bb_internal.JobType,
+	connType bb_shared.ConnectionType,
+	builder bb_internal.BenthosBuilder,
+) {
 	key := BuilderKey{ConnType: connType, JobType: jobType}
 
 	r.mu.Lock()
@@ -71,7 +75,13 @@ func (r *BuilderProvider) Register(jobType bb_internal.JobType, connType bb_shar
 
 	_, exists := r.builders[key.String()]
 	if !exists {
-		r.logger.Debug(fmt.Sprintf("registering benthos builder for job type %s and connection type %s", jobType, connType))
+		r.logger.Debug(
+			fmt.Sprintf(
+				"registering benthos builder for job type %s and connection type %s",
+				jobType,
+				connType,
+			),
+		)
 		r.builders[key.String()] = builder
 	}
 }
@@ -92,7 +102,11 @@ func (r *BuilderProvider) GetBuilder(
 	builder, exists := r.builders[key.String()]
 	r.mu.RUnlock()
 	if !exists {
-		return nil, fmt.Errorf("builder not registered for connection type (%s) and job type (%s)", connectionType, jobType)
+		return nil, fmt.Errorf(
+			"builder not registered for connection type (%s) and job type (%s)",
+			connectionType,
+			jobType,
+		)
 	}
 	return builder, nil
 }
@@ -131,22 +145,59 @@ func (b *BuilderProvider) registerStandardBuilders(
 		for _, connectionType := range connectionTypes {
 			switch connectionType {
 			case bb_shared.ConnectionTypePostgres:
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.PostgresDriver, selectQueryBuilder, defaultPageLimit)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(
+					transformerclient,
+					sqlmanagerclient,
+					redisConfig,
+					sqlmanager_shared.PostgresDriver,
+					selectQueryBuilder,
+					defaultPageLimit,
+				)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_shared.ConnectionTypeMysql:
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MysqlDriver, selectQueryBuilder, defaultPageLimit)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(
+					transformerclient,
+					sqlmanagerclient,
+					redisConfig,
+					sqlmanager_shared.MysqlDriver,
+					selectQueryBuilder,
+					defaultPageLimit,
+				)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_shared.ConnectionTypeMssql:
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MssqlDriver, selectQueryBuilder, defaultPageLimit)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(
+					transformerclient,
+					sqlmanagerclient,
+					redisConfig,
+					sqlmanager_shared.MssqlDriver,
+					selectQueryBuilder,
+					defaultPageLimit,
+				)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_shared.ConnectionTypeAwsS3:
-				b.Register(bb_internal.JobTypeSync, bb_shared.ConnectionTypeAwsS3, bb_conns.NewAwsS3SyncBuilder())
+				b.Register(
+					bb_internal.JobTypeSync,
+					bb_shared.ConnectionTypeAwsS3,
+					bb_conns.NewAwsS3SyncBuilder(),
+				)
 			case bb_shared.ConnectionTypeDynamodb:
-				b.Register(bb_internal.JobTypeSync, bb_shared.ConnectionTypeDynamodb, bb_conns.NewDynamoDbSyncBuilder(transformerclient))
+				b.Register(
+					bb_internal.JobTypeSync,
+					bb_shared.ConnectionTypeDynamodb,
+					bb_conns.NewDynamoDbSyncBuilder(transformerclient),
+				)
 			case bb_shared.ConnectionTypeMongo:
-				b.Register(bb_internal.JobTypeSync, bb_shared.ConnectionTypeMongo, bb_conns.NewMongoDbSyncBuilder(transformerclient))
+				b.Register(
+					bb_internal.JobTypeSync,
+					bb_shared.ConnectionTypeMongo,
+					bb_conns.NewMongoDbSyncBuilder(transformerclient),
+				)
 			case bb_shared.ConnectionTypeGCP:
-				b.Register(bb_internal.JobTypeSync, bb_shared.ConnectionTypeGCP, bb_conns.NewGcpCloudStorageSyncBuilder())
+				b.Register(
+					bb_internal.JobTypeSync,
+					bb_shared.ConnectionTypeGCP,
+					bb_conns.NewGcpCloudStorageSyncBuilder(),
+				)
 			default:
 				return fmt.Errorf("unsupport connection type for sync job: %s", connectionType)
 			}
@@ -155,7 +206,10 @@ func (b *BuilderProvider) registerStandardBuilders(
 
 	if jobType == bb_internal.JobTypeAIGenerate {
 		if len(destinationConnections) != 1 {
-			return fmt.Errorf("unsupported destination count for AI generate job: %d", len(destinationConnections))
+			return fmt.Errorf(
+				"unsupported destination count for AI generate job: %d",
+				len(destinationConnections),
+			)
 		}
 		destConnType, err := bb_shared.GetConnectionType(destinationConnections[0])
 		if err != nil {
@@ -165,13 +219,22 @@ func (b *BuilderProvider) registerStandardBuilders(
 		if err != nil {
 			return err
 		}
-		builder := bb_conns.NewGenerateAIBuilder(transformerclient, sqlmanagerclient, connectionclient, driver)
+		builder := bb_conns.NewGenerateAIBuilder(
+			transformerclient,
+			sqlmanagerclient,
+			connectionclient,
+			driver,
+		)
 		b.Register(bb_internal.JobTypeAIGenerate, bb_shared.ConnectionTypeOpenAI, builder)
 		b.Register(bb_internal.JobTypeAIGenerate, destConnType, builder)
 	}
 	if jobType == bb_internal.JobTypeGenerate {
 		for _, connectionType := range connectionTypes {
-			b.Register(bb_internal.JobTypeGenerate, connectionType, bb_conns.NewGenerateBuilder(transformerclient, sqlmanagerclient, connectionclient))
+			b.Register(
+				bb_internal.JobTypeGenerate,
+				connectionType,
+				bb_conns.NewGenerateBuilder(transformerclient, sqlmanagerclient, connectionclient),
+			)
 		}
 	}
 	return nil
@@ -258,7 +321,8 @@ func NewWorkerBenthosConfigManager(
 	if err != nil {
 		return nil, err
 	}
-	logger := config.Logger.With(withBenthosConfigLoggerTags(config.Job, config.SourceConnection)...)
+	logger := config.Logger.With(
+		withBenthosConfigLoggerTags(config.Job, config.SourceConnection)...)
 	return &BenthosConfigManager{
 		sourceProvider:         provider,
 		destinationProvider:    provider,
@@ -344,7 +408,8 @@ func NewCliBenthosConfigManager(
 		return nil, err
 	}
 
-	logger := config.Logger.With(withBenthosConfigLoggerTags(config.Job, config.SourceConnection)...)
+	logger := config.Logger.With(
+		withBenthosConfigLoggerTags(config.Job, config.SourceConnection)...)
 	return &BenthosConfigManager{
 		sourceProvider:         sourceProvider,
 		destinationProvider:    destinationProvider,

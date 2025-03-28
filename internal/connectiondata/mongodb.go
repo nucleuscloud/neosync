@@ -31,7 +31,9 @@ func NewMongoDbConnectionDataService(
 	}
 }
 
-func (s *MongoDbConnectionDataService) GetAllTables(ctx context.Context) ([]TableIdentifier, error) {
+func (s *MongoDbConnectionDataService) GetAllTables(
+	ctx context.Context,
+) ([]TableIdentifier, error) {
 	return nil, errors.ErrUnsupported
 }
 
@@ -103,10 +105,17 @@ func (s *MongoDbConnectionDataService) GetTableConstraints(
 	return nil, errors.ErrUnsupported
 }
 
-func (s *MongoDbConnectionDataService) GetTableSchema(ctx context.Context, schema, table string) ([]*mgmtv1alpha1.DatabaseColumn, error) {
+func (s *MongoDbConnectionDataService) GetTableSchema(
+	ctx context.Context,
+	schema, table string,
+) ([]*mgmtv1alpha1.DatabaseColumn, error) {
 	return nil, errors.ErrUnsupported
 }
 
-func (s *MongoDbConnectionDataService) GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error) {
+func (s *MongoDbConnectionDataService) GetTableRowCount(
+	ctx context.Context,
+	schema, table string,
+	whereClause *string,
+) (int64, error) {
 	return 0, errors.ErrUnsupported
 }

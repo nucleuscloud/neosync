@@ -62,7 +62,8 @@ func (s *Service) GetUser(
 	}
 
 	if tokenctxResp.ApiKeyContextData != nil {
-		if tokenctxResp.ApiKeyContextData.ApiKeyType == apikey.AccountApiKey && tokenctxResp.ApiKeyContextData.ApiKey != nil {
+		if tokenctxResp.ApiKeyContextData.ApiKeyType == apikey.AccountApiKey &&
+			tokenctxResp.ApiKeyContextData.ApiKey != nil {
 			return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
 				UserId: neosyncdb.UUIDString(tokenctxResp.ApiKeyContextData.ApiKey.UserID),
 			}), nil
@@ -71,7 +72,12 @@ func (s *Service) GetUser(
 				UserId: "00000000-0000-0000-0000-000000000000",
 			}), nil
 		}
-		return nil, nucleuserrors.NewUnauthenticated(fmt.Sprintf("invalid api key type when calling GetUser: %s", tokenctxResp.ApiKeyContextData.ApiKeyType))
+		return nil, nucleuserrors.NewUnauthenticated(
+			fmt.Sprintf(
+				"invalid api key type when calling GetUser: %s",
+				tokenctxResp.ApiKeyContextData.ApiKeyType,
+			),
+		)
 	} else if tokenctxResp.JwtContextData != nil {
 		user, err := s.db.Q.GetUserAssociationByProviderSub(ctx, s.db.Db, tokenctxResp.JwtContextData.AuthUserId)
 		if err != nil && !neosyncdb.IsNoRows(err) {
@@ -84,7 +90,9 @@ func (s *Service) GetUser(
 			UserId: neosyncdb.UUIDString(user.UserID),
 		}), nil
 	}
-	return nil, nucleuserrors.NewUnauthenticated("unable to find a valid user based on the provided auth credentials")
+	return nil, nucleuserrors.NewUnauthenticated(
+		"unable to find a valid user based on the provided auth credentials",
+	)
 }
 
 func (s *Service) SetUser(
@@ -132,7 +140,9 @@ func (s *Service) SetUser(
 			UserId: neosyncdb.UUIDString(user.ID),
 		}), nil
 	}
-	return nil, nucleuserrors.NewUnauthenticated("unable to find a valid user based on the provided auth credentials")
+	return nil, nucleuserrors.NewUnauthenticated(
+		"unable to find a valid user based on the provided auth credentials",
+	)
 }
 
 func (s *Service) GetUserAccounts(
@@ -167,10 +177,14 @@ func (s *Service) ConvertPersonalToTeamAccount(
 	req *connect.Request[mgmtv1alpha1.ConvertPersonalToTeamAccountRequest],
 ) (*connect.Response[mgmtv1alpha1.ConvertPersonalToTeamAccountResponse], error) {
 	if !s.cfg.IsAuthEnabled {
-		return nil, nucleuserrors.NewForbidden("unable to convert personal account to team account as authentication is not enabled")
+		return nil, nucleuserrors.NewForbidden(
+			"unable to convert personal account to team account as authentication is not enabled",
+		)
 	}
 	if s.cfg.IsNeosyncCloud && s.billingclient == nil {
-		return nil, nucleuserrors.NewForbidden("creating team accounts via the API is currently forbidden in Neosync Cloud environments. Please contact us to create a team account.")
+		return nil, nucleuserrors.NewForbidden(
+			"creating team accounts via the API is currently forbidden in Neosync Cloud environments. Please contact us to create a team account.",
+		)
 	}
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
@@ -186,7 +200,9 @@ func (s *Service) ConvertPersonalToTeamAccount(
 
 	personalAccountId := req.Msg.GetAccountId()
 	if personalAccountId == "" {
-		logger.Debug("account id was not provided during personal->team conversion. Attempting to find personal account")
+		logger.Debug(
+			"account id was not provided during personal->team conversion. Attempting to find personal account",
+		)
 		accounts, err := s.db.Q.GetAccountsByUser(ctx, s.db.Db, userId)
 		if err != nil && !neosyncdb.IsNoRows(err) {
 			return nil, err
@@ -197,7 +213,11 @@ func (s *Service) ConvertPersonalToTeamAccount(
 		for idx := range accounts {
 			if accounts[idx].AccountType == int16(neosyncdb.AccountType_Personal) {
 				personalAccountId = neosyncdb.UUIDString(accounts[idx].ID)
-				logger.Debug("found personal account to convert to team account", "personalAccountId", personalAccountId)
+				logger.Debug(
+					"found personal account to convert to team account",
+					"personalAccountId",
+					personalAccountId,
+				)
 				break
 			}
 		}
@@ -229,11 +249,15 @@ func (s *Service) ConvertPersonalToTeamAccount(
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.db.ConvertPersonalToTeamAccount(ctx, &neosyncdb.ConvertPersonalToTeamAccountRequest{
-		UserId:            userId,
-		PersonalAccountId: personalAccountUuid,
-		TeamName:          req.Msg.GetName(),
-	}, logger)
+	resp, err := s.db.ConvertPersonalToTeamAccount(
+		ctx,
+		&neosyncdb.ConvertPersonalToTeamAccountRequest{
+			UserId:            userId,
+			PersonalAccountId: personalAccountUuid,
+			TeamName:          req.Msg.GetName(),
+		},
+		logger,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -241,12 +265,18 @@ func (s *Service) ConvertPersonalToTeamAccount(
 	newPersonalAccountId := neosyncdb.UUIDString(resp.PersonalAccount.ID)
 	if err := s.rbacClient.SetupNewAccount(ctx, newPersonalAccountId, logger); err != nil {
 		// note: if this fails the account is kind of in a broken state...
-		return nil, fmt.Errorf("unable to setup newly converted personal account, please reach out to support for further assistance: %w", err)
+		return nil, fmt.Errorf(
+			"unable to setup newly converted personal account, please reach out to support for further assistance: %w",
+			err,
+		)
 	}
 
 	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(newPersonalAccountId), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN); err != nil {
 		// note: if this fails the account is kind of in a broken state...
-		return nil, fmt.Errorf("unable to set account role for user in new personal account, please reach out to support for further assistance: %w", err)
+		return nil, fmt.Errorf(
+			"unable to set account role for user in new personal account, please reach out to support for further assistance: %w",
+			err,
+		)
 	}
 
 	var checkoutSessionUrl *string
@@ -258,9 +288,17 @@ func (s *Service) ConvertPersonalToTeamAccount(
 			logger,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("unable to upsert stripe customer id after account creation: %w", err)
+			return nil, fmt.Errorf(
+				"unable to upsert stripe customer id after account creation: %w",
+				err,
+			)
 		}
-		session, err := s.generateCheckoutSession(account.StripeCustomerID.String, account.AccountSlug, user.Msg.GetUserId(), logger)
+		session, err := s.generateCheckoutSession(
+			account.StripeCustomerID.String,
+			account.AccountSlug,
+			user.Msg.GetUserId(),
+			logger,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("unable to generate checkout session: %w", err)
 		}
@@ -296,16 +334,27 @@ func (s *Service) SetPersonalAccount(
 	}
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("accountId", neosyncdb.UUIDString(account.ID), "userId", user.Msg.GetUserId())
+	logger = logger.With(
+		"accountId",
+		neosyncdb.UUIDString(account.ID),
+		"userId",
+		user.Msg.GetUserId(),
+	)
 
 	if err := s.rbacClient.SetupNewAccount(ctx, neosyncdb.UUIDString(account.ID), logger); err != nil {
 		// note: if this fails the account is kind of in a broken state...
-		return nil, fmt.Errorf("unable to setup new account, please reach out to support for further assistance: %w", err)
+		return nil, fmt.Errorf(
+			"unable to setup new account, please reach out to support for further assistance: %w",
+			err,
+		)
 	}
 
 	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(neosyncdb.UUIDString(account.ID)), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN); err != nil {
 		// note: if this fails the account is kind of in a broken state...
-		return nil, fmt.Errorf("unable to set account role for user, please reach out to support for further assistance: %w", err)
+		return nil, fmt.Errorf(
+			"unable to set account role for user, please reach out to support for further assistance: %w",
+			err,
+		)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.SetPersonalAccountResponse{
@@ -330,10 +379,14 @@ func (s *Service) IsUserInAccount(
 	if err != nil {
 		return nil, err
 	}
-	apiKeyCount, err := s.db.Q.IsUserInAccountApiKey(ctx, s.db.Db, db_queries.IsUserInAccountApiKeyParams{
-		AccountId: accountId,
-		UserId:    userId,
-	})
+	apiKeyCount, err := s.db.Q.IsUserInAccountApiKey(
+		ctx,
+		s.db.Db,
+		db_queries.IsUserInAccountApiKeyParams{
+			AccountId: accountId,
+			UserId:    userId,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -360,10 +413,14 @@ func (s *Service) CreateTeamAccount(
 ) (*connect.Response[mgmtv1alpha1.CreateTeamAccountResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	if !s.cfg.IsAuthEnabled {
-		return nil, nucleuserrors.NewForbidden("unable to create team account as authentication is not enabled")
+		return nil, nucleuserrors.NewForbidden(
+			"unable to create team account as authentication is not enabled",
+		)
 	}
 	if s.cfg.IsNeosyncCloud && s.billingclient == nil {
-		return nil, nucleuserrors.NewForbidden("creating team accounts via the API is currently forbidden in Neosync Cloud environments. Please contact us to create a team account.")
+		return nil, nucleuserrors.NewForbidden(
+			"creating team accounts via the API is currently forbidden in Neosync Cloud environments. Please contact us to create a team account.",
+		)
 	}
 
 	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
@@ -391,9 +448,17 @@ func (s *Service) CreateTeamAccount(
 			logger,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("unable to upsert stripe customer id after account creation: %w", err)
+			return nil, fmt.Errorf(
+				"unable to upsert stripe customer id after account creation: %w",
+				err,
+			)
 		}
-		session, err := s.generateCheckoutSession(account.StripeCustomerID.String, account.AccountSlug, user.Msg.GetUserId(), logger)
+		session, err := s.generateCheckoutSession(
+			account.StripeCustomerID.String,
+			account.AccountSlug,
+			user.Msg.GetUserId(),
+			logger,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("unable to generate checkout session: %w", err)
 		}
@@ -403,12 +468,18 @@ func (s *Service) CreateTeamAccount(
 
 	if err := s.rbacClient.SetupNewAccount(ctx, neosyncdb.UUIDString(account.ID), logger); err != nil {
 		// note: if this fails the account is kind of in a broken state...
-		return nil, fmt.Errorf("unable to setup new account, please reach out to support for further assistance: %w", err)
+		return nil, fmt.Errorf(
+			"unable to setup new account, please reach out to support for further assistance: %w",
+			err,
+		)
 	}
 
 	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(neosyncdb.UUIDString(account.ID)), mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_ADMIN); err != nil {
 		// note: if this fails the account is kind of in a broken state...
-		return nil, fmt.Errorf("unable to set account role for user, please reach out to support for further assistance: %w", err)
+		return nil, fmt.Errorf(
+			"unable to set account role for user, please reach out to support for further assistance: %w",
+			err,
+		)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateTeamAccountResponse{
@@ -417,11 +488,16 @@ func (s *Service) CreateTeamAccount(
 	}), nil
 }
 
-func (s *Service) getCreateStripeAccountFunction(userId string, logger *slog.Logger) func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
+func (s *Service) getCreateStripeAccountFunction(
+	userId string,
+	logger *slog.Logger,
+) func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
 	return func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
 		email := s.getEmailFromToken(ctx, logger)
 		if email == nil {
-			return "", errors.New("unable to retrieve user email from auth token when creating stripe account")
+			return "", errors.New(
+				"unable to retrieve user email from auth token when creating stripe account",
+			)
 		}
 		customer, err := s.billingclient.NewCustomer(&billing.CustomerRequest{
 			Email:     *email,
@@ -436,7 +512,10 @@ func (s *Service) getCreateStripeAccountFunction(userId string, logger *slog.Log
 	}
 }
 
-func (s *Service) generateCheckoutSession(customerId, accountSlug, userId string, logger *slog.Logger) (*stripe.CheckoutSession, error) {
+func (s *Service) generateCheckoutSession(
+	customerId, accountSlug, userId string,
+	logger *slog.Logger,
+) (*stripe.CheckoutSession, error) {
 	if s.billingclient == nil {
 		return nil, errors.New("unable to generate checkout session as stripe client is nil")
 	}
@@ -451,7 +530,9 @@ func (s *Service) generateCheckoutSession(customerId, accountSlug, userId string
 func (s *Service) getEmailFromToken(ctx context.Context, logger *slog.Logger) *string {
 	tokenctxResp, err := tokenctx.GetTokenCtx(ctx)
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve token from ctx when getting email: %w", err).Error())
+		logger.Error(
+			fmt.Errorf("unable to retrieve token from ctx when getting email: %w", err).Error(),
+		)
 		return nil
 	}
 	if tokenctxResp.JwtContextData != nil && tokenctxResp.JwtContextData.Claims != nil {
@@ -495,7 +576,12 @@ func (s *Service) GetTeamAccountMembers(
 		rbacUsers = append(rbacUsers, rbac.NewPgUserIdEntity(user.UserID))
 	}
 
-	userRoles := s.rbacClient.GetUserRoles(ctx, rbacUsers, rbac.NewAccountIdEntity(neosyncdb.UUIDString(accountUuid)), logger)
+	userRoles := s.rbacClient.GetUserRoles(
+		ctx,
+		rbacUsers,
+		rbac.NewAccountIdEntity(neosyncdb.UUIDString(accountUuid)),
+		logger,
+	)
 	logger.Debug(fmt.Sprintf("found %d users with roles", len(userRoles)))
 
 	dtoUsers := make([]*mgmtv1alpha1.AccountUser, len(userIdentities))
@@ -509,13 +595,24 @@ func (s *Service) GetTeamAccountMembers(
 			}
 			role, ok := userRoles[rbac.NewPgUserIdEntity(user.UserID).String()]
 			if ok {
-				logger.Debug(fmt.Sprintf("found role for user: %s - %s", neosyncdb.UUIDString(user.UserID), role.String()))
+				logger.Debug(
+					fmt.Sprintf(
+						"found role for user: %s - %s",
+						neosyncdb.UUIDString(user.UserID),
+						role.String(),
+					),
+				)
 				dtoUsers[i].Role = role.ToDto()
 			} else {
 				dtoUsers[i].Role = mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_UNSPECIFIED
 			}
 			if user.ProviderSub == "" {
-				logger.Warn(fmt.Sprintf("unable to find provider sub associated with user id: %q", neosyncdb.UUIDString(user.UserID)))
+				logger.Warn(
+					fmt.Sprintf(
+						"unable to find provider sub associated with user id: %q",
+						neosyncdb.UUIDString(user.UserID),
+					),
+				)
 				return nil
 			} else {
 				authuser, err := s.authadminclient.GetUserBySub(ctx, user.ProviderSub)
@@ -613,7 +710,14 @@ func (s *Service) InviteUserToTeamAccount(
 		role = pgtype.Int4{Int32: int32(req.Msg.GetRole()), Valid: true}
 	}
 
-	invite, err := s.db.CreateTeamAccountInvite(ctx, accountUuid, user.PgId(), req.Msg.GetEmail(), expiresAt, role)
+	invite, err := s.db.CreateTeamAccountInvite(
+		ctx,
+		accountUuid,
+		user.PgId(),
+		req.Msg.GetEmail(),
+		expiresAt,
+		role,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -718,11 +822,14 @@ func (s *Service) AcceptTeamAccountInvite(
 		return nil, err
 	}
 	if tokenctxResp.JwtContextData == nil {
-		return nil, nucleuserrors.NewUnauthenticated("must be a valid jwt user to accept team account invites")
+		return nil, nucleuserrors.NewUnauthenticated(
+			"must be a valid jwt user to accept team account invites",
+		)
 	}
 
 	var email *string
-	if tokenctxResp.JwtContextData.Claims != nil && tokenctxResp.JwtContextData.Claims.Email != nil {
+	if tokenctxResp.JwtContextData.Claims != nil &&
+		tokenctxResp.JwtContextData.Claims.Email != nil {
 		email = tokenctxResp.JwtContextData.Claims.Email
 	} else {
 		userinfo, err := s.authclient.GetUserInfo(ctx, tokenctxResp.JwtContextData.RawToken)
@@ -736,7 +843,9 @@ func (s *Service) AcceptTeamAccountInvite(
 		email = &userinfo.Email
 	}
 	if email == nil {
-		return nil, nucleuserrors.NewUnauthenticated("unable to find email to valid to add user to account")
+		return nil, nucleuserrors.NewUnauthenticated(
+			"unable to find email to valid to add user to account",
+		)
 	}
 
 	validateResp, err := s.db.ValidateInviteAddUserToAccount(ctx, userUuid, req.Msg.Token, *email)
@@ -745,7 +854,10 @@ func (s *Service) AcceptTeamAccountInvite(
 	}
 
 	if err := s.rbacClient.SetAccountRole(ctx, rbac.NewUserIdEntity(user.Msg.GetUserId()), rbac.NewAccountIdEntity(neosyncdb.UUIDString(validateResp.AccountId)), validateResp.Role); err != nil {
-		return nil, fmt.Errorf("unable to set account role for user, please reach out to support for further assistance: %w", err)
+		return nil, fmt.Errorf(
+			"unable to set account role for user, please reach out to support for further assistance: %w",
+			err,
+		)
 	}
 
 	if err := s.verifyTeamAccount(ctx, validateResp.AccountId); err != nil {
@@ -797,7 +909,12 @@ func (s *Service) SetUserRole(
 		return nil, nucleuserrors.NewBadRequest("provided user id is not in account")
 	}
 
-	err = s.rbacClient.SetAccountRole(ctx, rbac.NewPgUserIdEntity(requestingUserUuid), rbac.NewAccountIdEntity(req.Msg.GetAccountId()), req.Msg.GetRole())
+	err = s.rbacClient.SetAccountRole(
+		ctx,
+		rbac.NewPgUserIdEntity(requestingUserUuid),
+		rbac.NewAccountIdEntity(req.Msg.GetAccountId()),
+		req.Msg.GetRole(),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -810,13 +927,17 @@ func (s *Service) verifyTeamAccount(ctx context.Context, accountId pgtype.UUID) 
 	if err != nil {
 		return err
 	}
-	if account.AccountType != int16(neosyncdb.AccountType_Team) && account.AccountType != int16(neosyncdb.AccountType_Enterprise) {
+	if account.AccountType != int16(neosyncdb.AccountType_Team) &&
+		account.AccountType != int16(neosyncdb.AccountType_Enterprise) {
 		return nucleuserrors.NewForbidden("account is not a team account")
 	}
 	return nil
 }
 
-func (s *Service) GetSystemInformation(ctx context.Context, req *connect.Request[mgmtv1alpha1.GetSystemInformationRequest]) (*connect.Response[mgmtv1alpha1.GetSystemInformationResponse], error) {
+func (s *Service) GetSystemInformation(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetSystemInformationRequest],
+) (*connect.Response[mgmtv1alpha1.GetSystemInformationResponse], error) {
 	versionInfo := version.Get()
 	builtDate, err := time.Parse(time.RFC3339, versionInfo.BuildDate)
 	if err != nil {
@@ -854,23 +975,37 @@ func (s *Service) HasPermission(
 	switch req.Msg.GetResource().GetType() {
 	case mgmtv1alpha1.ResourcePermission_TYPE_ACCOUNT:
 		if req.Msg.GetResource().GetId() != req.Msg.GetAccountId() {
-			return connect.NewResponse(&mgmtv1alpha1.HasPermissionResponse{HasPermission: false}), nil
+			return connect.NewResponse(
+				&mgmtv1alpha1.HasPermissionResponse{HasPermission: false},
+			), nil
 		}
 		switch req.Msg.GetResource().GetAction() {
 		case mgmtv1alpha1.ResourcePermission_ACTION_CREATE:
-			ok, err := user.Account(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_Create)
+			ok, err := user.Account(
+				ctx,
+				userdata.NewIdentifier(req.Msg.GetAccountId()),
+				rbac.AccountAction_Create,
+			)
 			if err != nil {
 				return nil, err
 			}
 			hasPermission = ok
 		case mgmtv1alpha1.ResourcePermission_ACTION_READ:
-			ok, err := user.Account(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_View)
+			ok, err := user.Account(
+				ctx,
+				userdata.NewIdentifier(req.Msg.GetAccountId()),
+				rbac.AccountAction_View,
+			)
 			if err != nil {
 				return nil, err
 			}
 			hasPermission = ok
 		case mgmtv1alpha1.ResourcePermission_ACTION_UPDATE:
-			ok, err := user.Account(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_Edit)
+			ok, err := user.Account(
+				ctx,
+				userdata.NewIdentifier(req.Msg.GetAccountId()),
+				rbac.AccountAction_Edit,
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -879,25 +1014,41 @@ func (s *Service) HasPermission(
 	case mgmtv1alpha1.ResourcePermission_TYPE_CONNECTION:
 		switch req.Msg.GetResource().GetAction() {
 		case mgmtv1alpha1.ResourcePermission_ACTION_CREATE:
-			ok, err := user.Connection(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.ConnectionAction_Create)
+			ok, err := user.Connection(
+				ctx,
+				userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()),
+				rbac.ConnectionAction_Create,
+			)
 			if err != nil {
 				return nil, err
 			}
 			hasPermission = ok
 		case mgmtv1alpha1.ResourcePermission_ACTION_READ:
-			ok, err := user.Connection(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.ConnectionAction_View)
+			ok, err := user.Connection(
+				ctx,
+				userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()),
+				rbac.ConnectionAction_View,
+			)
 			if err != nil {
 				return nil, err
 			}
 			hasPermission = ok
 		case mgmtv1alpha1.ResourcePermission_ACTION_UPDATE:
-			ok, err := user.Connection(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.ConnectionAction_Edit)
+			ok, err := user.Connection(
+				ctx,
+				userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()),
+				rbac.ConnectionAction_Edit,
+			)
 			if err != nil {
 				return nil, err
 			}
 			hasPermission = ok
 		case mgmtv1alpha1.ResourcePermission_ACTION_DELETE:
-			ok, err := user.Connection(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.ConnectionAction_Delete)
+			ok, err := user.Connection(
+				ctx,
+				userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()),
+				rbac.ConnectionAction_Delete,
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -906,32 +1057,50 @@ func (s *Service) HasPermission(
 	case mgmtv1alpha1.ResourcePermission_TYPE_JOB:
 		switch req.Msg.GetResource().GetAction() {
 		case mgmtv1alpha1.ResourcePermission_ACTION_CREATE:
-			ok, err := user.Job(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.JobAction_Create)
+			ok, err := user.Job(
+				ctx,
+				userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()),
+				rbac.JobAction_Create,
+			)
 			if err != nil {
 				return nil, err
 			}
 			hasPermission = ok
 		case mgmtv1alpha1.ResourcePermission_ACTION_READ:
-			ok, err := user.Job(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.JobAction_View)
+			ok, err := user.Job(
+				ctx,
+				userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()),
+				rbac.JobAction_View,
+			)
 			if err != nil {
 				return nil, err
 			}
 			hasPermission = ok
 		case mgmtv1alpha1.ResourcePermission_ACTION_UPDATE:
-			ok, err := user.Job(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.JobAction_Edit)
+			ok, err := user.Job(
+				ctx,
+				userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()),
+				rbac.JobAction_Edit,
+			)
 			if err != nil {
 				return nil, err
 			}
 			hasPermission = ok
 		case mgmtv1alpha1.ResourcePermission_ACTION_DELETE:
-			ok, err := user.Job(ctx, userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()), rbac.JobAction_Delete)
+			ok, err := user.Job(
+				ctx,
+				userdata.NewDomainEntity(req.Msg.GetAccountId(), req.Msg.GetResource().GetId()),
+				rbac.JobAction_Delete,
+			)
 			if err != nil {
 				return nil, err
 			}
 			hasPermission = ok
 		}
 	}
-	return connect.NewResponse(&mgmtv1alpha1.HasPermissionResponse{HasPermission: hasPermission}), nil
+	return connect.NewResponse(
+		&mgmtv1alpha1.HasPermissionResponse{HasPermission: hasPermission},
+	), nil
 }
 
 func (s *Service) HasPermissions(
@@ -947,10 +1116,13 @@ func (s *Service) HasPermissions(
 	for i, resource := range req.Msg.GetResources() {
 		i, resource := i, resource // https://golang.org/doc/faq#closures_and_goroutines
 		g.Go(func() error {
-			resp, err := s.HasPermission(errctx, connect.NewRequest(&mgmtv1alpha1.HasPermissionRequest{
-				AccountId: req.Msg.GetAccountId(),
-				Resource:  resource,
-			}))
+			resp, err := s.HasPermission(
+				errctx,
+				connect.NewRequest(&mgmtv1alpha1.HasPermissionRequest{
+					AccountId: req.Msg.GetAccountId(),
+					Resource:  resource,
+				}),
+			)
 			if err != nil {
 				return err
 			}

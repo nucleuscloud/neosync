@@ -12,8 +12,17 @@ import (
 )
 
 type Interface interface {
-	GetTokenResponse(ctx context.Context, clientId string, code string, redirecturi string) (*AuthTokenResponse, error)
-	GetRefreshedAccessToken(ctx context.Context, clientId string, refreshToken string) (*AuthTokenResponse, error)
+	GetTokenResponse(
+		ctx context.Context,
+		clientId string,
+		code string,
+		redirecturi string,
+	) (*AuthTokenResponse, error)
+	GetRefreshedAccessToken(
+		ctx context.Context,
+		clientId string,
+		refreshToken string,
+	) (*AuthTokenResponse, error)
 	GetUserInfo(ctx context.Context, accessToken string) (*UserInfo, error)
 	GetTokenEndpoint(ctx context.Context) (string, error)
 	GetAuthorizationEndpoint(ctx context.Context) (string, error)
@@ -147,7 +156,10 @@ func (c *Client) GetRefreshedAccessToken(
 	clientSecret := c.clientIdSecretMap[clientId]
 	payload := strings.NewReader(
 		fmt.Sprintf(
-			"grant_type=refresh_token&client_id=%s&client_secret=%s&refresh_token=%s", clientId, clientSecret, refreshToken,
+			"grant_type=refresh_token&client_id=%s&client_secret=%s&refresh_token=%s",
+			clientId,
+			clientSecret,
+			refreshToken,
 		),
 	)
 	tokenurl, err := c.GetTokenEndpoint(ctx)
@@ -179,14 +191,20 @@ func (c *Client) GetRefreshedAccessToken(
 	err = json.Unmarshal(body, &tokenResponse)
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to unmarshal token response from refresh token request: %w", err)
+		return nil, fmt.Errorf(
+			"unable to unmarshal token response from refresh token request: %w",
+			err,
+		)
 	}
 
 	if tokenResponse.AccessToken == "" {
 		var errorResponse AuthTokenErrorData
 		err = json.Unmarshal(body, &errorResponse)
 		if err != nil {
-			return nil, fmt.Errorf("unable to unmarshal error response from refresh token request: %w", err)
+			return nil, fmt.Errorf(
+				"unable to unmarshal error response from refresh token request: %w",
+				err,
+			)
 		}
 		return &AuthTokenResponse{
 			Result: nil,
@@ -274,7 +292,10 @@ type openIdConfiguration struct {
 }
 
 func (c *Client) getOpenIdConfiguration(ctx context.Context) (*openIdConfiguration, error) {
-	configUrl := fmt.Sprintf("%s/.well-known/openid-configuration", strings.TrimSuffix(c.authBaseUrl, "/"))
+	configUrl := fmt.Sprintf(
+		"%s/.well-known/openid-configuration",
+		strings.TrimSuffix(c.authBaseUrl, "/"),
+	)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, configUrl, http.NoBody)
 	if err != nil {

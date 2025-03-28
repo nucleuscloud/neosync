@@ -47,8 +47,10 @@ func NewCmd() *cobra.Command {
 			)
 		},
 	}
-	cmd.Flags().StringP("database", "d", "", "optionally set the database url, otherwise it will pull from the environment")
-	cmd.Flags().StringP("source", "s", "", "optionally set the migrations dir, otherwise pull from DB_SCHEMA_DIR env")
+	cmd.Flags().
+		StringP("database", "d", "", "optionally set the database url, otherwise it will pull from the environment")
+	cmd.Flags().
+		StringP("source", "s", "", "optionally set the migrations dir, otherwise pull from DB_SCHEMA_DIR env")
 	return cmd
 }
 

@@ -88,7 +88,11 @@ func RegisterPooledMongoDbInput(env *service.Environment, clientProvider MongoPo
 	)
 }
 
-func newMongoInput(conf *service.ParsedConfig, clientProvider MongoPoolProvider, logger *service.Logger) (service.BatchInput, error) {
+func newMongoInput(
+	conf *service.ParsedConfig,
+	clientProvider MongoPoolProvider,
+	logger *service.Logger,
+) (service.BatchInput, error) {
 	var (
 		limit, batchSize int
 		sort             map[string]int
@@ -206,7 +210,10 @@ func (m *mongoInput) Connect(ctx context.Context) error {
 		}
 		m.cursor, err = collection.Aggregate(ctx, m.query, aggregateOptions)
 	default:
-		return fmt.Errorf("operation '%s' not supported. the supported values are 'find' and 'aggregate'", m.operation)
+		return fmt.Errorf(
+			"operation '%s' not supported. the supported values are 'find' and 'aggregate'",
+			m.operation,
+		)
 	}
 	if err != nil {
 		_ = m.client.Disconnect(ctx)

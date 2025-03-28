@@ -37,7 +37,12 @@ type transformPiiTextConfig struct {
 	defaultLanguage *string
 }
 
-func WithTransformPiiTextConfig(analyze presidioapi.AnalyzeInterface, anonymize presidioapi.AnonymizeInterface, neosyncOperatorApi ee_transformer_fns.NeosyncOperatorApi, defaultLanguage *string) TransformerExecutorOption {
+func WithTransformPiiTextConfig(
+	analyze presidioapi.AnalyzeInterface,
+	anonymize presidioapi.AnonymizeInterface,
+	neosyncOperatorApi ee_transformer_fns.NeosyncOperatorApi,
+	defaultLanguage *string,
+) TransformerExecutorOption {
 	return func(c *TransformerExecutorConfig) {
 		c.transformPiiText = &transformPiiTextConfig{
 			analyze:            analyze,
@@ -54,21 +59,32 @@ func WithLogger(logger *slog.Logger) TransformerExecutorOption {
 	}
 }
 
-func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransformer, opts ...TransformerExecutorOption) (*TransformerExecutor, error) {
+func InitializeTransformer(
+	transformerMapping *mgmtv1alpha1.JobMappingTransformer,
+	opts ...TransformerExecutorOption,
+) (*TransformerExecutor, error) {
 	return InitializeTransformerByConfigType(transformerMapping.GetConfig(), opts...)
 }
 
 type UserDefinedTransformerResolver interface {
-	GetUserDefinedTransformer(ctx context.Context, id string) (*mgmtv1alpha1.TransformerConfig, error)
+	GetUserDefinedTransformer(
+		ctx context.Context,
+		id string,
+	) (*mgmtv1alpha1.TransformerConfig, error)
 }
 
-func WithUserDefinedTransformerResolver(resolver UserDefinedTransformerResolver) TransformerExecutorOption {
+func WithUserDefinedTransformerResolver(
+	resolver UserDefinedTransformerResolver,
+) TransformerExecutorOption {
 	return func(c *TransformerExecutorConfig) {
 		c.userDefinedTransformerResolver = resolver
 	}
 }
 
-func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.TransformerConfig, opts ...TransformerExecutorOption) (*TransformerExecutor, error) {
+func InitializeTransformerByConfigType(
+	transformerConfig *mgmtv1alpha1.TransformerConfig,
+	opts ...TransformerExecutorOption,
+) (*TransformerExecutor, error) {
 	execCfg := &TransformerExecutorConfig{logger: slog.Default()}
 	for _, opt := range opts {
 		opt(execCfg)

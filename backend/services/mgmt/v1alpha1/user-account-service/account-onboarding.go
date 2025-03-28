@@ -21,7 +21,11 @@ func (s *Service) GetAccountOnboardingConfig(
 	if err != nil {
 		return nil, err
 	}
-	err = user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_View)
+	err = user.EnforceAccount(
+		ctx,
+		userdata.NewIdentifier(req.Msg.GetAccountId()),
+		rbac.AccountAction_View,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +54,11 @@ func (s *Service) SetAccountOnboardingConfig(
 	if err != nil {
 		return nil, err
 	}
-	err = user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_Edit)
+	err = user.EnforceAccount(
+		ctx,
+		userdata.NewIdentifier(req.Msg.GetAccountId()),
+		rbac.AccountAction_Edit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -68,10 +76,14 @@ func (s *Service) SetAccountOnboardingConfig(
 	onboardingConfigModel := &pg_models.AccountOnboardingConfig{}
 	onboardingConfigModel.FromDto(inputCfg)
 
-	account, err := s.db.Q.UpdateAccountOnboardingConfig(ctx, s.db.Db, db_queries.UpdateAccountOnboardingConfigParams{
-		OnboardingConfig: onboardingConfigModel,
-		AccountId:        accountUuid,
-	})
+	account, err := s.db.Q.UpdateAccountOnboardingConfig(
+		ctx,
+		s.db.Db,
+		db_queries.UpdateAccountOnboardingConfigParams{
+			OnboardingConfig: onboardingConfigModel,
+			AccountId:        accountUuid,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}

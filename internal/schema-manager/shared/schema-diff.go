@@ -130,25 +130,37 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 }
 
 func (b *SchemaDifferencesBuilder) buildTableForeignKeyConstraintDifferences() {
-	existsInSource, existsInDestination := buildDifferencesByFingerprint(b.source.ForeignKeyConstraints, b.destination.ForeignKeyConstraints)
+	existsInSource, existsInDestination := buildDifferencesByFingerprint(
+		b.source.ForeignKeyConstraints,
+		b.destination.ForeignKeyConstraints,
+	)
 	b.diff.ExistsInSource.ForeignKeyConstraints = existsInSource
 	b.diff.ExistsInDestination.ForeignKeyConstraints = existsInDestination
 }
 
 func (b *SchemaDifferencesBuilder) buildTableNonForeignKeyConstraintDifferences() {
-	existsInSource, existsInDestination := buildDifferencesByFingerprint(b.source.NonForeignKeyConstraints, b.destination.NonForeignKeyConstraints)
+	existsInSource, existsInDestination := buildDifferencesByFingerprint(
+		b.source.NonForeignKeyConstraints,
+		b.destination.NonForeignKeyConstraints,
+	)
 	b.diff.ExistsInSource.NonForeignKeyConstraints = existsInSource
 	b.diff.ExistsInDestination.NonForeignKeyConstraints = existsInDestination
 }
 
 func (b *SchemaDifferencesBuilder) buildTableTriggerDifferences() {
-	existsInSource, existsInDestination := buildDifferencesByFingerprint(b.source.Triggers, b.destination.Triggers)
+	existsInSource, existsInDestination := buildDifferencesByFingerprint(
+		b.source.Triggers,
+		b.destination.Triggers,
+	)
 	b.diff.ExistsInSource.Triggers = existsInSource
 	b.diff.ExistsInDestination.Triggers = existsInDestination
 }
 
 func (b *SchemaDifferencesBuilder) buildSchemaFunctionDifferences() {
-	existsInSource, existsInDestination := buildDifferencesByFingerprint(b.source.Functions, b.destination.Functions)
+	existsInSource, existsInDestination := buildDifferencesByFingerprint(
+		b.source.Functions,
+		b.destination.Functions,
+	)
 	b.diff.ExistsInSource.Functions = existsInSource
 	b.diff.ExistsInDestination.Functions = existsInDestination
 }

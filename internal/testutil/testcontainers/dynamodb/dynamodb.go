@@ -20,7 +20,11 @@ type DynamoDBTestSyncContainer struct {
 	Target *DynamoDBTestContainer
 }
 
-func NewDynamoDBTestSyncContainer(ctx context.Context, t *testing.T, sourceOpts, destOpts []Option) (*DynamoDBTestSyncContainer, error) {
+func NewDynamoDBTestSyncContainer(
+	ctx context.Context,
+	t *testing.T,
+	sourceOpts, destOpts []Option,
+) (*DynamoDBTestSyncContainer, error) {
 	tc := &DynamoDBTestSyncContainer{}
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
@@ -105,7 +109,11 @@ func WithAwsToken(token string) Option {
 }
 
 // NewDynamoDBTestContainer initializes a new DynamoDB Test Container with functional options
-func NewDynamoDBTestContainer(ctx context.Context, t *testing.T, opts ...Option) (*DynamoDBTestContainer, error) {
+func NewDynamoDBTestContainer(
+	ctx context.Context,
+	t *testing.T,
+	opts ...Option,
+) (*DynamoDBTestContainer, error) {
 	d := &DynamoDBTestContainer{
 		awsId:     "fakeid",     // default value
 		awsSecret: "fakesecret", // default value
@@ -118,7 +126,10 @@ func NewDynamoDBTestContainer(ctx context.Context, t *testing.T, opts ...Option)
 }
 
 // Creates and starts a DynamoDB test container
-func (d *DynamoDBTestContainer) Setup(ctx context.Context, t *testing.T) (*DynamoDBTestContainer, error) {
+func (d *DynamoDBTestContainer) Setup(
+	ctx context.Context,
+	t *testing.T,
+) (*DynamoDBTestContainer, error) {
 	port := nat.Port("8000/tcp")
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
@@ -182,12 +193,19 @@ func (d *DynamoDBTestContainer) TearDown(ctx context.Context) error {
 	return nil
 }
 
-func (d *DynamoDBTestContainer) SetupDynamoDbTable(ctx context.Context, tableName, primaryKey string) error {
+func (d *DynamoDBTestContainer) SetupDynamoDbTable(
+	ctx context.Context,
+	tableName, primaryKey string,
+) error {
 	out, err := d.Client.CreateTable(ctx, &dynamodb.CreateTableInput{
-		TableName:            &tableName,
-		KeySchema:            []dyntypes.KeySchemaElement{{KeyType: dyntypes.KeyTypeHash, AttributeName: &primaryKey}},
-		AttributeDefinitions: []dyntypes.AttributeDefinition{{AttributeName: &primaryKey, AttributeType: dyntypes.ScalarAttributeTypeS}},
-		BillingMode:          dyntypes.BillingModePayPerRequest,
+		TableName: &tableName,
+		KeySchema: []dyntypes.KeySchemaElement{
+			{KeyType: dyntypes.KeyTypeHash, AttributeName: &primaryKey},
+		},
+		AttributeDefinitions: []dyntypes.AttributeDefinition{
+			{AttributeName: &primaryKey, AttributeType: dyntypes.ScalarAttributeTypeS},
+		},
+		BillingMode: dyntypes.BillingModePayPerRequest,
 	})
 	if err != nil {
 		return err
@@ -198,10 +216,17 @@ func (d *DynamoDBTestContainer) SetupDynamoDbTable(ctx context.Context, tableNam
 	if out.TableDescription.TableStatus == dyntypes.TableStatusCreating {
 		return d.waitUntilDynamoTableExists(ctx, tableName)
 	}
-	return fmt.Errorf("%s dynamo table created but unexpected table status: %s", tableName, out.TableDescription.TableStatus)
+	return fmt.Errorf(
+		"%s dynamo table created but unexpected table status: %s",
+		tableName,
+		out.TableDescription.TableStatus,
+	)
 }
 
-func (d *DynamoDBTestContainer) waitUntilDynamoTableExists(ctx context.Context, tableName string) error {
+func (d *DynamoDBTestContainer) waitUntilDynamoTableExists(
+	ctx context.Context,
+	tableName string,
+) error {
 	input := &dynamodb.DescribeTableInput{TableName: &tableName}
 	for {
 		out, err := d.Client.DescribeTable(ctx, input)
@@ -227,7 +252,10 @@ func (d *DynamoDBTestContainer) DestroyDynamoDbTable(ctx context.Context, tableN
 	return d.waitUntilDynamoTableDestroy(ctx, tableName)
 }
 
-func (d *DynamoDBTestContainer) waitUntilDynamoTableDestroy(ctx context.Context, tableName string) error {
+func (d *DynamoDBTestContainer) waitUntilDynamoTableDestroy(
+	ctx context.Context,
+	tableName string,
+) error {
 	input := &dynamodb.DescribeTableInput{TableName: &tableName}
 	for {
 		_, err := d.Client.DescribeTable(ctx, input)
@@ -240,7 +268,11 @@ func (d *DynamoDBTestContainer) waitUntilDynamoTableDestroy(ctx context.Context,
 	}
 }
 
-func (d *DynamoDBTestContainer) InsertDynamoDBRecords(ctx context.Context, tableName string, data []map[string]dyntypes.AttributeValue) error {
+func (d *DynamoDBTestContainer) InsertDynamoDBRecords(
+	ctx context.Context,
+	tableName string,
+	data []map[string]dyntypes.AttributeValue,
+) error {
 	writeRequests := make([]dyntypes.WriteRequest, len(data))
 	for i, record := range data {
 		writeRequests[i] = dyntypes.WriteRequest{

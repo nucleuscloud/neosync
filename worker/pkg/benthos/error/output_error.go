@@ -21,7 +21,8 @@ func errorOutputSpec() *service.ConfigSpec {
 // Registers an output on a benthos environment called error
 func RegisterErrorOutput(env *service.Environment, stopActivityChannel chan<- error) error {
 	return env.RegisterBatchOutput(
-		"error", errorOutputSpec(),
+		"error",
+		errorOutputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
 			batchPolicy, err := conf.FieldBatchPolicy("batching")
 			if err != nil {
@@ -37,10 +38,15 @@ func RegisterErrorOutput(env *service.Environment, stopActivityChannel chan<- er
 				return nil, service.BatchPolicy{}, -1, err
 			}
 			return out, batchPolicy, maxInFlight, nil
-		})
+		},
+	)
 }
 
-func newErrorOutput(conf *service.ParsedConfig, mgr *service.Resources, channel chan<- error) (*errorOutput, error) {
+func newErrorOutput(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+	channel chan<- error,
+) (*errorOutput, error) {
 	errMsg, err := conf.FieldInterpolatedString("error_msg")
 	if err != nil {
 		return nil, err
@@ -79,7 +85,9 @@ func (e *errorOutput) WriteBatch(ctx context.Context, batch service.MessageBatch
 			return errors.New(errMsg)
 		}
 		// kill activity
-		e.logger.Error(fmt.Sprintf("Benthos Error output - sending stop activity signal: %s ", errMsg))
+		e.logger.Error(
+			fmt.Sprintf("Benthos Error output - sending stop activity signal: %s ", errMsg),
+		)
 		e.stopActivityChannel <- fmt.Errorf("%s", errMsg)
 	}
 	return nil
