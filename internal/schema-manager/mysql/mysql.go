@@ -123,7 +123,8 @@ func getDatabaseDataForSchemaDiff(
 			return fmt.Errorf("failed to retrieve database table functions: %w", err)
 		}
 		for _, tablefunction := range datatypes.Functions {
-			functions[tablefunction.Fingerprint] = tablefunction
+			key := fmt.Sprintf("%s.%s", tablefunction.Schema, tablefunction.Name)
+			functions[key] = tablefunction
 		}
 		return nil
 	})
@@ -134,7 +135,8 @@ func getDatabaseDataForSchemaDiff(
 			return fmt.Errorf("failed to retrieve database table triggers: %w", err)
 		}
 		for _, tabletrigger := range tabletriggers {
-			triggers[tabletrigger.Fingerprint] = tabletrigger
+			key := fmt.Sprintf("%s.%s.%s", tabletrigger.Schema, tabletrigger.Table, tabletrigger.TriggerName)
+			triggers[key] = tabletrigger
 		}
 		return nil
 	})
@@ -156,10 +158,12 @@ func getDatabaseDataForSchemaDiff(
 			defer mu.Unlock()
 			for _, tableconstraint := range tableconstraints {
 				for _, nonFkConstraint := range tableconstraint.NonForeignKeyConstraints {
-					nonFkConstraints[nonFkConstraint.Fingerprint] = nonFkConstraint
+					key := fmt.Sprintf("%s.%s.%s", nonFkConstraint.SchemaName, nonFkConstraint.TableName, nonFkConstraint.ConstraintName)
+					nonFkConstraints[key] = nonFkConstraint
 				}
 				for _, fkConstraint := range tableconstraint.ForeignKeyConstraints {
-					fkConstraints[fkConstraint.Fingerprint] = fkConstraint
+					key := fmt.Sprintf("%s.%s.%s", fkConstraint.ReferencingSchema, fkConstraint.ReferencingTable, fkConstraint.ConstraintName)
+					fkConstraints[key] = fkConstraint
 				}
 			}
 			return nil
@@ -199,6 +203,10 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 	for _, constraint := range diff.ExistsInDestination.NonForeignKeyConstraints {
 		dropNonFkConstraintStatements = append(dropNonFkConstraintStatements, sqlmanager_mysql.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintType, constraint.ConstraintName))
 	}
+	// only way to update non fk constraint is to drop and recreate
+	for _, constraint := range diff.ExistsInBoth.Different.NonForeignKeyConstraints {
+		dropNonFkConstraintStatements = append(dropNonFkConstraintStatements, sqlmanager_mysql.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintType, constraint.ConstraintName))
+	}
 
 	orderedForeignKeysToDrop := shared.BuildOrderedForeignKeyConstraintsToDrop(d.logger, diff)
 	orderedForeignKeyDropStatements := []string{}
@@ -215,9 +223,13 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 	for _, trigger := range diff.ExistsInDestination.Triggers {
 		dropTriggerStatements = append(dropTriggerStatements, sqlmanager_mysql.BuildDropTriggerStatement(trigger.TriggerSchema, trigger.TriggerName))
 	}
+	// only way to update trigger is to drop and recreate
+	for _, trigger := range diff.ExistsInBoth.Different.Triggers {
+		dropTriggerStatements = append(dropTriggerStatements, sqlmanager_mysql.BuildDropTriggerStatement(trigger.TriggerSchema, trigger.TriggerName))
+	}
 
 	updateColumnStatements := []string{}
-	for _, column := range diff.ExistsInBoth.Columns {
+	for _, column := range diff.ExistsInBoth.Different.Columns {
 		stmt, err := sqlmanager_mysql.BuildUpdateColumnStatement(column)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build update column statement: %w", err)
@@ -227,6 +239,10 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 
 	dropFunctionStatements := []string{}
 	for _, function := range diff.ExistsInDestination.Functions {
+		dropFunctionStatements = append(dropFunctionStatements, sqlmanager_mysql.BuildDropFunctionStatement(function.Schema, function.Name))
+	}
+	// only way to update function is to drop and recreate
+	for _, function := range diff.ExistsInBoth.Different.Functions {
 		dropFunctionStatements = append(dropFunctionStatements, sqlmanager_mysql.BuildDropFunctionStatement(function.Schema, function.Name))
 	}
 
