@@ -234,6 +234,7 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
         );
       },
       filterFn: transformerFilterFn,
+      sortingFn: transformerSortingFn,
     }
   );
 
@@ -248,6 +249,16 @@ function getJobMappingColumns(): ColumnDef<JobMappingRow, any>[] {
     attributeColumn,
     transformerColumn,
   ];
+}
+
+function transformerSortingFn(
+  rowA: Row<JobMappingRow>,
+  rowB: Row<JobMappingRow>,
+  _columnId: string
+): number {
+  return rowA.original.transformer.config.case.localeCompare(
+    rowB.original.transformer.config.case
+  );
 }
 
 function transformerFilterFn(

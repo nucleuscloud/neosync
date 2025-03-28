@@ -2,13 +2,19 @@ import { Column } from '@tanstack/react-table';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/libs/utils';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
   CaretSortIcon,
 } from '@radix-ui/react-icons';
-import { useState } from 'react';
+import { ReactElement, useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import { useDebounceCallback } from 'usehooks-ts';
 
@@ -53,33 +59,72 @@ export function SchemaColumnHeader<TData, TValue>({
         <span className={cn(className, 'text-xs')}>{title}</span>
       )}
       {column.getCanSort() && (
-        <div>
-          <Button
-            type="button"
-            onClick={() => {
-              const sorted = column.getIsSorted();
-
-              if (!sorted) {
-                column.toggleSorting(false);
-              } else if (sorted === 'asc') {
-                column.toggleSorting(true);
-              } else if (sorted === 'desc') {
-                column.toggleSorting(undefined);
-              }
-            }}
-            variant="ghost"
-            className="px-1"
-          >
-            {column.getIsSorted() === 'desc' ? (
-              <ArrowDownIcon className="h-4 w-4" />
-            ) : column.getIsSorted() === 'asc' ? (
-              <ArrowUpIcon className="h-4 w-4" />
-            ) : (
-              <CaretSortIcon className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+        <SortButtonWithTooltip
+          column={column}
+          tooltip={getColumnTooltip(title, column.getCanMultiSort())}
+        />
       )}
     </div>
+  );
+}
+
+function getColumnTooltip(title: string, canMultiSort: boolean): string {
+  if (canMultiSort) {
+    return `Sort by ${title}, hold shift to multi-sort`;
+  }
+  return `Sort by ${title}`;
+}
+
+interface SortButtonWithTooltipProps<TData, TValue>
+  extends SortButtonProps<TData, TValue> {
+  tooltip: string;
+}
+
+function SortButtonWithTooltip<TData, TValue>({
+  column,
+  tooltip,
+}: SortButtonWithTooltipProps<TData, TValue>): ReactElement {
+  return (
+    <TooltipProvider>
+      <Tooltip delayDuration={200}>
+        <TooltipTrigger type="button">
+          <SortButton column={column} />
+        </TooltipTrigger>
+        <TooltipContent>{tooltip}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+interface SortButtonProps<TData, TValue> {
+  column: Column<TData, TValue>;
+}
+function SortButton<TData, TValue>({
+  column,
+}: SortButtonProps<TData, TValue>): ReactElement {
+  return (
+    <Button
+      type="button"
+      onClick={(e) => {
+        const sorted = column.getIsSorted();
+        if (!sorted) {
+          column.toggleSorting(false, e.shiftKey);
+        } else if (sorted === 'asc') {
+          column.toggleSorting(true, e.shiftKey);
+        } else if (sorted === 'desc') {
+          column.clearSorting();
+        }
+      }}
+      variant="ghost"
+      className="px-1"
+    >
+      {column.getIsSorted() === 'desc' ? (
+        <ArrowDownIcon className="h-4 w-4" />
+      ) : column.getIsSorted() === 'asc' ? (
+        <ArrowUpIcon className="h-4 w-4" />
+      ) : (
+        <CaretSortIcon className="h-4 w-4" />
+      )}
+    </Button>
   );
 }
