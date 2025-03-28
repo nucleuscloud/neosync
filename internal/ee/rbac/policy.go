@@ -73,10 +73,20 @@ func setupAccountPolicies(enforcer casbin.IEnforcer, accountIds []string, logger
 
 	if len(policyRules) > 0 {
 		logger.Debug(fmt.Sprintf("adding %d policy rules to rbac engine", len(policyRules)))
+		shouldReloadPolicy := false
 		for _, policy := range policyRules {
-			err := setPolicy(enforcer, policy)
+			result, err := setPolicy(enforcer, policy)
 			if err != nil {
 				return err
+			}
+			if result.DidConflict {
+				shouldReloadPolicy = true
+			}
+		}
+		if shouldReloadPolicy {
+			err := enforcer.LoadPolicy()
+			if err != nil {
+				return fmt.Errorf("unable to reload policy: %w", err)
 			}
 		}
 	}
@@ -152,10 +162,20 @@ func (r *Rbac) SetupNewAccount(
 	accountRules := getAccountPolicyRules(accountId)
 	if len(accountRules) > 0 {
 		logger.Debug(fmt.Sprintf("adding %d policy rules to rbac engine for account %s", len(accountRules), accountId))
+		shouldReloadPolicy := false
 		for _, policy := range accountRules {
-			err := setPolicy(r.e, policy)
+			result, err := setPolicy(r.e, policy)
 			if err != nil {
 				return fmt.Errorf("unable to add policy for account %s: %w", accountId, err)
+			}
+			if result.DidConflict {
+				shouldReloadPolicy = true
+			}
+		}
+		if shouldReloadPolicy {
+			err := r.e.LoadPolicy()
+			if err != nil {
+				return fmt.Errorf("unable to reload policy: %w", err)
 			}
 		}
 	}
@@ -388,20 +408,26 @@ func (r *Rbac) EnforceAccount(
 	return nil
 }
 
-func setPolicy(e casbin.IEnforcer, policy []string) error {
+type setPolicyResult struct {
+	DidConflict bool
+}
+
+func setPolicy(e casbin.IEnforcer, policy []string) (*setPolicyResult, error) {
 	// AddPoliciesEx is what should be uesd here but is resulting in duplicates (and errors with unique constraint)
 	// AddPolicies handles the unique constraint but fails if even one policy already exists..
 
 	// This logic here seems to handle what I want it to do instead strangely...
 	ok, err := e.HasPolicy(policy)
 	if err != nil {
-		return fmt.Errorf("unable to check if policy exists: %w", err)
+		return nil, fmt.Errorf("unable to check if policy exists: %w", err)
 	}
 	if !ok {
 		_, err = e.AddPolicy(policy) // always resolves to true even if it was not added, may be adapter dependent
 		if err != nil && !neosyncdb.IsConflict(err) {
-			return fmt.Errorf("unable to add policy: %w", err)
+			return nil, fmt.Errorf("unable to add policy: %w", err)
+		} else if err != nil && neosyncdb.IsConflict(err) {
+			return &setPolicyResult{DidConflict: true}, nil
 		}
 	}
-	return nil
+	return &setPolicyResult{DidConflict: false}, nil
 }

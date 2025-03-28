@@ -11,7 +11,6 @@ require (
 	connectrpc.com/otelconnect v0.7.2
 	github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai v0.7.2
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.17.0
-	github.com/Blank-Xu/sql-adapter v1.1.1
 	github.com/Jeffail/gabs/v2 v2.7.0
 	github.com/antlr4-go/antlr/v4 v4.13.1
 	github.com/auth0/go-auth0 v1.18.0
@@ -24,7 +23,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.17
 	github.com/aws/smithy-go v1.22.3
 	github.com/bufbuild/protovalidate-go v0.9.2
-	github.com/casbin/casbin/v2 v2.103.0
+	github.com/casbin/casbin/v2 v2.104.0
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/cenkalti/backoff/v5 v5.0.2
 	github.com/charmbracelet/bubbles v0.20.0
@@ -48,6 +47,7 @@ require (
 	github.com/microsoft/go-mssqldb v1.8.0
 	github.com/neilotoole/slogt v1.1.0
 	github.com/nucleuscloud/go-antlrv4-parser v0.0.0-20240830015744-041b46c70aa5
+	github.com/nucleuscloud/sql-adapter v0.0.0-20250327235651-6f5a05a7cedc
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/openai/openai-go v0.1.0-alpha.65

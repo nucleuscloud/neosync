@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	sqladapter "github.com/Blank-Xu/sql-adapter"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
 	"github.com/casbin/casbin/v2/persist"
+	sqladapter "github.com/nucleuscloud/sql-adapter"
 )
 
 // The default casbin enforcer with a SQL-enabled backend
