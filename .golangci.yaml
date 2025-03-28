@@ -47,7 +47,7 @@ linters:
         - performance
         - style
     gocyclo:
-      min-complexity: 20
+      min-complexity: 15
     lll:
       line-length: 140
     misspell:
