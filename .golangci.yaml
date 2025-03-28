@@ -1,63 +1,8 @@
-linters-settings:
-  dupl:
-    threshold: 150
-  funlen:
-    lines: -1 # the number of lines (code + empty lines) is not a right metric and leads to code without empty line or one-liner.
-    statements: 50
-  goconst:
-    min-len: 2
-    min-occurrences: 10
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-    disabled-checks:
-      - dupImport # https://github.com/go-critic/go-critic/issues/845
-      - ifElseChain
-      - octalLiteral
-      - whyNoLint
-  gocyclo:
-    min-complexity: 20
-  gofmt:
-    rewrite-rules:
-      - pattern: "interface{}"
-        replacement: "any"
-  mnd:
-    # don't include the "operation" and "assign"
-    checks:
-      - argument
-      - case
-      - condition
-      - return
-    ignored-numbers:
-      - "0"
-      - "1"
-      - "2"
-      - "3"
-      - "4"
-      - "5"
-    ignored-functions:
-      - strings.SplitN
-
-  lll:
-    line-length: 140
-  misspell:
-    locale: US
-  nolintlint:
-    allow-unused: false # report any unused nolint directives
-    require-explanation: false # don't require an explanation for nolint directives
-    require-specific: false # don't require nolint directives to be specific about which linter is being skipped
-  revive:
-    rules:
-      - name: unexported-return
-        disabled: true
-      # - name: unused-parameter
-
+version: "2"
+run:
+  tests: false
 linters:
-  disable-all: true
+  default: none
   enable:
     - bodyclose
     - dogsled
@@ -65,11 +10,8 @@ linters:
     - forbidigo
     - goconst
     - gocritic
-    - gofmt
-    - goimports
     - goprintffuncname
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - misspell
@@ -78,35 +20,109 @@ linters:
     - nolintlint
     - revive
     - staticcheck
-    - typecheck
     - unconvert
     - unparam
     - unused
-    - whitespace
     - usestdlibvars
-
-issues:
-  exclude-dirs:
-    - frontend
-    - charts
-    - docs
-    - node_modules
-    - backend/gen
-    - tilt
-    - scripts
-    - python
-    - keycloak
-  #   # Excluding configuration per-path, per-linter, per-text and per-source
-  exclude-rules:
-    - path: ^mock_.*\.go$
-      linters:
-        - gocritic
-        - gofmt
-        - goimports
-        - gosimple
-        - stylecheck
-        - whitespace
-
-run:
-  timeout: 10m
-  tests: false # exclude test files
+    - whitespace
+  settings:
+    dupl:
+      threshold: 150
+    funlen:
+      lines: -1
+      statements: 50
+    goconst:
+      min-len: 2
+      min-occurrences: 10
+    gocritic:
+      disabled-checks:
+        - dupImport
+        - ifElseChain
+        - octalLiteral
+        - whyNoLint
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - performance
+        - style
+    gocyclo:
+      min-complexity: 20
+    lll:
+      line-length: 140
+    misspell:
+      locale: US
+    mnd:
+      checks:
+        - argument
+        - case
+        - condition
+        - return
+      ignored-numbers:
+        - "0"
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+        - "5"
+      ignored-functions:
+        - strings.SplitN
+    nolintlint:
+      require-explanation: false
+      require-specific: false
+      allow-unused: false
+    revive:
+      rules:
+        - name: unexported-return
+          disabled: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - gocritic
+          - staticcheck
+          - whitespace
+        path: ^mock_.*\.go$
+    paths:
+      - frontend
+      - charts
+      - docs
+      - node_modules
+      - backend/gen
+      - tilt
+      - scripts
+      - python
+      - keycloak
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      rewrite-rules:
+        - pattern: interface{}
+          replacement: any
+  exclusions:
+    generated: lax
+    paths:
+      - frontend
+      - charts
+      - docs
+      - node_modules
+      - backend/gen
+      - tilt
+      - scripts
+      - python
+      - keycloak
+      - third_party$
+      - builtin$
+      - examples$
+      - ^mock_.*\.go$
