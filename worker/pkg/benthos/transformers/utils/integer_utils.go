@@ -32,7 +32,10 @@ func GenerateRandomInt64FixedLength(randomizer rng.Rand, l int64) (int64, error)
 /*
 Generates a random int64 with length in the inclusive range of [min, max]. For example, given a length range of [4, 7], possible values will have a length ranging from 4 -> 7 digits.
 */
-func GenerateRandomInt64InLengthRange(randomizer rng.Rand, minValue, maxValue int64) (int64, error) {
+func GenerateRandomInt64InLengthRange(
+	randomizer rng.Rand,
+	minValue, maxValue int64,
+) (int64, error) {
 	if minValue > maxValue {
 		minValue, maxValue = maxValue, minValue
 	}
@@ -44,12 +47,22 @@ func GenerateRandomInt64InLengthRange(randomizer rng.Rand, minValue, maxValue in
 
 	val, err := GenerateRandomInt64InValueRange(randomizer, minValue, maxValue)
 	if err != nil {
-		return 0, fmt.Errorf("unable to generate a value in the range provided [%d:%d]: %w", minValue, maxValue, err)
+		return 0, fmt.Errorf(
+			"unable to generate a value in the range provided [%d:%d]: %w",
+			minValue,
+			maxValue,
+			err,
+		)
 	}
 
 	res, err := GenerateRandomInt64FixedLength(randomizer, val)
 	if err != nil {
-		return 0, fmt.Errorf("unable to generate fixed int64 in the range provided [%d:%d: %w]", minValue, maxValue, err)
+		return 0, fmt.Errorf(
+			"unable to generate fixed int64 in the range provided [%d:%d: %w]",
+			minValue,
+			maxValue,
+			err,
+		)
 	}
 
 	return res, nil
@@ -68,7 +81,11 @@ func GenerateRandomInt64InValueRange(randomizer rng.Rand, minValue, maxValue int
 	// Calculate range without the +1 to avoid overflow
 	rangeVal := maxValue - minValue
 	if rangeVal < 0 {
-		return 0, fmt.Errorf("invalid range: difference between max (%d) and min (%d) would result in non-positive range", maxValue, minValue)
+		return 0, fmt.Errorf(
+			"invalid range: difference between max (%d) and min (%d) would result in non-positive range",
+			maxValue,
+			minValue,
+		)
 	}
 
 	// Special case when maxValue is MaxInt64 to avoid overflow

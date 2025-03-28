@@ -18,7 +18,8 @@ func toJob(
 		return nil, err
 	}
 	jobId := uuid.NewString()
-	if cmd.Source.ConnectionOpts != nil && cmd.Source.ConnectionOpts.JobId != nil && *cmd.Source.ConnectionOpts.JobId != "" {
+	if cmd.Source.ConnectionOpts != nil && cmd.Source.ConnectionOpts.JobId != nil &&
+		*cmd.Source.ConnectionOpts.JobId != "" {
 		jobId = *cmd.Source.ConnectionOpts.JobId
 	}
 	tables := map[string]string{}
@@ -32,12 +33,18 @@ func toJob(
 		Source: &mgmtv1alpha1.JobSource{
 			Options: sourceConnOpts,
 		},
-		Destinations: []*mgmtv1alpha1.JobDestination{toJobDestination(cmd, destinationConnection, tables)},
-		Mappings:     toJobMappings(sourceSchema),
+		Destinations: []*mgmtv1alpha1.JobDestination{
+			toJobDestination(cmd, destinationConnection, tables),
+		},
+		Mappings: toJobMappings(sourceSchema),
 	}, nil
 }
 
-func toJobDestination(cmd *cmdConfig, destinationConnection *mgmtv1alpha1.Connection, tables map[string]string) *mgmtv1alpha1.JobDestination {
+func toJobDestination(
+	cmd *cmdConfig,
+	destinationConnection *mgmtv1alpha1.Connection,
+	tables map[string]string,
+) *mgmtv1alpha1.JobDestination {
 	return &mgmtv1alpha1.JobDestination{
 		ConnectionId: destinationConnection.Id,
 		Id:           uuid.NewString(),
@@ -45,7 +52,9 @@ func toJobDestination(cmd *cmdConfig, destinationConnection *mgmtv1alpha1.Connec
 	}
 }
 
-func toJobSourceOption(sourceConnection *mgmtv1alpha1.Connection) (*mgmtv1alpha1.JobSourceOptions, error) {
+func toJobSourceOption(
+	sourceConnection *mgmtv1alpha1.Connection,
+) (*mgmtv1alpha1.JobSourceOptions, error) {
 	switch sourceConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		return &mgmtv1alpha1.JobSourceOptions{

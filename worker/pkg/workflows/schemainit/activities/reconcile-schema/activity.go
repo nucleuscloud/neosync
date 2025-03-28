@@ -80,7 +80,9 @@ func (a *Activity) RunReconcileSchema(
 	return builder.RunReconcileSchema(
 		ctx,
 		req,
-		connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(info.WorkflowExecution.ID)),
+		connectionmanager.NewUniqueSession(
+			connectionmanager.WithSessionGroup(info.WorkflowExecution.ID),
+		),
 		slogger,
 	)
 }

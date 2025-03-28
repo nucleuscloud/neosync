@@ -13,8 +13,26 @@ import (
 //
 // []string{"2024-09-.*", "2024-10-.*"}
 func GenerateMonthRegexRange(startDate, endDate *mgmtv1alpha1.Date) []string {
-	start := time.Date(int(startDate.Year), time.Month(startDate.Month), int(startDate.Day), 0, 0, 0, 0, time.UTC)
-	end := time.Date(int(endDate.Year), time.Month(endDate.Month), int(endDate.Day), 0, 0, 0, 0, time.UTC)
+	start := time.Date(
+		int(startDate.Year),
+		time.Month(startDate.Month),
+		int(startDate.Day),
+		0,
+		0,
+		0,
+		0,
+		time.UTC,
+	)
+	end := time.Date(
+		int(endDate.Year),
+		time.Month(endDate.Month),
+		int(endDate.Day),
+		0,
+		0,
+		0,
+		0,
+		time.UTC,
+	)
 
 	patterns := []string{}
 	has := map[string]any{}
@@ -39,8 +57,26 @@ func GenerateMonthRegexRange(startDate, endDate *mgmtv1alpha1.Date) []string {
 //
 // 2024-09-14, 2024-09-15 == 2d
 func CalculatePromLookbackDuration(startDate, endDate *mgmtv1alpha1.Date) string {
-	start := time.Date(int(startDate.Year), time.Month(startDate.Month), int(startDate.Day), 0, 0, 0, 0, time.UTC)
-	end := time.Date(int(endDate.Year), time.Month(endDate.Month), int(endDate.Day), 0, 0, 0, 0, time.UTC)
+	start := time.Date(
+		int(startDate.Year),
+		time.Month(startDate.Month),
+		int(startDate.Day),
+		0,
+		0,
+		0,
+		0,
+		time.UTC,
+	)
+	end := time.Date(
+		int(endDate.Year),
+		time.Month(endDate.Month),
+		int(endDate.Day),
+		0,
+		0,
+		0,
+		0,
+		time.UTC,
+	)
 
 	days := daysBetween(start, end)
 

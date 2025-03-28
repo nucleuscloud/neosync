@@ -63,13 +63,18 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	)
 
 	if job.GetSource().GetOptions().GetAiGenerate() != nil {
-		sourceConnection, err = shared.GetConnectionById(ctx, b.connclient, *job.GetSource().GetOptions().GetAiGenerate().FkSourceConnectionId)
+		sourceConnection, err = shared.GetConnectionById(
+			ctx,
+			b.connclient,
+			*job.GetSource().GetOptions().GetAiGenerate().FkSourceConnectionId,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get connection by id: %w", err)
 		}
 	}
 
-	if sourceConnection.GetConnectionConfig().GetMongoConfig() != nil || sourceConnection.GetConnectionConfig().GetDynamodbConfig() != nil {
+	if sourceConnection.GetConnectionConfig().GetMongoConfig() != nil ||
+		sourceConnection.GetConnectionConfig().GetDynamodbConfig() != nil {
 		return &RunSqlInitTableStatementsResponse{}, nil
 	}
 
@@ -89,9 +94,17 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 	initSchemaRunContext := []*InitSchemaRunContext{}
 
-	destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
+	destinationConnection, err := shared.GetConnectionById(
+		ctx,
+		b.connclient,
+		destination.ConnectionId,
+	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get destination connection by id (%s): %w", destination.ConnectionId, err)
+		return nil, fmt.Errorf(
+			"unable to get destination connection by id (%s): %w",
+			destination.ConnectionId,
+			err,
+		)
 	}
 	destinationConnectionType := shared.GetConnectionType(destinationConnection)
 	slogger = slogger.With(
@@ -102,7 +115,9 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	if job.GetSource().GetOptions().GetAiGenerate() != nil {
 		fkSrcConnId := job.GetSource().GetOptions().GetAiGenerate().GetFkSourceConnectionId()
 		if fkSrcConnId == destination.GetConnectionId() {
-			slogger.Warn("cannot init schema when destination connection is the same as the foreign key source connection")
+			slogger.Warn(
+				"cannot init schema when destination connection is the same as the foreign key source connection",
+			)
 			shouldInitSchema = false
 		}
 	}
@@ -110,7 +125,9 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	if job.GetSource().GetOptions().GetGenerate() != nil {
 		fkSrcConnId := job.GetSource().GetOptions().GetGenerate().GetFkSourceConnectionId()
 		if fkSrcConnId == destination.GetConnectionId() {
-			slogger.Warn("cannot init schema when destination connection is the same as the foreign key source connection")
+			slogger.Warn(
+				"cannot init schema when destination connection is the same as the foreign key source connection",
+			)
 			shouldInitSchema = false
 		}
 	}

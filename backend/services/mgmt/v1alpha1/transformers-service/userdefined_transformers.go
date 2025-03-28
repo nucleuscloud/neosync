@@ -26,7 +26,11 @@ func (s *Service) GetUserDefinedTransformers(
 	if err != nil {
 		return nil, err
 	}
-	err = user.EnforceJob(ctx, userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()), rbac.JobAction_View)
+	err = user.EnforceJob(
+		ctx,
+		userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()),
+		rbac.JobAction_View,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -43,9 +47,17 @@ func (s *Service) GetUserDefinedTransformers(
 	dtoTransformers := []*mgmtv1alpha1.UserDefinedTransformer{}
 	for idx := range transformers {
 		transformer := transformers[idx]
-		dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, s.getSystemTransformerSourceMap())
+		dto, err := dtomaps.ToUserDefinedTransformerDto(
+			&transformer,
+			s.getSystemTransformerSourceMap(),
+		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to map user defined transformer %s with source %d: %w", neosyncdb.UUIDString(transformer.ID), transformer.Source, err)
+			return nil, fmt.Errorf(
+				"failed to map user defined transformer %s with source %d: %w",
+				neosyncdb.UUIDString(transformer.ID),
+				transformer.Source,
+				err,
+			)
 		}
 		dtoTransformers = append(dtoTransformers, dto)
 	}
@@ -73,14 +85,23 @@ func (s *Service) GetUserDefinedTransformerById(
 
 	dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, s.getSystemTransformerSourceMap())
 	if err != nil {
-		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d: %w", neosyncdb.UUIDString(transformer.ID), transformer.Source, err)
+		return nil, fmt.Errorf(
+			"failed to map user defined transformer %s with source %d: %w",
+			neosyncdb.UUIDString(transformer.ID),
+			transformer.Source,
+			err,
+		)
 	}
 
 	user, err := s.userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
-	err = user.EnforceJob(ctx, userdata.NewWildcardDomainEntity(dto.GetAccountId()), rbac.JobAction_View)
+	err = user.EnforceJob(
+		ctx,
+		userdata.NewWildcardDomainEntity(dto.GetAccountId()),
+		rbac.JobAction_View,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -90,12 +111,19 @@ func (s *Service) GetUserDefinedTransformerById(
 	}), nil
 }
 
-func (s *Service) CreateUserDefinedTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.CreateUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.CreateUserDefinedTransformerResponse], error) {
+func (s *Service) CreateUserDefinedTransformer(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.CreateUserDefinedTransformerRequest],
+) (*connect.Response[mgmtv1alpha1.CreateUserDefinedTransformerResponse], error) {
 	user, err := s.userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
-	err = user.EnforceJob(ctx, userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()), rbac.JobAction_Edit)
+	err = user.EnforceJob(
+		ctx,
+		userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()),
+		rbac.JobAction_Edit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +142,9 @@ func (s *Service) CreateUserDefinedTransformer(ctx context.Context, req *connect
 		UpdatedByID:       user.PgId(),
 	}
 
-	err = UserDefinedTransformer.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
+	err = UserDefinedTransformer.TransformerConfig.FromTransformerConfigDto(
+		req.Msg.TransformerConfig,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +156,12 @@ func (s *Service) CreateUserDefinedTransformer(ctx context.Context, req *connect
 
 	dto, err := dtomaps.ToUserDefinedTransformerDto(&ct, s.getSystemTransformerSourceMap())
 	if err != nil {
-		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d: %w", neosyncdb.UUIDString(ct.ID), ct.Source, err)
+		return nil, fmt.Errorf(
+			"failed to map user defined transformer %s with source %d: %w",
+			neosyncdb.UUIDString(ct.ID),
+			ct.Source,
+			err,
+		)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateUserDefinedTransformerResponse{
@@ -134,7 +169,10 @@ func (s *Service) CreateUserDefinedTransformer(ctx context.Context, req *connect
 	}), nil
 }
 
-func (s *Service) DeleteUserDefinedTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.DeleteUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.DeleteUserDefinedTransformerResponse], error) {
+func (s *Service) DeleteUserDefinedTransformer(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.DeleteUserDefinedTransformerRequest],
+) (*connect.Response[mgmtv1alpha1.DeleteUserDefinedTransformerResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("transformerId", req.Msg.GetTransformerId())
 
@@ -154,7 +192,11 @@ func (s *Service) DeleteUserDefinedTransformer(ctx context.Context, req *connect
 	if err != nil {
 		return nil, err
 	}
-	err = user.EnforceJob(ctx, userdata.NewWildcardDomainEntity(neosyncdb.UUIDString(transformer.AccountID)), rbac.JobAction_Delete)
+	err = user.EnforceJob(
+		ctx,
+		userdata.NewWildcardDomainEntity(neosyncdb.UUIDString(transformer.AccountID)),
+		rbac.JobAction_Delete,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +211,10 @@ func (s *Service) DeleteUserDefinedTransformer(ctx context.Context, req *connect
 	return connect.NewResponse(&mgmtv1alpha1.DeleteUserDefinedTransformerResponse{}), nil
 }
 
-func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.UpdateUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.UpdateUserDefinedTransformerResponse], error) {
+func (s *Service) UpdateUserDefinedTransformer(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.UpdateUserDefinedTransformerRequest],
+) (*connect.Response[mgmtv1alpha1.UpdateUserDefinedTransformerResponse], error) {
 	tUuid, err := neosyncdb.ToUuid(req.Msg.TransformerId)
 	if err != nil {
 		return nil, err
@@ -185,7 +230,11 @@ func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect
 	if err != nil {
 		return nil, err
 	}
-	err = user.EnforceJob(ctx, userdata.NewWildcardDomainEntity(neosyncdb.UUIDString(transformer.AccountID)), rbac.JobAction_Edit)
+	err = user.EnforceJob(
+		ctx,
+		userdata.NewWildcardDomainEntity(neosyncdb.UUIDString(transformer.AccountID)),
+		rbac.JobAction_Edit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -208,9 +257,17 @@ func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect
 		return nil, err
 	}
 
-	dto, err := dtomaps.ToUserDefinedTransformerDto(&updatedTransformer, s.getSystemTransformerSourceMap())
+	dto, err := dtomaps.ToUserDefinedTransformerDto(
+		&updatedTransformer,
+		s.getSystemTransformerSourceMap(),
+	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d: %w", neosyncdb.UUIDString(updatedTransformer.ID), updatedTransformer.Source, err)
+		return nil, fmt.Errorf(
+			"failed to map user defined transformer %s with source %d: %w",
+			neosyncdb.UUIDString(updatedTransformer.ID),
+			updatedTransformer.Source,
+			err,
+		)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.UpdateUserDefinedTransformerResponse{
@@ -218,12 +275,19 @@ func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect
 	}), err
 }
 
-func (s *Service) IsTransformerNameAvailable(ctx context.Context, req *connect.Request[mgmtv1alpha1.IsTransformerNameAvailableRequest]) (*connect.Response[mgmtv1alpha1.IsTransformerNameAvailableResponse], error) {
+func (s *Service) IsTransformerNameAvailable(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.IsTransformerNameAvailableRequest],
+) (*connect.Response[mgmtv1alpha1.IsTransformerNameAvailableResponse], error) {
 	user, err := s.userdataclient.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}
-	err = user.EnforceJob(ctx, userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()), rbac.JobAction_View)
+	err = user.EnforceJob(
+		ctx,
+		userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()),
+		rbac.JobAction_View,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -232,10 +296,14 @@ func (s *Service) IsTransformerNameAvailable(ctx context.Context, req *connect.R
 		return nil, err
 	}
 
-	count, err := s.db.Q.IsTransformerNameAvailable(ctx, s.db.Db, db_queries.IsTransformerNameAvailableParams{
-		AccountId:       accountUuid,
-		TransformerName: req.Msg.TransformerName,
-	})
+	count, err := s.db.Q.IsTransformerNameAvailable(
+		ctx,
+		s.db.Db,
+		db_queries.IsTransformerNameAvailableParams{
+			AccountId:       accountUuid,
+			TransformerName: req.Msg.TransformerName,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +314,10 @@ func (s *Service) IsTransformerNameAvailable(ctx context.Context, req *connect.R
 }
 
 // use the goja library to validate that the javascript can compile and theoretically run
-func (s *Service) ValidateUserJavascriptCode(ctx context.Context, req *connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[mgmtv1alpha1.ValidateUserJavascriptCodeResponse], error) {
+func (s *Service) ValidateUserJavascriptCode(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest],
+) (*connect.Response[mgmtv1alpha1.ValidateUserJavascriptCodeResponse], error) {
 	js := constructJavascriptCode(req.Msg.GetCode())
 
 	_, err := goja.Compile("test", js, true)
@@ -272,7 +343,10 @@ func constructJavascriptCode(jsCode string) string {
 	}
 }
 
-func (s *Service) ValidateUserRegexCode(ctx context.Context, req *connect.Request[mgmtv1alpha1.ValidateUserRegexCodeRequest]) (*connect.Response[mgmtv1alpha1.ValidateUserRegexCodeResponse], error) {
+func (s *Service) ValidateUserRegexCode(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.ValidateUserRegexCodeRequest],
+) (*connect.Response[mgmtv1alpha1.ValidateUserRegexCodeResponse], error) {
 	_, err := regexp.Compile(req.Msg.GetUserProvidedRegex())
 	// todo: should return error message here and surface to user
 	return connect.NewResponse(&mgmtv1alpha1.ValidateUserRegexCodeResponse{

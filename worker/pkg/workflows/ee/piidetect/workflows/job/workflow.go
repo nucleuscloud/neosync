@@ -33,7 +33,10 @@ type PiiDetectResponse struct {
 	ReportKey *mgmtv1alpha1.RunContextKey
 }
 
-func (w *Workflow) JobPiiDetect(ctx workflow.Context, req *PiiDetectRequest) (*PiiDetectResponse, error) {
+func (w *Workflow) JobPiiDetect(
+	ctx workflow.Context,
+	req *PiiDetectRequest,
+) (*PiiDetectResponse, error) {
 	logger := log.With(
 		workflow.GetLogger(ctx),
 		"jobId", req.JobId,
@@ -88,8 +91,13 @@ func executeWorkflow(
 	activities *piidetect_job_activities.Activities,
 ) (*PiiDetectResponse, error) {
 	var filter *mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter
-	if jobDetailsResp != nil && jobDetailsResp.PiiDetectConfig != nil && jobDetailsResp.PiiDetectConfig.TableScanFilter != nil {
-		logger.Debug("using table scan filter", "filter", jobDetailsResp.PiiDetectConfig.TableScanFilter)
+	if jobDetailsResp != nil && jobDetailsResp.PiiDetectConfig != nil &&
+		jobDetailsResp.PiiDetectConfig.TableScanFilter != nil {
+		logger.Debug(
+			"using table scan filter",
+			"filter",
+			jobDetailsResp.PiiDetectConfig.TableScanFilter,
+		)
 		filter = jobDetailsResp.PiiDetectConfig.TableScanFilter
 	}
 
@@ -118,7 +126,11 @@ func executeWorkflow(
 			return nil, fmt.Errorf("unable to get last successful workflow id: %w", err)
 		}
 		if lastSuccessfulWorkflowIdResp.WorkflowId != nil {
-			logger.Debug("using last successful workflow id", "workflowId", *lastSuccessfulWorkflowIdResp.WorkflowId)
+			logger.Debug(
+				"using last successful workflow id",
+				"workflowId",
+				*lastSuccessfulWorkflowIdResp.WorkflowId,
+			)
 			incrementalConfig = &piidetect_job_activities.GetIncrementalTablesConfig{
 				LastWorkflowId: *lastSuccessfulWorkflowIdResp.WorkflowId,
 			}
@@ -207,7 +219,11 @@ func buildFinalReport(
 		}
 	}
 
-	successfulTableReports := make([]*piidetect_job_activities.TableReport, 0, len(fullSuccessfulTableReports))
+	successfulTableReports := make(
+		[]*piidetect_job_activities.TableReport,
+		0,
+		len(fullSuccessfulTableReports),
+	)
 	for _, report := range fullSuccessfulTableReports {
 		successfulTableReports = append(successfulTableReports, report)
 	}
@@ -281,10 +297,20 @@ func orchestrateTables(
 					logger.Error("activity did not complete", "err", err)
 					return
 				}
-				logger.Debug("table pii detect completed", "table", table.Table, "schema", table.Schema)
+				logger.Debug(
+					"table pii detect completed",
+					"table",
+					table.Table,
+					"schema",
+					table.Schema,
+				)
 				err = mu.Lock(ctx)
 				if err != nil {
-					logger.Error("unable to lock mutex after table pii detect completed", "err", err)
+					logger.Error(
+						"unable to lock mutex after table pii detect completed",
+						"err",
+						err,
+					)
 					return
 				}
 				defer mu.Unlock()
@@ -299,7 +325,9 @@ func orchestrateTables(
 		return nil
 	}
 
-	previousReportsMap := make(map[piidetect_job_activities.TableIdentifier]*piidetect_job_activities.TableReport)
+	previousReportsMap := make(
+		map[piidetect_job_activities.TableIdentifier]*piidetect_job_activities.TableReport,
+	)
 	for _, report := range tablesToScanResp.PreviousReports {
 		previousReportsMap[piidetect_job_activities.TableIdentifier{Schema: report.TableSchema, Table: report.TableName}] = report
 	}

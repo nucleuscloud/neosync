@@ -25,7 +25,10 @@ func New() *Workflow {
 	return &Workflow{}
 }
 
-func (w *Workflow) SchemaInit(ctx workflow.Context, req *SchemaInitRequest) (*SchemaInitResponse, error) {
+func (w *Workflow) SchemaInit(
+	ctx workflow.Context,
+	req *SchemaInitRequest,
+) (*SchemaInitResponse, error) {
 	logger := log.With(
 		workflow.GetLogger(ctx),
 		"accountId", req.AccountId,

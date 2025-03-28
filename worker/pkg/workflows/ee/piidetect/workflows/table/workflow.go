@@ -33,7 +33,10 @@ type TablePiiDetectResponse struct {
 	ResultKey  *mgmtv1alpha1.RunContextKey
 }
 
-func (w *Workflow) TablePiiDetect(ctx workflow.Context, req *TablePiiDetectRequest) (*TablePiiDetectResponse, error) {
+func (w *Workflow) TablePiiDetect(
+	ctx workflow.Context,
+	req *TablePiiDetectRequest,
+) (*TablePiiDetectResponse, error) {
 	logger := log.With(
 		workflow.GetLogger(ctx),
 		"jobId", req.JobId,

@@ -115,11 +115,16 @@ func (s *AwsS3ConnectionDataService) StreamData(
 	path := strings.Join(s3pathpieces, "/")
 	var pageToken *string
 	for {
-		output, err := s.awsmanager.ListObjectsV2(ctx, s3Client, s.connconfig.Region, &s3.ListObjectsV2Input{
-			Bucket:            aws.String(s.connconfig.Bucket),
-			Prefix:            aws.String(path),
-			ContinuationToken: pageToken,
-		})
+		output, err := s.awsmanager.ListObjectsV2(
+			ctx,
+			s3Client,
+			s.connconfig.Region,
+			&s3.ListObjectsV2Input{
+				Bucket:            aws.String(s.connconfig.Bucket),
+				Prefix:            aws.String(path),
+				ContinuationToken: pageToken,
+			},
+		)
 		if err != nil {
 			return err
 		}
@@ -128,10 +133,15 @@ func (s *AwsS3ConnectionDataService) StreamData(
 			break
 		}
 		for _, item := range output.Contents {
-			result, err := s.awsmanager.GetObject(ctx, s3Client, s.connconfig.Region, &s3.GetObjectInput{
-				Bucket: aws.String(s.connconfig.Bucket),
-				Key:    aws.String(*item.Key),
-			})
+			result, err := s.awsmanager.GetObject(
+				ctx,
+				s3Client,
+				s.connconfig.Region,
+				&s3.GetObjectInput{
+					Bucket: aws.String(s.connconfig.Bucket),
+					Key:    aws.String(*item.Key),
+				},
+			)
 			if err != nil {
 				return err
 			}
@@ -158,7 +168,10 @@ func (s *AwsS3ConnectionDataService) StreamData(
 				for k, v := range rowData {
 					newVal, err := s.neosynctyperegistry.Unmarshal(v)
 					if err != nil {
-						return fmt.Errorf("unable to unmarshal row value using neosync type registry: %w", err)
+						return fmt.Errorf(
+							"unable to unmarshal row value using neosync type registry: %w",
+							err,
+						)
 					}
 					rowData[k] = newVal
 				}
@@ -235,12 +248,17 @@ func (s *AwsS3ConnectionDataService) GetSchema(
 	schemas := []*mgmtv1alpha1.DatabaseColumn{}
 	var pageToken *string
 	for {
-		output, err := s.awsmanager.ListObjectsV2(ctx, s3Client, s.connconfig.Region, &s3.ListObjectsV2Input{
-			Bucket:            aws.String(s.connconfig.Bucket),
-			Prefix:            aws.String(path),
-			Delimiter:         aws.String("/"),
-			ContinuationToken: pageToken,
-		})
+		output, err := s.awsmanager.ListObjectsV2(
+			ctx,
+			s3Client,
+			s.connconfig.Region,
+			&s3.ListObjectsV2Input{
+				Bucket:            aws.String(s.connconfig.Bucket),
+				Prefix:            aws.String(path),
+				Delimiter:         aws.String("/"),
+				ContinuationToken: pageToken,
+			},
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -252,29 +270,53 @@ func (s *AwsS3ConnectionDataService) GetSchema(
 			tableFolder := strings.ReplaceAll(folders[len(folders)-1], "/", "")
 			schemaTableList := strings.Split(tableFolder, ".")
 
-			filePath := fmt.Sprintf("%s%s/data", path, sqlmanager_shared.BuildTable(schemaTableList[0], schemaTableList[1]))
-			out, err := s.awsmanager.ListObjectsV2(ctx, s3Client, s.connconfig.Region, &s3.ListObjectsV2Input{
-				Bucket:  aws.String(s.connconfig.Bucket),
-				Prefix:  aws.String(filePath),
-				MaxKeys: aws.Int32(1),
-			})
+			filePath := fmt.Sprintf(
+				"%s%s/data",
+				path,
+				sqlmanager_shared.BuildTable(schemaTableList[0], schemaTableList[1]),
+			)
+			out, err := s.awsmanager.ListObjectsV2(
+				ctx,
+				s3Client,
+				s.connconfig.Region,
+				&s3.ListObjectsV2Input{
+					Bucket:  aws.String(s.connconfig.Bucket),
+					Prefix:  aws.String(filePath),
+					MaxKeys: aws.Int32(1),
+				},
+			)
 			if err != nil {
 				return nil, err
 			}
 			if out == nil {
-				s.logger.Warn(fmt.Sprintf("AWS S3 table folder missing data folder: %s, continuing..", tableFolder))
+				s.logger.Warn(
+					fmt.Sprintf(
+						"AWS S3 table folder missing data folder: %s, continuing..",
+						tableFolder,
+					),
+				)
 				continue
 			}
 			item := out.Contents[0]
-			result, err := s.awsmanager.GetObject(ctx, s3Client, s.connconfig.Region, &s3.GetObjectInput{
-				Bucket: aws.String(s.connconfig.Bucket),
-				Key:    aws.String(*item.Key),
-			})
+			result, err := s.awsmanager.GetObject(
+				ctx,
+				s3Client,
+				s.connconfig.Region,
+				&s3.GetObjectInput{
+					Bucket: aws.String(s.connconfig.Bucket),
+					Key:    aws.String(*item.Key),
+				},
+			)
 			if err != nil {
 				return nil, err
 			}
 			if result.ContentLength == nil || *result.ContentLength == 0 {
-				s.logger.Warn(fmt.Sprintf("empty AWS S3 data folder for table: %s, continuing...", tableFolder))
+				s.logger.Warn(
+					fmt.Sprintf(
+						"empty AWS S3 data folder for table: %s, continuing...",
+						tableFolder,
+					),
+				)
 				continue
 			}
 
@@ -368,7 +410,12 @@ func (s *AwsS3ConnectionDataService) getLastestJobRunFromAwsS3(
 	sort.Sort(sort.Reverse(sort.StringSlice(runIDs)))
 
 	if len(runIDs) == 0 {
-		return "", nucleuserrors.NewNotFound(fmt.Sprintf("unable to find latest job run for job in s3 after processing common prefixes: %s", jobId))
+		return "", nucleuserrors.NewNotFound(
+			fmt.Sprintf(
+				"unable to find latest job run for job in s3 after processing common prefixes: %s",
+				jobId,
+			),
+		)
 	}
 	s.logger.Debug(fmt.Sprintf("found %d run ids for job in s3", len(runIDs)))
 	return runIDs[0], nil
@@ -387,10 +434,17 @@ func (s *AwsS3ConnectionDataService) GetTableConstraints(
 	return nil, errors.ErrUnsupported
 }
 
-func (s *AwsS3ConnectionDataService) GetTableSchema(ctx context.Context, schema, table string) ([]*mgmtv1alpha1.DatabaseColumn, error) {
+func (s *AwsS3ConnectionDataService) GetTableSchema(
+	ctx context.Context,
+	schema, table string,
+) ([]*mgmtv1alpha1.DatabaseColumn, error) {
 	return nil, errors.ErrUnsupported
 }
 
-func (s *AwsS3ConnectionDataService) GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error) {
+func (s *AwsS3ConnectionDataService) GetTableRowCount(
+	ctx context.Context,
+	schema, table string,
+	whereClause *string,
+) (int64, error) {
 	return 0, errors.ErrUnsupported
 }

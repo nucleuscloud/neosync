@@ -83,7 +83,10 @@ func NewRunner(opts ...Option) (*Runner, error) {
 	// if the stars align, we'll register the custom console module with the logger
 	// must come before requireRegistry.Enable()
 	if options.requireRegistry != nil && options.consoleEnabled && options.logger != nil {
-		options.requireRegistry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(newConsoleLogger(stdPrefix, options.logger)))
+		options.requireRegistry.RegisterNativeModule(
+			console.ModuleName,
+			console.RequireWithPrinter(newConsoleLogger(stdPrefix, options.logger)),
+		)
 	}
 
 	if options.requireRegistry != nil {
@@ -139,7 +142,12 @@ func registerFunction(runner *Runner, function *javascript_functions.FunctionDef
 		}
 		return rt.ToValue(result)
 	}); err != nil {
-		return fmt.Errorf("failed to set global %s function %v: %w", function.Namespace(), function.Name(), err)
+		return fmt.Errorf(
+			"failed to set global %s function %v: %w",
+			function.Namespace(),
+			function.Name(),
+			err,
+		)
 	}
 	return nil
 }

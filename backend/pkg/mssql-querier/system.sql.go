@@ -70,7 +70,10 @@ type GetDatabaseSchemaRow struct {
 	IdentityIncrement      sql.NullInt32
 }
 
-func (q *Queries) GetDatabaseSchema(ctx context.Context, db mysql_queries.DBTX) ([]*GetDatabaseSchemaRow, error) {
+func (q *Queries) GetDatabaseSchema(
+	ctx context.Context,
+	db mysql_queries.DBTX,
+) ([]*GetDatabaseSchemaRow, error) {
 	rows, err := db.QueryContext(ctx, getDatabaseSchema)
 	if err != nil {
 		return nil, err
@@ -163,7 +166,10 @@ type GetAllTablesRow struct {
 	TableName   string
 }
 
-func (q *Queries) GetAllTables(ctx context.Context, db mysql_queries.DBTX) ([]*GetAllTablesRow, error) {
+func (q *Queries) GetAllTables(
+	ctx context.Context,
+	db mysql_queries.DBTX,
+) ([]*GetAllTablesRow, error) {
 	rows, err := db.QueryContext(ctx, getAllTables)
 	if err != nil {
 		return nil, err
@@ -291,7 +297,11 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	IdentityIncrement      sql.NullInt32
 }
 
-func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
+func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(
+	ctx context.Context,
+	db mysql_queries.DBTX,
+	schematables []string,
+) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
 	placeholders, args := createSchemaTableParams(schematables)
 	query := fmt.Sprintf(getDatabaseTableSchemasBySchemasAndTables, placeholders)
 
@@ -411,7 +421,10 @@ type GetRolePermissionsRow struct {
 	PrivilegeType string
 }
 
-func (q *Queries) GetRolePermissions(ctx context.Context, db mysql_queries.DBTX) ([]*GetRolePermissionsRow, error) {
+func (q *Queries) GetRolePermissions(
+	ctx context.Context,
+	db mysql_queries.DBTX,
+) ([]*GetRolePermissionsRow, error) {
 	rows, err := db.QueryContext(ctx, getRolePermissions)
 	if err != nil {
 		return nil, err
@@ -558,7 +571,11 @@ type GetTableConstraintsBySchemasRow struct {
 	CheckClause                  sql.NullString
 }
 
-func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetTableConstraintsBySchemasRow, error) {
+func (q *Queries) GetTableConstraintsBySchemas(
+	ctx context.Context,
+	db mysql_queries.DBTX,
+	schemas []string,
+) ([]*GetTableConstraintsBySchemasRow, error) {
 	placeholders, args := createSchemaTableParams(schemas)
 	query := fmt.Sprintf(getTableConstraintsBySchemas, placeholders)
 
@@ -705,7 +722,11 @@ type GetIndicesBySchemasAndTablesRow struct {
 	IndexDefinition string
 }
 
-func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetIndicesBySchemasAndTablesRow, error) {
+func (q *Queries) GetIndicesBySchemasAndTables(
+	ctx context.Context,
+	db mysql_queries.DBTX,
+	schematables []string,
+) ([]*GetIndicesBySchemasAndTablesRow, error) {
 	placeholders, args := createSchemaTableParams(schematables)
 	query := fmt.Sprintf(getIndicesBySchemasAndTable, placeholders)
 
@@ -790,7 +811,11 @@ type GetViewsAndFunctionsBySchemasRow struct {
 	Dependencies sql.NullString
 }
 
-func (q *Queries) GetViewsAndFunctionsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetViewsAndFunctionsBySchemasRow, error) {
+func (q *Queries) GetViewsAndFunctionsBySchemas(
+	ctx context.Context,
+	db mysql_queries.DBTX,
+	schemas []string,
+) ([]*GetViewsAndFunctionsBySchemasRow, error) {
 	placeholders, args := createSchemaTableParams(schemas)
 	query := fmt.Sprintf(getViewsAndFunctionsBySchemas, placeholders)
 	rows, err := db.QueryContext(ctx, query, args...)
@@ -854,7 +879,11 @@ type GetCustomSequencesBySchemasRow struct {
 	Definition   string
 }
 
-func (q *Queries) GetCustomSequencesBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetCustomSequencesBySchemasRow, error) {
+func (q *Queries) GetCustomSequencesBySchemas(
+	ctx context.Context,
+	db mysql_queries.DBTX,
+	schemas []string,
+) ([]*GetCustomSequencesBySchemasRow, error) {
 	placeholders, args := createSchemaTableParams(schemas)
 	query := fmt.Sprintf(getCustomSequencesBySchemas, placeholders)
 	rows, err := db.QueryContext(ctx, query, args...)
@@ -903,7 +932,11 @@ type GetCustomTriggersBySchemasAndTablesRow struct {
 	Definition  sql.NullString
 }
 
-func (q *Queries) GetCustomTriggersBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetCustomTriggersBySchemasAndTablesRow, error) {
+func (q *Queries) GetCustomTriggersBySchemasAndTables(
+	ctx context.Context,
+	db mysql_queries.DBTX,
+	schematables []string,
+) ([]*GetCustomTriggersBySchemasAndTablesRow, error) {
 	placeholders, args := createSchemaTableParams(schematables)
 	query := fmt.Sprintf(getCustomTriggersBySchemasAndTables, placeholders)
 	rows, err := db.QueryContext(ctx, query, args...)
@@ -996,9 +1029,16 @@ type GetDataTypesBySchemasRow struct {
 	Definition string
 }
 
-func (q *Queries) GetDataTypesBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetDataTypesBySchemasRow, error) {
+func (q *Queries) GetDataTypesBySchemas(
+	ctx context.Context,
+	db mysql_queries.DBTX,
+	schemas []string,
+) ([]*GetDataTypesBySchemasRow, error) {
 	placeholders, args := createSchemaTableParams(schemas)
-	where := fmt.Sprintf("WHERE tt.is_user_defined = 1 AND SCHEMA_NAME(tt.schema_id) IN (%s);", placeholders)
+	where := fmt.Sprintf(
+		"WHERE tt.is_user_defined = 1 AND SCHEMA_NAME(tt.schema_id) IN (%s);",
+		placeholders,
+	)
 	query := getDataTypesBySchemasAndTables + " " + where
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -1074,7 +1114,11 @@ type GetUniqueIndexesBySchemaRow struct {
 	IndexColumns string
 }
 
-func (q *Queries) GetUniqueIndexesBySchema(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetUniqueIndexesBySchemaRow, error) {
+func (q *Queries) GetUniqueIndexesBySchema(
+	ctx context.Context,
+	db mysql_queries.DBTX,
+	schemas []string,
+) ([]*GetUniqueIndexesBySchemaRow, error) {
 	placeholders, args := createSchemaTableParams(schemas)
 	query := fmt.Sprintf(getUniqueIndexesBySchema, placeholders)
 	rows, err := db.QueryContext(ctx, query, args...)

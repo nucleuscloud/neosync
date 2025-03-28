@@ -26,7 +26,10 @@ func GetAuthEnabled(
 	ctx context.Context,
 	authclient mgmtv1alpha1connect.AuthServiceClient,
 ) (bool, error) {
-	isEnabledResp, err := authclient.GetAuthStatus(ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthStatusRequest{}))
+	isEnabledResp, err := authclient.GetAuthStatus(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetAuthStatusRequest{}),
+	)
 	if err != nil {
 		return false, err
 	}
@@ -67,7 +70,11 @@ func WithExtraHeaders(headers map[string]string) HttpOption {
 }
 
 // Returns an instance of *http.Client that includes the Neosync API Token if one was found in the environment
-func GetNeosyncHttpClient(ctx context.Context, logger *slog.Logger, opts ...HttpOption) (*http.Client, error) {
+func GetNeosyncHttpClient(
+	ctx context.Context,
+	logger *slog.Logger,
+	opts ...HttpOption,
+) (*http.Client, error) {
 	cfg := &httpClientConfig{}
 	for _, opt := range opts {
 		opt(cfg)
@@ -97,7 +104,11 @@ func GetNeosyncHttpClient(ctx context.Context, logger *slog.Logger, opts ...Http
 // Method that handles retrieving the user's access token from the file system
 // This method automatically handles checking to see if the token is valid.
 // If it's invalid for any reason, will attempt to refresh and get + set a new access token
-func getAccessToken(ctx context.Context, headers map[string]string, logger *slog.Logger) (string, error) {
+func getAccessToken(
+	ctx context.Context,
+	headers map[string]string,
+	logger *slog.Logger,
+) (string, error) {
 	httpclient := http_client.NewWithHeaders(headers)
 	neosyncurl := GetNeosyncUrl()
 	authclient := mgmtv1alpha1connect.NewAuthServiceClient(httpclient, neosyncurl)
@@ -107,7 +118,9 @@ func getAccessToken(ctx context.Context, headers map[string]string, logger *slog
 		return "", err
 	}
 	authedAuthClient := mgmtv1alpha1connect.NewAuthServiceClient(
-		http_client.NewWithHeaders(http_client.MergeMaps(headers, http_client.GetBearerAuthHeaders(&accessToken))),
+		http_client.NewWithHeaders(
+			http_client.MergeMaps(headers, http_client.GetBearerAuthHeaders(&accessToken)),
+		),
 		neosyncurl,
 	)
 	logger.Debug("found existing access token, checking if still valid")
@@ -117,25 +130,39 @@ func getAccessToken(ctx context.Context, headers map[string]string, logger *slog
 		if err := userconfig.RemoveAccessToken(); err != nil {
 			return "", err
 		}
-		logger.Debug(fmt.Errorf("access token is no longer valid. attempting to refresh...: %w", err).Error())
+		logger.Debug(
+			fmt.Errorf("access token is no longer valid. attempting to refresh...: %w", err).
+				Error(),
+		)
 		refreshtoken, err := userconfig.GetRefreshToken()
 		if err != nil {
 			return "", fmt.Errorf("unable to find refresh token: %w", err)
 		}
-		refreshResp, err := authclient.RefreshCli(ctx, connect.NewRequest(&mgmtv1alpha1.RefreshCliRequest{
-			RefreshToken: refreshtoken,
-		}))
+		refreshResp, err := authclient.RefreshCli(
+			ctx,
+			connect.NewRequest(&mgmtv1alpha1.RefreshCliRequest{
+				RefreshToken: refreshtoken,
+			}),
+		)
 		if err != nil {
 			return "", fmt.Errorf("unable to refresh token, must login again: %w", err)
 		}
 		err = userconfig.SetAccessToken(refreshResp.Msg.AccessToken.AccessToken)
 		if err != nil {
-			logger.Warn("unable to write refreshed access token back to user config", "error", err.Error())
+			logger.Warn(
+				"unable to write refreshed access token back to user config",
+				"error",
+				err.Error(),
+			)
 		}
 		if refreshResp.Msg.AccessToken.RefreshToken != nil {
 			err = userconfig.SetRefreshToken(*refreshResp.Msg.AccessToken.RefreshToken)
 			if err != nil {
-				logger.Warn("unable to write refreshed refresh token back to user config", "error", err.Error())
+				logger.Warn(
+					"unable to write refreshed refresh token back to user config",
+					"error",
+					err.Error(),
+				)
 			}
 		}
 		return refreshResp.Msg.GetAccessToken().GetAccessToken(), nil

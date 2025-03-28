@@ -84,7 +84,11 @@ func getFromEnv() (*licenseContents, bool, error) {
 
 	input := viper.GetString(cloudLicenseEvKey)
 	if input == "" {
-		return nil, false, fmt.Errorf("%s was true but no license was found at %s", cloudEnabledEvKey, cloudLicenseEvKey)
+		return nil, false, fmt.Errorf(
+			"%s was true but no license was found at %s",
+			cloudEnabledEvKey,
+			cloudLicenseEvKey,
+		)
 	}
 	pk, err := parsePublicKey(publicKeyPEM)
 	if err != nil {
@@ -126,7 +130,10 @@ func getLicense(licenseData string, publicKey ed25519.PublicKey) (*licenseConten
 	var lc licenseContents
 	err = json.Unmarshal(contents, &lc)
 	if err != nil {
-		return nil, fmt.Errorf("contents verified, but unable to unmarshal license contents from input: %w", err)
+		return nil, fmt.Errorf(
+			"contents verified, but unable to unmarshal license contents from input: %w",
+			err,
+		)
 	}
 
 	return &lc, nil

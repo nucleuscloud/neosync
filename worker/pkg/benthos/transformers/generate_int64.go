@@ -36,49 +36,55 @@ func init() {
 		Param(bloblang.NewInt64Param("max").Default(10000).Description("Specifies the maximum value for the generated int.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_int64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		randomizeSign, err := args.GetBool("randomize_sign")
-		if err != nil {
-			return nil, err
-		}
-
-		min, err := args.GetInt64("min")
-		if err != nil {
-			return nil, err
-		}
-
-		max, err := args.GetInt64("max")
-		if err != nil {
-			return nil, err
-		}
-
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			res, err := generateRandomInt64(randomizer, randomizeSign, min, max)
+	err := bloblang.RegisterFunctionV2(
+		"generate_int64",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			randomizeSign, err := args.GetBool("randomize_sign")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run generate_int64: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+
+			min, err := args.GetInt64("min")
+			if err != nil {
+				return nil, err
+			}
+
+			max, err := args.GetInt64("max")
+			if err != nil {
+				return nil, err
+			}
+
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				res, err := generateRandomInt64(randomizer, randomizeSign, min, max)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run generate_int64: %w", err)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewGenerateInt64OptsFromConfig(config *mgmtv1alpha1.GenerateInt64) (*GenerateInt64Opts, error) {
+func NewGenerateInt64OptsFromConfig(
+	config *mgmtv1alpha1.GenerateInt64,
+) (*GenerateInt64Opts, error) {
 	if config == nil {
 		return NewGenerateInt64Opts(
 			nil,
@@ -100,13 +106,22 @@ func (t *GenerateInt64) Generate(opts any) (any, error) {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
-	return generateRandomInt64(parsedOpts.randomizer, parsedOpts.randomizeSign, parsedOpts.min, parsedOpts.max)
+	return generateRandomInt64(
+		parsedOpts.randomizer,
+		parsedOpts.randomizeSign,
+		parsedOpts.min,
+		parsedOpts.max,
+	)
 }
 
 /*
 Generates a random int64 in the interval [min, max].
 */
-func generateRandomInt64(randomizer rng.Rand, randomizeSign bool, minValue, maxValue int64) (int64, error) {
+func generateRandomInt64(
+	randomizer rng.Rand,
+	randomizeSign bool,
+	minValue, maxValue int64,
+) (int64, error) {
 	output, err := transformer_utils.GenerateRandomInt64InValueRange(randomizer, minValue, maxValue)
 	if err != nil {
 		return 0, err

@@ -21,7 +21,12 @@ func Register(
 	sqlmanager *sql_manager.SqlManager,
 	eelicense license.EEInterface,
 ) {
-	runSqlInitTableStatements := initschema_activity.New(jobclient, connclient, sqlmanager, eelicense)
+	runSqlInitTableStatements := initschema_activity.New(
+		jobclient,
+		connclient,
+		sqlmanager,
+		eelicense,
+	)
 	runReconcileSchema := reconcileschema_activity.New(jobclient, connclient, sqlmanager, eelicense)
 	siWf := schemainit_workflow.New()
 	w.RegisterWorkflow(siWf.SchemaInit)

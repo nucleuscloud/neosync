@@ -12,7 +12,10 @@ import (
 /* FLOAT MANIPULATION UTILS */
 
 // Generates a random float64 in the range of the min and max float64 values
-func GenerateRandomFloat64WithInclusiveBounds(randomizer rng.Rand, minValue, maxValue float64) (float64, error) {
+func GenerateRandomFloat64WithInclusiveBounds(
+	randomizer rng.Rand,
+	minValue, maxValue float64,
+) (float64, error) {
 	if minValue > maxValue {
 		minValue, maxValue = maxValue, minValue
 	}

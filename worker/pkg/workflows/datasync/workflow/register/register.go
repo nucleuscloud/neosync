@@ -47,7 +47,12 @@ func Register(
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient, postgresSchemaDrift)
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	runPostTableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
-	jobhookByTimingActivity := jobhooks_by_timing_activity.New(jobclient, connclient, sqlmanager, eelicense)
+	jobhookByTimingActivity := jobhooks_by_timing_activity.New(
+		jobclient,
+		connclient,
+		sqlmanager,
+		eelicense,
+	)
 	redisCleanUpActivity := syncrediscleanup_activity.New(redisclient)
 
 	wf := datasync_workflow.New(eelicense)

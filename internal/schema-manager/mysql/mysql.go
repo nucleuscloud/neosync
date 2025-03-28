@@ -56,7 +56,10 @@ func NewMysqlSchemaManager(
 	}, nil
 }
 
-func (d *MysqlSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*shared.SchemaDifferences, error) {
+func (d *MysqlSchemaManager) CalculateSchemaDiff(
+	ctx context.Context,
+	uniqueTables map[string]*sqlmanager_shared.SchemaTable,
+) (*shared.SchemaDifferences, error) {
 	d.logger.Debug("calculating schema diff")
 	tables := []*sqlmanager_shared.SchemaTable{}
 	schemaMap := map[string][]*sqlmanager_shared.SchemaTable{}
@@ -152,7 +155,11 @@ func getDatabaseDataForSchemaDiff(
 		errgrp.Go(func() error {
 			tableconstraints, err := db.Db().GetTableConstraintsByTables(errctx, schema, tableNames)
 			if err != nil {
-				return fmt.Errorf("failed to retrieve  database table constraints for schema %s: %w", schema, err)
+				return fmt.Errorf(
+					"failed to retrieve  database table constraints for schema %s: %w",
+					schema,
+					err,
+				)
 			}
 			mu.Lock()
 			defer mu.Unlock()
@@ -162,7 +169,12 @@ func getDatabaseDataForSchemaDiff(
 					nonFkConstraints[key] = nonFkConstraint
 				}
 				for _, fkConstraint := range tableconstraint.ForeignKeyConstraints {
-					key := fmt.Sprintf("%s.%s.%s", fkConstraint.ReferencingSchema, fkConstraint.ReferencingTable, fkConstraint.ConstraintName)
+					key := fmt.Sprintf(
+						"%s.%s.%s",
+						fkConstraint.ReferencingSchema,
+						fkConstraint.ReferencingTable,
+						fkConstraint.ConstraintName,
+					)
 					fkConstraints[key] = fkConstraint
 				}
 			}
@@ -184,7 +196,10 @@ func getDatabaseDataForSchemaDiff(
 	}, nil
 }
 
-func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *shared.SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+func (d *MysqlSchemaManager) BuildSchemaDiffStatements(
+	ctx context.Context,
+	diff *shared.SchemaDifferences,
+) ([]*sqlmanager_shared.InitSchemaStatements, error) {
 	d.logger.Debug("building schema diff statements")
 	if !d.destOpts.GetInitTableSchema() {
 		d.logger.Info("skipping schema init as it is not enabled")
@@ -201,31 +216,64 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 
 	dropNonFkConstraintStatements := []string{}
 	for _, constraint := range diff.ExistsInDestination.NonForeignKeyConstraints {
-		dropNonFkConstraintStatements = append(dropNonFkConstraintStatements, sqlmanager_mysql.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintType, constraint.ConstraintName))
+		dropNonFkConstraintStatements = append(
+			dropNonFkConstraintStatements,
+			sqlmanager_mysql.BuildDropConstraintStatement(
+				constraint.SchemaName,
+				constraint.TableName,
+				constraint.ConstraintType,
+				constraint.ConstraintName,
+			),
+		)
 	}
 	// only way to update non fk constraint is to drop and recreate
 	for _, constraint := range diff.ExistsInBoth.Different.NonForeignKeyConstraints {
-		dropNonFkConstraintStatements = append(dropNonFkConstraintStatements, sqlmanager_mysql.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintType, constraint.ConstraintName))
+		dropNonFkConstraintStatements = append(
+			dropNonFkConstraintStatements,
+			sqlmanager_mysql.BuildDropConstraintStatement(
+				constraint.SchemaName,
+				constraint.TableName,
+				constraint.ConstraintType,
+				constraint.ConstraintName,
+			),
+		)
 	}
 
 	orderedForeignKeysToDrop := shared.BuildOrderedForeignKeyConstraintsToDrop(d.logger, diff)
 	orderedForeignKeyDropStatements := []string{}
 	for _, fk := range orderedForeignKeysToDrop {
-		orderedForeignKeyDropStatements = append(orderedForeignKeyDropStatements, sqlmanager_mysql.BuildDropConstraintStatement(fk.ReferencingSchema, fk.ReferencingTable, fk.ConstraintType, fk.ConstraintName))
+		orderedForeignKeyDropStatements = append(
+			orderedForeignKeyDropStatements,
+			sqlmanager_mysql.BuildDropConstraintStatement(
+				fk.ReferencingSchema,
+				fk.ReferencingTable,
+				fk.ConstraintType,
+				fk.ConstraintName,
+			),
+		)
 	}
 
 	dropColumnStatements := []string{}
 	for _, column := range diff.ExistsInDestination.Columns {
-		dropColumnStatements = append(dropColumnStatements, sqlmanager_mysql.BuildDropColumnStatement(column))
+		dropColumnStatements = append(
+			dropColumnStatements,
+			sqlmanager_mysql.BuildDropColumnStatement(column),
+		)
 	}
 
 	dropTriggerStatements := []string{}
 	for _, trigger := range diff.ExistsInDestination.Triggers {
-		dropTriggerStatements = append(dropTriggerStatements, sqlmanager_mysql.BuildDropTriggerStatement(trigger.TriggerSchema, trigger.TriggerName))
+		dropTriggerStatements = append(
+			dropTriggerStatements,
+			sqlmanager_mysql.BuildDropTriggerStatement(trigger.TriggerSchema, trigger.TriggerName),
+		)
 	}
 	// only way to update trigger is to drop and recreate
 	for _, trigger := range diff.ExistsInBoth.Different.Triggers {
-		dropTriggerStatements = append(dropTriggerStatements, sqlmanager_mysql.BuildDropTriggerStatement(trigger.TriggerSchema, trigger.TriggerName))
+		dropTriggerStatements = append(
+			dropTriggerStatements,
+			sqlmanager_mysql.BuildDropTriggerStatement(trigger.TriggerSchema, trigger.TriggerName),
+		)
 	}
 
 	updateColumnStatements := []string{}
@@ -239,7 +287,10 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 
 	dropFunctionStatements := []string{}
 	for _, function := range diff.ExistsInDestination.Functions {
-		dropFunctionStatements = append(dropFunctionStatements, sqlmanager_mysql.BuildDropFunctionStatement(function.Schema, function.Name))
+		dropFunctionStatements = append(
+			dropFunctionStatements,
+			sqlmanager_mysql.BuildDropFunctionStatement(function.Schema, function.Name),
+		)
 	}
 	// only way to update function is to drop and recreate
 	for _, function := range diff.ExistsInBoth.Different.Functions {
@@ -278,7 +329,11 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 	}, nil
 }
 
-func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable, schemaStatements []*sqlmanager_shared.InitSchemaStatements) ([]*shared.InitSchemaError, error) {
+func (d *MysqlSchemaManager) ReconcileDestinationSchema(
+	ctx context.Context,
+	uniqueTables map[string]*sqlmanager_shared.SchemaTable,
+	schemaStatements []*sqlmanager_shared.InitSchemaStatements,
+) ([]*shared.InitSchemaError, error) {
 	d.logger.Debug("reconciling destination schema")
 	initErrors := []*shared.InitSchemaError{}
 	if !d.destOpts.GetInitTableSchema() {
@@ -297,7 +352,10 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 
 	schemaStatementsByLabel := map[string][]*sqlmanager_shared.InitSchemaStatements{}
 	for _, statement := range schemaStatements {
-		schemaStatementsByLabel[statement.Label] = append(schemaStatementsByLabel[statement.Label], statement)
+		schemaStatementsByLabel[statement.Label] = append(
+			schemaStatementsByLabel[statement.Label],
+			statement,
+		)
 	}
 
 	// insert add columns statements after create table statements
@@ -307,28 +365,52 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 	for _, statement := range initblocks {
 		statementBlocks = append(statementBlocks, statement)
 		if statement.Label == sqlmanager_shared.SchemasLabel {
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropFunctionsLabel]...)
+			statementBlocks = append(
+				statementBlocks,
+				schemaStatementsByLabel[sqlmanager_shared.DropFunctionsLabel]...)
 		}
 		if statement.Label == sqlmanager_shared.CreateTablesLabel {
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropTriggersLabel]...)
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropForeignKeyConstraintsLabel]...)
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropNonForeignKeyConstraintsLabel]...)
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropColumnsLabel]...)
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.AddColumnsLabel]...)
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateColumnsLabel]...)
+			statementBlocks = append(
+				statementBlocks,
+				schemaStatementsByLabel[sqlmanager_shared.DropTriggersLabel]...)
+			statementBlocks = append(
+				statementBlocks,
+				schemaStatementsByLabel[sqlmanager_shared.DropForeignKeyConstraintsLabel]...)
+			statementBlocks = append(
+				statementBlocks,
+				schemaStatementsByLabel[sqlmanager_shared.DropNonForeignKeyConstraintsLabel]...)
+			statementBlocks = append(
+				statementBlocks,
+				schemaStatementsByLabel[sqlmanager_shared.DropColumnsLabel]...)
+			statementBlocks = append(
+				statementBlocks,
+				schemaStatementsByLabel[sqlmanager_shared.AddColumnsLabel]...)
+			statementBlocks = append(
+				statementBlocks,
+				schemaStatementsByLabel[sqlmanager_shared.UpdateColumnsLabel]...)
 		}
 	}
 
 	for _, block := range statementBlocks {
-		d.logger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
+		d.logger.Info(
+			fmt.Sprintf(
+				"[%s] found %d statements to execute during schema initialization",
+				block.Label,
+				len(block.Statements),
+			),
+		)
 		if len(block.Statements) == 0 {
 			continue
 		}
-		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
+		err = d.destdb.Db().
+			BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 		if err != nil {
-			d.logger.Error(fmt.Sprintf("unable to exec mysql %s statements: %s", block.Label, err.Error()))
+			d.logger.Error(
+				fmt.Sprintf("unable to exec mysql %s statements: %s", block.Label, err.Error()),
+			)
 			for _, stmt := range block.Statements {
-				err = d.destdb.Db().BatchExec(ctx, 1, []string{stmt}, &sqlmanager_shared.BatchExecOpts{})
+				err = d.destdb.Db().
+					BatchExec(ctx, 1, []string{stmt}, &sqlmanager_shared.BatchExecOpts{})
 				if err != nil {
 					initErrors = append(initErrors, &shared.InitSchemaError{
 						Statement: stmt,
@@ -341,29 +423,41 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 	return initErrors, nil
 }
 
-func (d *MysqlSchemaManager) TruncateTables(ctx context.Context, schemaDiff *shared.SchemaDifferences) error {
+func (d *MysqlSchemaManager) TruncateTables(
+	ctx context.Context,
+	schemaDiff *shared.SchemaDifferences,
+) error {
 	if !d.destOpts.GetTruncateTable().GetTruncateBeforeInsert() {
 		d.logger.Info("skipping truncate as it is not enabled")
 		return nil
 	}
 	tableTruncate := []string{}
 	for _, schemaTable := range schemaDiff.ExistsInBoth.Tables {
-		stmt, err := sqlmanager_mysql.BuildMysqlTruncateStatement(schemaTable.Schema, schemaTable.Table)
+		stmt, err := sqlmanager_mysql.BuildMysqlTruncateStatement(
+			schemaTable.Schema,
+			schemaTable.Table,
+		)
 		if err != nil {
 			return err
 		}
 		tableTruncate = append(tableTruncate, stmt)
 	}
-	d.logger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(tableTruncate)))
+	d.logger.Info(
+		fmt.Sprintf("executing %d sql statements that will truncate tables", len(tableTruncate)),
+	)
 	disableFkChecks := sqlmanager_shared.DisableForeignKeyChecks
-	err := d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, tableTruncate, &sqlmanager_shared.BatchExecOpts{Prefix: &disableFkChecks})
+	err := d.destdb.Db().
+		BatchExec(ctx, shared.BatchSizeConst, tableTruncate, &sqlmanager_shared.BatchExecOpts{Prefix: &disableFkChecks})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *MysqlSchemaManager) InitializeSchema(ctx context.Context, uniqueTables map[string]struct{}) ([]*shared.InitSchemaError, error) {
+func (d *MysqlSchemaManager) InitializeSchema(
+	ctx context.Context,
+	uniqueTables map[string]struct{},
+) ([]*shared.InitSchemaError, error) {
 	initErrors := []*shared.InitSchemaError{}
 	if !d.destOpts.GetInitTableSchema() {
 		d.logger.Info("skipping schema init as it is not enabled")
@@ -381,18 +475,28 @@ func (d *MysqlSchemaManager) InitializeSchema(ctx context.Context, uniqueTables 
 	}
 
 	for _, block := range initblocks {
-		d.logger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
+		d.logger.Info(
+			fmt.Sprintf(
+				"[%s] found %d statements to execute during schema initialization",
+				block.Label,
+				len(block.Statements),
+			),
+		)
 		if len(block.Statements) == 0 {
 			continue
 		}
-		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
+		err = d.destdb.Db().
+			BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 		if err != nil {
-			d.logger.Error(fmt.Sprintf("unable to exec mysql %s statements: %s", block.Label, err.Error()))
+			d.logger.Error(
+				fmt.Sprintf("unable to exec mysql %s statements: %s", block.Label, err.Error()),
+			)
 			if block.Label != sqlmanager_shared.SchemasLabel {
 				return nil, fmt.Errorf("unable to exec mysql %s statements: %w", block.Label, err)
 			}
 			for _, stmt := range block.Statements {
-				err = d.destdb.Db().BatchExec(ctx, 1, []string{stmt}, &sqlmanager_shared.BatchExecOpts{})
+				err = d.destdb.Db().
+					BatchExec(ctx, 1, []string{stmt}, &sqlmanager_shared.BatchExecOpts{})
 				if err != nil {
 					initErrors = append(initErrors, &shared.InitSchemaError{
 						Statement: stmt,
@@ -405,7 +509,11 @@ func (d *MysqlSchemaManager) InitializeSchema(ctx context.Context, uniqueTables 
 	return initErrors, nil
 }
 
-func (d *MysqlSchemaManager) TruncateData(ctx context.Context, uniqueTables map[string]struct{}, uniqueSchemas []string) error {
+func (d *MysqlSchemaManager) TruncateData(
+	ctx context.Context,
+	uniqueTables map[string]struct{},
+	uniqueSchemas []string,
+) error {
 	if !d.destOpts.GetTruncateTable().GetTruncateBeforeInsert() {
 		d.logger.Info("skipping truncate as it is not enabled")
 		return nil
@@ -419,9 +527,12 @@ func (d *MysqlSchemaManager) TruncateData(ctx context.Context, uniqueTables map[
 		}
 		tableTruncate = append(tableTruncate, stmt)
 	}
-	d.logger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(tableTruncate)))
+	d.logger.Info(
+		fmt.Sprintf("executing %d sql statements that will truncate tables", len(tableTruncate)),
+	)
 	disableFkChecks := sqlmanager_shared.DisableForeignKeyChecks
-	err := d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, tableTruncate, &sqlmanager_shared.BatchExecOpts{Prefix: &disableFkChecks})
+	err := d.destdb.Db().
+		BatchExec(ctx, shared.BatchSizeConst, tableTruncate, &sqlmanager_shared.BatchExecOpts{Prefix: &disableFkChecks})
 	if err != nil {
 		return err
 	}

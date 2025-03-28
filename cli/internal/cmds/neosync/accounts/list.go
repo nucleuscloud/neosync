@@ -53,7 +53,9 @@ func listAccounts(
 
 	accountsResp, err := userclient.GetUserAccounts(
 		ctx,
-		connect.NewRequest[mgmtv1alpha1.GetUserAccountsRequest](&mgmtv1alpha1.GetUserAccountsRequest{}),
+		connect.NewRequest[mgmtv1alpha1.GetUserAccountsRequest](
+			&mgmtv1alpha1.GetUserAccountsRequest{},
+		),
 	)
 	if err != nil {
 		return err

@@ -23,7 +23,9 @@ func (m *MongoDBMapper) MapRecord(item map[string]any) (map[string]any, error) {
 	return nil, errors.ErrUnsupported
 }
 
-func (m *MongoDBMapper) MapRecordWithKeyType(item map[string]any) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
+func (m *MongoDBMapper) MapRecordWithKeyType(
+	item map[string]any,
+) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
 	result := make(map[string]any)
 	ktm := make(map[string]neosync_types.KeyType)
 	for k, v := range item {
@@ -36,7 +38,11 @@ func (m *MongoDBMapper) MapRecordWithKeyType(item map[string]any) (valuemap map[
 	return result, ktm, nil
 }
 
-func parsePrimitives(key string, value any, keyTypeMap map[string]neosync_types.KeyType) (any, error) {
+func parsePrimitives(
+	key string,
+	value any,
+	keyTypeMap map[string]neosync_types.KeyType,
+) (any, error) {
 	switch v := value.(type) {
 	case primitive.Decimal128:
 		keyTypeMap[key] = neosync_types.Decimal128

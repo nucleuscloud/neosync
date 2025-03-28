@@ -38,7 +38,10 @@ func New(maxIterations int) *Workflow {
 	}
 }
 
-func (w *Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*TableSyncResponse, error) {
+func (w *Workflow) TableSync(
+	ctx workflow.Context,
+	req *TableSyncRequest,
+) (*TableSyncResponse, error) {
 	logger := log.With(
 		workflow.GetLogger(ctx),
 		"accountId", req.AccountId,
@@ -66,7 +69,10 @@ func (w *Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*Tabl
 
 		var resp *sync_activity.SyncTableResponse
 		err := workflow.ExecuteActivity(
-			workflow.WithActivityOptions(ctx, *req.SyncActivityOptions), // todo: check sync activity options nil
+			workflow.WithActivityOptions(
+				ctx,
+				*req.SyncActivityOptions,
+			), // todo: check sync activity options nil
 			syncActivity.SyncTable,
 			sync_activity.SyncTableRequest{
 				Id:                req.Id,
@@ -115,7 +121,10 @@ func (w *Workflow) TableSync(ctx workflow.Context, req *TableSyncRequest) (*Tabl
 }
 
 // Sets a temporal update handle for use with allocating identity blocks for auto increment columns
-func setCursorUpdateHandler(ctx workflow.Context, cursors map[string]*tablesync_shared.IdentityCursor) error {
+func setCursorUpdateHandler(
+	ctx workflow.Context,
+	cursors map[string]*tablesync_shared.IdentityCursor,
+) error {
 	cursorMutex := workflow.NewMutex(ctx)
 	return workflow.SetUpdateHandlerWithOptions(
 		ctx,
@@ -147,7 +156,9 @@ func setCursorUpdateHandler(ctx workflow.Context, cursors map[string]*tablesync_
 			Validator: func(ctx workflow.Context, req *tablesync_shared.AllocateIdentityBlockRequest) error {
 				// Note: The validator function is a read-only function and cannot access workflow state
 				if req == nil {
-					return errors.New("request is nil, expected a valid *AllocateIdentityBlockRequest")
+					return errors.New(
+						"request is nil, expected a valid *AllocateIdentityBlockRequest",
+					)
 				}
 				if req.Id == "" || req.BlockSize == 0 {
 					return errors.New("id and block size are required")

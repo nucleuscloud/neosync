@@ -46,11 +46,22 @@ func RegisterDynamoDbInput(env *service.Environment) error {
 }
 
 type dynamoDBAPIV2 interface {
-	DescribeTable(ctx context.Context, params *dynamodb.DescribeTableInput, optFns ...func(*dynamodb.Options)) (*dynamodb.DescribeTableOutput, error)
-	ExecuteStatement(ctx context.Context, params *dynamodb.ExecuteStatementInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ExecuteStatementOutput, error)
+	DescribeTable(
+		ctx context.Context,
+		params *dynamodb.DescribeTableInput,
+		optFns ...func(*dynamodb.Options),
+	) (*dynamodb.DescribeTableOutput, error)
+	ExecuteStatement(
+		ctx context.Context,
+		params *dynamodb.ExecuteStatementInput,
+		optFns ...func(*dynamodb.Options),
+	) (*dynamodb.ExecuteStatementOutput, error)
 }
 
-func newDynamoDbBatchInput(conf *service.ParsedConfig, logger *service.Logger) (service.BatchInput, error) {
+func newDynamoDbBatchInput(
+	conf *service.ParsedConfig,
+	logger *service.Logger,
+) (service.BatchInput, error) {
 	table, err := conf.FieldString("table")
 	if err != nil {
 		return nil, err
@@ -131,10 +142,13 @@ func (d *dynamodbInput) Connect(ctx context.Context) error {
 }
 
 func isTableActive(output *dynamodb.DescribeTableOutput) bool {
-	return output != nil && output.Table != nil && output.Table.TableStatus == types.TableStatusActive
+	return output != nil && output.Table != nil &&
+		output.Table.TableStatus == types.TableStatusActive
 }
 
-func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, service.AckFunc, error) {
+func (d *dynamodbInput) ReadBatch(
+	ctx context.Context,
+) (service.MessageBatch, service.AckFunc, error) {
 	d.readMu.Lock()
 	defer d.readMu.Unlock()
 	if d.client == nil {
@@ -197,15 +211,24 @@ func (d *dynamodbInput) Close(ctx context.Context) error {
 	return nil
 }
 
-func getAwsSession(ctx context.Context, parsedConf *service.ParsedConfig, opts ...func(*config.LoadOptions) error) (*aws.Config, error) {
-	awsCfg, err := awsmanager.GetAwsConfig(ctx, getAwsCredentialsConfigFromParsedConf(parsedConf), opts...)
+func getAwsSession(
+	ctx context.Context,
+	parsedConf *service.ParsedConfig,
+	opts ...func(*config.LoadOptions) error,
+) (*aws.Config, error) {
+	awsCfg, err := awsmanager.GetAwsConfig(
+		ctx,
+		getAwsCredentialsConfigFromParsedConf(parsedConf),
+		opts...)
 	if err != nil {
 		return aws.NewConfig(), err
 	}
 	return awsCfg, nil
 }
 
-func getAwsCredentialsConfigFromParsedConf(parsedConf *service.ParsedConfig) *awsmanager.AwsCredentialsConfig {
+func getAwsCredentialsConfigFromParsedConf(
+	parsedConf *service.ParsedConfig,
+) *awsmanager.AwsCredentialsConfig {
 	output := &awsmanager.AwsCredentialsConfig{}
 	if parsedConf == nil {
 		return output

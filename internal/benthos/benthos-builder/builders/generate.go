@@ -35,7 +35,10 @@ func NewGenerateBuilder(
 	}
 }
 
-func (b *generateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
+func (b *generateBuilder) BuildSourceConfigs(
+	ctx context.Context,
+	params *bb_internal.SourceParams,
+) ([]*bb_internal.BenthosSourceConfig, error) {
 	logger := params.Logger
 	job := params.Job
 	configs := []*bb_internal.BenthosSourceConfig{}
@@ -43,14 +46,22 @@ func (b *generateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_int
 	jobSource := job.GetSource()
 	sourceOptions := jobSource.GetOptions().GetGenerate()
 	if sourceOptions == nil {
-		return nil, fmt.Errorf("job does not have Generate source options, has: %T", jobSource.GetOptions().Config)
+		return nil, fmt.Errorf(
+			"job does not have Generate source options, has: %T",
+			jobSource.GetOptions().Config,
+		)
 	}
 	sourceConnection, err := shared.GetJobSourceConnection(ctx, jobSource, b.connectionclient)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get connection by id: %w", err)
 	}
 
-	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.JobRunId)), sourceConnection, logger)
+	db, err := b.sqlmanagerclient.NewSqlConnection(
+		ctx,
+		connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.JobRunId)),
+		sourceConnection,
+		logger,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
@@ -88,7 +99,13 @@ func (b *generateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_int
 			return nil, err
 		}
 
-		mutations, err := buildMutationConfigs(ctx, b.transformerclient, tableMapping.Mappings, tableColInfo, false)
+		mutations, err := buildMutationConfigs(
+			ctx,
+			b.transformerclient,
+			tableMapping.Mappings,
+			tableColInfo,
+			false,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -101,15 +118,23 @@ func (b *generateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_int
 		processors = append(processors, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
 
 		if jsCode != "" {
-			processors = append(processors, &neosync_benthos.ProcessorConfig{NeosyncJavascript: &neosync_benthos.NeosyncJavascriptConfig{Code: jsCode}})
+			processors = append(
+				processors,
+				&neosync_benthos.ProcessorConfig{
+					NeosyncJavascript: &neosync_benthos.NeosyncJavascriptConfig{Code: jsCode},
+				},
+			)
 		}
 		if len(processors) > 0 {
 			// add catch and error processor
-			processors = append(processors, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
-				{Error: &neosync_benthos.ErrorProcessorConfig{
-					ErrorMsg: `${! error()}`,
+			processors = append(
+				processors,
+				&neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
+					{Error: &neosync_benthos.ErrorProcessorConfig{
+						ErrorMsg: `${! error()}`,
+					}},
 				}},
-			}})
+			)
 		}
 
 		bc := &neosync_benthos.BenthosConfig{
@@ -139,13 +164,22 @@ func (b *generateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_int
 		}
 
 		columns := buildPlainColumns(tableMapping.Mappings)
-		columnDefaultProperties, err := getColumnDefaultProperties(logger, db.Driver(), columns, tableColInfo, tableColTransformers)
+		columnDefaultProperties, err := getColumnDefaultProperties(
+			logger,
+			db.Driver(),
+			columns,
+			tableColInfo,
+			tableColTransformers,
+		)
 		if err != nil {
 			return nil, err
 		}
 
 		configs = append(configs, &bb_internal.BenthosSourceConfig{
-			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
+			Name: neosync_benthos.BuildBenthosTable(
+				tableMapping.Schema,
+				tableMapping.Table,
+			), // todo: may need to expand on this
 			Config:    bc,
 			DependsOn: []*runconfigs.DependsOn{},
 
@@ -167,7 +201,10 @@ func (b *generateBuilder) BuildSourceConfigs(ctx context.Context, params *bb_int
 	return configs, nil
 }
 
-func (b *generateBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
+func (b *generateBuilder) BuildDestinationConfig(
+	ctx context.Context,
+	params *bb_internal.DestinationParams,
+) (*bb_internal.BenthosDestinationConfig, error) {
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	benthosConfig := params.SourceConfig
@@ -181,12 +218,20 @@ func (b *generateBuilder) BuildDestinationConfig(ctx context.Context, params *bb
 		processorConfigs = append(processorConfigs, *pc)
 	}
 
-	sqlProcessor, err := getSqlBatchProcessors(b.driver, benthosConfig.Columns, map[string]string{}, benthosConfig.ColumnDefaultProperties)
+	sqlProcessor, err := getSqlBatchProcessors(
+		b.driver,
+		benthosConfig.Columns,
+		map[string]string{},
+		benthosConfig.ColumnDefaultProperties,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
+	config.BenthosDsns = append(
+		config.BenthosDsns,
+		&bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id},
+	)
 	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 		// retry processor and output several times
 		Retry: &neosync_benthos.RetryConfig{
@@ -248,7 +293,9 @@ func groupGenerateSourceOptionsByTable(
 			tableOpt := schemaOpt.Tables[tidx]
 			key := neosync_benthos.BuildBenthosTable(schemaOpt.Schema, tableOpt.Table)
 			groupedMappings[key] = &generateSourceTableOptions{
-				Count: int(tableOpt.RowCount), // todo: probably need to update rowcount int64 to int32
+				Count: int(
+					tableOpt.RowCount,
+				), // todo: probably need to update rowcount int64 to int32
 			}
 		}
 	}

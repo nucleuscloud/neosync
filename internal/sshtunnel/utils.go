@@ -46,7 +46,9 @@ func parseSshKey(keyString string) (ssh.PublicKey, error) {
 
 // Auth Method is optional and will return nil if there is no valid method.
 // Will only return error if unable to parse the private key into an auth method
-func getTunnelAuthMethodFromSshConfig(auth *mgmtv1alpha1.SSHAuthentication) (ssh.AuthMethod, error) {
+func getTunnelAuthMethodFromSshConfig(
+	auth *mgmtv1alpha1.SSHAuthentication,
+) (ssh.AuthMethod, error) {
 	if auth == nil {
 		return nil, nil
 	}

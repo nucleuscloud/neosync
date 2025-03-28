@@ -27,7 +27,11 @@ type QueryBuilder struct {
 	pageLimit                     uint
 }
 
-func NewSelectQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool, pageLimit int) *QueryBuilder {
+func NewSelectQueryBuilder(
+	defaultSchema, driver string,
+	subsetByForeignKeyConstraints bool,
+	pageLimit int,
+) *QueryBuilder {
 	limit := uint(0)
 	if pageLimit > 0 {
 		limit = uint(pageLimit)
@@ -53,10 +57,15 @@ func (qb *QueryBuilder) getDialect() goqu.DialectWrapper {
 
 // BuildQuery constructs a SQL Select query from a RunConfig, returning the query string,
 // returns initial select and paged select queries, a flag indicating foreign key safety
-func (qb *QueryBuilder) BuildQuery(runconfig *runconfigs.RunConfig) (sqlstatement string, args []any, pagesql string, isNotForeignKeySafeSubset bool, err error) {
+func (qb *QueryBuilder) BuildQuery(
+	runconfig *runconfigs.RunConfig,
+) (sqlstatement string, args []any, pagesql string, isNotForeignKeySafeSubset bool, err error) {
 	query, pageQuery, notFkSafe, err := qb.buildFlattenedQuery(runconfig)
 	if query == nil {
-		return "", nil, "", false, fmt.Errorf("received no error, but query was nil for %s", runconfig.Id())
+		return "", nil, "", false, fmt.Errorf(
+			"received no error, but query was nil for %s",
+			runconfig.Id(),
+		)
 	}
 	if err != nil {
 		return "", nil, "", false, err
@@ -64,12 +73,20 @@ func (qb *QueryBuilder) BuildQuery(runconfig *runconfigs.RunConfig) (sqlstatemen
 
 	sql, args, err := query.Limit(qb.pageLimit).ToSQL()
 	if err != nil {
-		return "", nil, "", false, fmt.Errorf("unable to convert structured query to string for %s: %w", runconfig.Id(), err)
+		return "", nil, "", false, fmt.Errorf(
+			"unable to convert structured query to string for %s: %w",
+			runconfig.Id(),
+			err,
+		)
 	}
 
 	pageSql, _, err := pageQuery.Limit(qb.pageLimit).ToSQL()
 	if err != nil {
-		return "", nil, "", false, fmt.Errorf("unable to convert structured page query to string for %s: %w", runconfig.Id(), err)
+		return "", nil, "", false, fmt.Errorf(
+			"unable to convert structured page query to string for %s: %w",
+			runconfig.Id(),
+			err,
+		)
 	}
 	if qb.driver == sqlmanager_shared.MssqlDriver {
 		// MSSQL TOP needs to be cast to int
@@ -79,10 +96,14 @@ func (qb *QueryBuilder) BuildQuery(runconfig *runconfigs.RunConfig) (sqlstatemen
 }
 
 // buildFlattenedQuery builds the query for the root table, adding joins if needed.
-func (qb *QueryBuilder) buildFlattenedQuery(rootTable *runconfigs.RunConfig) (sql, pageSql *goqu.SelectDataset, isNotForeignKeySafeSubset bool, err error) {
+func (qb *QueryBuilder) buildFlattenedQuery(
+	rootTable *runconfigs.RunConfig,
+) (sql, pageSql *goqu.SelectDataset, isNotForeignKeySafeSubset bool, err error) {
 	dialect := qb.getDialect()
 	rootAlias := rootTable.SchemaTable().Table
-	rootAliasExpression := goqu.S(rootTable.SchemaTable().Schema).Table(rootTable.SchemaTable().Table).As(rootAlias)
+	rootAliasExpression := goqu.S(rootTable.SchemaTable().Schema).
+		Table(rootTable.SchemaTable().Table).
+		As(rootAlias)
 	query := dialect.From(rootAliasExpression)
 
 	// Select columns for the root table
@@ -124,7 +145,11 @@ func (qb *QueryBuilder) buildFlattenedQuery(rootTable *runconfigs.RunConfig) (sq
 }
 
 // buildPageQuery builds a pagination version of the query.
-func (qb *QueryBuilder) buildPageQuery(query *goqu.SelectDataset, rootAlias string, orderByColumns []string) *goqu.SelectDataset {
+func (qb *QueryBuilder) buildPageQuery(
+	query *goqu.SelectDataset,
+	rootAlias string,
+	orderByColumns []string,
+) *goqu.SelectDataset {
 	if len(orderByColumns) > 0 {
 		// Build lexicographical ordering conditions
 		var conditions []exp.Expression
@@ -132,10 +157,16 @@ func (qb *QueryBuilder) buildPageQuery(query *goqu.SelectDataset, rootAlias stri
 			var subConditions []exp.Expression
 			// Add equality conditions for all columns before current
 			for j := 0; j < i; j++ {
-				subConditions = append(subConditions, goqu.T(rootAlias).Col(orderByColumns[j]).Eq(goqu.L("?", 0)))
+				subConditions = append(
+					subConditions,
+					goqu.T(rootAlias).Col(orderByColumns[j]).Eq(goqu.L("?", 0)),
+				)
 			}
 			// Add greater than condition for current column
-			subConditions = append(subConditions, goqu.T(rootAlias).Col(orderByColumns[i]).Gt(goqu.L("?", 0)))
+			subConditions = append(
+				subConditions,
+				goqu.T(rootAlias).Col(orderByColumns[i]).Gt(goqu.L("?", 0)),
+			)
 			conditions = append(conditions, goqu.And(subConditions...))
 		}
 		query = query.Where(goqu.Or(conditions...))
@@ -145,7 +176,11 @@ func (qb *QueryBuilder) buildPageQuery(query *goqu.SelectDataset, rootAlias stri
 
 // addSubsetJoins adds joins to the query based on foreign key relationships defined in the subset paths.
 // returns the modified query, a boolean indicating if the subset is not foreign key safe.
-func (qb *QueryBuilder) addSubsetJoins(query *goqu.SelectDataset, rootTable *runconfigs.RunConfig, rootAlias string) (*goqu.SelectDataset, bool, error) {
+func (qb *QueryBuilder) addSubsetJoins(
+	query *goqu.SelectDataset,
+	rootTable *runconfigs.RunConfig,
+	rootAlias string,
+) (*goqu.SelectDataset, bool, error) {
 	subsets := rootTable.SubsetPaths()
 	isSubset := false
 
@@ -193,7 +228,9 @@ func (qb *QueryBuilder) addSubsetJoins(query *goqu.SelectDataset, rootTable *run
 			// Build join conditions based on the foreign key.
 			joinConditions := make([]exp.Expression, len(step.ForeignKey.Columns))
 			for i, col := range step.ForeignKey.Columns {
-				joinConditions[i] = goqu.T(childAlias).Col(step.ForeignKey.ReferenceColumns[i]).Eq(goqu.T(parentAlias).Col(col))
+				joinConditions[i] = goqu.T(childAlias).
+					Col(step.ForeignKey.ReferenceColumns[i]).
+					Eq(goqu.T(parentAlias).Col(col))
 			}
 			query = query.InnerJoin(
 				goqu.I(childTable).As(childAlias),
@@ -227,7 +264,10 @@ func getClippedHash(input string) string {
 	return hex.EncodeToString(hash[:][:8])
 }
 
-func (qb *QueryBuilder) qualifyWhereCondition(schema *string, table, condition string) (string, error) {
+func (qb *QueryBuilder) qualifyWhereCondition(
+	schema *string,
+	table, condition string,
+) (string, error) {
 	query := qb.getDialect().From(goqu.T(table)).Select(goqu.Star()).Where(goqu.L(condition))
 	sql, _, err := query.ToSQL()
 	if err != nil {

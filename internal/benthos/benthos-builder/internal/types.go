@@ -64,7 +64,10 @@ type BenthosBuilder interface {
 	BuildSourceConfigs(ctx context.Context, params *SourceParams) ([]*BenthosSourceConfig, error)
 	// BuildDestinationConfig creates a Benthos destination configuration for writing processed data.
 	// Returns single config for a schema.table configuration
-	BuildDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error)
+	BuildDestinationConfig(
+		ctx context.Context,
+		params *DestinationParams,
+	) (*BenthosDestinationConfig, error)
 }
 
 // SourceParams contains all parameters needed to build a source benthos configuration

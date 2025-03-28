@@ -45,6 +45,9 @@ func fromRoleDto(role mgmtv1alpha1.AccountRole) (string, error) {
 	case mgmtv1alpha1.AccountRole_ACCOUNT_ROLE_JOB_VIEWER:
 		return Role_JobViewer.String(), nil
 	default:
-		return "", fmt.Errorf("account role provided has not be mapped to a casbin role name: %d", role)
+		return "", fmt.Errorf(
+			"account role provided has not be mapped to a casbin role name: %d",
+			role,
+		)
 	}
 }

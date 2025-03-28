@@ -12,7 +12,10 @@ type InitSchemaError struct {
 }
 
 // filtered by tables found in job mappings
-func GetFilteredForeignToPrimaryTableMap(td map[string][]*sqlmanager_shared.ForeignConstraint, uniqueTables map[string]struct{}) map[string][]string {
+func GetFilteredForeignToPrimaryTableMap(
+	td map[string][]*sqlmanager_shared.ForeignConstraint,
+	uniqueTables map[string]struct{},
+) map[string][]string {
 	dpMap := map[string][]string{}
 	for table := range uniqueTables {
 		_, dpOk := dpMap[table]

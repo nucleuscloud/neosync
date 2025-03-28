@@ -73,14 +73,19 @@ func New(
 }
 
 // Validates and returns a parsed access token (if available)
-func (j *Client) validateToken(ctx context.Context, accessToken string) (*validator.ValidatedClaims, error) {
+func (j *Client) validateToken(
+	ctx context.Context,
+	accessToken string,
+) (*validator.ValidatedClaims, error) {
 	rawParsedToken, err := j.jwtValidator.ValidateToken(ctx, accessToken)
 	if err != nil {
 		return nil, nucleuserrors.NewUnauthenticated(err.Error())
 	}
 	validatedClaims, ok := rawParsedToken.(*validator.ValidatedClaims)
 	if !ok {
-		return nil, nucleuserrors.NewInternalError("unable to convert token claims what was expected")
+		return nil, nucleuserrors.NewInternalError(
+			"unable to convert token claims what was expected",
+		)
 	}
 	return validatedClaims, nil
 }
@@ -111,7 +116,11 @@ func hasScope(scopes []string, expectedScope string) bool {
 }
 
 // Validates the ctx is authenticated. Stuffs the parsed token onto the context
-func (j *Client) InjectTokenCtx(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
+func (j *Client) InjectTokenCtx(
+	ctx context.Context,
+	header http.Header,
+	spec connect.Spec,
+) (context.Context, error) {
 	token, err := utils.GetBearerTokenFromHeader(header, "Authorization")
 	if err != nil {
 		return nil, err
@@ -124,7 +133,9 @@ func (j *Client) InjectTokenCtx(ctx context.Context, header http.Header, spec co
 
 	claims, ok := parsedToken.CustomClaims.(*CustomClaims)
 	if !ok {
-		return nil, nucleuserrors.NewInternalError("unable to cast custom token claims to CustomClaims struct")
+		return nil, nucleuserrors.NewInternalError(
+			"unable to cast custom token claims to CustomClaims struct",
+		)
 	}
 
 	scopes := getCombinedScopesAndPermissions(claims.Scope, claims.Permissions)
@@ -161,7 +172,9 @@ func GetTokenDataFromCtx(ctx context.Context) (*TokenContextData, error) {
 	val := ctx.Value(TokenContextKey{})
 	data, ok := val.(*TokenContextData)
 	if !ok {
-		return nil, nucleuserrors.NewUnauthenticated(fmt.Sprintf("ctx does not contain TokenContextData or unable to cast struct: %T", val))
+		return nil, nucleuserrors.NewUnauthenticated(
+			fmt.Sprintf("ctx does not contain TokenContextData or unable to cast struct: %T", val),
+		)
 	}
 	return data, nil
 }

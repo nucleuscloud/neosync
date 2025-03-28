@@ -52,7 +52,10 @@ type GetPiiDetectJobDetailsResponse struct {
 }
 
 // Used to retrieve information about the PII Detect job to funnel in to the remaining workflow.
-func (a *Activities) GetPiiDetectJobDetails(ctx context.Context, req *GetPiiDetectJobDetailsRequest) (*GetPiiDetectJobDetailsResponse, error) {
+func (a *Activities) GetPiiDetectJobDetails(
+	ctx context.Context,
+	req *GetPiiDetectJobDetailsRequest,
+) (*GetPiiDetectJobDetailsResponse, error) {
 	logger := log.With(activity.GetLogger(ctx), "jobId", req.JobId)
 
 	jobResp, err := a.jobclient.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
@@ -96,16 +99,28 @@ type GetLastSuccessfulWorkflowIdResponse struct {
 // Used to retrieve the last successful workflow run from a job's schedule
 // This is used for incremental PII syncs in order to find the last result set of scanned PII.
 // This is then funneled in to computing the diff of what tables have changed and should be rescanned.
-func (a *Activities) GetLastSuccessfulWorkflowId(ctx context.Context, req *GetLastSuccessfulWorkflowIdRequest) (*GetLastSuccessfulWorkflowIdResponse, error) {
+func (a *Activities) GetLastSuccessfulWorkflowId(
+	ctx context.Context,
+	req *GetLastSuccessfulWorkflowIdRequest,
+) (*GetLastSuccessfulWorkflowIdResponse, error) {
 	logger := log.With(activity.GetLogger(ctx), "accountId", req.AccountId, "jobId", req.JobId)
-	workflowIds, err := getRecentRunsFromHandle(ctx, a.tmprlScheduleClient.GetHandle(ctx, req.JobId))
+	workflowIds, err := getRecentRunsFromHandle(
+		ctx,
+		a.tmprlScheduleClient.GetHandle(ctx, req.JobId),
+	)
 	if err != nil {
 		logger.Error("unable to get recent runs from handle", "error", err)
 		return &GetLastSuccessfulWorkflowIdResponse{WorkflowId: nil}, nil
 	}
 	logger.Debug("retrieved workflow ids", "workflowIds", workflowIds)
 
-	lastSuccessfulRun, err := a.getMostRecentSuccessfulRun(ctx, req.AccountId, req.JobId, workflowIds, logger)
+	lastSuccessfulRun, err := a.getMostRecentSuccessfulRun(
+		ctx,
+		req.AccountId,
+		req.JobId,
+		workflowIds,
+		logger,
+	)
 	if err != nil {
 		logger.Error("unable to get most recent successful run", "error", err)
 		return &GetLastSuccessfulWorkflowIdResponse{WorkflowId: nil}, nil
@@ -116,7 +131,12 @@ func (a *Activities) GetLastSuccessfulWorkflowId(ctx context.Context, req *GetLa
 	return &GetLastSuccessfulWorkflowIdResponse{WorkflowId: &lastSuccessfulRun}, nil
 }
 
-func (a *Activities) getMostRecentSuccessfulRun(ctx context.Context, accountId, jobId string, workflowIds []string, logger log.Logger) (string, error) {
+func (a *Activities) getMostRecentSuccessfulRun(
+	ctx context.Context,
+	accountId, jobId string,
+	workflowIds []string,
+	logger log.Logger,
+) (string, error) {
 	for _, workflowId := range workflowIds {
 		jobReport, found, err := a.getJobPiiDetectReport(ctx, accountId, workflowId, jobId)
 		if err != nil {
@@ -186,7 +206,10 @@ type GetTablesToPiiScanResponse struct {
 
 // This retrieves all tables from the source connection and filters them based on the user provided filter.
 // If an incremental config is provided, it will also filter the tables based on the previous successful workflow run.
-func (a *Activities) GetTablesToPiiScan(ctx context.Context, req *GetTablesToPiiScanRequest) (*GetTablesToPiiScanResponse, error) {
+func (a *Activities) GetTablesToPiiScan(
+	ctx context.Context,
+	req *GetTablesToPiiScanRequest,
+) (*GetTablesToPiiScanResponse, error) {
 	logger := log.With(activity.GetLogger(ctx), "sourceConnectionId", req.SourceConnectionId)
 	slogger := temporallogger.NewSlogger(logger)
 
@@ -204,15 +227,30 @@ func (a *Activities) GetTablesToPiiScan(ctx context.Context, req *GetTablesToPii
 	var previousReports map[TableIdentifier]*TableReport
 	if req.IncrementalConfig != nil {
 		logger.Debug("getting tables from previous run to further filter tables")
-		tableReports, err := a.getTableReportsFromPreviousRun(ctx, req.AccountId, req.IncrementalConfig.LastWorkflowId, req.JobId, logger)
+		tableReports, err := a.getTableReportsFromPreviousRun(
+			ctx,
+			req.AccountId,
+			req.IncrementalConfig.LastWorkflowId,
+			req.JobId,
+			logger,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get tables from previous run: %w", err)
 		}
 		previousReports = tableReports
 		oldTableCount := len(filteredTables)
-		filteredTables = filterTablesByFingerprint(filteredTables, getFingerprintsFromReports(tableReports))
+		filteredTables = filterTablesByFingerprint(
+			filteredTables,
+			getFingerprintsFromReports(tableReports),
+		)
 		newTableCount := len(filteredTables)
-		logger.Debug("filtered tables in incremental scan", "oldTableCount", oldTableCount, "newTableCount", newTableCount)
+		logger.Debug(
+			"filtered tables in incremental scan",
+			"oldTableCount",
+			oldTableCount,
+			"newTableCount",
+			newTableCount,
+		)
 	}
 
 	previousReportsArray := make([]*TableReport, 0, len(previousReports))
@@ -220,10 +258,15 @@ func (a *Activities) GetTablesToPiiScan(ctx context.Context, req *GetTablesToPii
 		previousReportsArray = append(previousReportsArray, report)
 	}
 
-	return &GetTablesToPiiScanResponse{Tables: filteredTables, PreviousReports: previousReportsArray}, nil
+	return &GetTablesToPiiScanResponse{
+		Tables:          filteredTables,
+		PreviousReports: previousReportsArray,
+	}, nil
 }
 
-func getFingerprintsFromReports(reports map[TableIdentifier]*TableReport) map[TableIdentifier]string {
+func getFingerprintsFromReports(
+	reports map[TableIdentifier]*TableReport,
+) map[TableIdentifier]string {
 	fingerprints := make(map[TableIdentifier]string)
 	for identifier, report := range reports {
 		fingerprints[identifier] = report.ScanFingerprint
@@ -231,7 +274,10 @@ func getFingerprintsFromReports(reports map[TableIdentifier]*TableReport) map[Ta
 	return fingerprints
 }
 
-func filterTablesByFingerprint(tables []TableIdentifierWithFingerprint, fingerprints map[TableIdentifier]string) []TableIdentifierWithFingerprint {
+func filterTablesByFingerprint(
+	tables []TableIdentifierWithFingerprint,
+	fingerprints map[TableIdentifier]string,
+) []TableIdentifierWithFingerprint {
 	filteredTables := []TableIdentifierWithFingerprint{}
 	for _, table := range tables {
 		fingerprint, ok := fingerprints[table.TableIdentifier]
@@ -248,7 +294,11 @@ func filterTablesByFingerprint(tables []TableIdentifierWithFingerprint, fingerpr
 	return filteredTables
 }
 
-func (a *Activities) getTableReportsFromPreviousRun(ctx context.Context, accountId, workflowId, jobId string, logger log.Logger) (map[TableIdentifier]*TableReport, error) {
+func (a *Activities) getTableReportsFromPreviousRun(
+	ctx context.Context,
+	accountId, workflowId, jobId string,
+	logger log.Logger,
+) (map[TableIdentifier]*TableReport, error) {
 	runCtx, found, err := a.getJobPiiDetectReport(ctx, accountId, workflowId, jobId)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get job pii detect report: %w", err)
@@ -287,19 +337,28 @@ func getTableColumnFingerprint(tableSchema, tableName string, columns []string) 
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func (a *Activities) getJobPiiDetectReport(ctx context.Context, accountId, workflowId, jobId string) (*JobPiiDetectReport, bool, error) {
-	runCtxResp, err := a.jobclient.GetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
-		Id: &mgmtv1alpha1.RunContextKey{
-			AccountId:  accountId,
-			JobRunId:   workflowId,
-			ExternalId: BuildJobReportExternalId(jobId),
-		},
-	}))
+func (a *Activities) getJobPiiDetectReport(
+	ctx context.Context,
+	accountId, workflowId, jobId string,
+) (*JobPiiDetectReport, bool, error) {
+	runCtxResp, err := a.jobclient.GetRunContext(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
+			Id: &mgmtv1alpha1.RunContextKey{
+				AccountId:  accountId,
+				JobRunId:   workflowId,
+				ExternalId: BuildJobReportExternalId(jobId),
+			},
+		}),
+	)
 	if err != nil {
 		if isConnectNotFoundError(err) {
 			return nil, false, nil
 		}
-		return nil, false, fmt.Errorf("unable to get run context for job pii detect report: %w", err)
+		return nil, false, fmt.Errorf(
+			"unable to get run context for job pii detect report: %w",
+			err,
+		)
 	}
 	runCtxBytes := runCtxResp.Msg.GetValue()
 	var runCtx JobPiiDetectReport
@@ -318,7 +377,10 @@ func isConnectNotFoundError(err error) bool {
 	return false
 }
 
-func (a *Activities) getFilteredTables(allTables []TableIdentifierWithFingerprint, filter *mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter) []TableIdentifierWithFingerprint {
+func (a *Activities) getFilteredTables(
+	allTables []TableIdentifierWithFingerprint,
+	filter *mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableScanFilter,
+) []TableIdentifierWithFingerprint {
 	if filter == nil {
 		return allTables
 	}
@@ -358,7 +420,9 @@ func (a *Activities) getFilteredTables(allTables []TableIdentifierWithFingerprin
 }
 
 // Helper function to convert proto TableIdentifier to our internal TableIdentifier
-func convertProtoTablesToTableIdentifiers(protoTables []*mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableIdentifier) []TableIdentifier {
+func convertProtoTablesToTableIdentifiers(
+	protoTables []*mgmtv1alpha1.JobTypeConfig_JobTypePiiDetect_TableIdentifier,
+) []TableIdentifier {
 	tables := make([]TableIdentifier, len(protoTables))
 	for i, pt := range protoTables {
 		tables[i] = TableIdentifier{
@@ -369,10 +433,17 @@ func convertProtoTablesToTableIdentifiers(protoTables []*mgmtv1alpha1.JobTypeCon
 	return tables
 }
 
-func (a *Activities) getAllTablesFromConnection(ctx context.Context, sourceConnectionId string, logger *slog.Logger) ([]TableIdentifierWithFingerprint, error) {
-	connResp, err := a.connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: sourceConnectionId,
-	}))
+func (a *Activities) getAllTablesFromConnection(
+	ctx context.Context,
+	sourceConnectionId string,
+	logger *slog.Logger,
+) ([]TableIdentifierWithFingerprint, error) {
+	connResp, err := a.connclient.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: sourceConnectionId,
+		}),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get connection: %w", err)
 	}
@@ -400,7 +471,11 @@ func (a *Activities) getAllTablesFromConnection(ctx context.Context, sourceConne
 	for identifier, columns := range dbCols {
 		tableFingerprints = append(tableFingerprints, TableIdentifierWithFingerprint{
 			TableIdentifier: identifier,
-			Fingerprint:     getTableColumnFingerprint(identifier.Schema, identifier.Table, columns),
+			Fingerprint: getTableColumnFingerprint(
+				identifier.Schema,
+				identifier.Table,
+				columns,
+			),
 		})
 	}
 
@@ -453,7 +528,10 @@ func (t *TableReport) ToTableIdentifier() TableIdentifier {
 }
 
 // After all of the tables have been scanned, this saves the final report for the run in the run context.
-func (a *Activities) SaveJobPiiDetectReport(ctx context.Context, req *SaveJobPiiDetectReportRequest) (*SaveJobPiiDetectReportResponse, error) {
+func (a *Activities) SaveJobPiiDetectReport(
+	ctx context.Context,
+	req *SaveJobPiiDetectReportRequest,
+) (*SaveJobPiiDetectReportResponse, error) {
 	info := activity.GetInfo(ctx)
 	jobRunId := info.WorkflowExecution.ID
 

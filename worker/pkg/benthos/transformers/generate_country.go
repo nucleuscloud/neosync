@@ -13,41 +13,48 @@ import (
 // +neosyncTransformerBuilder:generate:generateCountry
 
 func init() {
-	spec := bloblang.NewPluginSpec().Description("Randomly selects a country and by default, returns it as a 2-letter country code.").
+	spec := bloblang.NewPluginSpec().
+		Description("Randomly selects a country and by default, returns it as a 2-letter country code.").
 		Category("string").
 		Param(bloblang.NewBoolParam("generate_full_name").Default(false).Description("If true returns the full country name instead of the two character country code.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_country", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		generateFullName, err := args.GetBool("generate_full_name")
-		if err != nil {
-			return nil, err
-		}
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			val, err := generateRandomCountry(randomizer, generateFullName)
+	err := bloblang.RegisterFunctionV2(
+		"generate_country",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			generateFullName, err := args.GetBool("generate_full_name")
 			if err != nil {
-				return nil, fmt.Errorf("failed to generate_country: %w", err)
+				return nil, err
 			}
-			return val, nil
-		}, nil
-	})
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				val, err := generateRandomCountry(randomizer, generateFullName)
+				if err != nil {
+					return nil, fmt.Errorf("failed to generate_country: %w", err)
+				}
+				return val, nil
+			}, nil
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewGenerateCountryOptsFromConfig(config *mgmtv1alpha1.GenerateCountry) (*GenerateCountryOpts, error) {
+func NewGenerateCountryOptsFromConfig(
+	config *mgmtv1alpha1.GenerateCountry,
+) (*GenerateCountryOpts, error) {
 	if config == nil {
 		return NewGenerateCountryOpts(
 			nil,

@@ -46,7 +46,12 @@ func NewSQLConnectionDataService(
 }
 
 func (s *SQLConnectionDataService) GetAllSchemas(ctx context.Context) ([]string, error) {
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), s.connection, s.logger)
+	db, err := s.sqlmanager.NewSqlConnection(
+		ctx,
+		connectionmanager.NewUniqueSession(),
+		s.connection,
+		s.logger,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +69,12 @@ func (s *SQLConnectionDataService) GetAllSchemas(ctx context.Context) ([]string,
 }
 
 func (s *SQLConnectionDataService) GetAllTables(ctx context.Context) ([]TableIdentifier, error) {
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), s.connection, s.logger)
+	db, err := s.sqlmanager.NewSqlConnection(
+		ctx,
+		connectionmanager.NewUniqueSession(),
+		s.connection,
+		s.logger,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +111,11 @@ func (s *SQLConnectionDataService) SampleData(
 		return fmt.Errorf("invalid schema or table: %w", err)
 	}
 
-	conn, err := s.sqlconnector.NewDbFromConnectionConfig(s.connconfig, s.logger, sqlconnect.WithConnectionTimeout(uint32(5)))
+	conn, err := s.sqlconnector.NewDbFromConnectionConfig(
+		s.connconfig,
+		s.logger,
+		sqlconnect.WithConnectionTimeout(uint32(5)),
+	)
 	if err != nil {
 		return fmt.Errorf("error creating connection: %w", err)
 	}
@@ -128,19 +142,34 @@ func (s *SQLConnectionDataService) SampleData(
 	}
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil && !neosyncdb.IsNoRows(err) {
-		return fmt.Errorf("error querying table %s with database type %s: %w", schemaTable, goquDriver, err)
+		return fmt.Errorf(
+			"error querying table %s with database type %s: %w",
+			schemaTable,
+			goquDriver,
+			err,
+		)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		r, err := mapper.MapRecord(rows)
 		if err != nil {
-			return fmt.Errorf("unable to convert row to map for table %s with database type %s: %w", schemaTable, goquDriver, err)
+			return fmt.Errorf(
+				"unable to convert row to map for table %s with database type %s: %w",
+				schemaTable,
+				goquDriver,
+				err,
+			)
 		}
 		var rowbytes bytes.Buffer
 		enc := gob.NewEncoder(&rowbytes)
 		if err := enc.Encode(r); err != nil {
-			return fmt.Errorf("unable to encode row for table %s with database type %s: %w", schemaTable, goquDriver, err)
+			return fmt.Errorf(
+				"unable to encode row for table %s with database type %s: %w",
+				schemaTable,
+				goquDriver,
+				err,
+			)
 		}
 		if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
 			return err
@@ -160,7 +189,11 @@ func (s *SQLConnectionDataService) StreamData(
 		return err
 	}
 
-	conn, err := s.sqlconnector.NewDbFromConnectionConfig(s.connconfig, s.logger, sqlconnect.WithConnectionTimeout(uint32(5)))
+	conn, err := s.sqlconnector.NewDbFromConnectionConfig(
+		s.connconfig,
+		s.logger,
+		sqlconnect.WithConnectionTimeout(uint32(5)),
+	)
 	if err != nil {
 		return err
 	}
@@ -188,12 +221,22 @@ func (s *SQLConnectionDataService) StreamData(
 	}
 	r, err := db.QueryContext(ctx, query)
 	if err != nil && !neosyncdb.IsNoRows(err) {
-		return fmt.Errorf("error querying table %s with database type %s: %w", schemaTable, goquDriver, err)
+		return fmt.Errorf(
+			"error querying table %s with database type %s: %w",
+			schemaTable,
+			goquDriver,
+			err,
+		)
 	}
 
 	columnNames, err := r.Columns()
 	if err != nil {
-		return fmt.Errorf("unable to get column names from table %s with database type %s: %w", schemaTable, goquDriver, err)
+		return fmt.Errorf(
+			"unable to get column names from table %s with database type %s: %w",
+			schemaTable,
+			goquDriver,
+			err,
+		)
 	}
 
 	selectQuery, err := querybuilder.BuildSelectQuery(goquDriver, schemaTable, columnNames, nil)
@@ -202,19 +245,34 @@ func (s *SQLConnectionDataService) StreamData(
 	}
 	rows, err := db.QueryContext(ctx, selectQuery)
 	if err != nil && !neosyncdb.IsNoRows(err) {
-		return fmt.Errorf("error querying table %s with goqu driver %s: %w", schemaTable, goquDriver, err)
+		return fmt.Errorf(
+			"error querying table %s with goqu driver %s: %w",
+			schemaTable,
+			goquDriver,
+			err,
+		)
 	}
 
 	// todo: rows.Close needs to be called here?
 	for rows.Next() {
 		r, err := mapper.MapRecord(rows)
 		if err != nil {
-			return fmt.Errorf("unable to convert row to map for table %s with database type %s: %w", schemaTable, goquDriver, err)
+			return fmt.Errorf(
+				"unable to convert row to map for table %s with database type %s: %w",
+				schemaTable,
+				goquDriver,
+				err,
+			)
 		}
 		var rowbytes bytes.Buffer
 		enc := gob.NewEncoder(&rowbytes)
 		if err := enc.Encode(r); err != nil {
-			return fmt.Errorf("unable to encode row for table %s with database type %s: %w", schemaTable, goquDriver, err)
+			return fmt.Errorf(
+				"unable to encode row for table %s with database type %s: %w",
+				schemaTable,
+				goquDriver,
+				err,
+			)
 		}
 		if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()}); err != nil {
 			return err
@@ -223,8 +281,16 @@ func (s *SQLConnectionDataService) StreamData(
 	return nil
 }
 
-func (s *SQLConnectionDataService) GetSchema(ctx context.Context, config *mgmtv1alpha1.ConnectionSchemaConfig) ([]*mgmtv1alpha1.DatabaseColumn, error) {
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), s.connection, s.logger)
+func (s *SQLConnectionDataService) GetSchema(
+	ctx context.Context,
+	config *mgmtv1alpha1.ConnectionSchemaConfig,
+) ([]*mgmtv1alpha1.DatabaseColumn, error) {
+	db, err := s.sqlmanager.NewSqlConnection(
+		ctx,
+		connectionmanager.NewUniqueSession(),
+		s.connection,
+		s.logger,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +336,12 @@ func (s *SQLConnectionDataService) GetInitStatements(
 		schemaTableMap[sqlmanager_shared.BuildTable(s.Schema, s.Table)] = s
 	}
 
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), s.connection, s.logger)
+	db, err := s.sqlmanager.NewSqlConnection(
+		ctx,
+		connectionmanager.NewUniqueSession(),
+		s.connection,
+		s.logger,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +352,10 @@ func (s *SQLConnectionDataService) GetInitStatements(
 	if options.GetInitSchema() {
 		tables := []*sqlmanager_shared.SchemaTable{}
 		for _, v := range schemaTableMap {
-			tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: v.Schema, Table: v.Table})
+			tables = append(
+				tables,
+				&sqlmanager_shared.SchemaTable{Schema: v.Schema, Table: v.Table},
+			)
 		}
 		initBlocks, err := db.Db().GetSchemaInitStatements(ctx, tables)
 		if err != nil {
@@ -348,7 +422,12 @@ func (s *SQLConnectionDataService) GetTableConstraints(
 		schemas = append(schemas, s)
 	}
 
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), s.connection, s.logger)
+	db, err := s.sqlmanager.NewSqlConnection(
+		ctx,
+		connectionmanager.NewUniqueSession(),
+		s.connection,
+		s.logger,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -364,12 +443,15 @@ func (s *SQLConnectionDataService) GetTableConstraints(
 			Constraints: []*mgmtv1alpha1.ForeignConstraint{},
 		}
 		for _, constraint := range d {
-			fkConstraintsMap[tableName].Constraints = append(fkConstraintsMap[tableName].Constraints, &mgmtv1alpha1.ForeignConstraint{
-				Columns: constraint.Columns, NotNullable: constraint.NotNullable, ForeignKey: &mgmtv1alpha1.ForeignKey{
-					Table:   constraint.ForeignKey.Table,
-					Columns: constraint.ForeignKey.Columns,
+			fkConstraintsMap[tableName].Constraints = append(
+				fkConstraintsMap[tableName].Constraints,
+				&mgmtv1alpha1.ForeignConstraint{
+					Columns: constraint.Columns, NotNullable: constraint.NotNullable, ForeignKey: &mgmtv1alpha1.ForeignKey{
+						Table:   constraint.ForeignKey.Table,
+						Columns: constraint.ForeignKey.Columns,
+					},
 				},
-			})
+			)
 		}
 	}
 
@@ -386,9 +468,12 @@ func (s *SQLConnectionDataService) GetTableConstraints(
 			Constraints: []*mgmtv1alpha1.UniqueConstraint{},
 		}
 		for _, uc := range uniqueConstraints {
-			uniqueConstraintsMap[table].Constraints = append(uniqueConstraintsMap[table].Constraints, &mgmtv1alpha1.UniqueConstraint{
-				Columns: uc,
-			})
+			uniqueConstraintsMap[table].Constraints = append(
+				uniqueConstraintsMap[table].Constraints,
+				&mgmtv1alpha1.UniqueConstraint{
+					Columns: uc,
+				},
+			)
 		}
 	}
 
@@ -398,9 +483,12 @@ func (s *SQLConnectionDataService) GetTableConstraints(
 			Indexes: []*mgmtv1alpha1.UniqueIndex{},
 		}
 		for _, ui := range uniqueIndexes {
-			uniqueIndexesMap[table].Indexes = append(uniqueIndexesMap[table].Indexes, &mgmtv1alpha1.UniqueIndex{
-				Columns: ui,
-			})
+			uniqueIndexesMap[table].Indexes = append(
+				uniqueIndexesMap[table].Indexes,
+				&mgmtv1alpha1.UniqueIndex{
+					Columns: ui,
+				},
+			)
 		}
 	}
 
@@ -412,14 +500,23 @@ func (s *SQLConnectionDataService) GetTableConstraints(
 	}, nil
 }
 
-func (s *SQLConnectionDataService) GetTableSchema(ctx context.Context, schema, table string) ([]*mgmtv1alpha1.DatabaseColumn, error) {
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), s.connection, s.logger)
+func (s *SQLConnectionDataService) GetTableSchema(
+	ctx context.Context,
+	schema, table string,
+) ([]*mgmtv1alpha1.DatabaseColumn, error) {
+	db, err := s.sqlmanager.NewSqlConnection(
+		ctx,
+		connectionmanager.NewUniqueSession(),
+		s.connection,
+		s.logger,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer db.Db().Close()
 	schematable := &sqlmanager_shared.SchemaTable{Schema: schema, Table: table}
-	dbschema, err := db.Db().GetDatabaseTableSchemasBySchemasAndTables(ctx, []*sqlmanager_shared.SchemaTable{schematable})
+	dbschema, err := db.Db().
+		GetDatabaseTableSchemasBySchemasAndTables(ctx, []*sqlmanager_shared.SchemaTable{schematable})
 	if err != nil {
 		return nil, err
 	}
@@ -440,8 +537,17 @@ func (s *SQLConnectionDataService) GetTableSchema(ctx context.Context, schema, t
 	return schemas, nil
 }
 
-func (s *SQLConnectionDataService) GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error) {
-	db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), s.connection, s.logger)
+func (s *SQLConnectionDataService) GetTableRowCount(
+	ctx context.Context,
+	schema, table string,
+	whereClause *string,
+) (int64, error) {
+	db, err := s.sqlmanager.NewSqlConnection(
+		ctx,
+		connectionmanager.NewUniqueSession(),
+		s.connection,
+		s.logger,
+	)
 	if err != nil {
 		return 0, err
 	}
@@ -449,7 +555,10 @@ func (s *SQLConnectionDataService) GetTableRowCount(ctx context.Context, schema,
 	return db.Db().GetTableRowCount(ctx, schema, table, whereClause)
 }
 
-func (s *SQLConnectionDataService) areSchemaAndTableValid(ctx context.Context, schema, table string) error {
+func (s *SQLConnectionDataService) areSchemaAndTableValid(
+	ctx context.Context,
+	schema, table string,
+) error {
 	schemas, err := s.GetTableSchema(ctx, schema, table)
 	if err != nil {
 		return err

@@ -25,7 +25,11 @@ func (s *Service) GetAccountTemporalConfig(
 	if err != nil {
 		return nil, err
 	}
-	err = user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_View)
+	err = user.EnforceAccount(
+		ctx,
+		userdata.NewIdentifier(req.Msg.GetAccountId()),
+		rbac.AccountAction_View,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +57,11 @@ func (s *Service) SetAccountTemporalConfig(
 		return nil, err
 	}
 
-	err = user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_Edit)
+	err = user.EnforceAccount(
+		ctx,
+		userdata.NewIdentifier(req.Msg.GetAccountId()),
+		rbac.AccountAction_Edit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -71,10 +79,14 @@ func (s *Service) SetAccountTemporalConfig(
 	tc := &pg_models.TemporalConfig{}
 	tc.FromDto(dtoCfg)
 
-	_, err = s.db.Q.UpdateTemporalConfigByAccount(ctx, s.db.Db, db_queries.UpdateTemporalConfigByAccountParams{
-		TemporalConfig: tc,
-		AccountId:      accountUuid,
-	})
+	_, err = s.db.Q.UpdateTemporalConfigByAccount(
+		ctx,
+		s.db.Db,
+		db_queries.UpdateTemporalConfigByAccountParams{
+			TemporalConfig: tc,
+			AccountId:      accountUuid,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}

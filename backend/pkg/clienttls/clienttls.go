@@ -22,7 +22,9 @@ type ClientTlsFileConfig struct {
 type ClientTlsFileHandler func(config *mgmtv1alpha1.ClientTlsConfig) (*ClientTlsFileConfig, error)
 
 // Joins the client cert and key into a single file
-func UpsertClientTlsFileSingleClient(config *mgmtv1alpha1.ClientTlsConfig) (*ClientTlsFileConfig, error) {
+func UpsertClientTlsFileSingleClient(
+	config *mgmtv1alpha1.ClientTlsConfig,
+) (*ClientTlsFileConfig, error) {
 	if config == nil {
 		return nil, errors.New("config was nil")
 	}

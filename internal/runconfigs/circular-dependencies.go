@@ -17,7 +17,13 @@ func FindCircularDependencies(dependencies map[string][]string) [][]string {
 }
 
 // finds all possible path variations
-func dfsCycles(start, current string, dependencies map[string][]string, recStack map[string]bool, path []string, result *[][]string) {
+func dfsCycles(
+	start, current string,
+	dependencies map[string][]string,
+	recStack map[string]bool,
+	path []string,
+	result *[][]string,
+) {
 	if recStack[current] {
 		if current == start {
 			// make copy to prevent reference issues

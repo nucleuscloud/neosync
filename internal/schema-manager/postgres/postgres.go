@@ -57,7 +57,10 @@ func NewPostgresSchemaManager(
 	}, nil
 }
 
-func (d *PostgresSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*shared.SchemaDifferences, error) {
+func (d *PostgresSchemaManager) CalculateSchemaDiff(
+	ctx context.Context,
+	uniqueTables map[string]*sqlmanager_shared.SchemaTable,
+) (*shared.SchemaDifferences, error) {
 	d.logger.Debug("calculating schema diff")
 	tables := []*sqlmanager_shared.SchemaTable{}
 	schemaMap := map[string][]*sqlmanager_shared.SchemaTable{}
@@ -136,7 +139,12 @@ func getDatabaseDataForSchemaDiff(
 					nonFkConstraints[key] = nonFkConstraint
 				}
 				for _, fkConstraint := range tableconstraint.ForeignKeyConstraints {
-					key := fmt.Sprintf("%s.%s.%s", fkConstraint.ReferencingSchema, fkConstraint.ReferencingTable, fkConstraint.ConstraintName)
+					key := fmt.Sprintf(
+						"%s.%s.%s",
+						fkConstraint.ReferencingSchema,
+						fkConstraint.ReferencingTable,
+						fkConstraint.ConstraintName,
+					)
 					fkConstraints[key] = fkConstraint
 				}
 			}
@@ -202,7 +210,10 @@ func getDatabaseDataForSchemaDiff(
 	}, nil
 }
 
-func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff *shared.SchemaDifferences) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+func (d *PostgresSchemaManager) BuildSchemaDiffStatements(
+	ctx context.Context,
+	diff *shared.SchemaDifferences,
+) ([]*sqlmanager_shared.InitSchemaStatements, error) {
 	d.logger.Debug("building schema diff statements")
 	if !d.destOpts.GetInitTableSchema() {
 		d.logger.Info("skipping schema init as it is not enabled")
@@ -218,44 +229,79 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, d
 
 	dropNonFkConstraintStatements := []string{}
 	for _, constraint := range diff.ExistsInDestination.NonForeignKeyConstraints {
-		dropNonFkConstraintStatements = append(dropNonFkConstraintStatements, sqlmanager_postgres.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintName))
+		dropNonFkConstraintStatements = append(
+			dropNonFkConstraintStatements,
+			sqlmanager_postgres.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintName),
+		)
 	}
 	// only way to update non fk constraint is to drop and recreate
 	for _, constraint := range diff.ExistsInBoth.Different.NonForeignKeyConstraints {
-		dropNonFkConstraintStatements = append(dropNonFkConstraintStatements, sqlmanager_postgres.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintName))
+		dropNonFkConstraintStatements = append(
+			dropNonFkConstraintStatements,
+			sqlmanager_postgres.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintName),
+		)
 	}
 
 	dropFkConstraintStatements := []string{}
 	for _, constraint := range diff.ExistsInDestination.ForeignKeyConstraints {
-		dropFkConstraintStatements = append(dropFkConstraintStatements, sqlmanager_postgres.BuildDropConstraintStatement(constraint.ReferencingSchema, constraint.ReferencingTable, constraint.ConstraintName))
+		dropFkConstraintStatements = append(
+			dropFkConstraintStatements,
+			sqlmanager_postgres.BuildDropConstraintStatement(
+				constraint.ReferencingSchema,
+				constraint.ReferencingTable,
+				constraint.ConstraintName,
+			),
+		)
 	}
 	// only way to update fk constraint is to drop and recreate
 	for _, constraint := range diff.ExistsInBoth.Different.ForeignKeyConstraints {
-		dropFkConstraintStatements = append(dropFkConstraintStatements, sqlmanager_postgres.BuildDropConstraintStatement(constraint.ReferencingSchema, constraint.ReferencingTable, constraint.ConstraintName))
+		dropFkConstraintStatements = append(
+			dropFkConstraintStatements,
+			sqlmanager_postgres.BuildDropConstraintStatement(
+				constraint.ReferencingSchema,
+				constraint.ReferencingTable,
+				constraint.ConstraintName,
+			),
+		)
 	}
 
 	dropColumnStatements := []string{}
 	for _, column := range diff.ExistsInDestination.Columns {
-		dropColumnStatements = append(dropColumnStatements, sqlmanager_postgres.BuildDropColumnStatement(column.Schema, column.Table, column.Name))
+		dropColumnStatements = append(
+			dropColumnStatements,
+			sqlmanager_postgres.BuildDropColumnStatement(column.Schema, column.Table, column.Name),
+		)
 	}
 
 	dropTriggerStatements := []string{}
 	for _, trigger := range diff.ExistsInDestination.Triggers {
-		dropTriggerStatements = append(dropTriggerStatements, sqlmanager_postgres.BuildDropTriggerStatement(trigger.Schema, trigger.Table, trigger.TriggerName))
+		dropTriggerStatements = append(
+			dropTriggerStatements,
+			sqlmanager_postgres.BuildDropTriggerStatement(trigger.Schema, trigger.Table, trigger.TriggerName),
+		)
 	}
 	// only way to update trigger is to drop and recreate
 	for _, trigger := range diff.ExistsInBoth.Different.Triggers {
-		dropTriggerStatements = append(dropTriggerStatements, sqlmanager_postgres.BuildDropTriggerStatement(trigger.Schema, trigger.Table, trigger.TriggerName))
+		dropTriggerStatements = append(
+			dropTriggerStatements,
+			sqlmanager_postgres.BuildDropTriggerStatement(trigger.Schema, trigger.Table, trigger.TriggerName),
+		)
 	}
 
 	dropFunctionStatements := []string{}
 	for _, function := range diff.ExistsInDestination.Functions {
-		dropFunctionStatements = append(dropFunctionStatements, sqlmanager_postgres.BuildDropFunctionStatement(function.Schema, function.Name))
+		dropFunctionStatements = append(
+			dropFunctionStatements,
+			sqlmanager_postgres.BuildDropFunctionStatement(function.Schema, function.Name),
+		)
 	}
 
 	updateFunctionStatements := []string{}
 	for _, function := range diff.ExistsInBoth.Different.Functions {
-		updateFunctionStatements = append(updateFunctionStatements, sqlmanager_postgres.BuildUpdateFunctionStatement(function.Schema, function.Name, function.Definition))
+		updateFunctionStatements = append(
+			updateFunctionStatements,
+			sqlmanager_postgres.BuildUpdateFunctionStatement(function.Schema, function.Name, function.Definition),
+		)
 	}
 
 	dropDatatypesStatements := []string{}
@@ -263,15 +309,29 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, d
 		dropDatatypesStatements = append(dropDatatypesStatements, sqlmanager_postgres.BuildDropDatatypesStatement(enum.Schema, enum.Name))
 	}
 	for _, composite := range diff.ExistsInDestination.Composites {
-		dropDatatypesStatements = append(dropDatatypesStatements, sqlmanager_postgres.BuildDropDatatypesStatement(composite.Schema, composite.Name))
+		dropDatatypesStatements = append(
+			dropDatatypesStatements,
+			sqlmanager_postgres.BuildDropDatatypesStatement(composite.Schema, composite.Name),
+		)
 	}
 
 	updateDatatypesStatements := []string{}
 	for _, enum := range diff.ExistsInBoth.Different.Enums {
-		updateDatatypesStatements = append(updateDatatypesStatements, sqlmanager_postgres.BuildUpdateEnumStatements(enum.Enum.Schema, enum.Enum.Name, enum.NewValues, enum.ChangedValues)...)
+		updateDatatypesStatements = append(
+			updateDatatypesStatements,
+			sqlmanager_postgres.BuildUpdateEnumStatements(enum.Enum.Schema, enum.Enum.Name, enum.NewValues, enum.ChangedValues)...)
 	}
 	for _, composite := range diff.ExistsInBoth.Different.Composites {
-		updateDatatypesStatements = append(updateDatatypesStatements, sqlmanager_postgres.BuildUpdateCompositeStatements(composite.Composite.Schema, composite.Composite.Name, composite.ChangedAttributeDatatype, composite.ChangedAttributeName, composite.NewAttributes, composite.RemovedAttributes)...)
+		updateDatatypesStatements = append(
+			updateDatatypesStatements,
+			sqlmanager_postgres.BuildUpdateCompositeStatements(
+				composite.Composite.Schema,
+				composite.Composite.Name,
+				composite.ChangedAttributeDatatype,
+				composite.ChangedAttributeName,
+				composite.NewAttributes,
+				composite.RemovedAttributes,
+			)...)
 	}
 
 	for _, domain := range diff.ExistsInDestination.Domains {
@@ -279,17 +339,28 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, d
 	}
 
 	for _, domain := range diff.ExistsInBoth.Different.Domains {
-		statements := sqlmanager_postgres.BuildDomainConstraintStatements(domain.Domain.Schema, domain.Domain.Name, domain.NewConstraints, domain.RemovedConstraints)
+		statements := sqlmanager_postgres.BuildDomainConstraintStatements(
+			domain.Domain.Schema,
+			domain.Domain.Name,
+			domain.NewConstraints,
+			domain.RemovedConstraints,
+		)
 		updateDatatypesStatements = append(updateDatatypesStatements, statements...)
 		if domain.IsDefaultDifferent {
 			if domain.Domain.Default != "" {
-				updateDatatypesStatements = append(updateDatatypesStatements, sqlmanager_postgres.BuildUpdateDomainDefaultStatement(domain.Domain.Schema, domain.Domain.Name, domain.Domain.Default))
+				updateDatatypesStatements = append(
+					updateDatatypesStatements,
+					sqlmanager_postgres.BuildUpdateDomainDefaultStatement(domain.Domain.Schema, domain.Domain.Name, domain.Domain.Default),
+				)
 			} else {
 				updateDatatypesStatements = append(updateDatatypesStatements, sqlmanager_postgres.BuildDropDomainDefaultStatement(domain.Domain.Schema, domain.Domain.Name))
 			}
 		}
 		if domain.IsNullDifferent {
-			updateDatatypesStatements = append(updateDatatypesStatements, sqlmanager_postgres.BuildUpdateDomainNotNullStatement(domain.Domain.Schema, domain.Domain.Name, domain.Domain.IsNullable))
+			updateDatatypesStatements = append(
+				updateDatatypesStatements,
+				sqlmanager_postgres.BuildUpdateDomainNotNullStatement(domain.Domain.Schema, domain.Domain.Name, domain.Domain.IsNullable),
+			)
 		}
 	}
 
@@ -333,7 +404,11 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, d
 	}, nil
 }
 
-func (d *PostgresSchemaManager) ReconcileDestinationSchema(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable, schemaStatements []*sqlmanager_shared.InitSchemaStatements) ([]*shared.InitSchemaError, error) {
+func (d *PostgresSchemaManager) ReconcileDestinationSchema(
+	ctx context.Context,
+	uniqueTables map[string]*sqlmanager_shared.SchemaTable,
+	schemaStatements []*sqlmanager_shared.InitSchemaStatements,
+) ([]*shared.InitSchemaError, error) {
 	d.logger.Debug("reconciling destination schema")
 	initErrors := []*shared.InitSchemaError{}
 	if !d.destOpts.GetInitTableSchema() {

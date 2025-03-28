@@ -13,7 +13,9 @@ type DatabaseRecordMapper[T any] interface {
 	MapRecord(record T) (map[string]any, error)
 
 	// deprecated - use MapRecord instead with neosync types
-	MapRecordWithKeyType(record T) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error)
+	MapRecordWithKeyType(
+		record T,
+	) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error)
 }
 
 type Builder[T any] struct {
@@ -29,7 +31,9 @@ func (b *Builder[T]) MapRecord(record any) (map[string]any, error) {
 }
 
 // deprecated - use MapRecord instead with neosync types
-func (b *Builder[T]) MapRecordWithKeyType(record any) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
+func (b *Builder[T]) MapRecordWithKeyType(
+	record any,
+) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
 	typedRecord, ok := record.(T)
 	if !ok {
 		return nil, nil, fmt.Errorf("invalid record type: expected %T, got %T", *new(T), record)

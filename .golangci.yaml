@@ -2,7 +2,7 @@ version: "2"
 run:
   tests: false
 linters:
-  default: none
+  default: standard
   enable:
     - bodyclose
     - dogsled
@@ -47,7 +47,7 @@ linters:
         - performance
         - style
     gocyclo:
-      min-complexity: 20
+      min-complexity: 10
     lll:
       line-length: 140
     misspell:
@@ -105,11 +105,14 @@ formatters:
   enable:
     - gofmt
     - goimports
+    - golines
   settings:
     gofmt:
       rewrite-rules:
         - pattern: interface{}
           replacement: any
+    golines:
+      max-len: 140
   exclusions:
     generated: lax
     paths:

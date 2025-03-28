@@ -17,7 +17,9 @@ const (
 // 2. Checks for existence of XDG_CONFIG_HOME and append "neosync" to it, if exists
 // 3. Use ~/.neosync
 func GetOrCreateNeosyncFolder() (string, error) {
-	configDir := os.Getenv("NEOSYNC_CONFIG_DIR")  // helpful for tools such as direnv and people who want it somewhere interesting
+	configDir := os.Getenv(
+		"NEOSYNC_CONFIG_DIR",
+	) // helpful for tools such as direnv and people who want it somewhere interesting
 	xdgConfigHome := os.Getenv("XDG_CONFIG_HOME") // linux users expect this to be respected
 
 	var fullName string

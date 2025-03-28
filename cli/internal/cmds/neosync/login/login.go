@@ -43,7 +43,9 @@ func NewCmd() *cobra.Command {
 			logger := cli_logger.NewSLogger(cli_logger.GetCharmLevelOrDefault(debugMode))
 
 			if apiKey != "" {
-				logger.Info(`found api key, no need to log in. run "neosync whoami" to verify that the api key is valid`)
+				logger.Info(
+					`found api key, no need to log in. run "neosync whoami" to verify that the api key is valid`,
+				)
 				return nil
 			}
 			return login(cmd.Context(), logger)
@@ -118,11 +120,14 @@ func oAuthLogin(
 ) error {
 	state := uuid.NewString()
 
-	authorizeurlResp, err := authclient.GetAuthorizeUrl(ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthorizeUrlRequest{
-		State:       state,
-		RedirectUri: redirectUri,
-		Scope:       "openid profile offline_access",
-	}))
+	authorizeurlResp, err := authclient.GetAuthorizeUrl(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetAuthorizeUrlRequest{
+			State:       state,
+			RedirectUri: redirectUri,
+			Scope:       "openid profile offline_access",
+		}),
+	)
 	if err != nil {
 		return err
 	}
@@ -146,7 +151,10 @@ func oAuthLogin(
 	}()
 
 	if err := webbrowser.Open(authorizeurlResp.Msg.Url); err != nil {
-		fmt.Println("There was an issue opening the web browser, proceed to the following url to finish logging in to Neosync:\n", authorizeurlResp.Msg.Url) //nolint
+		fmt.Println( //nolint:forbidigo
+			"There was an issue opening the web browser, proceed to the following url to finish logging in to Neosync:\n",
+			authorizeurlResp.Msg.Url,
+		)
 	}
 
 	select {
@@ -164,7 +172,12 @@ func oAuthLogin(
 		if result.State != state {
 			return errors.New("state received from response was not what was sent")
 		}
-		loginResp, err := authclient.LoginCli(ctx, connect.NewRequest(&mgmtv1alpha1.LoginCliRequest{Code: result.Code, RedirectUri: redirectUri}))
+		loginResp, err := authclient.LoginCli(
+			ctx,
+			connect.NewRequest(
+				&mgmtv1alpha1.LoginCliRequest{Code: result.Code, RedirectUri: redirectUri},
+			),
+		)
 		if err != nil {
 			return err
 		}

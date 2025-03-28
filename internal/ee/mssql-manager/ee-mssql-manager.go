@@ -27,11 +27,19 @@ type Manager struct {
 	logger  *slog.Logger
 }
 
-func NewManager(querier mssql_queries.Querier, db mysql_queries.DBTX, closer func(), logger *slog.Logger) *Manager {
+func NewManager(
+	querier mssql_queries.Querier,
+	db mysql_queries.DBTX,
+	closer func(),
+	logger *slog.Logger,
+) *Manager {
 	return &Manager{querier: querier, db: db, close: closer, logger: logger}
 }
 
-func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error) {
+func (m *Manager) GetTableInitStatements(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) ([]*sqlmanager_shared.TableInitStatement, error) {
 	if len(tables) == 0 {
 		return []*sqlmanager_shared.TableInitStatement{}, nil
 	}
@@ -51,12 +59,19 @@ func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanag
 
 	colDefMap := map[string][]*mssql_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{}
 	errgrp.Go(func() error {
-		columnDefs, err := m.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, m.db, combined)
+		columnDefs, err := m.querier.GetDatabaseTableSchemasBySchemasAndTables(
+			errctx,
+			m.db,
+			combined,
+		)
 		if err != nil {
 			return err
 		}
 		for _, columnDefinition := range columnDefs {
-			key := sqlmanager_shared.SchemaTable{Schema: columnDefinition.TableSchema, Table: columnDefinition.TableName}
+			key := sqlmanager_shared.SchemaTable{
+				Schema: columnDefinition.TableSchema,
+				Table:  columnDefinition.TableName,
+			}
 			colDefMap[key.String()] = append(colDefMap[key.String()], columnDefinition)
 		}
 		return nil
@@ -64,12 +79,19 @@ func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanag
 
 	constraintmap := map[string][]*mssql_queries.GetTableConstraintsBySchemasRow{}
 	errgrp.Go(func() error {
-		constraints, err := m.querier.GetTableConstraintsBySchemas(errctx, m.db, schemas) // todo: update this to only grab what is necessary instead of entire schema
+		constraints, err := m.querier.GetTableConstraintsBySchemas(
+			errctx,
+			m.db,
+			schemas,
+		) // todo: update this to only grab what is necessary instead of entire schema
 		if err != nil {
 			return err
 		}
 		for _, constraint := range constraints {
-			key := sqlmanager_shared.SchemaTable{Schema: constraint.SchemaName, Table: constraint.TableName}
+			key := sqlmanager_shared.SchemaTable{
+				Schema: constraint.SchemaName,
+				Table:  constraint.TableName,
+			}
 			constraintmap[key.String()] = append(constraintmap[key.String()], constraint)
 		}
 		return nil
@@ -83,7 +105,10 @@ func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanag
 		}
 		for _, record := range idxrecords {
 			key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
-			indexmap[key.String()] = append(indexmap[key.String()], generateCreateIndexStatement(record))
+			indexmap[key.String()] = append(
+				indexmap[key.String()],
+				generateCreateIndexStatement(record),
+			)
 		}
 		return nil
 	})
@@ -112,14 +137,19 @@ func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanag
 				continue
 			}
 			stmt := generateAddConstraintStatement(constraint)
-			constraintType, err := sqlmanager_shared.ToConstraintType(toStandardConstraintType(constraint.ConstraintType))
+			constraintType, err := sqlmanager_shared.ToConstraintType(
+				toStandardConstraintType(constraint.ConstraintType),
+			)
 			if err != nil {
 				return nil, err
 			}
-			info.AlterTableStatements = append(info.AlterTableStatements, &sqlmanager_shared.AlterTableStatement{
-				Statement:      stmt,
-				ConstraintType: constraintType,
-			})
+			info.AlterTableStatements = append(
+				info.AlterTableStatements,
+				&sqlmanager_shared.AlterTableStatement{
+					Statement:      stmt,
+					ConstraintType: constraintType,
+				},
+			)
 		}
 		output = append(output, info)
 	}
@@ -141,7 +171,10 @@ func toStandardConstraintType(constraintType string) string {
 	}
 }
 
-func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+func (m *Manager) GetSchemaInitStatements(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) ([]*sqlmanager_shared.InitSchemaStatements, error) {
 	schemasMap := map[string]struct{}{}
 	for _, t := range tables {
 		schemasMap[t.Schema] = struct{}{}
@@ -156,7 +189,14 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 	schemaStmts := []string{}
 	errgrp.Go(func() error {
 		for schema := range schemasMap {
-			schemaStmts = append(schemaStmts, fmt.Sprintf("IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = '%s')\nBEGIN\n    EXEC('CREATE SCHEMA [%s]')\nEND;", schema, schema))
+			schemaStmts = append(
+				schemaStmts,
+				fmt.Sprintf(
+					"IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = '%s')\nBEGIN\n    EXEC('CREATE SCHEMA [%s]')\nEND;",
+					schema,
+					schema,
+				),
+			)
 		}
 		return nil
 	})
@@ -235,7 +275,10 @@ func (m *Manager) GetSchemaInitStatements(ctx context.Context, tables []*sqlmana
 	}, nil
 }
 
-func (m *Manager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
+func (m *Manager) GetSchemaTableDataTypes(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
 	if len(tables) == 0 {
 		return &sqlmanager_shared.SchemaTableDataTypeResponse{}, nil
 	}
@@ -278,11 +321,17 @@ func (m *Manager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmana
 	return output, nil
 }
 
-func (m *Manager) GetDataTypesByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.AllTableDataTypes, error) {
+func (m *Manager) GetDataTypesByTables(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) (*sqlmanager_shared.AllTableDataTypes, error) {
 	return nil, errors.ErrUnsupported
 }
 
-func (m *Manager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error) {
+func (m *Manager) GetSchemaTableTriggers(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) ([]*sqlmanager_shared.TableTrigger, error) {
 	if len(tables) == 0 {
 		return []*sqlmanager_shared.TableTrigger{}, nil
 	}
@@ -303,20 +352,35 @@ func (m *Manager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanag
 	for _, row := range rows {
 		if !row.Definition.Valid {
 			// This may occur if the trigger is encrypted or implemented as a CLR trigger (i.e., not written in T-SQL).
-			m.logger.Warn("mssql trigger definition is missing", "schema", row.SchemaName, "table", row.TableName, "trigger", row.TriggerName)
+			m.logger.Warn(
+				"mssql trigger definition is missing",
+				"schema",
+				row.SchemaName,
+				"table",
+				row.TableName,
+				"trigger",
+				row.TriggerName,
+			)
 			continue
 		}
 		output = append(output, &sqlmanager_shared.TableTrigger{
 			Schema:      row.SchemaName,
 			Table:       row.TableName,
 			TriggerName: row.TriggerName,
-			Definition:  generateCreateTriggerStatement(row.TriggerName, row.SchemaName, row.Definition.String),
+			Definition: generateCreateTriggerStatement(
+				row.TriggerName,
+				row.SchemaName,
+				row.Definition.String,
+			),
 		})
 	}
 	return output, nil
 }
 
-func (m *Manager) getSequencesBySchemas(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
+func (m *Manager) getSequencesBySchemas(
+	ctx context.Context,
+	schemas []string,
+) ([]*sqlmanager_shared.DataType, error) {
 	rows, err := m.querier.GetCustomSequencesBySchemas(ctx, m.db, schemas)
 	if err != nil && !isNoRows(err) {
 		return nil, err
@@ -335,7 +399,11 @@ func (m *Manager) getSequencesBySchemas(ctx context.Context, schemas []string) (
 	return output, nil
 }
 
-func (m *Manager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
+func (m *Manager) GetSequencesByTables(
+	ctx context.Context,
+	schema string,
+	tables []string,
+) ([]*sqlmanager_shared.DataType, error) {
 	rows, err := m.querier.GetCustomSequencesBySchemas(ctx, m.db, []string{schema})
 	if err != nil && !isNoRows(err) {
 		return nil, err
@@ -354,7 +422,10 @@ func (m *Manager) GetSequencesByTables(ctx context.Context, schema string, table
 	return output, nil
 }
 
-func (m *Manager) getViewsAndFunctionsBySchemas(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
+func (m *Manager) getViewsAndFunctionsBySchemas(
+	ctx context.Context,
+	schemas []string,
+) ([]*sqlmanager_shared.DataType, error) {
 	rows, err := m.querier.GetViewsAndFunctionsBySchemas(ctx, m.db, schemas)
 	if err != nil && !isNoRows(err) {
 		return nil, err
@@ -367,15 +438,21 @@ func (m *Manager) getViewsAndFunctionsBySchemas(ctx context.Context, schemas []s
 	output := make([]*sqlmanager_shared.DataType, 0, len(orderedObjects))
 	for _, row := range orderedObjects {
 		output = append(output, &sqlmanager_shared.DataType{
-			Schema:     row.SchemaName,
-			Name:       row.ObjectName,
-			Definition: generateCreateDatabaseObjectStatement(row.ObjectName, row.SchemaName, row.Definition),
+			Schema: row.SchemaName,
+			Name:   row.ObjectName,
+			Definition: generateCreateDatabaseObjectStatement(
+				row.ObjectName,
+				row.SchemaName,
+				row.Definition,
+			),
 		})
 	}
 	return output, nil
 }
 
-func orderObjectsByDependency(objects []*mssql_queries.GetViewsAndFunctionsBySchemasRow) []*mssql_queries.GetViewsAndFunctionsBySchemasRow {
+func orderObjectsByDependency(
+	objects []*mssql_queries.GetViewsAndFunctionsBySchemasRow,
+) []*mssql_queries.GetViewsAndFunctionsBySchemasRow {
 	objectMap := make(map[string]*mssql_queries.GetViewsAndFunctionsBySchemasRow)
 	processedObjects := make(map[string]bool)
 

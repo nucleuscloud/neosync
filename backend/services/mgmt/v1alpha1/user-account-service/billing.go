@@ -39,7 +39,11 @@ func (s *Service) GetAccountStatus(
 	if err != nil {
 		return nil, err
 	}
-	err = user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_View)
+	err = user.EnforceAccount(
+		ctx,
+		userdata.NewIdentifier(req.Msg.GetAccountId()),
+		rbac.AccountAction_View,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +129,10 @@ func (s *Service) getStripeSubscriptions(customerId string) ([]*stripe.Subscript
 		output = append(output, subIter.Subscription())
 	}
 	if subIter.Err() != nil {
-		return nil, fmt.Errorf("encountered error when retrieving stripe subscriptions: %w", subIter.Err())
+		return nil, fmt.Errorf(
+			"encountered error when retrieving stripe subscriptions: %w",
+			subIter.Err(),
+		)
 	}
 	return output, nil
 }
@@ -164,9 +171,12 @@ func (s *Service) IsAccountStatusValid(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest],
 ) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
-	accountStatusResp, err := s.GetAccountStatus(ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
-		AccountId: req.Msg.GetAccountId(),
-	}))
+	accountStatusResp, err := s.GetAccountStatus(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
+			AccountId: req.Msg.GetAccountId(),
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +232,15 @@ func (s *Service) GetAccountBillingCheckoutSession(
 ) (*connect.Response[mgmtv1alpha1.GetAccountBillingCheckoutSessionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	if !s.cfg.IsNeosyncCloud || s.billingclient == nil {
-		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("%s is not implemented", strings.TrimPrefix(mgmtv1alpha1connect.UserAccountServiceGetAccountBillingCheckoutSessionProcedure, "/")))
+		return nil, nucleuserrors.NewNotImplemented(
+			fmt.Sprintf(
+				"%s is not implemented",
+				strings.TrimPrefix(
+					mgmtv1alpha1connect.UserAccountServiceGetAccountBillingCheckoutSessionProcedure,
+					"/",
+				),
+			),
+		)
 	}
 	logger = logger.With("accountId", req.Msg.GetAccountId())
 	userdataclient := s.UserDataClient()
@@ -236,7 +254,11 @@ func (s *Service) GetAccountBillingCheckoutSession(
 		return nil, err
 	}
 
-	err = user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_Edit)
+	err = user.EnforceAccount(
+		ctx,
+		userdata.NewIdentifier(req.Msg.GetAccountId()),
+		rbac.AccountAction_Edit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -249,13 +271,23 @@ func (s *Service) GetAccountBillingCheckoutSession(
 		logger,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("was unable to get account and/or upsert stripe customer id: %w", err)
+		return nil, fmt.Errorf(
+			"was unable to get account and/or upsert stripe customer id: %w",
+			err,
+		)
 	}
 	if !account.StripeCustomerID.Valid {
-		return nil, errors.New("stripe customer id does not exist on account after creation attempt")
+		return nil, errors.New(
+			"stripe customer id does not exist on account after creation attempt",
+		)
 	}
 
-	session, err := s.generateCheckoutSession(account.StripeCustomerID.String, account.AccountSlug, user.Id(), logger)
+	session, err := s.generateCheckoutSession(
+		account.StripeCustomerID.String,
+		account.AccountSlug,
+		user.Id(),
+		logger,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate billing checkout session: %w", err)
 	}
@@ -270,7 +302,15 @@ func (s *Service) GetAccountBillingPortalSession(
 	req *connect.Request[mgmtv1alpha1.GetAccountBillingPortalSessionRequest],
 ) (*connect.Response[mgmtv1alpha1.GetAccountBillingPortalSessionResponse], error) {
 	if !s.cfg.IsNeosyncCloud || s.billingclient == nil {
-		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("%s is not implemented", strings.TrimPrefix(mgmtv1alpha1connect.UserAccountServiceGetAccountBillingPortalSessionProcedure, "/")))
+		return nil, nucleuserrors.NewNotImplemented(
+			fmt.Sprintf(
+				"%s is not implemented",
+				strings.TrimPrefix(
+					mgmtv1alpha1connect.UserAccountServiceGetAccountBillingPortalSessionProcedure,
+					"/",
+				),
+			),
+		)
 	}
 	userdataclient := s.UserDataClient()
 	user, err := userdataclient.GetUser(ctx)
@@ -278,7 +318,11 @@ func (s *Service) GetAccountBillingPortalSession(
 		return nil, err
 	}
 
-	err = user.EnforceAccount(ctx, userdata.NewIdentifier(req.Msg.GetAccountId()), rbac.AccountAction_Edit)
+	err = user.EnforceAccount(
+		ctx,
+		userdata.NewIdentifier(req.Msg.GetAccountId()),
+		rbac.AccountAction_Edit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -293,10 +337,15 @@ func (s *Service) GetAccountBillingPortalSession(
 		return nil, err
 	}
 	if !account.StripeCustomerID.Valid {
-		return nil, nucleuserrors.NewForbidden("requested account does not have a valid stripe customer id")
+		return nil, nucleuserrors.NewForbidden(
+			"requested account does not have a valid stripe customer id",
+		)
 	}
 
-	session, err := s.billingclient.NewBillingPortalSession(account.StripeCustomerID.String, account.AccountSlug)
+	session, err := s.billingclient.NewBillingPortalSession(
+		account.StripeCustomerID.String,
+		account.AccountSlug,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate billing portal session: %w", err)
 	}
@@ -315,7 +364,9 @@ func (s *Service) GetBillingAccounts(
 		return nil, err
 	}
 	if s.cfg.IsNeosyncCloud && !user.IsWorkerApiKey() {
-		return nil, nucleuserrors.NewUnauthorized("must provide valid authentication credentials for this endpoint")
+		return nil, nucleuserrors.NewUnauthorized(
+			"must provide valid authentication credentials for this endpoint",
+		)
 	}
 
 	accountIdsToFilter := []pgtype.UUID{}
@@ -353,7 +404,9 @@ func (s *Service) SetBillingMeterEvent(
 		return nil, err
 	}
 	if s.cfg.IsNeosyncCloud && !user.IsWorkerApiKey() {
-		return nil, nucleuserrors.NewUnauthorized("must provide valid authentication credentials for this endpoint")
+		return nil, nucleuserrors.NewUnauthorized(
+			"must provide valid authentication credentials for this endpoint",
+		)
 	}
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx).
@@ -395,7 +448,8 @@ func (s *Service) SetBillingMeterEvent(
 	})
 	if err != nil {
 		if stripeErr, ok := err.(*stripe.Error); ok {
-			if stripeErr.Type == stripe.ErrorTypeInvalidRequest && strings.Contains(stripeErr.Msg, "An event already exists with identifier") {
+			if stripeErr.Type == stripe.ErrorTypeInvalidRequest &&
+				strings.Contains(stripeErr.Msg, "An event already exists with identifier") {
 				logger.Warn("unable to create new meter event, identifier already exists")
 				return connect.NewResponse(&mgmtv1alpha1.SetBillingMeterEventResponse{}), nil
 			}

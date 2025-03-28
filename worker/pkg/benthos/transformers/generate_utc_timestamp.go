@@ -17,28 +17,34 @@ func init() {
 		Category("int64").
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_utctimestamp", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
+	err := bloblang.RegisterFunctionV2(
+		"generate_utctimestamp",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
 
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-		randomizer := rng.New(seed)
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+			randomizer := rng.New(seed)
 
-		return func() (any, error) {
-			return generateRandomUTCTimestamp(randomizer), nil
-		}, nil
-	})
+			return func() (any, error) {
+				return generateRandomUTCTimestamp(randomizer), nil
+			}, nil
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewGenerateUTCTimestampOptsFromConfig(config *mgmtv1alpha1.GenerateUtcTimestamp) (*GenerateUTCTimestampOpts, error) {
+func NewGenerateUTCTimestampOptsFromConfig(
+	config *mgmtv1alpha1.GenerateUtcTimestamp,
+) (*GenerateUTCTimestampOpts, error) {
 	return NewGenerateUTCTimestampOpts(nil)
 }
 

@@ -22,49 +22,55 @@ func init() {
 		Param(bloblang.NewBoolParam("preserve_length").Default(false).Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("transform_int64_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		valuePtr, err := args.GetOptionalInt64("value")
-		if err != nil {
-			return nil, err
-		}
-
-		var value int64
-		if valuePtr != nil {
-			value = *valuePtr
-		}
-
-		preserveLength, err := args.GetBool("preserve_length")
-		if err != nil {
-			return nil, err
-		}
-
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			res, err := transformInt64PhoneNumber(randomizer, value, preserveLength)
+	err := bloblang.RegisterFunctionV2(
+		"transform_int64_phone_number",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			valuePtr, err := args.GetOptionalInt64("value")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run transform_int64_phone_number: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+
+			var value int64
+			if valuePtr != nil {
+				value = *valuePtr
+			}
+
+			preserveLength, err := args.GetBool("preserve_length")
+			if err != nil {
+				return nil, err
+			}
+
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				res, err := transformInt64PhoneNumber(randomizer, value, preserveLength)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run transform_int64_phone_number: %w", err)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewTransformInt64PhoneNumberOptsFromConfig(config *mgmtv1alpha1.TransformInt64PhoneNumber) (*TransformInt64PhoneNumberOpts, error) {
+func NewTransformInt64PhoneNumberOptsFromConfig(
+	config *mgmtv1alpha1.TransformInt64PhoneNumber,
+) (*TransformInt64PhoneNumberOpts, error) {
 	if config == nil {
 		return NewTransformInt64PhoneNumberOpts(nil, nil)
 	}
@@ -81,7 +87,11 @@ func (t *TransformInt64PhoneNumber) Transform(value, opts any) (any, error) {
 }
 
 // generates a random phone number and returns it as an int64
-func transformInt64PhoneNumber(randomizer rng.Rand, value any, preserveLength bool) (*int64, error) {
+func transformInt64PhoneNumber(
+	randomizer rng.Rand,
+	value any,
+	preserveLength bool,
+) (*int64, error) {
 	if value == nil {
 		return nil, nil
 	}
@@ -119,7 +129,10 @@ func transformInt64PhoneNumber(randomizer rng.Rand, value any, preserveLength bo
 
 func generateIntPhoneNumberPreserveLength(randomizer rng.Rand, number int64) (int64, error) {
 	// get a random area code from the areacodes data set
-	randAreaCodeStr, err := transformer_utils.GetRandomValueFromSlice(randomizer, transformers_dataset.UsAreaCodes)
+	randAreaCodeStr, err := transformer_utils.GetRandomValueFromSlice(
+		randomizer,
+		transformers_dataset.UsAreaCodes,
+	)
 	if err != nil {
 		return 0, err
 	}
@@ -129,7 +142,10 @@ func generateIntPhoneNumberPreserveLength(randomizer rng.Rand, number int64) (in
 		return 0, err
 	}
 
-	pn, err := transformer_utils.GenerateRandomInt64FixedLength(randomizer, transformer_utils.GetInt64Length(number)-3)
+	pn, err := transformer_utils.GenerateRandomInt64FixedLength(
+		randomizer,
+		transformer_utils.GetInt64Length(number)-3,
+	)
 	if err != nil {
 		return 0, err
 	}

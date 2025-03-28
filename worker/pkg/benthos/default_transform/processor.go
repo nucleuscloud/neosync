@@ -49,7 +49,10 @@ type defaultTransformerProcessor struct {
 	logger                     *service.Logger
 }
 
-func newDefaultTransformerProcessor(conf *service.ParsedConfig, mgr *service.Resources) (*defaultTransformerProcessor, error) {
+func newDefaultTransformerProcessor(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+) (*defaultTransformerProcessor, error) {
 	mappedKeys, err := conf.FieldStringList("mapped_keys")
 	if err != nil {
 		return nil, err
@@ -82,7 +85,9 @@ func newDefaultTransformerProcessor(conf *service.ParsedConfig, mgr *service.Res
 	}, nil
 }
 
-func getDefaultTransformerMap(jobSourceOptions *mgmtv1alpha1.JobSourceOptions) map[primitiveType]*mgmtv1alpha1.JobMappingTransformer {
+func getDefaultTransformerMap(
+	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
+) map[primitiveType]*mgmtv1alpha1.JobMappingTransformer {
 	switch cfg := jobSourceOptions.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
 		unmappedTransformers := cfg.Dynamodb.UnmappedTransforms
@@ -100,7 +105,10 @@ func getDefaultTransformerMap(jobSourceOptions *mgmtv1alpha1.JobSourceOptions) m
 	}
 }
 
-func (m *defaultTransformerProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
+func (m *defaultTransformerProcessor) ProcessBatch(
+	ctx context.Context,
+	batch service.MessageBatch,
+) ([]service.MessageBatch, error) {
 	newBatch := make(service.MessageBatch, 0, len(batch))
 	for _, msg := range batch {
 		root, err := msg.AsStructuredMut()
@@ -195,7 +203,11 @@ func (m *defaultTransformerProcessor) transformRoot(path string, root any) (any,
 	}
 }
 
-func (m *defaultTransformerProcessor) getValue(transformerKey primitiveType, value any, shouldMutate bool) (any, error) {
+func (m *defaultTransformerProcessor) getValue(
+	transformerKey primitiveType,
+	value any,
+	shouldMutate bool,
+) (any, error) {
 	t := m.defaultTransformersInitMap[transformerKey]
 	if t != nil && shouldMutate {
 		return t.Mutate(value, t.Opts)
@@ -203,7 +215,9 @@ func (m *defaultTransformerProcessor) getValue(transformerKey primitiveType, val
 	return value, nil
 }
 
-func initDefaultTransformers(defaultTransformerMap map[primitiveType]*mgmtv1alpha1.JobMappingTransformer) (map[primitiveType]*transformer_executor.TransformerExecutor, error) {
+func initDefaultTransformers(
+	defaultTransformerMap map[primitiveType]*mgmtv1alpha1.JobMappingTransformer,
+) (map[primitiveType]*transformer_executor.TransformerExecutor, error) {
 	transformersInit := map[primitiveType]*transformer_executor.TransformerExecutor{}
 	for k, t := range defaultTransformerMap {
 		if !shouldProcess(t) {

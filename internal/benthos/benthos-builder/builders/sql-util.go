@@ -126,7 +126,10 @@ func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
 	return columns
 }
 
-func buildTableSubsetMap(tableOpts map[string]*sqlSourceTableOptions, tableMap map[string]*tableMapping) map[string]string {
+func buildTableSubsetMap(
+	tableOpts map[string]*sqlSourceTableOptions,
+	tableMap map[string]*tableMapping,
+) map[string]string {
 	tableSubsetMap := map[string]string{}
 	for table, opts := range tableOpts {
 		if _, ok := tableMap[table]; !ok {
@@ -224,7 +227,9 @@ func getTableMappingsMap(groupedMappings []*tableMapping) map[string]*tableMappi
 	return groupedTableMapping
 }
 
-func getColumnTransformerMap(tableMappingMap map[string]*tableMapping) map[string]map[string]*mgmtv1alpha1.JobMappingTransformer {
+func getColumnTransformerMap(
+	tableMappingMap map[string]*tableMapping,
+) map[string]map[string]*mgmtv1alpha1.JobMappingTransformer {
 	colTransformerMap := map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{} // schema.table ->  column -> transformer
 	for table, mapping := range tableMappingMap {
 		colTransformerMap[table] = map[string]*mgmtv1alpha1.JobMappingTransformer{}
@@ -273,7 +278,10 @@ func filterForeignKeysMap(
 
 				newFk.Columns = append(newFk.Columns, c)
 				newFk.NotNullable = append(newFk.NotNullable, fk.NotNullable[i])
-				newFk.ForeignKey.Columns = append(newFk.ForeignKey.Columns, fk.ForeignKey.Columns[i])
+				newFk.ForeignKey.Columns = append(
+					newFk.ForeignKey.Columns,
+					fk.ForeignKey.Columns[i],
+				)
 			}
 
 			if len(newFk.Columns) > 0 {
@@ -303,7 +311,9 @@ func isDefaultJobMappingTransformer(t *mgmtv1alpha1.JobMappingTransformer) bool 
 }
 
 // map of table primary key cols to foreign key cols
-func getPrimaryKeyDependencyMap(tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint) map[string]map[string][]*bb_internal.ReferenceKey {
+func getPrimaryKeyDependencyMap(
+	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
+) map[string]map[string][]*bb_internal.ReferenceKey {
 	tc := map[string]map[string][]*bb_internal.ReferenceKey{} // schema.table -> column -> ForeignKey
 	for table, constraints := range tableDependencies {
 		for _, c := range constraints {
@@ -312,24 +322,34 @@ func getPrimaryKeyDependencyMap(tableDependencies map[string][]*sqlmanager_share
 				tc[c.ForeignKey.Table] = map[string][]*bb_internal.ReferenceKey{}
 			}
 			for idx, col := range c.ForeignKey.Columns {
-				tc[c.ForeignKey.Table][col] = append(tc[c.ForeignKey.Table][col], &bb_internal.ReferenceKey{
-					Table:  table,
-					Column: c.Columns[idx],
-				})
+				tc[c.ForeignKey.Table][col] = append(
+					tc[c.ForeignKey.Table][col],
+					&bb_internal.ReferenceKey{
+						Table:  table,
+						Column: c.Columns[idx],
+					},
+				)
 			}
 		}
 	}
 	return tc
 }
 
-func findTopForeignKeySource(tableName, col string, tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint) *bb_internal.ReferenceKey {
+func findTopForeignKeySource(
+	tableName, col string,
+	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
+) *bb_internal.ReferenceKey {
 	// Add the foreign key dependencies of the current table
 	if foreignKeys, ok := tableDependencies[tableName]; ok {
 		for _, fk := range foreignKeys {
 			for idx, c := range fk.Columns {
 				if c == col {
 					// Recursively add dependent tables and their foreign keys
-					return findTopForeignKeySource(fk.ForeignKey.Table, fk.ForeignKey.Columns[idx], tableDependencies)
+					return findTopForeignKeySource(
+						fk.ForeignKey.Table,
+						fk.ForeignKey.Columns[idx],
+						tableDependencies,
+					)
 				}
 			}
 		}
@@ -342,7 +362,9 @@ func findTopForeignKeySource(tableName, col string, tableDependencies map[string
 
 // builds schema.table -> FK column ->  PK schema table column
 // find top level primary key column if foreign keys are nested
-func buildForeignKeySourceMap(tableDeps map[string][]*sqlmanager_shared.ForeignConstraint) map[string]map[string]*bb_internal.ReferenceKey {
+func buildForeignKeySourceMap(
+	tableDeps map[string][]*sqlmanager_shared.ForeignConstraint,
+) map[string]map[string]*bb_internal.ReferenceKey {
 	outputMap := map[string]map[string]*bb_internal.ReferenceKey{}
 	for tableName, constraints := range tableDeps {
 		if _, ok := outputMap[tableName]; !ok {
@@ -374,7 +396,10 @@ func getTransformedFksMap(
 			// only add constraint if foreign key has transformer
 			transformer, transformerOk := colTransformerMap[tc.Table][tc.Column]
 			if transformerOk && shouldProcessStrict(transformer) {
-				transformedForeignKeyToSourceMap[table][col] = append(transformedForeignKeyToSourceMap[table][col], tc)
+				transformedForeignKeyToSourceMap[table][col] = append(
+					transformedForeignKeyToSourceMap[table][col],
+					tc,
+				)
 			}
 		}
 	}
@@ -394,9 +419,18 @@ func getColumnDefaultProperties(
 		if !ok {
 			return nil, fmt.Errorf("column default type missing. column: %s", cName)
 		}
-		needsOverride, needsReset, err := sqlmanager.GetColumnOverrideAndResetProperties(driver, info)
+		needsOverride, needsReset, err := sqlmanager.GetColumnOverrideAndResetProperties(
+			driver,
+			info,
+		)
 		if err != nil {
-			slogger.Error("unable to determine SQL column default flags", "error", err, "column", cName)
+			slogger.Error(
+				"unable to determine SQL column default flags",
+				"error",
+				err,
+				"column",
+				cName,
+			)
 			return nil, err
 		}
 
@@ -432,7 +466,9 @@ type destinationOptions struct {
 	BatchPeriod              string
 }
 
-func getDestinationOptions(destOpts *mgmtv1alpha1.JobDestinationOptions) (*destinationOptions, error) {
+func getDestinationOptions(
+	destOpts *mgmtv1alpha1.JobDestinationOptions,
+) (*destinationOptions, error) {
 	if destOpts.GetConfig() == nil {
 		return &destinationOptions{}, nil
 	}
@@ -541,14 +577,19 @@ func getParsedBatchingConfig(destOpt batchDestinationOption) (batchingConfig, er
 		if batchConfig.GetPeriod() != "" {
 			_, err := time.ParseDuration(batchConfig.GetPeriod())
 			if err != nil {
-				return batchingConfig{}, fmt.Errorf("unable to parse batch period for s3 destination config: %w", err)
+				return batchingConfig{}, fmt.Errorf(
+					"unable to parse batch period for s3 destination config: %w",
+					err,
+				)
 			}
 		}
 		output.BatchPeriod = batchConfig.GetPeriod()
 	}
 
 	if output.BatchCount == 0 && output.BatchPeriod == "" {
-		return batchingConfig{}, fmt.Errorf("must have at least one batch policy configured. Cannot disable both period and count")
+		return batchingConfig{}, fmt.Errorf(
+			"must have at least one batch policy configured. Cannot disable both period and count",
+		)
 	}
 	return output, nil
 }
@@ -569,7 +610,11 @@ func getAdditionalJobMappings(
 		mappedCols, ok := tableColMappings[schematable]
 		if !ok {
 			// todo: we may want to generate mappings for this entire table? However this may be dead code as we get the grouped schemas based on the mappings
-			logger.Warn("table found in schema data that is not present in job mappings", "table", schematable)
+			logger.Warn(
+				"table found in schema data that is not present in job mappings",
+				"table",
+				schematable,
+			)
 			continue
 		}
 		if len(cols) == len(mappedCols) {
@@ -582,7 +627,8 @@ func getAdditionalJobMappings(
 					return nil, err
 				}
 				// we found a column that is not present in the mappings, let's create a mapping for it
-				if info.ColumnDefault != "" || info.IdentityGeneration != nil || info.GeneratedType != nil {
+				if info.ColumnDefault != "" || info.IdentityGeneration != nil ||
+					info.GeneratedType != nil {
 					output = append(output, &mgmtv1alpha1.JobMapping{
 						Schema: schema,
 						Table:  table,
@@ -645,7 +691,10 @@ func getAdditionalJobMappings(
 
 	return output, nil
 }
-func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchemaRow) (*mgmtv1alpha1.JobMappingTransformer, error) {
+
+func getJmTransformerByPostgresDataType(
+	colInfo *sqlmanager_shared.DatabaseSchemaRow,
+) (*mgmtv1alpha1.JobMappingTransformer, error) {
 	cleanedDataType := cleanPostgresType(colInfo.DataType)
 	switch cleanedDataType {
 	case "smallint":
@@ -738,7 +787,10 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchem
 				},
 			},
 		}, nil
-	case "text", "bpchar", "character", "character varying": // todo: test to see if this works when (n) has been specified
+	case "text",
+		"bpchar",
+		"character",
+		"character varying": // todo: test to see if this works when (n) has been specified
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
@@ -777,18 +829,27 @@ func getJmTransformerByPostgresDataType(colInfo *sqlmanager_shared.DatabaseSchem
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
-					GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{IncludeHyphens: shared.Ptr(true)},
+					GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
+						IncludeHyphens: shared.Ptr(true),
+					},
 				},
 			},
 		}, nil
 	default:
-		return nil, fmt.Errorf("uncountered unsupported data type %q for %q.%q.%q when attempting to generate an auto-mapper. To continue, provide a discrete job mapping for this column.: %w",
-			colInfo.DataType, colInfo.TableSchema, colInfo.TableName, colInfo.ColumnName, errors.ErrUnsupported,
+		return nil, fmt.Errorf(
+			"uncountered unsupported data type %q for %q.%q.%q when attempting to generate an auto-mapper. To continue, provide a discrete job mapping for this column.: %w",
+			colInfo.DataType,
+			colInfo.TableSchema,
+			colInfo.TableName,
+			colInfo.ColumnName,
+			errors.ErrUnsupported,
 		)
 	}
 }
 
-func getJmTransformerByMysqlDataType(colInfo *sqlmanager_shared.DatabaseSchemaRow) (*mgmtv1alpha1.JobMappingTransformer, error) {
+func getJmTransformerByMysqlDataType(
+	colInfo *sqlmanager_shared.DatabaseSchemaRow,
+) (*mgmtv1alpha1.JobMappingTransformer, error) {
 	cleanedDataType := cleanMysqlType(colInfo.MysqlColumnType)
 	switch cleanedDataType {
 	case "char":
@@ -798,7 +859,11 @@ func getJmTransformerByMysqlDataType(colInfo *sqlmanager_shared.DatabaseSchemaRo
 		if len(params) > 0 {
 			fixedLength, err := strconv.ParseInt(params[0], 10, 64)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse length for type %q: %w", colInfo.MysqlColumnType, err)
+				return nil, fmt.Errorf(
+					"failed to parse length for type %q: %w",
+					colInfo.MysqlColumnType,
+					err,
+				)
 			}
 			minLength = fixedLength
 			maxLength = fixedLength
@@ -808,7 +873,10 @@ func getJmTransformerByMysqlDataType(colInfo *sqlmanager_shared.DatabaseSchemaRo
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
-					GenerateStringConfig: &mgmtv1alpha1.GenerateString{Min: shared.Ptr(minLength), Max: shared.Ptr(maxLength)},
+					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
+						Min: shared.Ptr(minLength),
+						Max: shared.Ptr(maxLength),
+					},
 				},
 			},
 		}, nil
@@ -819,7 +887,11 @@ func getJmTransformerByMysqlDataType(colInfo *sqlmanager_shared.DatabaseSchemaRo
 		if len(params) > 0 {
 			fixedLength, err := strconv.ParseInt(params[0], 10, 64)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse length for type %q: %w", colInfo.MysqlColumnType, err)
+				return nil, fmt.Errorf(
+					"failed to parse length for type %q: %w",
+					colInfo.MysqlColumnType,
+					err,
+				)
 			}
 			maxLength = fixedLength
 		} else if colInfo.CharacterMaximumLength > 0 {
@@ -848,7 +920,11 @@ func getJmTransformerByMysqlDataType(colInfo *sqlmanager_shared.DatabaseSchemaRo
 		if len(params) > 0 {
 			length, err := strconv.ParseInt(params[0], 10, 64)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse length for type %q: %w", colInfo.MysqlColumnType, err)
+				return nil, fmt.Errorf(
+					"failed to parse length for type %q: %w",
+					colInfo.MysqlColumnType,
+					err,
+				)
 			}
 			maxLength = length
 		} else if colInfo.CharacterMaximumLength > 0 {
@@ -866,7 +942,9 @@ func getJmTransformerByMysqlDataType(colInfo *sqlmanager_shared.DatabaseSchemaRo
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
-					GenerateStringConfig: &mgmtv1alpha1.GenerateString{Max: shared.Ptr(int64(16_777_215))},
+					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
+						Max: shared.Ptr(int64(16_777_215)),
+					},
 				},
 			},
 		}, nil
@@ -874,7 +952,9 @@ func getJmTransformerByMysqlDataType(colInfo *sqlmanager_shared.DatabaseSchemaRo
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
-					GenerateStringConfig: &mgmtv1alpha1.GenerateString{Max: shared.Ptr(int64(4_294_967_295))},
+					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
+						Max: shared.Ptr(int64(4_294_967_295)),
+					},
 				},
 			},
 		}, nil
@@ -883,7 +963,9 @@ func getJmTransformerByMysqlDataType(colInfo *sqlmanager_shared.DatabaseSchemaRo
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{
-					GenerateCategoricalConfig: &mgmtv1alpha1.GenerateCategorical{Categories: shared.Ptr(strings.Join(params, ","))},
+					GenerateCategoricalConfig: &mgmtv1alpha1.GenerateCategorical{
+						Categories: shared.Ptr(strings.Join(params, ",")),
+					},
 				},
 			},
 		}, nil
@@ -1213,8 +1295,13 @@ func getJmTransformerByMysqlDataType(colInfo *sqlmanager_shared.DatabaseSchemaRo
 			},
 		}, nil
 	default:
-		return nil, fmt.Errorf("uncountered unsupported data type %q for %q.%q.%q when attempting to generate an auto-mapper. To continue, provide a discrete job mapping for this column.: %w",
-			colInfo.DataType, colInfo.TableSchema, colInfo.TableName, colInfo.ColumnName, errors.ErrUnsupported,
+		return nil, fmt.Errorf(
+			"uncountered unsupported data type %q for %q.%q.%q when attempting to generate an auto-mapper. To continue, provide a discrete job mapping for this column.: %w",
+			colInfo.DataType,
+			colInfo.TableSchema,
+			colInfo.TableName,
+			colInfo.ColumnName,
+			errors.ErrUnsupported,
 		)
 	}
 }
@@ -1281,7 +1368,9 @@ func extractMysqlTypeParams(dataType string) []string {
 	return result
 }
 
-func shouldOverrideColumnDefault(columnDefaults map[string]*neosync_benthos.ColumnDefaultProperties) bool {
+func shouldOverrideColumnDefault(
+	columnDefaults map[string]*neosync_benthos.ColumnDefaultProperties,
+) bool {
 	for _, cd := range columnDefaults {
 		if cd != nil && !cd.HasDefaultTransformer && cd.NeedsOverride {
 			return true
@@ -1290,15 +1379,41 @@ func shouldOverrideColumnDefault(columnDefaults map[string]*neosync_benthos.Colu
 	return false
 }
 
-func getSqlBatchProcessors(driver string, columns []string, columnDataTypes map[string]string, columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties) (*neosync_benthos.BatchProcessor, error) {
+func getSqlBatchProcessors(
+	driver string,
+	columns []string,
+	columnDataTypes map[string]string,
+	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties,
+) (*neosync_benthos.BatchProcessor, error) {
 	switch driver {
 	case sqlmanager_shared.PostgresDriver:
-		return &neosync_benthos.BatchProcessor{NeosyncToPgx: &neosync_benthos.NeosyncToPgxConfig{Columns: columns, ColumnDataTypes: columnDataTypes, ColumnDefaultProperties: columnDefaultProperties}}, nil
+		return &neosync_benthos.BatchProcessor{
+			NeosyncToPgx: &neosync_benthos.NeosyncToPgxConfig{
+				Columns:                 columns,
+				ColumnDataTypes:         columnDataTypes,
+				ColumnDefaultProperties: columnDefaultProperties,
+			},
+		}, nil
 	case sqlmanager_shared.MysqlDriver:
-		return &neosync_benthos.BatchProcessor{NeosyncToMysql: &neosync_benthos.NeosyncToMysqlConfig{Columns: columns, ColumnDataTypes: columnDataTypes, ColumnDefaultProperties: columnDefaultProperties}}, nil
+		return &neosync_benthos.BatchProcessor{
+			NeosyncToMysql: &neosync_benthos.NeosyncToMysqlConfig{
+				Columns:                 columns,
+				ColumnDataTypes:         columnDataTypes,
+				ColumnDefaultProperties: columnDefaultProperties,
+			},
+		}, nil
 	case sqlmanager_shared.MssqlDriver:
-		return &neosync_benthos.BatchProcessor{NeosyncToMssql: &neosync_benthos.NeosyncToMssqlConfig{Columns: columns, ColumnDataTypes: columnDataTypes, ColumnDefaultProperties: columnDefaultProperties}}, nil
+		return &neosync_benthos.BatchProcessor{
+			NeosyncToMssql: &neosync_benthos.NeosyncToMssqlConfig{
+				Columns:                 columns,
+				ColumnDataTypes:         columnDataTypes,
+				ColumnDefaultProperties: columnDefaultProperties,
+			},
+		}, nil
 	default:
-		return nil, fmt.Errorf("unsupported driver %q when attempting to get sql batch processors", driver)
+		return nil, fmt.Errorf(
+			"unsupported driver %q when attempting to get sql batch processors",
+			driver,
+		)
 	}
 }
