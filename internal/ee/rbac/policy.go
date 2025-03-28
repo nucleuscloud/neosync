@@ -408,6 +408,8 @@ func (r *Rbac) EnforceAccount(
 	return nil
 }
 
+// After we are sure the sql-adapter changes work, we can most likely remove the conflict checking
+// since the sql adapter inserts handle on conflict do nothing.
 type setPolicyResult struct {
 	DidConflict bool
 }
