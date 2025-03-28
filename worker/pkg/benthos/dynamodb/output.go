@@ -125,7 +125,9 @@ func dynamoOutputConfigSpec() *service.ConfigSpec {
 }
 
 func RegisterDynamoDbOutput(env *service.Environment) error {
-	return env.RegisterBatchOutput("aws_dynamodb", dynamoOutputConfigSpec(),
+	return env.RegisterBatchOutput(
+		"aws_dynamodb",
+		dynamoOutputConfigSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (out service.BatchOutput, batchPolicy service.BatchPolicy, maxInFlight int, err error) {
 			if maxInFlight, err = conf.FieldMaxInFlight(); err != nil {
 				return
@@ -139,16 +141,41 @@ func RegisterDynamoDbOutput(env *service.Environment) error {
 			}
 			out, err = newDynamoDBWriter(wConf, mgr)
 			return
-		})
+		},
+	)
 }
 
 type dynamoDBAPI interface {
-	PutItem(ctx context.Context, params *dynamodb.PutItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error)
-	BatchWriteItem(ctx context.Context, params *dynamodb.BatchWriteItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.BatchWriteItemOutput, error)
-	BatchExecuteStatement(ctx context.Context, params *dynamodb.BatchExecuteStatementInput, optFns ...func(*dynamodb.Options)) (*dynamodb.BatchExecuteStatementOutput, error)
-	DescribeTable(ctx context.Context, params *dynamodb.DescribeTableInput, optFns ...func(*dynamodb.Options)) (*dynamodb.DescribeTableOutput, error)
-	GetItem(ctx context.Context, params *dynamodb.GetItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.GetItemOutput, error)
-	DeleteItem(ctx context.Context, params *dynamodb.DeleteItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.DeleteItemOutput, error)
+	PutItem(
+		ctx context.Context,
+		params *dynamodb.PutItemInput,
+		optFns ...func(*dynamodb.Options),
+	) (*dynamodb.PutItemOutput, error)
+	BatchWriteItem(
+		ctx context.Context,
+		params *dynamodb.BatchWriteItemInput,
+		optFns ...func(*dynamodb.Options),
+	) (*dynamodb.BatchWriteItemOutput, error)
+	BatchExecuteStatement(
+		ctx context.Context,
+		params *dynamodb.BatchExecuteStatementInput,
+		optFns ...func(*dynamodb.Options),
+	) (*dynamodb.BatchExecuteStatementOutput, error)
+	DescribeTable(
+		ctx context.Context,
+		params *dynamodb.DescribeTableInput,
+		optFns ...func(*dynamodb.Options),
+	) (*dynamodb.DescribeTableOutput, error)
+	GetItem(
+		ctx context.Context,
+		params *dynamodb.GetItemInput,
+		optFns ...func(*dynamodb.Options),
+	) (*dynamodb.GetItemOutput, error)
+	DeleteItem(
+		ctx context.Context,
+		params *dynamodb.DeleteItemInput,
+		optFns ...func(*dynamodb.Options),
+	) (*dynamodb.DeleteItemOutput, error)
 }
 
 type dynamoDBWriter struct {
@@ -407,7 +434,9 @@ func commonRetryBackOffFields(
 	}
 }
 
-func commonRetryBackOffCtorFromParsed(pConf *service.ParsedConfig) (ctor func() backoff.BackOff, err error) {
+func commonRetryBackOffCtorFromParsed(
+	pConf *service.ParsedConfig,
+) (ctor func() backoff.BackOff, err error) {
 	var maxRetries int
 	if maxRetries, err = pConf.FieldInt(crboFieldMaxRetries); err != nil {
 		return nil, err
@@ -447,7 +476,11 @@ func fieldDurationOrEmptyStr(pConf *service.ParsedConfig, path ...string) (time.
 	return pConf.FieldDuration(path...)
 }
 
-func marshalToAttributeValue(key string, root any, keyTypeMap map[string]neosync_types.KeyType) (types.AttributeValue, error) {
+func marshalToAttributeValue(
+	key string,
+	root any,
+	keyTypeMap map[string]neosync_types.KeyType,
+) (types.AttributeValue, error) {
 	if typeStr, ok := keyTypeMap[key]; ok {
 		switch typeStr {
 		case neosync_types.StringSet:
@@ -551,7 +584,11 @@ func formatFloat(f float64) string {
 	return s
 }
 
-func marshalJSONToDynamoDBAttribute(key, path string, root any, keyTypeMap map[string]neosync_types.KeyType) (types.AttributeValue, error) {
+func marshalJSONToDynamoDBAttribute(
+	key, path string,
+	root any,
+	keyTypeMap map[string]neosync_types.KeyType,
+) (types.AttributeValue, error) {
 	gObj := gabs.Wrap(root)
 	if path != "" {
 		gObj = gObj.Path(path)

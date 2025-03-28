@@ -8,8 +8,8 @@ import (
 )
 
 type Bits struct {
-	BaseType    `json:",inline"`
-	JsonScanner `json:"-"`
+	BaseType    `       json:",inline"`
+	JsonScanner `       json:"-"`
 	Bytes       []byte `json:"bytes"`
 	Len         int32  `json:"len"`
 }
@@ -129,7 +129,11 @@ func NewBits(opts ...NeosyncTypeOption) (*Bits, error) {
 	return bits, nil
 }
 
-func NewBitsArrayFromPgx(elements []*pgtype.Bits, opts []NeosyncTypeOption, arrayOpts ...NeosyncTypeOption) (*NeosyncArray, error) {
+func NewBitsArrayFromPgx(
+	elements []*pgtype.Bits,
+	opts []NeosyncTypeOption,
+	arrayOpts ...NeosyncTypeOption,
+) (*NeosyncArray, error) {
 	neosyncAdapters := make([]NeosyncAdapter, len(elements))
 	for i, e := range elements {
 		newBits, err := NewBits(opts...)

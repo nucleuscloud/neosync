@@ -195,9 +195,12 @@ func (s *Service) CheckConnectionConfigById(
 		return nil, err
 	}
 
-	resp, err := s.CheckConnectionConfig(ctx, connect.NewRequest(&mgmtv1alpha1.CheckConnectionConfigRequest{
-		ConnectionConfig: connResp.Msg.GetConnection().ConnectionConfig,
-	}))
+	resp, err := s.CheckConnectionConfig(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.CheckConnectionConfigRequest{
+			ConnectionConfig: connResp.Msg.GetConnection().ConnectionConfig,
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -209,9 +212,14 @@ func (s *Service) CheckConnectionConfigById(
 	}), nil
 }
 
-func getDbRoleFromConnectionConfig(cconfig *mgmtv1alpha1.ConnectionConfig, logger *slog.Logger) (string, error) {
+func getDbRoleFromConnectionConfig(
+	cconfig *mgmtv1alpha1.ConnectionConfig,
+	logger *slog.Logger,
+) (string, error) {
 	if cconfig == nil {
-		return "", errors.New("connection config was nil, unable to retrieve db role/user from config")
+		return "", errors.New(
+			"connection config was nil, unable to retrieve db role/user from config",
+		)
 	}
 
 	switch typedconfig := cconfig.GetConfig().(type) {
@@ -254,10 +262,14 @@ func (s *Service) IsConnectionNameAvailable(
 		return nil, err
 	}
 
-	count, err := s.db.Q.IsConnectionNameAvailable(ctx, s.db.Db, db_queries.IsConnectionNameAvailableParams{
-		AccountId:      accountUuid,
-		ConnectionName: req.Msg.ConnectionName,
-	})
+	count, err := s.db.Q.IsConnectionNameAvailable(
+		ctx,
+		s.db.Db,
+		db_queries.IsConnectionNameAvailableParams{
+			AccountId:      accountUuid,
+			ConnectionName: req.Msg.ConnectionName,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +290,11 @@ func (s *Service) GetConnections(
 	if err := user.EnforceConnection(ctx, userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()), rbac.ConnectionAction_View); err != nil {
 		return nil, err
 	}
-	canViewSensitive, err := user.Connection(ctx, userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()), rbac.ConnectionAction_ViewSensitive)
+	canViewSensitive, err := user.Connection(
+		ctx,
+		userdata.NewWildcardDomainEntity(req.Msg.GetAccountId()),
+		rbac.ConnectionAction_ViewSensitive,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +352,11 @@ func (s *Service) GetConnection(
 	if err := user.EnforceConnection(ctx, userdata.NewDbDomainEntity(connection.AccountID, connection.ID), rbac.ConnectionAction_View); err != nil {
 		return nil, err
 	}
-	canViewSensitive, err := user.Connection(ctx, userdata.NewDbDomainEntity(connection.AccountID, connection.ID), rbac.ConnectionAction_ViewSensitive)
+	canViewSensitive, err := user.Connection(
+		ctx,
+		userdata.NewDbDomainEntity(connection.AccountID, connection.ID),
+		rbac.ConnectionAction_ViewSensitive,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -518,12 +538,19 @@ func (s *Service) CheckSqlQuery(
 ) (*connect.Response[mgmtv1alpha1.CheckSqlQueryResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("connectionId", req.Msg.GetId())
-	connection, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: req.Msg.GetId()}))
+	connection, err := s.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: req.Msg.GetId()}),
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.GetConnection().GetConnectionConfig(), logger, sqlconnect.WithConnectionTimeout(10))
+	conn, err := s.sqlConnector.NewDbFromConnectionConfig(
+		connection.Msg.GetConnection().GetConnectionConfig(),
+		logger,
+		sqlconnect.WithConnectionTimeout(10),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -575,7 +602,10 @@ func (s *Service) CheckSSHConnectionById(
 ) (*connect.Response[mgmtv1alpha1.CheckSSHConnectionByIdResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("connectionId", req.Msg.GetId())
-	connection, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: req.Msg.GetId()}))
+	connection, err := s.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: req.Msg.GetId()}),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -601,7 +631,10 @@ func (s *Service) CheckSSHConnectionById(
 	}), nil
 }
 
-func checkSSHConnection(sshTunnel *mgmtv1alpha1.SSHTunnel, logger *slog.Logger) (*mgmtv1alpha1.CheckSSHConnectionResult, error) {
+func checkSSHConnection(
+	sshTunnel *mgmtv1alpha1.SSHTunnel,
+	logger *slog.Logger,
+) (*mgmtv1alpha1.CheckSSHConnectionResult, error) {
 	if sshTunnel == nil {
 		errorMsg := "no ssh tunnel config found"
 		return &mgmtv1alpha1.CheckSSHConnectionResult{

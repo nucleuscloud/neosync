@@ -74,7 +74,11 @@ func getTypeString(arg goja.Value) string {
 // Returns an error if the arguments are not of the expected type.
 func ParseFunctionArguments(call goja.FunctionCall, ptrs ...any) error {
 	if len(ptrs) < len(call.Arguments) {
-		return fmt.Errorf("have %d arguments, but only %d pointers to parse into", len(call.Arguments), len(ptrs))
+		return fmt.Errorf(
+			"have %d arguments, but only %d pointers to parse into",
+			len(call.Arguments),
+			len(ptrs),
+		)
 	}
 
 	for i := range call.Arguments {
@@ -112,7 +116,14 @@ func ParseFunctionArguments(call goja.FunctionCall, ptrs ...any) error {
 		}
 		if err != nil {
 			typeStr := getTypeString(arg)
-			return fmt.Errorf("could not parse %v (%s) into %v (%T): %v", arg, typeStr, ptr, ptr, err)
+			return fmt.Errorf(
+				"could not parse %v (%s) into %v (%T): %v",
+				arg,
+				typeStr,
+				ptr,
+				ptr,
+				err,
+			)
 		}
 	}
 

@@ -218,7 +218,9 @@ type GenerateIpAddressConfig struct {
 	IpType *int32 `json:"ipType,omitempty"`
 }
 
-func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMappingTransformer) error {
+func (t *JobMappingTransformerModel) FromTransformerDto(
+	tr *mgmtv1alpha1.JobMappingTransformer,
+) error {
 	if tr == nil {
 		tr = &mgmtv1alpha1.JobMappingTransformer{}
 	}
@@ -428,11 +430,15 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
-					PreserveDomain:     t.TransformEmail.PreserveDomain,
-					PreserveLength:     t.TransformEmail.PreserveLength,
-					ExcludedDomains:    t.TransformEmail.ExcludedDomains,
-					EmailType:          (*mgmtv1alpha1.GenerateEmailType)(t.TransformEmail.EmailType),
-					InvalidEmailAction: (*mgmtv1alpha1.InvalidEmailAction)(t.TransformEmail.InvalidEmailAction),
+					PreserveDomain:  t.TransformEmail.PreserveDomain,
+					PreserveLength:  t.TransformEmail.PreserveLength,
+					ExcludedDomains: t.TransformEmail.ExcludedDomains,
+					EmailType: (*mgmtv1alpha1.GenerateEmailType)(
+						t.TransformEmail.EmailType,
+					),
+					InvalidEmailAction: (*mgmtv1alpha1.InvalidEmailAction)(
+						t.TransformEmail.InvalidEmailAction,
+					),
 				},
 			},
 		}

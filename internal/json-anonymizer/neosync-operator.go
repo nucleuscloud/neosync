@@ -14,11 +14,17 @@ type neosyncOperatorApi struct {
 	opts []transformer_executor.TransformerExecutorOption
 }
 
-func newNeosyncOperatorApi(executorOpts []transformer_executor.TransformerExecutorOption) *neosyncOperatorApi {
+func newNeosyncOperatorApi(
+	executorOpts []transformer_executor.TransformerExecutorOption,
+) *neosyncOperatorApi {
 	return &neosyncOperatorApi{opts: executorOpts}
 }
 
-func (n *neosyncOperatorApi) Transform(ctx context.Context, config *mgmtv1alpha1.TransformerConfig, value string) (string, error) {
+func (n *neosyncOperatorApi) Transform(
+	ctx context.Context,
+	config *mgmtv1alpha1.TransformerConfig,
+	value string,
+) (string, error) {
 	executor, err := transformer_executor.InitializeTransformerByConfigType(config, n.opts...)
 	if err != nil {
 		return "", err
@@ -46,10 +52,16 @@ func newUdtResolver(transformerClient mgmtv1alpha1connect.TransformersServiceCli
 	return &udtResolver{transformerClient: transformerClient}
 }
 
-func (u *udtResolver) GetUserDefinedTransformer(ctx context.Context, id string) (*mgmtv1alpha1.TransformerConfig, error) {
-	resp, err := u.transformerClient.GetUserDefinedTransformerById(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{
-		TransformerId: id,
-	}))
+func (u *udtResolver) GetUserDefinedTransformer(
+	ctx context.Context,
+	id string,
+) (*mgmtv1alpha1.TransformerConfig, error) {
+	resp, err := u.transformerClient.GetUserDefinedTransformerById(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{
+			TransformerId: id,
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}

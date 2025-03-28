@@ -1,6 +1,8 @@
 package presidioapi
 
-func ToAnonymizeRecognizerResults(input []RecognizerResultWithAnaysisExplanation) []RecognizerResult {
+func ToAnonymizeRecognizerResults(
+	input []RecognizerResultWithAnaysisExplanation,
+) []RecognizerResult {
 	output := make([]RecognizerResult, 0, len(input))
 	for _, rr := range input {
 		output = append(output, ToAnonymizeRecognizerResult(rr))

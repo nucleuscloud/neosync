@@ -194,7 +194,9 @@ func writeConcernDocs() *service.ConfigField {
 	).Description("The write concern settings for the mongo connection.")
 }
 
-func writeConcernCollectionOptionFromParsed(pConf *service.ParsedConfig) (opt *options.CollectionOptions, err error) {
+func writeConcernCollectionOptionFromParsed(
+	pConf *service.ParsedConfig,
+) (opt *options.CollectionOptions, err error) {
 	pConf = pConf.Namespace(commonFieldWriteConcern)
 
 	var w string
@@ -245,7 +247,10 @@ func operationFromParsed(pConf *service.ParsedConfig) (operation Operation, err 
 	}
 
 	if operation = NewOperation(operationStr); operation == OperationInvalid {
-		err = fmt.Errorf("mongodb operation '%s' unknown: must be insert-one, delete-one, delete-many, replace-one or update-one", operationStr)
+		err = fmt.Errorf(
+			"mongodb operation '%s' unknown: must be insert-one, delete-one, delete-many, replace-one or update-one",
+			operationStr,
+		)
 	}
 	return
 }
@@ -257,7 +262,10 @@ type writeMaps struct {
 	upsert      bool
 }
 
-func writeMapsFromParsed(conf *service.ParsedConfig, operation Operation) (maps writeMaps, err error) {
+func writeMapsFromParsed(
+	conf *service.ParsedConfig,
+	operation Operation,
+) (maps writeMaps, err error) {
 	if probeStr, _ := conf.FieldString(commonFieldFilterMap); probeStr != "" {
 		if maps.filterMap, err = conf.FieldBloblang(commonFieldFilterMap); err != nil {
 			return maps, err
@@ -387,7 +395,11 @@ func convertToMapStringKeyType(i any) (map[string]neosync_types.KeyType, error) 
 	return nil, errors.New("input is not of type map[string]KeyType")
 }
 
-func marshalToBSONValue(key string, root any, keyTypeMap map[string]neosync_types.KeyType) (any, error) {
+func marshalToBSONValue(
+	key string,
+	root any,
+	keyTypeMap map[string]neosync_types.KeyType,
+) (any, error) {
 	if root == nil {
 		return nil, nil
 	}
@@ -511,7 +523,10 @@ func marshalToBSONValue(key string, root any, keyTypeMap map[string]neosync_type
 	}
 }
 
-func marshalJSONToBSONDocument(root any, keyTypeMap map[string]neosync_types.KeyType) (bson.D, error) {
+func marshalJSONToBSONDocument(
+	root any,
+	keyTypeMap map[string]neosync_types.KeyType,
+) (bson.D, error) {
 	m, ok := root.(map[string]any)
 	if !ok {
 		return bson.D{}, fmt.Errorf("expected map[string]any, got %T", root)

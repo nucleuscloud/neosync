@@ -73,9 +73,12 @@ func (a *Activity) ExecuteAccountHook(
 
 	slogger.Debug("retrieving hook")
 
-	resp, err := a.accounthookclient.GetAccountHook(ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountHookRequest{
-		Id: req.HookId,
-	}))
+	resp, err := a.accounthookclient.GetAccountHook(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetAccountHookRequest{
+			Id: req.HookId,
+		}),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve hook: %w", err)
 	}
@@ -133,7 +136,13 @@ func executeWebhook(
 	event *accounthook_events.Event,
 	logger *slog.Logger,
 ) error {
-	logger.Debug(fmt.Sprintf("webhook url: %s, skipVerify: %t", webhook.GetUrl(), webhook.GetDisableSslVerification()))
+	logger.Debug(
+		fmt.Sprintf(
+			"webhook url: %s, skipVerify: %t",
+			webhook.GetUrl(),
+			webhook.GetDisableSslVerification(),
+		),
+	)
 	jsonPayload, err := getPayload(event)
 	if err != nil {
 		return fmt.Errorf("unable to get payload: %w", err)
@@ -169,7 +178,12 @@ func executeWebhookRequest(
 	signature string,
 	skipSslVerification bool,
 ) error {
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(jsonPayload))
+	httpReq, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		url,
+		bytes.NewBuffer(jsonPayload),
+	)
 	if err != nil {
 		return fmt.Errorf("unable to create webhook request: %w", err)
 	}
@@ -185,7 +199,9 @@ func executeWebhookRequest(
 	}
 	if skipSslVerification {
 		client.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // we want to enable this if it's user specified
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, //nolint:gosec // we want to enable this if it's user specified
+			},
 		}
 	}
 	resp, err := client.Do(httpReq)
@@ -196,7 +212,11 @@ func executeWebhookRequest(
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("webhook request failed with status %d: %s", resp.StatusCode, string(body))
+		return fmt.Errorf(
+			"webhook request failed with status %d: %s",
+			resp.StatusCode,
+			string(body),
+		)
 	}
 
 	return nil

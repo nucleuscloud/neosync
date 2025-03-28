@@ -17,7 +17,10 @@ type MongoDBTestSyncContainer struct {
 	Target *MongoDBTestContainer
 }
 
-func NewMongoDBTestSyncContainer(ctx context.Context, t *testing.T) (*MongoDBTestSyncContainer, error) {
+func NewMongoDBTestSyncContainer(
+	ctx context.Context,
+	t *testing.T,
+) (*MongoDBTestSyncContainer, error) {
 	tc := &MongoDBTestSyncContainer{}
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
@@ -77,7 +80,10 @@ func NewMongoDBTestContainer(ctx context.Context, t *testing.T) (*MongoDBTestCon
 	return m.Setup(ctx, t)
 }
 
-func (m *MongoDBTestContainer) Setup(ctx context.Context, t *testing.T) (*MongoDBTestContainer, error) {
+func (m *MongoDBTestContainer) Setup(
+	ctx context.Context,
+	t *testing.T,
+) (*MongoDBTestContainer, error) {
 	container, err := testmongodb.Run(ctx, "mongo:6")
 	if err != nil {
 		return nil, err
@@ -112,7 +118,11 @@ func (m *MongoDBTestContainer) TearDown(ctx context.Context) error {
 	return nil
 }
 
-func (m *MongoDBTestContainer) InsertMongoDbRecords(ctx context.Context, database, collection string, documents []any) (int, error) {
+func (m *MongoDBTestContainer) InsertMongoDbRecords(
+	ctx context.Context,
+	database, collection string,
+	documents []any,
+) (int, error) {
 	db := m.Client.Database(database)
 	col := db.Collection(collection)
 
@@ -124,7 +134,10 @@ func (m *MongoDBTestContainer) InsertMongoDbRecords(ctx context.Context, databas
 	return len(result.InsertedIDs), nil
 }
 
-func (m *MongoDBTestContainer) DropMongoDbCollection(ctx context.Context, database, collection string) error {
+func (m *MongoDBTestContainer) DropMongoDbCollection(
+	ctx context.Context,
+	database, collection string,
+) error {
 	db := m.Client.Database(database)
 	collections, err := db.ListCollectionNames(ctx, map[string]any{"name": collection})
 	if err != nil {

@@ -32,7 +32,11 @@ type errorProcessor struct {
 	errorMsg            *service.InterpolatedString
 }
 
-func newErrorProcessor(conf *service.ParsedConfig, mgr *service.Resources, channel chan<- error) (*errorProcessor, error) {
+func newErrorProcessor(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+	channel chan<- error,
+) (*errorProcessor, error) {
 	errMsg, err := conf.FieldInterpolatedString("error_msg")
 	if err != nil {
 		return nil, err
@@ -44,14 +48,19 @@ func newErrorProcessor(conf *service.ParsedConfig, mgr *service.Resources, chann
 	}, nil
 }
 
-func (r *errorProcessor) ProcessBatch(_ context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
+func (r *errorProcessor) ProcessBatch(
+	_ context.Context,
+	batch service.MessageBatch,
+) ([]service.MessageBatch, error) {
 	for i := range batch {
 		errMsg, err := batch.TryInterpolatedString(i, r.errorMsg)
 		if err != nil {
 			return nil, fmt.Errorf("error message interpolation error: %w", err)
 		}
 		// kill activity
-		r.logger.Error(fmt.Sprintf("Benthos Error processor - sending stop activity signal: %s ", errMsg))
+		r.logger.Error(
+			fmt.Sprintf("Benthos Error processor - sending stop activity signal: %s ", errMsg),
+		)
 		r.stopActivityChannel <- fmt.Errorf("%s", errMsg)
 	}
 	return []service.MessageBatch{}, nil

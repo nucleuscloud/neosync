@@ -25,56 +25,70 @@ func init() {
 		Param(bloblang.NewInt64Param("scale").Optional().Description("An optional parameter that defines the number of decimal places for the generated float.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_float64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		randomizeSign, err := args.GetBool("randomize_sign")
-		if err != nil {
-			return nil, err
-		}
-
-		minVal, err := args.GetFloat64("min")
-		if err != nil {
-			return nil, err
-		}
-
-		maxVal, err := args.GetFloat64("max")
-		if err != nil {
-			return nil, err
-		}
-
-		precision, err := args.GetOptionalInt64("precision")
-		if err != nil {
-			return nil, err
-		}
-		scale, err := args.GetOptionalInt64("scale")
-		if err != nil {
-			return nil, err
-		}
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			res, err := generateRandomFloat64(randomizer, randomizeSign, minVal, maxVal, precision, scale)
+	err := bloblang.RegisterFunctionV2(
+		"generate_float64",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			randomizeSign, err := args.GetBool("randomize_sign")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run generate_float: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+
+			minVal, err := args.GetFloat64("min")
+			if err != nil {
+				return nil, err
+			}
+
+			maxVal, err := args.GetFloat64("max")
+			if err != nil {
+				return nil, err
+			}
+
+			precision, err := args.GetOptionalInt64("precision")
+			if err != nil {
+				return nil, err
+			}
+			scale, err := args.GetOptionalInt64("scale")
+			if err != nil {
+				return nil, err
+			}
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				res, err := generateRandomFloat64(
+					randomizer,
+					randomizeSign,
+					minVal,
+					maxVal,
+					precision,
+					scale,
+				)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run generate_float: %w", err)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewGenerateFloat64OptsFromConfig(config *mgmtv1alpha1.GenerateFloat64, scale *int64) (*GenerateFloat64Opts, error) {
+func NewGenerateFloat64OptsFromConfig(
+	config *mgmtv1alpha1.GenerateFloat64,
+	scale *int64,
+) (*GenerateFloat64Opts, error) {
 	if config == nil {
 		return NewGenerateFloat64Opts(nil, nil, nil, nil, nil, nil)
 	}
@@ -111,7 +125,11 @@ func generateRandomFloat64(
 	minValue, maxValue float64,
 	precision, scale *int64,
 ) (float64, error) {
-	randomFloat, err := transformer_utils.GenerateRandomFloat64WithInclusiveBounds(randomizer, minValue, maxValue)
+	randomFloat, err := transformer_utils.GenerateRandomFloat64WithInclusiveBounds(
+		randomizer,
+		minValue,
+		maxValue,
+	)
 	if err != nil {
 		return 0, err
 	}

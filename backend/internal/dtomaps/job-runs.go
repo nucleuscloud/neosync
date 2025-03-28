@@ -26,7 +26,10 @@ func ToJobRunDto(
 }
 
 // returns a job run without any pending activities
-func ToJobRunDtoFromWorkflowExecutionInfo(workflow *workflowpb.WorkflowExecutionInfo, logger *slog.Logger) *mgmtv1alpha1.JobRun {
+func ToJobRunDtoFromWorkflowExecutionInfo(
+	workflow *workflowpb.WorkflowExecutionInfo,
+	logger *slog.Logger,
+) *mgmtv1alpha1.JobRun {
 	var completedTime *timestamppb.Timestamp
 	if workflow.GetCloseTime() != nil {
 		completedTime = workflow.GetCloseTime()
@@ -53,7 +56,10 @@ func GetJobIdFromWorkflow(logger *slog.Logger, searchAttributes *commonpb.Search
 	return scheduledByID
 }
 
-func ToJobRunEventTaskDto(event *history.HistoryEvent, taskError *mgmtv1alpha1.JobRunEventTaskError) *mgmtv1alpha1.JobRunEventTask {
+func ToJobRunEventTaskDto(
+	event *history.HistoryEvent,
+	taskError *mgmtv1alpha1.JobRunEventTaskError,
+) *mgmtv1alpha1.JobRunEventTask {
 	return &mgmtv1alpha1.JobRunEventTask{
 		Id:        event.GetEventId(),
 		Type:      event.GetEventType().String(),
@@ -62,7 +68,10 @@ func ToJobRunEventTaskDto(event *history.HistoryEvent, taskError *mgmtv1alpha1.J
 	}
 }
 
-func ToJobRunEventTaskErrorDto(failure *temporalfailure.Failure, retryState enums.RetryState) *mgmtv1alpha1.JobRunEventTaskError {
+func ToJobRunEventTaskErrorDto(
+	failure *temporalfailure.Failure,
+	retryState enums.RetryState,
+) *mgmtv1alpha1.JobRunEventTaskError {
 	msg := failure.Message
 	if failure.GetCause() != nil {
 		msg = fmt.Sprintf("%s: %s", failure.GetMessage(), failure.GetCause().GetMessage())
@@ -73,7 +82,9 @@ func ToJobRunEventTaskErrorDto(failure *temporalfailure.Failure, retryState enum
 	}
 }
 
-func toPendingActivitiesDto(activities []*workflowpb.PendingActivityInfo) []*mgmtv1alpha1.PendingActivity {
+func toPendingActivitiesDto(
+	activities []*workflowpb.PendingActivityInfo,
+) []*mgmtv1alpha1.PendingActivity {
 	dtos := []*mgmtv1alpha1.PendingActivity{}
 	for _, activity := range activities {
 		var lastFailure *mgmtv1alpha1.ActivityFailure

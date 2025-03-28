@@ -183,10 +183,20 @@ func (rc *RunConfig) String() string {
 			sb.WriteString(fmt.Sprintf("    [%d] Root: %s, Subset: %s\n", i, sp.Root, sp.Subset))
 			sb.WriteString("    JoinSteps:\n")
 			for j, js := range sp.JoinSteps {
-				sb.WriteString(fmt.Sprintf("      [%d] FromKey: %s, ToKey: %s\n", j, js.FromKey, js.ToKey))
+				sb.WriteString(
+					fmt.Sprintf("      [%d] FromKey: %s, ToKey: %s\n", j, js.FromKey, js.ToKey),
+				)
 				if js.ForeignKey != nil {
-					sb.WriteString(fmt.Sprintf("        FK: Columns: %v, NotNullable: %v, ReferenceSchema: %s, ReferenceTable: %s, ReferenceColumns: %v\n",
-						js.ForeignKey.Columns, js.ForeignKey.NotNullable, js.ForeignKey.ReferenceSchema, js.ForeignKey.ReferenceTable, js.ForeignKey.ReferenceColumns))
+					sb.WriteString(
+						fmt.Sprintf(
+							"        FK: Columns: %v, NotNullable: %v, ReferenceSchema: %s, ReferenceTable: %s, ReferenceColumns: %v\n",
+							js.ForeignKey.Columns,
+							js.ForeignKey.NotNullable,
+							js.ForeignKey.ReferenceSchema,
+							js.ForeignKey.ReferenceTable,
+							js.ForeignKey.ReferenceColumns,
+						),
+					)
 				}
 			}
 		}
@@ -215,7 +225,14 @@ func BuildRunConfigs(
 	// filter dependencies to only include tables in tableColumnsMap (jobmappings)
 	filteredFks := filterDependencies(dependencyMap, tableColumnsMap)
 
-	tableConfigsBuilder := newTableConfigsBuilder(tableColumnsMap, primaryKeyMap, subsets, uniqueIndexesMap, uniqueConstraintsMap, filteredFks)
+	tableConfigsBuilder := newTableConfigsBuilder(
+		tableColumnsMap,
+		primaryKeyMap,
+		subsets,
+		uniqueIndexesMap,
+		uniqueConstraintsMap,
+		filteredFks,
+	)
 
 	// build configs for each table
 	for schematable := range tableColumnsMap {
@@ -230,7 +247,9 @@ func BuildRunConfigs(
 
 	// check run path
 	if !isValidRunOrder(configs) {
-		return nil, errors.New("Unsupported circular dependency detected. At least one foreign key in circular dependency must be nullable")
+		return nil, errors.New(
+			"unsupported circular dependency detected. at least one foreign key in circular dependency must be nullable",
+		)
 	}
 
 	return configs, nil
@@ -295,7 +314,9 @@ func isValidRunOrder(configs []*RunConfig) bool {
 		prevTableLen = len(configMap)
 		for id, config := range configMap {
 			if AreConfigDependenciesSatisfied(config.DependsOn(), seenTables) {
-				seenTables[config.Table()] = append(seenTables[config.Table()], config.InsertColumns()...)
+				seenTables[config.Table()] = append(
+					seenTables[config.Table()],
+					config.InsertColumns()...)
 				delete(configMap, id)
 			}
 		}

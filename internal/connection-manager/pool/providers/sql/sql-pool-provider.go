@@ -27,10 +27,18 @@ func NewConnectionProvider(
 	session connectionmanager.SessionInterface,
 	logger *slog.Logger,
 ) *Provider {
-	return &Provider{connmanager: connmanager, getConnection: getConnection, session: session, logger: logger}
+	return &Provider{
+		connmanager:   connmanager,
+		getConnection: getConnection,
+		session:       session,
+		logger:        logger,
+	}
 }
 
-func (p *Provider) GetDb(ctx context.Context, connectionId string) (neosync_benthos_sql.SqlDbtx, error) {
+func (p *Provider) GetDb(
+	ctx context.Context,
+	connectionId string,
+) (neosync_benthos_sql.SqlDbtx, error) {
 	conn, err := p.getConnection(connectionId)
 	if err != nil {
 		return nil, err

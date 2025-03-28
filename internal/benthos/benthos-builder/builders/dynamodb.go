@@ -29,13 +29,19 @@ func NewDynamoDbSyncBuilder(
 	}
 }
 
-func (b *dyanmodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
+func (b *dyanmodbSyncBuilder) BuildSourceConfigs(
+	ctx context.Context,
+	params *bb_internal.SourceParams,
+) ([]*bb_internal.BenthosSourceConfig, error) {
 	sourceConnection := params.SourceConnection
 	job := params.Job
 
 	dynamoSourceConfig := sourceConnection.GetConnectionConfig().GetDynamodbConfig()
 	if dynamoSourceConfig == nil {
-		return nil, fmt.Errorf("source connection was not dynamodb. Got %T", sourceConnection.GetConnectionConfig().Config)
+		return nil, fmt.Errorf(
+			"source connection was not dynamodb. Got %T",
+			sourceConnection.GetConnectionConfig().Config,
+		)
 	}
 	awsManager := awsmanager.New()
 	dynamoClient, err := awsManager.NewDynamoDbClient(ctx, dynamoSourceConfig)
@@ -56,12 +62,16 @@ func (b *dyanmodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 				Input: &neosync_benthos.InputConfig{
 					Inputs: neosync_benthos.Inputs{
 						AwsDynamoDB: &neosync_benthos.InputAwsDynamoDB{
-							Table:          tableMapping.Table,
-							Where:          getWhereFromSourceTableOption(tableOptsMap[tableMapping.Table]),
+							Table: tableMapping.Table,
+							Where: getWhereFromSourceTableOption(
+								tableOptsMap[tableMapping.Table],
+							),
 							ConsistentRead: dynamoJobSourceOpts.GetEnableConsistentRead(),
 							Region:         dynamoSourceConfig.GetRegion(),
 							Endpoint:       dynamoSourceConfig.GetEndpoint(),
-							Credentials:    buildBenthosS3Credentials(dynamoSourceConfig.GetCredentials()),
+							Credentials: buildBenthosS3Credentials(
+								dynamoSourceConfig.GetCredentials(),
+							),
 						},
 					},
 				},
@@ -106,7 +116,17 @@ func (b *dyanmodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
-			runconfigs.NewRunConfig(runconfigId, schemaTable, runconfigType, []string{}, nil, columns, columns, nil, splitColumnPaths),
+			runconfigs.NewRunConfig(
+				runconfigId,
+				schemaTable,
+				runconfigType,
+				[]string{},
+				nil,
+				columns,
+				columns,
+				nil,
+				splitColumnPaths,
+			),
 			map[string][]*bb_internal.ReferenceKey{},
 			map[string][]*bb_internal.ReferenceKey{},
 			params.Job.Id,
@@ -121,7 +141,7 @@ func (b *dyanmodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 			return nil, err
 		}
 		for _, pc := range processorConfigs {
-			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
+			bc.Pipeline.Processors = append(bc.Pipeline.Processors, *pc)
 		}
 
 		benthosConfigs = append(benthosConfigs, &bb_internal.BenthosSourceConfig{
@@ -144,7 +164,10 @@ func (b *dyanmodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb
 	return benthosConfigs, nil
 }
 
-func (b *dyanmodbSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
+func (b *dyanmodbSyncBuilder) BuildDestinationConfig(
+	ctx context.Context,
+	params *bb_internal.DestinationParams,
+) (*bb_internal.BenthosDestinationConfig, error) {
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	benthosConfig := params.SourceConfig
@@ -164,7 +187,10 @@ func (b *dyanmodbSyncBuilder) BuildDestinationConfig(ctx context.Context, params
 	}
 	mappedTable, ok := tableMap[benthosConfig.TableName]
 	if !ok {
-		return nil, fmt.Errorf("did not find table map for %q when building dynamodb destination config", benthosConfig.TableName)
+		return nil, fmt.Errorf(
+			"did not find table map for %q when building dynamodb destination config",
+			benthosConfig.TableName,
+		)
 	}
 	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 		AwsDynamoDB: &neosync_benthos.OutputAwsDynamoDB{
@@ -198,7 +224,9 @@ func getWhereFromSourceTableOption(opt *mgmtv1alpha1.DynamoDBSourceTableOption) 
 	return opt.WhereClause
 }
 
-func toDynamoDbSourceTableOptionMap(tableOpts []*mgmtv1alpha1.DynamoDBSourceTableOption) map[string]*mgmtv1alpha1.DynamoDBSourceTableOption {
+func toDynamoDbSourceTableOptionMap(
+	tableOpts []*mgmtv1alpha1.DynamoDBSourceTableOption,
+) map[string]*mgmtv1alpha1.DynamoDBSourceTableOption {
 	output := map[string]*mgmtv1alpha1.DynamoDBSourceTableOption{}
 	for _, opt := range tableOpts {
 		output[opt.Table] = opt
@@ -206,7 +234,9 @@ func toDynamoDbSourceTableOptionMap(tableOpts []*mgmtv1alpha1.DynamoDBSourceTabl
 	return output
 }
 
-func buildBenthosS3Credentials(mgmtCreds *mgmtv1alpha1.AwsS3Credentials) *neosync_benthos.AwsCredentials {
+func buildBenthosS3Credentials(
+	mgmtCreds *mgmtv1alpha1.AwsS3Credentials,
+) *neosync_benthos.AwsCredentials {
 	if mgmtCreds == nil {
 		return nil
 	}

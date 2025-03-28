@@ -22,54 +22,61 @@ func init() {
 		Param(bloblang.NewBoolParam("preserve_length").Default(false).Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used for generating deterministic transformations."))
 
-	err := bloblang.RegisterFunctionV2("transform_full_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		valuePtr, err := args.GetOptionalString("value")
-		if err != nil {
-			return nil, err
-		}
-
-		var value string
-		if valuePtr != nil {
-			value = *valuePtr
-		}
-
-		preserveLength, err := args.GetBool("preserve_length")
-		if err != nil {
-			return nil, err
-		}
-
-		maxLength, err := args.GetInt64("max_length")
-		if err != nil {
-			return nil, err
-		}
-
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			res, err := transformFullName(randomizer, value, preserveLength, maxLength)
+	err := bloblang.RegisterFunctionV2(
+		"transform_full_name",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			valuePtr, err := args.GetOptionalString("value")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run transform_full_name: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+
+			var value string
+			if valuePtr != nil {
+				value = *valuePtr
+			}
+
+			preserveLength, err := args.GetBool("preserve_length")
+			if err != nil {
+				return nil, err
+			}
+
+			maxLength, err := args.GetInt64("max_length")
+			if err != nil {
+				return nil, err
+			}
+
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				res, err := transformFullName(randomizer, value, preserveLength, maxLength)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run transform_full_name: %w", err)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewTransformFullNameOptsFromConfig(config *mgmtv1alpha1.TransformFullName, maxLength *int64) (*TransformFullNameOpts, error) {
+func NewTransformFullNameOptsFromConfig(
+	config *mgmtv1alpha1.TransformFullName,
+	maxLength *int64,
+) (*TransformFullNameOpts, error) {
 	if config == nil {
 		return NewTransformFullNameOpts(nil, nil, nil)
 	}
@@ -91,10 +98,20 @@ func (t *TransformFullName) Transform(value, opts any) (any, error) {
 		return nil, errors.New("value is not a string")
 	}
 
-	return transformFullName(parsedOpts.randomizer, valueStr, parsedOpts.preserveLength, parsedOpts.maxLength)
+	return transformFullName(
+		parsedOpts.randomizer,
+		valueStr,
+		parsedOpts.preserveLength,
+		parsedOpts.maxLength,
+	)
 }
 
-func transformFullName(randomizer rng.Rand, name string, preserveLength bool, maxLength int64) (*string, error) {
+func transformFullName(
+	randomizer rng.Rand,
+	name string,
+	preserveLength bool,
+	maxLength int64,
+) (*string, error) {
 	if name == "" {
 		return nil, nil
 	}
@@ -108,7 +125,10 @@ func transformFullName(randomizer rng.Rand, name string, preserveLength bool, ma
 		if newfirstname == "" {
 			newfirstname, _ = generateRandomFirstName(randomizer, nil, minFirst)
 			if int64(len(newfirstname)) != minFirst {
-				newfirstname += transformer_utils.GetRandomCharacterString(randomizer, minFirst-int64(len(newfirstname)))
+				newfirstname += transformer_utils.GetRandomCharacterString(
+					randomizer,
+					minFirst-int64(len(newfirstname)),
+				)
 			}
 		}
 		minLast := int64(len(lastname))
@@ -116,7 +136,10 @@ func transformFullName(randomizer rng.Rand, name string, preserveLength bool, ma
 		if newlastname == "" {
 			newfirstname, _ = generateRandomLastName(randomizer, nil, minLast)
 			if int64(len(newlastname)) != minLast {
-				newlastname += transformer_utils.GetRandomCharacterString(randomizer, minFirst-int64(len(newlastname)))
+				newlastname += transformer_utils.GetRandomCharacterString(
+					randomizer,
+					minFirst-int64(len(newlastname)),
+				)
 			}
 		}
 		if newfirstname != "" && newlastname != "" {
@@ -130,7 +153,10 @@ func transformFullName(randomizer rng.Rand, name string, preserveLength bool, ma
 		return nil, err
 	}
 	if preserveLength && len(output) != int(maxLength) {
-		output += transformer_utils.GetRandomCharacterString(randomizer, maxLength-int64(len(output)))
+		output += transformer_utils.GetRandomCharacterString(
+			randomizer,
+			maxLength-int64(len(output)),
+		)
 	}
 	return &output, nil
 }

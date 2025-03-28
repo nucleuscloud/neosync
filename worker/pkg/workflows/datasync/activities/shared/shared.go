@@ -183,7 +183,9 @@ func GetRedisConfig() *neosync_redis.RedisConfig {
 	}
 }
 
-func BuildBenthosRedisTlsConfig(redisConfig *neosync_redis.RedisConfig) *neosync_benthos.RedisTlsConfig {
+func BuildBenthosRedisTlsConfig(
+	redisConfig *neosync_redis.RedisConfig,
+) *neosync_benthos.RedisTlsConfig {
 	var tls *neosync_benthos.RedisTlsConfig
 	if redisConfig.Tls != nil && redisConfig.Tls.Enabled {
 		tls = &neosync_benthos.RedisTlsConfig{
@@ -251,9 +253,12 @@ func GetConnectionById(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	connectionId string,
 ) (*mgmtv1alpha1.Connection, error) {
-	getConnResp, err := connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: connectionId,
-	}))
+	getConnResp, err := connclient.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: connectionId,
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}

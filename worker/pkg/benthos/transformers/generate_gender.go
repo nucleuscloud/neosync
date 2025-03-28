@@ -19,39 +19,46 @@ func init() {
 		Param(bloblang.NewInt64Param("max_length").Default(100).Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_gender", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		shouldAbbreviate, err := args.GetBool("abbreviate")
-		if err != nil {
-			return nil, err
-		}
+	err := bloblang.RegisterFunctionV2(
+		"generate_gender",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			shouldAbbreviate, err := args.GetBool("abbreviate")
+			if err != nil {
+				return nil, err
+			}
 
-		maxLength, err := args.GetInt64("max_length")
-		if err != nil {
-			return nil, err
-		}
+			maxLength, err := args.GetInt64("max_length")
+			if err != nil {
+				return nil, err
+			}
 
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
 
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-		randomizer := rng.New(seed)
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+			randomizer := rng.New(seed)
 
-		return func() (any, error) {
-			res := generateRandomGender(randomizer, shouldAbbreviate, maxLength)
-			return res, nil
-		}, nil
-	})
+			return func() (any, error) {
+				res := generateRandomGender(randomizer, shouldAbbreviate, maxLength)
+				return res, nil
+			}, nil
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewGenerateGenderOptsFromConfig(config *mgmtv1alpha1.GenerateGender, maxLength *int64) (*GenerateGenderOpts, error) {
+func NewGenerateGenderOptsFromConfig(
+	config *mgmtv1alpha1.GenerateGender,
+	maxLength *int64,
+) (*GenerateGenderOpts, error) {
 	if config == nil {
 		return NewGenerateGenderOpts(
 			nil,
@@ -71,7 +78,11 @@ func (t *GenerateGender) Generate(opts any) (any, error) {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
-	return generateRandomGender(parsedOpts.randomizer, parsedOpts.abbreviate, parsedOpts.maxLength), nil
+	return generateRandomGender(
+		parsedOpts.randomizer,
+		parsedOpts.abbreviate,
+		parsedOpts.maxLength,
+	), nil
 }
 
 var genders = []string{"undefined", "nonbinary", "female", "male"}

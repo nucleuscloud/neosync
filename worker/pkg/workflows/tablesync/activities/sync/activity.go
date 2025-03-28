@@ -99,7 +99,11 @@ type SyncResponse struct {
 }
 
 // Deprecated
-func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
+func (a *Activity) Sync(
+	ctx context.Context,
+	req *SyncRequest,
+	metadata *SyncMetadata,
+) (*SyncResponse, error) {
 	info := activity.GetInfo(ctx)
 
 	_, err := a.SyncTable(ctx, &SyncTableRequest{
@@ -117,7 +121,11 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}, nil
 }
 
-func (a *Activity) SyncTable(ctx context.Context, req *SyncTableRequest, metadata *SyncMetadata) (*SyncTableResponse, error) {
+func (a *Activity) SyncTable(
+	ctx context.Context,
+	req *SyncTableRequest,
+	metadata *SyncMetadata,
+) (*SyncTableResponse, error) {
 	info := activity.GetInfo(ctx)
 
 	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(req.JobRunId))
@@ -173,7 +181,9 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncTableRequest, metadat
 
 	var continuationTokenToReturn *string
 	hasMorePages := func(lastReadOrderValues []any) {
-		token := continuation_token.NewFromContents(continuation_token.NewContents(lastReadOrderValues))
+		token := continuation_token.NewFromContents(
+			continuation_token.NewContents(lastReadOrderValues),
+		)
 		tokenStr := token.String()
 		continuationTokenToReturn = &tokenStr
 	}
@@ -240,7 +250,10 @@ const (
 	allocatorBlockSize = 1_000 // todo: should be the page limit
 )
 
-func (a *Activity) getIdentityAllocator(tclient temporalclient.Client, info *activity.Info) tablesync_shared.IdentityAllocator {
+func (a *Activity) getIdentityAllocator(
+	tclient temporalclient.Client,
+	info *activity.Info,
+) tablesync_shared.IdentityAllocator {
 	blockAllocator := tablesync_shared.NewTemporalBlockAllocator(
 		tclient,
 		info.WorkflowExecution.ID,
@@ -363,7 +376,10 @@ func (a *Activity) getBenthosStream(
 
 	err = streambldr.SetYAML(benthosConfig)
 	if err != nil {
-		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
+		return nil, fmt.Errorf(
+			"unable to convert benthos config to yaml for stream builder: %w",
+			err,
+		)
 	}
 
 	stream, err := a.benthosStreamManager.NewBenthosStreamFromBuilder(streambldr)
@@ -393,13 +409,23 @@ func (a *Activity) getBenthosEnvironment(
 		logger,
 		benthos_environment.WithMeter(a.meter),
 		benthos_environment.WithSqlConfig(&benthos_environment.SqlConfig{
-			Provider:               pool_sql_provider.NewConnectionProvider(a.sqlconnmanager, getConnectionById, session, logger),
+			Provider: pool_sql_provider.NewConnectionProvider(
+				a.sqlconnmanager,
+				getConnectionById,
+				session,
+				logger,
+			),
 			IsRetry:                isRetry,
 			InputHasMorePages:      hasMorePages,
 			InputContinuationToken: continuationToken,
 		}),
 		benthos_environment.WithMongoConfig(&benthos_environment.MongoConfig{
-			Provider: pool_mongo_provider.NewProvider(a.mongoconnmanager, getConnectionById, session, logger),
+			Provider: pool_mongo_provider.NewProvider(
+				a.mongoconnmanager,
+				getConnectionById,
+				session,
+				logger,
+			),
 		}),
 		benthos_environment.WithStopChannel(stopActivityChan),
 		benthos_environment.WithBlobEnv(blobEnv),
@@ -429,11 +455,19 @@ func (a *Activity) getBenthosConfig(
 	req *mgmtv1alpha1.RunContextKey,
 	metadata *SyncMetadata,
 ) (string, error) {
-	rcResp, err := a.jobclient.GetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
-		Id: req,
-	}))
+	rcResp, err := a.jobclient.GetRunContext(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
+			Id: req,
+		}),
+	)
 	if err != nil {
-		return "", fmt.Errorf("unable to retrieve benthosconfig runcontext for %s.%s: %w", metadata.Schema, metadata.Table, err)
+		return "", fmt.Errorf(
+			"unable to retrieve benthosconfig runcontext for %s.%s: %w",
+			metadata.Schema,
+			metadata.Table,
+			err,
+		)
 	}
 	return string(rcResp.Msg.GetValue()), nil
 }
@@ -443,11 +477,19 @@ func (a *Activity) getConnectionIds(
 	req *mgmtv1alpha1.RunContextKey,
 	metadata *SyncMetadata,
 ) ([]string, error) {
-	rcResp, err := a.jobclient.GetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
-		Id: req,
-	}))
+	rcResp, err := a.jobclient.GetRunContext(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
+			Id: req,
+		}),
+	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve connection ids runcontext for %s.%s: %w", metadata.Schema, metadata.Table, err)
+		return nil, fmt.Errorf(
+			"unable to retrieve connection ids runcontext for %s.%s: %w",
+			metadata.Schema,
+			metadata.Table,
+			err,
+		)
 	}
 	var connectionIds []string
 	err = json.Unmarshal(rcResp.Msg.GetValue(), &connectionIds)
@@ -468,7 +510,10 @@ func (a *Activity) getConnectionsFromConnectionIds(
 		idx := idx
 		connectionId := connectionId
 		errgrp.Go(func() error {
-			resp, err := a.connclient.GetConnection(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: connectionId}))
+			resp, err := a.connclient.GetConnection(
+				errctx,
+				connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: connectionId}),
+			)
 			if err != nil {
 				return fmt.Errorf("failed to retrieve connection: %w", err)
 			}
@@ -482,7 +527,9 @@ func (a *Activity) getConnectionsFromConnectionIds(
 	return connections, nil
 }
 
-func getConnectionByIdFn(connectionCache map[string]*mgmtv1alpha1.Connection) func(connectionId string) (connectionmanager.ConnectionInput, error) {
+func getConnectionByIdFn(
+	connectionCache map[string]*mgmtv1alpha1.Connection,
+) func(connectionId string) (connectionmanager.ConnectionInput, error) {
 	return func(connectionId string) (connectionmanager.ConnectionInput, error) {
 		connection, ok := connectionCache[connectionId]
 		if !ok {

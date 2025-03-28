@@ -18,7 +18,10 @@ type SubscriptionIter interface {
 type Interface interface {
 	NewCustomer(req *CustomerRequest) (*stripe.Customer, error)
 	NewBillingPortalSession(customerId, accountSlug string) (*stripe.BillingPortalSession, error)
-	NewCheckoutSession(customerId, accountSlug, userId string, logger *slog.Logger) (*stripe.CheckoutSession, error)
+	NewCheckoutSession(
+		customerId, accountSlug, userId string,
+		logger *slog.Logger,
+	) (*stripe.CheckoutSession, error)
 	GetSubscriptions(customerId string) SubscriptionIter
 	NewMeterEvent(req *MeterEventRequest) (*stripe.BillingMeterEvent, error)
 }
@@ -68,14 +71,21 @@ func (c *Client) NewCustomer(req *CustomerRequest) (*stripe.Customer, error) {
 	})
 }
 
-func (c *Client) NewBillingPortalSession(customerId, accountSlug string) (*stripe.BillingPortalSession, error) {
+func (c *Client) NewBillingPortalSession(
+	customerId, accountSlug string,
+) (*stripe.BillingPortalSession, error) {
 	return c.client.BillingPortalSessions.New(&stripe.BillingPortalSessionParams{
-		Customer:  stripe.String(customerId),
-		ReturnURL: stripe.String(fmt.Sprintf("%s/%s/settings/billing", c.cfg.AppBaseUrl, accountSlug)),
+		Customer: stripe.String(customerId),
+		ReturnURL: stripe.String(
+			fmt.Sprintf("%s/%s/settings/billing", c.cfg.AppBaseUrl, accountSlug),
+		),
 	})
 }
 
-func (c *Client) NewCheckoutSession(customerId, accountSlug, userId string, logger *slog.Logger) (*stripe.CheckoutSession, error) {
+func (c *Client) NewCheckoutSession(
+	customerId, accountSlug, userId string,
+	logger *slog.Logger,
+) (*stripe.CheckoutSession, error) {
 	priceMap, err := c.getPricesFromLookupKeys()
 	if err != nil {
 		return nil, err
@@ -97,12 +107,16 @@ func (c *Client) NewCheckoutSession(customerId, accountSlug, userId string, logg
 	}
 	logger.Debug("creating stripe checkout session", "numLineItems", len(lineitems))
 	return c.client.CheckoutSessions.New(&stripe.CheckoutSessionParams{
-		Mode:       stripe.String(string(stripe.CheckoutSessionModeSubscription)),
-		LineItems:  lineitems,
-		SuccessURL: stripe.String(fmt.Sprintf("%s/%s/settings/billing", c.cfg.AppBaseUrl, accountSlug)),
-		CancelURL:  stripe.String(fmt.Sprintf("%s/%s/settings/billing", c.cfg.AppBaseUrl, accountSlug)),
-		Customer:   stripe.String(customerId),
-		Metadata:   map[string]string{"userId": userId},
+		Mode:      stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+		LineItems: lineitems,
+		SuccessURL: stripe.String(
+			fmt.Sprintf("%s/%s/settings/billing", c.cfg.AppBaseUrl, accountSlug),
+		),
+		CancelURL: stripe.String(
+			fmt.Sprintf("%s/%s/settings/billing", c.cfg.AppBaseUrl, accountSlug),
+		),
+		Customer: stripe.String(customerId),
+		Metadata: map[string]string{"userId": userId},
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			BillingCycleAnchor: stripe.Int64(getNextMonthBillingCycleAnchor(time.Now().UTC())),
 		},
@@ -155,7 +169,11 @@ func (c *Client) getPricesFromLookupKeys() (map[string]*stripe.Price, error) {
 		return nil, iter.Err()
 	}
 	if len(output) != len(c.cfg.PriceLookups) {
-		return nil, fmt.Errorf("unable to resolve all stripe price lookups to valid prices. need %d, found %d", len(c.cfg.PriceLookups), len(output))
+		return nil, fmt.Errorf(
+			"unable to resolve all stripe price lookups to valid prices. need %d, found %d",
+			len(c.cfg.PriceLookups),
+			len(output),
+		)
 	}
 	return output, nil
 }

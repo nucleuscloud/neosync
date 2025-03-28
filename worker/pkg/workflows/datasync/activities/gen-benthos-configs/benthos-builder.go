@@ -92,9 +92,17 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 
 	destConnections := []*mgmtv1alpha1.Connection{}
 	for _, destination := range job.Destinations {
-		destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
+		destinationConnection, err := shared.GetConnectionById(
+			ctx,
+			b.connclient,
+			destination.ConnectionId,
+		)
 		if err != nil {
-			return nil, fmt.Errorf("unable to get destination connection (%s) by id: %w", destination.ConnectionId, err)
+			return nil, fmt.Errorf(
+				"unable to get destination connection (%s) by id: %w",
+				destination.ConnectionId,
+				err,
+			)
 		}
 		destConnections = append(destConnections, destinationConnection)
 	}
@@ -112,8 +120,10 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		SelectQueryBuilder:     &selectquerybuilder.QueryMapBuilderWrapper{},
 		MetricsEnabled:         b.metricsEnabled,
 		MetricLabelKeyVals: map[string]string{
-			metrics.TemporalWorkflowId: bb_shared.WithEnvInterpolation(metrics.TemporalWorkflowIdEnvKey),
-			metrics.TemporalRunId:      bb_shared.WithEnvInterpolation(metrics.TemporalRunIdEnvKey),
+			metrics.TemporalWorkflowId: bb_shared.WithEnvInterpolation(
+				metrics.TemporalWorkflowIdEnvKey,
+			),
+			metrics.TemporalRunId: bb_shared.WithEnvInterpolation(metrics.TemporalRunIdEnvKey),
 		},
 		PageLimit: &b.pageLimit,
 	}
@@ -135,7 +145,10 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 	postTableSyncRunCtx := buildPostTableSyncRunCtx(responses, job.Destinations)
 	err = b.setPostTableSyncRunCtx(ctx, postTableSyncRunCtx, job.GetAccountId())
 	if err != nil {
-		return nil, fmt.Errorf("unable to set all run contexts for post table sync configs: %w", err)
+		return nil, fmt.Errorf(
+			"unable to set all run contexts for post table sync configs: %w",
+			err,
+		)
 	}
 
 	outputConfigs, err := b.setRunContexts(ctx, responses, job.GetAccountId())
@@ -210,7 +223,10 @@ func (b *benthosBuilder) setRunContexts(
 
 	_, err := rcstream.CloseAndReceive()
 	if err != nil {
-		return nil, fmt.Errorf("unable to receive response from benthos runcontext request: %w", err)
+		return nil, fmt.Errorf(
+			"unable to receive response from benthos runcontext request: %w",
+			err,
+		)
 	}
 	return responses, nil
 }
@@ -242,7 +258,10 @@ func (b *benthosBuilder) setPostTableSyncRunCtx(
 
 	_, err := rcstream.CloseAndReceive()
 	if err != nil {
-		return fmt.Errorf("unable to receive response from post table sync runcontext request: %w", err)
+		return fmt.Errorf(
+			"unable to receive response from post table sync runcontext request: %w",
+			err,
+		)
 	}
 	return nil
 }
@@ -261,7 +280,10 @@ func (b *benthosBuilder) getJobById(
 	return getjobResp.Msg.Job, nil
 }
 
-func buildPostTableSyncRunCtx(benthosConfigs []*benthosbuilder.BenthosConfigResponse, destinations []*mgmtv1alpha1.JobDestination) map[string]*shared.PostTableSyncConfig {
+func buildPostTableSyncRunCtx(
+	benthosConfigs []*benthosbuilder.BenthosConfigResponse,
+	destinations []*mgmtv1alpha1.JobDestination,
+) map[string]*shared.PostTableSyncConfig {
 	postTableSyncRunCtx := map[string]*shared.PostTableSyncConfig{} // benthos_config_name -> config
 	for _, bc := range benthosConfigs {
 		destConfigs := map[string]*shared.PostTableSyncDestConfig{}
@@ -297,7 +319,11 @@ func buildPgPostTableSyncStatement(bc *benthosbuilder.BenthosConfigResponse) []s
 	for colName, p := range colDefaultProps {
 		if p.NeedsReset && !p.HasDefaultTransformer {
 			// resets sequences and identities
-			resetSql := sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(bc.TableSchema, bc.TableName, colName)
+			resetSql := sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(
+				bc.TableSchema,
+				bc.TableName,
+				colName,
+			)
 			statements = append(statements, resetSql)
 		}
 	}
@@ -313,7 +339,10 @@ func buildMssqlPostTableSyncStatement(bc *benthosbuilder.BenthosConfigResponse) 
 	for _, p := range colDefaultProps {
 		if p.NeedsOverride {
 			// reset identity
-			resetSql := sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent(bc.TableSchema, bc.TableName)
+			resetSql := sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent(
+				bc.TableSchema,
+				bc.TableName,
+			)
 			statements = append(statements, resetSql)
 		}
 	}

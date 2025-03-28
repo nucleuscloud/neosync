@@ -34,9 +34,12 @@ func (s *Service) GetConnectionDataStream(
 ) error {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("connectionId", req.Msg.ConnectionId)
-	connResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.ConnectionId,
-	}))
+	connResp, err := s.connectionService.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: req.Msg.ConnectionId,
+		}),
+	)
 	if err != nil {
 		return err
 	}
@@ -46,7 +49,13 @@ func (s *Service) GetConnectionDataStream(
 	if err != nil {
 		return err
 	}
-	err = connectiondatabuilder.StreamData(ctx, stream, req.Msg.StreamConfig, req.Msg.Schema, req.Msg.Table)
+	err = connectiondatabuilder.StreamData(
+		ctx,
+		stream,
+		req.Msg.StreamConfig,
+		req.Msg.Schema,
+		req.Msg.Table,
+	)
 	if err != nil {
 		return err
 	}
@@ -96,16 +105,22 @@ func (s *Service) GetConnectionSchemaMap(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionSchemaMapRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionSchemaMapResponse], error) {
-	schemaResp, err := s.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
-		ConnectionId: req.Msg.GetConnectionId(),
-		SchemaConfig: req.Msg.GetSchemaConfig(),
-	}))
+	schemaResp, err := s.GetConnectionSchema(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
+			ConnectionId: req.Msg.GetConnectionId(),
+			SchemaConfig: req.Msg.GetSchemaConfig(),
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
 	outputMap := map[string]*mgmtv1alpha1.GetConnectionSchemaResponse{}
 	for _, dbcol := range schemaResp.Msg.GetSchemas() {
-		schematableKey := sqlmanager_shared.SchemaTable{Schema: dbcol.Schema, Table: dbcol.Table}.String()
+		schematableKey := sqlmanager_shared.SchemaTable{
+			Schema: dbcol.Schema,
+			Table:  dbcol.Table,
+		}.String()
 		resp, ok := outputMap[schematableKey]
 		if !ok {
 			resp = &mgmtv1alpha1.GetConnectionSchemaResponse{}
@@ -124,9 +139,12 @@ func (s *Service) GetConnectionSchema(
 ) (*connect.Response[mgmtv1alpha1.GetConnectionSchemaResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("connectionId", req.Msg.ConnectionId)
-	connResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.ConnectionId,
-	}))
+	connResp, err := s.connectionService.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: req.Msg.ConnectionId,
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -151,18 +169,27 @@ func (s *Service) GetConnectionInitStatements(
 	req *connect.Request[mgmtv1alpha1.GetConnectionInitStatementsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionInitStatementsResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.ConnectionId,
-	}))
+	connection, err := s.connectionService.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: req.Msg.ConnectionId,
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(logger, connection.Msg.GetConnection())
+	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(
+		logger,
+		connection.Msg.GetConnection(),
+	)
 	if err != nil {
 		return nil, err
 	}
-	initStatementsResponse, err := connectiondatabuilder.GetInitStatements(ctx, req.Msg.GetOptions())
+	initStatementsResponse, err := connectiondatabuilder.GetInitStatements(
+		ctx,
+		req.Msg.GetOptions(),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -180,26 +207,39 @@ func (s *Service) GetAiGeneratedData(
 ) (*connect.Response[mgmtv1alpha1.GetAiGeneratedDataResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	_ = logger
-	aiconnectionResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.GetAiConnectionId(),
-	}))
+	aiconnectionResp, err := s.connectionService.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: req.Msg.GetAiConnectionId(),
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
 	aiconnection := aiconnectionResp.Msg.GetConnection()
 
-	dbconnectionResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.GetDataConnectionId(),
-	}))
+	dbconnectionResp, err := s.connectionService.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: req.Msg.GetDataConnectionId(),
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(logger, dbconnectionResp.Msg.GetConnection())
+	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(
+		logger,
+		dbconnectionResp.Msg.GetConnection(),
+	)
 	if err != nil {
 		return nil, err
 	}
-	dbcols, err := connectiondatabuilder.GetTableSchema(ctx, req.Msg.GetTable().GetSchema(), req.Msg.GetTable().GetTable())
+	dbcols, err := connectiondatabuilder.GetTableSchema(
+		ctx,
+		req.Msg.GetTable().GetSchema(),
+		req.Msg.GetTable().GetTable(),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -214,17 +254,32 @@ func (s *Service) GetAiGeneratedData(
 		return nil, nucleuserrors.NewBadRequest("connection must be a valid openai connection")
 	}
 
-	client, err := azopenai.NewClientForOpenAI(openaiconfig.GetApiUrl(), azcore.NewKeyCredential(openaiconfig.GetApiKey()), &azopenai.ClientOptions{})
+	client, err := azopenai.NewClientForOpenAI(
+		openaiconfig.GetApiUrl(),
+		azcore.NewKeyCredential(openaiconfig.GetApiKey()),
+		&azopenai.ClientOptions{},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to init openai client: %w", err)
 	}
 
 	conversation := []azopenai.ChatRequestMessageClassification{
 		&azopenai.ChatRequestSystemMessage{
-			Content: azopenai.NewChatRequestSystemMessageContent(fmt.Sprintf("You generate data in JSON format. Generate %d records in a json array located on the data key", req.Msg.GetCount())),
+			Content: azopenai.NewChatRequestSystemMessageContent(
+				fmt.Sprintf(
+					"You generate data in JSON format. Generate %d records in a json array located on the data key",
+					req.Msg.GetCount(),
+				),
+			),
 		},
 		&azopenai.ChatRequestUserMessage{
-			Content: azopenai.NewChatRequestUserMessageContent(fmt.Sprintf("%s\n%s", req.Msg.GetUserPrompt(), fmt.Sprintf("Each record looks like this: %s", strings.Join(columns, ",")))),
+			Content: azopenai.NewChatRequestUserMessageContent(
+				fmt.Sprintf(
+					"%s\n%s",
+					req.Msg.GetUserPrompt(),
+					fmt.Sprintf("Each record looks like this: %s", strings.Join(columns, ",")),
+				),
+			),
 		},
 	}
 
@@ -252,7 +307,10 @@ func (s *Service) GetAiGeneratedData(
 	var dataResponse completionResponse
 	err = json.Unmarshal([]byte(*choice.Message.Content), &dataResponse)
 	if err != nil {
-		return nil, fmt.Errorf("unable to unmarshal openai message content into expected response: %w", err)
+		return nil, fmt.Errorf(
+			"unable to unmarshal openai message content into expected response: %w",
+			err,
+		)
 	}
 
 	dtoRecords := []*structpb.Struct{}
@@ -276,14 +334,20 @@ func (s *Service) GetConnectionTableConstraints(
 	req *connect.Request[mgmtv1alpha1.GetConnectionTableConstraintsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionTableConstraintsResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.ConnectionId,
-	}))
+	connection, err := s.connectionService.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: req.Msg.ConnectionId,
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(logger, connection.Msg.GetConnection())
+	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(
+		logger,
+		connection.Msg.GetConnection(),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -300,17 +364,28 @@ func (s *Service) GetTableRowCount(
 	req *connect.Request[mgmtv1alpha1.GetTableRowCountRequest],
 ) (*connect.Response[mgmtv1alpha1.GetTableRowCountResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.ConnectionId,
-	}))
+	connection, err := s.connectionService.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: req.Msg.ConnectionId,
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
-	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(logger, connection.Msg.GetConnection())
+	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(
+		logger,
+		connection.Msg.GetConnection(),
+	)
 	if err != nil {
 		return nil, err
 	}
-	count, err := connectiondatabuilder.GetTableRowCount(ctx, req.Msg.Schema, req.Msg.Table, req.Msg.WhereClause)
+	count, err := connectiondatabuilder.GetTableRowCount(
+		ctx,
+		req.Msg.Schema,
+		req.Msg.Table,
+		req.Msg.WhereClause,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -325,14 +400,20 @@ func (s *Service) GetAllSchemasAndTables(
 	req *connect.Request[mgmtv1alpha1.GetAllSchemasAndTablesRequest],
 ) (*connect.Response[mgmtv1alpha1.GetAllSchemasAndTablesResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.ConnectionId,
-	}))
+	connection, err := s.connectionService.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: req.Msg.ConnectionId,
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(logger, connection.Msg.GetConnection())
+	connectiondatabuilder, err := s.connectiondatabuilder.NewDataConnection(
+		logger,
+		connection.Msg.GetConnection(),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create connection data builder: %w", err)
 	}

@@ -64,13 +64,18 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 	)
 
 	if job.GetSource().GetOptions().GetAiGenerate() != nil {
-		sourceConnection, err = shared.GetConnectionById(ctx, b.connclient, *job.GetSource().GetOptions().GetAiGenerate().FkSourceConnectionId)
+		sourceConnection, err = shared.GetConnectionById(
+			ctx,
+			b.connclient,
+			*job.GetSource().GetOptions().GetAiGenerate().FkSourceConnectionId,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get connection by id: %w", err)
 		}
 	}
 
-	if sourceConnection.GetConnectionConfig().GetMongoConfig() != nil || sourceConnection.GetConnectionConfig().GetDynamodbConfig() != nil {
+	if sourceConnection.GetConnectionConfig().GetMongoConfig() != nil ||
+		sourceConnection.GetConnectionConfig().GetDynamodbConfig() != nil {
 		return &RunReconcileSchemaResponse{}, nil
 	}
 
@@ -87,9 +92,17 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 
 	uniqueTables := getUniqueTablesMapFromJob(job)
 
-	destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
+	destinationConnection, err := shared.GetConnectionById(
+		ctx,
+		b.connclient,
+		destination.ConnectionId,
+	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get destination connection by id (%s): %w", destination.ConnectionId, err)
+		return nil, fmt.Errorf(
+			"unable to get destination connection by id (%s): %w",
+			destination.ConnectionId,
+			err,
+		)
 	}
 	destinationConnectionType := shared.GetConnectionType(destinationConnection)
 	slogger = slogger.With(
@@ -100,7 +113,9 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 	if job.GetSource().GetOptions().GetAiGenerate() != nil {
 		fkSrcConnId := job.GetSource().GetOptions().GetAiGenerate().GetFkSourceConnectionId()
 		if fkSrcConnId == destination.GetConnectionId() {
-			slogger.Warn("cannot init schema when destination connection is the same as the foreign key source connection")
+			slogger.Warn(
+				"cannot init schema when destination connection is the same as the foreign key source connection",
+			)
 			shouldInitSchema = false
 		}
 	}
@@ -108,7 +123,9 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 	if job.GetSource().GetOptions().GetGenerate() != nil {
 		fkSrcConnId := job.GetSource().GetOptions().GetGenerate().GetFkSourceConnectionId()
 		if fkSrcConnId == destination.GetConnectionId() {
-			slogger.Warn("cannot init schema when destination connection is the same as the foreign key source connection")
+			slogger.Warn(
+				"cannot init schema when destination connection is the same as the foreign key source connection",
+			)
 			shouldInitSchema = false
 		}
 	}
@@ -135,7 +152,11 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 			return nil, fmt.Errorf("unable to build schema diff statements: %w", err)
 		}
 
-		reconcileSchemaErrors, err := schemaManager.ReconcileDestinationSchema(ctx, uniqueTables, schemaStatements)
+		reconcileSchemaErrors, err := schemaManager.ReconcileDestinationSchema(
+			ctx,
+			uniqueTables,
+			schemaStatements,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("unable to reconcile schema: %w", err)
 		}
@@ -145,7 +166,12 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 			Errors:       reconcileSchemaErrors,
 		}
 
-		err = b.setReconcileSchemaRunCtx(ctx, reconcileSchemaRunContext, job.AccountId, destination.Id)
+		err = b.setReconcileSchemaRunCtx(
+			ctx,
+			reconcileSchemaRunContext,
+			job.AccountId,
+			destination.Id,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -219,7 +245,9 @@ func getUniqueTablesMapFromJob(job *mgmtv1alpha1.Job) map[string]*sqlmanager_sha
 }
 
 // Parses the job mappings and returns the unique set of tables.
-func getUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string]*sqlmanager_shared.SchemaTable {
+func getUniqueTablesFromMappings(
+	mappings []*mgmtv1alpha1.JobMapping,
+) map[string]*sqlmanager_shared.SchemaTable {
 	uniqueTables := map[string]*sqlmanager_shared.SchemaTable{}
 	for _, mapping := range mappings {
 		schematable := &sqlmanager_shared.SchemaTable{

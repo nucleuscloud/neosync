@@ -38,7 +38,10 @@ type NeosyncAwsManagerClient interface {
 		params *s3.GetObjectInput,
 	) (*s3.GetObjectOutput, error)
 
-	NewDynamoDbClient(ctx context.Context, connCfg *mgmtv1alpha1.DynamoDBConnectionConfig) (*DynamoDbClient, error)
+	NewDynamoDbClient(
+		ctx context.Context,
+		connCfg *mgmtv1alpha1.DynamoDBConnectionConfig,
+	) (*DynamoDbClient, error)
 }
 
 func New() *NeosyncAwsManager {
@@ -46,7 +49,10 @@ func New() *NeosyncAwsManager {
 }
 
 // Returns a wrapper dynamodb client
-func (n *NeosyncAwsManager) NewDynamoDbClient(ctx context.Context, connCfg *mgmtv1alpha1.DynamoDBConnectionConfig) (*DynamoDbClient, error) {
+func (n *NeosyncAwsManager) NewDynamoDbClient(
+	ctx context.Context,
+	connCfg *mgmtv1alpha1.DynamoDBConnectionConfig,
+) (*DynamoDbClient, error) {
 	client, err := n.newDynamoDbClient(ctx, connCfg)
 	if err != nil {
 		return nil, err
@@ -55,7 +61,10 @@ func (n *NeosyncAwsManager) NewDynamoDbClient(ctx context.Context, connCfg *mgmt
 }
 
 // returns the raw, underlying aws client
-func (n *NeosyncAwsManager) newDynamoDbClient(ctx context.Context, connCfg *mgmtv1alpha1.DynamoDBConnectionConfig) (*dynamodb.Client, error) {
+func (n *NeosyncAwsManager) newDynamoDbClient(
+	ctx context.Context,
+	connCfg *mgmtv1alpha1.DynamoDBConnectionConfig,
+) (*dynamodb.Client, error) {
 	cfg, err := getDynamoAwsConfig(ctx, connCfg)
 	if err != nil {
 		return nil, err
@@ -67,7 +76,10 @@ func (n *NeosyncAwsManager) newDynamoDbClient(ctx context.Context, connCfg *mgmt
 	}), nil
 }
 
-func (n *NeosyncAwsManager) NewS3Client(ctx context.Context, connCfg *mgmtv1alpha1.AwsS3ConnectionConfig) (*s3.Client, error) {
+func (n *NeosyncAwsManager) NewS3Client(
+	ctx context.Context,
+	connCfg *mgmtv1alpha1.AwsS3ConnectionConfig,
+) (*s3.Client, error) {
 	cfg, err := getS3AwsConfig(ctx, connCfg)
 	if err != nil {
 		return nil, err
@@ -116,7 +128,10 @@ func withS3Region(region *string) func(o *s3.Options) {
 	}
 }
 
-func getS3AwsConfig(ctx context.Context, s3ConnConfig *mgmtv1alpha1.AwsS3ConnectionConfig) (*aws.Config, error) {
+func getS3AwsConfig(
+	ctx context.Context,
+	s3ConnConfig *mgmtv1alpha1.AwsS3ConnectionConfig,
+) (*aws.Config, error) {
 	return GetAwsConfig(ctx, &AwsCredentialsConfig{
 		Region:          s3ConnConfig.GetRegion(),
 		Endpoint:        s3ConnConfig.GetEndpoint(),
@@ -131,7 +146,10 @@ func getS3AwsConfig(ctx context.Context, s3ConnConfig *mgmtv1alpha1.AwsS3Connect
 	})
 }
 
-func getDynamoAwsConfig(ctx context.Context, dynConnConfig *mgmtv1alpha1.DynamoDBConnectionConfig) (*aws.Config, error) {
+func getDynamoAwsConfig(
+	ctx context.Context,
+	dynConnConfig *mgmtv1alpha1.DynamoDBConnectionConfig,
+) (*aws.Config, error) {
 	return GetAwsConfig(ctx, &AwsCredentialsConfig{
 		Region:          dynConnConfig.GetRegion(),
 		Endpoint:        dynConnConfig.GetEndpoint(),
@@ -187,7 +205,11 @@ type AwsCredentialsConfig struct {
 	UseEc2 bool
 }
 
-func GetAwsConfig(ctx context.Context, cfg *AwsCredentialsConfig, opts ...func(*config.LoadOptions) error) (*aws.Config, error) {
+func GetAwsConfig(
+	ctx context.Context,
+	cfg *AwsCredentialsConfig,
+	opts ...func(*config.LoadOptions) error,
+) (*aws.Config, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("cfg input was nil, expected *AwsCredentialsConfig")
 	}

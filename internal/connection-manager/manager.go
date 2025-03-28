@@ -12,7 +12,10 @@ import (
 )
 
 type ConnectionProvider[T any] interface {
-	GetConnectionClient(connectionConfig *mgmtv1alpha1.ConnectionConfig, logger *slog.Logger) (T, error)
+	GetConnectionClient(
+		connectionConfig *mgmtv1alpha1.ConnectionConfig,
+		logger *slog.Logger,
+	) (T, error)
 	CloseClientConnection(client T) error
 }
 
@@ -39,7 +42,11 @@ type ConnectionInput interface {
 }
 
 type Interface[T any] interface {
-	GetConnection(session SessionInterface, connection ConnectionInput, logger *slog.Logger) (T, error)
+	GetConnection(
+		session SessionInterface,
+		connection ConnectionInput,
+		logger *slog.Logger,
+	) (T, error)
 	ReleaseSession(session SessionInterface, logger *slog.Logger) bool
 	Shutdown(logger *slog.Logger)
 	Reaper(logger *slog.Logger)
@@ -114,7 +121,10 @@ func (c *ConnectionManager[T]) GetConnection(
 	logger.Debug("no cached connection found, creating new connection client")
 
 	// Create new connection
-	connectionClient, err := c.connectionProvider.GetConnectionClient(connection.GetConnectionConfig(), logger)
+	connectionClient, err := c.connectionProvider.GetConnectionClient(
+		connection.GetConnectionConfig(),
+		logger,
+	)
 	if err != nil {
 		var result T
 		return result, err
@@ -170,7 +180,9 @@ func (c *ConnectionManager[T]) ReleaseSession(session SessionInterface, logger *
 	}
 
 	if c.config.closeOnRelease {
-		logger.Debug("close on release is enabled, pruning connections that are not bound to any sessions in the group")
+		logger.Debug(
+			"close on release is enabled, pruning connections that are not bound to any sessions in the group",
+		)
 		remainingConns := getUniqueConnectionIdsFromGroupSessions(groupSessions)
 		c.closeSpecificGroupConnections(groupId, sessionConnIds, remainingConns, logger)
 	}
@@ -178,7 +190,12 @@ func (c *ConnectionManager[T]) ReleaseSession(session SessionInterface, logger *
 }
 
 // does not handle locks as it assumes the parent caller holds the lock
-func (c *ConnectionManager[T]) closeSpecificGroupConnections(groupId string, candidateConnIds []string, remainingConns map[string]struct{}, logger *slog.Logger) {
+func (c *ConnectionManager[T]) closeSpecificGroupConnections(
+	groupId string,
+	candidateConnIds []string,
+	remainingConns map[string]struct{},
+	logger *slog.Logger,
+) {
 	groupConns, exists := c.groupConnMap[groupId]
 	if !exists {
 		return
@@ -189,7 +206,12 @@ func (c *ConnectionManager[T]) closeSpecificGroupConnections(groupId string, can
 			if dbConn, exists := groupConns[connId]; exists {
 				logger.Debug(fmt.Sprintf("closing connection %q", connId))
 				if err := c.connectionProvider.CloseClientConnection(dbConn); err != nil {
-					logger.Error(fmt.Sprintf("unable to close client connection during release: %s", err.Error()))
+					logger.Error(
+						fmt.Sprintf(
+							"unable to close client connection during release: %s",
+							err.Error(),
+						),
+					)
 				}
 				delete(groupConns, connId)
 			}
@@ -245,18 +267,49 @@ func (c *ConnectionManager[T]) cleanUnusedConnections(logger *slog.Logger) {
 		for session := range sessions {
 			groupSessions = append(groupSessions, session)
 		}
-		logger.Debug(fmt.Sprintf("[ConnectionManager][Reaper] group %q with sessions %s", groupId, strings.Join(groupSessions, ",")))
+		logger.Debug(
+			fmt.Sprintf(
+				"[ConnectionManager][Reaper] group %q with sessions %s",
+				groupId,
+				strings.Join(groupSessions, ","),
+			),
+		)
 	}
 
 	for groupId, groupConns := range c.groupConnMap {
-		logger.Debug(fmt.Sprintf("[ConnectionManager][Reaper] checking group %q with %d connection(s)", groupId, len(groupConns)))
+		logger.Debug(
+			fmt.Sprintf(
+				"[ConnectionManager][Reaper] checking group %q with %d connection(s)",
+				groupId,
+				len(groupConns),
+			),
+		)
 		sessionConns := groupSessionConnections[groupId]
 		for connId, dbConn := range groupConns {
-			logger.Debug(fmt.Sprintf("[ConnectionManager][Reaper] checking group %q for connection %q", groupId, connId))
+			logger.Debug(
+				fmt.Sprintf(
+					"[ConnectionManager][Reaper] checking group %q for connection %q",
+					groupId,
+					connId,
+				),
+			)
 			if _, ok := sessionConns[connId]; !ok {
-				logger.Debug(fmt.Sprintf("[ConnectionManager][Reaper] closing client connection: %q in group %q", connId, groupId))
+				logger.Debug(
+					fmt.Sprintf(
+						"[ConnectionManager][Reaper] closing client connection: %q in group %q",
+						connId,
+						groupId,
+					),
+				)
 				if err := c.connectionProvider.CloseClientConnection(dbConn); err != nil {
-					logger.Warn(fmt.Sprintf("[ConnectionManager][Reaper] unable to fully close client connection %q in group %q during cleanup: %s", connId, groupId, err.Error()))
+					logger.Warn(
+						fmt.Sprintf(
+							"[ConnectionManager][Reaper] unable to fully close client connection %q in group %q during cleanup: %s",
+							connId,
+							groupId,
+							err.Error(),
+						),
+					)
 				}
 				delete(groupConns, connId)
 			}
@@ -275,7 +328,12 @@ func (c *ConnectionManager[T]) hardClose(logger *slog.Logger) {
 	for groupId, groupConns := range c.groupConnMap {
 		for connId, dbConn := range groupConns {
 			if err := c.connectionProvider.CloseClientConnection(dbConn); err != nil {
-				logger.Error(fmt.Sprintf("unable to fully close client connection during hard close: %s", err.Error()))
+				logger.Error(
+					fmt.Sprintf(
+						"unable to fully close client connection during hard close: %s",
+						err.Error(),
+					),
+				)
 			}
 			delete(groupConns, connId)
 		}
@@ -288,7 +346,9 @@ func (c *ConnectionManager[T]) hardClose(logger *slog.Logger) {
 	}
 }
 
-func getUniqueConnectionIdsFromGroupSessions(sessions map[string]map[string]struct{}) map[string]struct{} {
+func getUniqueConnectionIdsFromGroupSessions(
+	sessions map[string]map[string]struct{},
+) map[string]struct{} {
 	connSet := map[string]struct{}{}
 	for _, sessionConns := range sessions {
 		for connId := range sessionConns {

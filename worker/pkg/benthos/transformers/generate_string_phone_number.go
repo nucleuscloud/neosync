@@ -19,44 +19,50 @@ func init() {
 		Param(bloblang.NewInt64Param("max").Default(15).Description("Specifies the maximum length for the generated phone number.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_string_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		min, err := args.GetInt64("min")
-		if err != nil {
-			return nil, err
-		}
-
-		max, err := args.GetInt64("max")
-		if err != nil {
-			return nil, err
-		}
-
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			res, err := generateStringPhoneNumber(randomizer, min, max)
+	err := bloblang.RegisterFunctionV2(
+		"generate_string_phone_number",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			min, err := args.GetInt64("min")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run generate_string_phone_number: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+
+			max, err := args.GetInt64("max")
+			if err != nil {
+				return nil, err
+			}
+
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				res, err := generateStringPhoneNumber(randomizer, min, max)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run generate_string_phone_number: %w", err)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewGenerateStringPhoneNumberOptsFromConfig(config *mgmtv1alpha1.GenerateStringPhoneNumber) (*GenerateStringPhoneNumberOpts, error) {
+func NewGenerateStringPhoneNumberOptsFromConfig(
+	config *mgmtv1alpha1.GenerateStringPhoneNumber,
+) (*GenerateStringPhoneNumberOpts, error) {
 	if config == nil {
 		return NewGenerateStringPhoneNumberOpts(nil, nil, nil)
 	}

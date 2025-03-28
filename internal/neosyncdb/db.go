@@ -25,7 +25,12 @@ type BaseDBTX interface {
 	Query(context.Context, string, ...any) (pgx.Rows, error)
 	QueryRow(context.Context, string, ...any) pgx.Row
 
-	CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error)
+	CopyFrom(
+		ctx context.Context,
+		tableName pgx.Identifier,
+		columnNames []string,
+		rowSrc pgx.CopyFromSource,
+	) (int64, error)
 }
 
 type NeosyncDb struct {

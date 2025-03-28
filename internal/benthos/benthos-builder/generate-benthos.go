@@ -48,7 +48,10 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 
 		destOpts, ok := destinationOpts[destConnection.GetId()]
 		if !ok {
-			return nil, fmt.Errorf("unable to find destination options for connection: %s", destConnection.GetId())
+			return nil, fmt.Errorf(
+				"unable to find destination options for connection: %s",
+				destConnection.GetId(),
+			)
 		}
 
 		for _, sourceConfig := range sourceConfigs {
@@ -65,7 +68,9 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 			if err != nil {
 				return nil, err
 			}
-			sourceConfig.Config.Output.Broker.Outputs = append(sourceConfig.Config.Output.Broker.Outputs, destConfig.Outputs...)
+			sourceConfig.Config.Output.Broker.Outputs = append(
+				sourceConfig.Config.Output.Broker.Outputs,
+				destConfig.Outputs...)
 			sourceConfig.BenthosDsns = append(sourceConfig.BenthosDsns, destConfig.BenthosDsns...)
 		}
 		b.logger.Debug(fmt.Sprintf("applied destination to %d source configs", len(sourceConfigs)))
@@ -76,7 +81,10 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 		labels := metrics.MetricLabels{
 			metrics.NewEqLabel(metrics.AccountIdLabel, b.job.AccountId),
 			metrics.NewEqLabel(metrics.JobIdLabel, b.job.Id),
-			metrics.NewEqLabel(metrics.NeosyncDateLabel, bb_shared.WithEnvInterpolation(metrics.NeosyncDateEnvKey)),
+			metrics.NewEqLabel(
+				metrics.NeosyncDateLabel,
+				bb_shared.WithEnvInterpolation(metrics.NeosyncDateEnvKey),
+			),
 		}
 		for key, val := range b.metricLabelKeyVals {
 			labels = append(labels, metrics.NewEqLabel(key, val))
@@ -112,7 +120,9 @@ func (b *BenthosConfigManager) GenerateBenthosConfigs(
 }
 
 // builds map of destination id -> destination options
-func buildDestinationOptionsMap(jobDests []*mgmtv1alpha1.JobDestination) map[string]*mgmtv1alpha1.JobDestinationOptions {
+func buildDestinationOptionsMap(
+	jobDests []*mgmtv1alpha1.JobDestination,
+) map[string]*mgmtv1alpha1.JobDestinationOptions {
 	destOpts := map[string]*mgmtv1alpha1.JobDestinationOptions{}
 	for _, dest := range jobDests {
 		destOpts[dest.GetConnectionId()] = dest.GetOptions()
@@ -139,7 +149,8 @@ func convertToResponse(sourceConfig *bb_internal.BenthosSourceConfig) *BenthosCo
 
 func isOnlyBucketDestinations(destinations []*mgmtv1alpha1.JobDestination) bool {
 	for _, dest := range destinations {
-		if dest.GetOptions().GetAwsS3Options() == nil && dest.GetOptions().GetGcpCloudstorageOptions() == nil {
+		if dest.GetOptions().GetAwsS3Options() == nil &&
+			dest.GetOptions().GetGcpCloudstorageOptions() == nil {
 			return false
 		}
 	}

@@ -42,7 +42,8 @@ func ToJobDto(
 	}
 
 	jobTypeConfig := &mgmtv1alpha1.JobTypeConfig{}
-	if inputJob.JobtypeConfig != nil && string(inputJob.JobtypeConfig) != "{}" && string(inputJob.JobtypeConfig) != "null" {
+	if inputJob.JobtypeConfig != nil && string(inputJob.JobtypeConfig) != "{}" &&
+		string(inputJob.JobtypeConfig) != "null" {
 		err := json.Unmarshal(inputJob.JobtypeConfig, jobTypeConfig)
 		if err != nil {
 			return nil, fmt.Errorf("unable to unmarshal job type config: %w", err)
@@ -70,7 +71,9 @@ func ToJobDto(
 	}, nil
 }
 
-func toDestinationDto(input *db_queries.NeosyncApiJobDestinationConnectionAssociation) *mgmtv1alpha1.JobDestination {
+func toDestinationDto(
+	input *db_queries.NeosyncApiJobDestinationConnectionAssociation,
+) *mgmtv1alpha1.JobDestination {
 	return &mgmtv1alpha1.JobDestination{
 		ConnectionId: neosyncdb.UUIDString(input.ConnectionID),
 		Options:      input.Options.ToDto(),
@@ -85,7 +88,9 @@ func ToJobStatus(inputSchedule *temporalclient.ScheduleDescription) mgmtv1alpha1
 	return mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED
 }
 
-func ToJobRecentRunsDto(inputSchedule *temporalclient.ScheduleDescription) []*mgmtv1alpha1.JobRecentRun {
+func ToJobRecentRunsDto(
+	inputSchedule *temporalclient.ScheduleDescription,
+) []*mgmtv1alpha1.JobRecentRun {
 	recentRuns := []*mgmtv1alpha1.JobRecentRun{}
 	if inputSchedule == nil {
 		return nil

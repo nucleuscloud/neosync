@@ -41,7 +41,10 @@ func NewNeosyncConnectionDataSyncBuilder(
 	}
 }
 
-func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
+func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(
+	ctx context.Context,
+	params *bb_internal.SourceParams,
+) ([]*bb_internal.BenthosSourceConfig, error) {
 	sourceConnection := params.SourceConnection
 	job := params.Job
 	configs := []*bb_internal.BenthosSourceConfig{}
@@ -96,6 +99,9 @@ func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(ctx context.Context, p
 	return configs, nil
 }
 
-func (b *neosyncConnectionDataBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
+func (b *neosyncConnectionDataBuilder) BuildDestinationConfig(
+	ctx context.Context,
+	params *bb_internal.DestinationParams,
+) (*bb_internal.BenthosDestinationConfig, error) {
 	return nil, errors.ErrUnsupported
 }

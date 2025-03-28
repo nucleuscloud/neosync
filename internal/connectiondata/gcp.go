@@ -61,7 +61,9 @@ func (s *GcpConnectionDataService) StreamData(
 ) error {
 	gcpStreamCfg := config.GetGcpCloudstorageConfig()
 	if gcpStreamCfg == nil {
-		return nucleuserrors.NewBadRequest("must provide non-nil gcp cloud storage config in request")
+		return nucleuserrors.NewBadRequest(
+			"must provide non-nil gcp cloud storage config in request",
+		)
 	}
 	gcpclient, err := s.gcpmanager.GetClient(ctx, s.logger)
 	if err != nil {
@@ -88,9 +90,15 @@ func (s *GcpConnectionDataService) StreamData(
 		if err := enc.Encode(record); err != nil {
 			return fmt.Errorf("unable to encode gcp record using gob: %w", err)
 		}
-		return stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()})
+		return stream.Send(
+			&mgmtv1alpha1.GetConnectionDataStreamResponse{RowBytes: rowbytes.Bytes()},
+		)
 	}
-	tablePath := neosync_gcp.GetWorkflowActivityDataPrefix(jobRunId, sqlmanager_shared.BuildTable(schema, table), s.connconfig.PathPrefix)
+	tablePath := neosync_gcp.GetWorkflowActivityDataPrefix(
+		jobRunId,
+		sqlmanager_shared.BuildTable(schema, table),
+		s.connconfig.PathPrefix,
+	)
 	err = gcpclient.GetRecordStreamFromPrefix(ctx, s.connconfig.GetBucket(), tablePath, onRecord)
 	if err != nil {
 		return fmt.Errorf("unable to finish sending record stream: %w", err)
@@ -128,7 +136,8 @@ func (s *GcpConnectionDataService) GetSchema(
 
 	schemas, err := gcpclient.GetDbSchemaFromPrefix(
 		ctx,
-		s.connconfig.GetBucket(), neosync_gcp.GetWorkflowActivityPrefix(jobRunId, s.connconfig.PathPrefix),
+		s.connconfig.GetBucket(),
+		neosync_gcp.GetWorkflowActivityPrefix(jobRunId, s.connconfig.PathPrefix),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("uanble to retrieve db schema from gcs: %w", err)
@@ -199,10 +208,17 @@ func (s *GcpConnectionDataService) GetTableConstraints(
 	return nil, errors.ErrUnsupported
 }
 
-func (s *GcpConnectionDataService) GetTableSchema(ctx context.Context, schema, table string) ([]*mgmtv1alpha1.DatabaseColumn, error) {
+func (s *GcpConnectionDataService) GetTableSchema(
+	ctx context.Context,
+	schema, table string,
+) ([]*mgmtv1alpha1.DatabaseColumn, error) {
 	return nil, errors.ErrUnsupported
 }
 
-func (s *GcpConnectionDataService) GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error) {
+func (s *GcpConnectionDataService) GetTableRowCount(
+	ctx context.Context,
+	schema, table string,
+	whereClause *string,
+) (int64, error) {
 	return 0, errors.ErrUnsupported
 }

@@ -162,12 +162,16 @@ func (s *Service) RegenerateAccountApiKey(
 	if err != nil {
 		return nil, err
 	}
-	updatedApiKey, err := s.db.Q.UpdateAccountApiKeyValue(ctx, s.db.Db, db_queries.UpdateAccountApiKeyValueParams{
-		KeyValue:    hashedKeyValue,
-		ExpiresAt:   expiresAt,
-		UpdatedByID: user.PgId(),
-		ID:          apiKeyUuid,
-	})
+	updatedApiKey, err := s.db.Q.UpdateAccountApiKeyValue(
+		ctx,
+		s.db.Db,
+		db_queries.UpdateAccountApiKeyValueParams{
+			KeyValue:    hashedKeyValue,
+			ExpiresAt:   expiresAt,
+			UpdatedByID: user.PgId(),
+			ID:          apiKeyUuid,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}

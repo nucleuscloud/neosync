@@ -15,7 +15,10 @@ func CreatePersonalAccount(
 	t *testing.T,
 	userclient mgmtv1alpha1connect.UserAccountServiceClient,
 ) string {
-	resp, err := userclient.SetPersonalAccount(ctx, connect.NewRequest(&mgmtv1alpha1.SetPersonalAccountRequest{}))
+	resp, err := userclient.SetPersonalAccount(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.SetPersonalAccountRequest{}),
+	)
 	RequireNoErrResp(t, resp, err)
 	return resp.Msg.AccountId
 }
@@ -186,14 +189,26 @@ func CreateMongodbConnection(
 	return resp.Msg.GetConnection()
 }
 
-func SetUser(ctx context.Context, t *testing.T, client mgmtv1alpha1connect.UserAccountServiceClient) string {
+func SetUser(
+	ctx context.Context,
+	t *testing.T,
+	client mgmtv1alpha1connect.UserAccountServiceClient,
+) string {
 	resp, err := client.SetUser(ctx, connect.NewRequest(&mgmtv1alpha1.SetUserRequest{}))
 	RequireNoErrResp(t, resp, err)
 	return resp.Msg.GetUserId()
 }
 
-func CreateTeamAccount(ctx context.Context, t *testing.T, client mgmtv1alpha1connect.UserAccountServiceClient, name string) string {
-	resp, err := client.CreateTeamAccount(ctx, connect.NewRequest(&mgmtv1alpha1.CreateTeamAccountRequest{Name: name}))
+func CreateTeamAccount(
+	ctx context.Context,
+	t *testing.T,
+	client mgmtv1alpha1connect.UserAccountServiceClient,
+	name string,
+) string {
+	resp, err := client.CreateTeamAccount(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.CreateTeamAccountRequest{Name: name}),
+	)
 	RequireNoErrResp(t, resp, err)
 	return resp.Msg.AccountId
 }

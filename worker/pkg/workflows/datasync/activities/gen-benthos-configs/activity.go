@@ -94,5 +94,13 @@ func (a *Activity) GenerateBenthosConfigs(
 		a.pageLimit,
 	)
 	slogger := temporallogger.NewSlogger(logger)
-	return bbuilder.GenerateBenthosConfigsNew(ctx, req, &workflowMetadata{WorkflowId: info.WorkflowExecution.ID, RunId: info.WorkflowExecution.RunID}, slogger)
+	return bbuilder.GenerateBenthosConfigsNew(
+		ctx,
+		req,
+		&workflowMetadata{
+			WorkflowId: info.WorkflowExecution.ID,
+			RunId:      info.WorkflowExecution.RunID,
+		},
+		slogger,
+	)
 }

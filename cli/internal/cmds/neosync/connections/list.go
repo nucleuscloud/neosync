@@ -39,7 +39,8 @@ func newListCmd() *cobra.Command {
 			return listConnections(cmd.Context(), debugMode, &apiKey, &accountId)
 		},
 	}
-	cmd.Flags().String("account-id", "", "Account to list connections for. Defaults to account id in cli context")
+	cmd.Flags().
+		String("account-id", "", "Account to list connections for. Defaults to account id in cli context")
 	return cmd
 }
 
@@ -82,9 +83,12 @@ func getConnections(
 	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
 	accountId string,
 ) ([]*mgmtv1alpha1.Connection, error) {
-	res, err := connectionclient.GetConnections(ctx, connect.NewRequest[mgmtv1alpha1.GetConnectionsRequest](&mgmtv1alpha1.GetConnectionsRequest{
-		AccountId: accountId,
-	}))
+	res, err := connectionclient.GetConnections(
+		ctx,
+		connect.NewRequest[mgmtv1alpha1.GetConnectionsRequest](&mgmtv1alpha1.GetConnectionsRequest{
+			AccountId: accountId,
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}

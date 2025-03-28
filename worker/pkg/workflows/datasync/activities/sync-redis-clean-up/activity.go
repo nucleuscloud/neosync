@@ -62,7 +62,7 @@ func (a *Activity) DeleteRedisHash(
 	)
 
 	if a.redisclient == nil {
-		return nil, fmt.Errorf("missing redis client. this operation requires redis.")
+		return nil, fmt.Errorf("missing redis client. this operation requires redis")
 	}
 	slogger.Debug("redis client provided")
 

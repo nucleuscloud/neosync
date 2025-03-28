@@ -21,44 +21,50 @@ func init() {
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used for generating deterministic transformations."))
 
-	err := bloblang.RegisterFunctionV2("transform_uuid", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		valuePtr, err := args.GetOptionalString("value")
-		if err != nil {
-			return nil, err
-		}
-
-		var value string
-		if valuePtr != nil {
-			value = *valuePtr
-		}
-
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			res := transformUuid(randomizer, value)
+	err := bloblang.RegisterFunctionV2(
+		"transform_uuid",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			valuePtr, err := args.GetOptionalString("value")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run transform_uuid: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+
+			var value string
+			if valuePtr != nil {
+				value = *valuePtr
+			}
+
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				res := transformUuid(randomizer, value)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run transform_uuid: %w", err)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewTransformUuidOptsFromConfig(config *mgmtv1alpha1.TransformUuid) (*TransformUuidOpts, error) {
+func NewTransformUuidOptsFromConfig(
+	config *mgmtv1alpha1.TransformUuid,
+) (*TransformUuidOpts, error) {
 	if config == nil {
 		return NewTransformUuidOpts(nil)
 	}

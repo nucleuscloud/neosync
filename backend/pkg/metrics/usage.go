@@ -29,7 +29,10 @@ func GetDailyUsageFromProm(
 
 	vector, ok := result.(model.Vector)
 	if !ok {
-		return nil, -1, fmt.Errorf("error casting prometheus query result to model.Vector. Got %T", result)
+		return nil, -1, fmt.Errorf(
+			"error casting prometheus query result to model.Vector. Got %T",
+			result,
+		)
 	}
 
 	dailyTotals := map[string]float64{}
@@ -50,7 +53,12 @@ func GetDailyUsageFromProm(
 	for _, day := range dates {
 		date, err := time.Parse(NeosyncDateFormat, day)
 		if err != nil {
-			return nil, -1, fmt.Errorf("unable to convert day back to usage date (%q) format (%q): %w", date, NeosyncDateFormat, err)
+			return nil, -1, fmt.Errorf(
+				"unable to convert day back to usage date (%q) format (%q): %w",
+				date,
+				NeosyncDateFormat,
+				err,
+			)
 		}
 		mgmtDate := timeToDate(date)
 		dailyResults = append(dailyResults, &mgmtv1alpha1.DayResult{
@@ -99,7 +107,13 @@ func sortUsageDates(a, b string) int {
 	return 0
 }
 
-func GetTotalUsageFromProm(ctx context.Context, api promv1.API, query string, dayEnd time.Time, logger *slog.Logger) (float64, error) {
+func GetTotalUsageFromProm(
+	ctx context.Context,
+	api promv1.API,
+	query string,
+	dayEnd time.Time,
+	logger *slog.Logger,
+) (float64, error) {
 	var overallTotal float64
 
 	result, warnings, err := api.Query(ctx, query, dayEnd)
@@ -133,7 +147,13 @@ func GetPromQueryFromMetric(
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("sum(max_over_time(%s{%s}[%s])) by (%s)", metricName, labels.ToPromQueryString(), timeWindow, NeosyncDateLabel), nil
+	return fmt.Sprintf(
+		"sum(max_over_time(%s{%s}[%s])) by (%s)",
+		metricName,
+		labels.ToPromQueryString(),
+		timeWindow,
+		NeosyncDateLabel,
+	), nil
 }
 
 const (

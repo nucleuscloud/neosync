@@ -172,28 +172,46 @@ func NewTestDataSyncWorkflowEnv(
 func (w *TestWorkflowEnv) ExecuteTestDataSyncWorkflow(jobId string) {
 	w.TestEnv.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: jobId})
 	datasyncWorkflow := datasync_workflow.New(w.fakeEELicense)
-	w.TestEnv.ExecuteWorkflow(datasyncWorkflow.Workflow, &datasync_workflow.WorkflowRequest{JobId: jobId})
+	w.TestEnv.ExecuteWorkflow(
+		datasyncWorkflow.Workflow,
+		&datasync_workflow.WorkflowRequest{JobId: jobId},
+	)
 }
 
 // RequireActivitiesCompletedSuccessfully verifies all activities completed without errors
 // NOTE: this should be called before ExecuteTestDataSyncWorkflow
 func (w *TestWorkflowEnv) RequireActivitiesCompletedSuccessfully(t testing.TB) {
-	w.TestEnv.SetOnActivityCompletedListener(func(activityInfo *activity.Info, result converter.EncodedValue, err error) {
-		require.NoError(t, err, "Activity %s failed", activityInfo.ActivityType.Name)
-		if activityInfo.ActivityType.Name == "RunPostTableSync" && result.HasValue() {
-			var postTableSyncResp posttablesync_activity.RunPostTableSyncResponse
-			decodeErr := result.Get(&postTableSyncResp)
-			require.NoError(t, decodeErr, "Failed to decode result for activity %s", activityInfo.ActivityType.Name)
-			require.Emptyf(t, postTableSyncResp.Errors, "Post table sync activity returned errors: %v", formatPostTableSyncErrors(postTableSyncResp.Errors))
-		}
-	})
+	w.TestEnv.SetOnActivityCompletedListener(
+		func(activityInfo *activity.Info, result converter.EncodedValue, err error) {
+			require.NoError(t, err, "Activity %s failed", activityInfo.ActivityType.Name)
+			if activityInfo.ActivityType.Name == "RunPostTableSync" && result.HasValue() {
+				var postTableSyncResp posttablesync_activity.RunPostTableSyncResponse
+				decodeErr := result.Get(&postTableSyncResp)
+				require.NoError(
+					t,
+					decodeErr,
+					"Failed to decode result for activity %s",
+					activityInfo.ActivityType.Name,
+				)
+				require.Emptyf(
+					t,
+					postTableSyncResp.Errors,
+					"Post table sync activity returned errors: %v",
+					formatPostTableSyncErrors(postTableSyncResp.Errors),
+				)
+			}
+		},
+	)
 }
 
 func formatPostTableSyncErrors(errors []*posttablesync_activity.PostTableSyncError) []string {
 	formatted := []string{}
 	for _, err := range errors {
 		for _, e := range err.Errors {
-			formatted = append(formatted, fmt.Sprintf("statement: %s  error: %s", e.Statement, e.Error))
+			formatted = append(
+				formatted,
+				fmt.Sprintf("statement: %s  error: %s", e.Statement, e.Error),
+			)
 		}
 	}
 	return formatted
@@ -208,7 +226,10 @@ type TestDatabaseManagers struct {
 
 // NewTestDatabaseManagers creates and configures database connection managers for testing
 func NewTestDatabaseManagers(t testing.TB) *TestDatabaseManagers {
-	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithReaperPoll(10*time.Second))
+	sqlconnmanager := connectionmanager.NewConnectionManager(
+		sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}),
+		connectionmanager.WithReaperPoll(10*time.Second),
+	)
 	go sqlconnmanager.Reaper(testutil.GetConcurrentTestLogger(t))
 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider())
 	go mongoconnmanager.Reaper(testutil.GetConcurrentTestLogger(t))

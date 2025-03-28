@@ -22,54 +22,61 @@ func init() {
 		Param(bloblang.NewInt64Param("max_length").Default(15).Description("Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("transform_e164_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		valuePtr, err := args.GetOptionalString("value")
-		if err != nil {
-			return nil, err
-		}
-
-		var value string
-		if valuePtr != nil {
-			value = *valuePtr
-		}
-
-		preserveLength, err := args.GetBool("preserve_length")
-		if err != nil {
-			return nil, err
-		}
-
-		maxLength, err := args.GetOptionalInt64("max_length")
-		if err != nil {
-			return nil, err
-		}
-
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			res, err := transformE164PhoneNumber(randomizer, value, preserveLength, maxLength)
+	err := bloblang.RegisterFunctionV2(
+		"transform_e164_phone_number",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			valuePtr, err := args.GetOptionalString("value")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run transform_e164_phone_number: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+
+			var value string
+			if valuePtr != nil {
+				value = *valuePtr
+			}
+
+			preserveLength, err := args.GetBool("preserve_length")
+			if err != nil {
+				return nil, err
+			}
+
+			maxLength, err := args.GetOptionalInt64("max_length")
+			if err != nil {
+				return nil, err
+			}
+
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				res, err := transformE164PhoneNumber(randomizer, value, preserveLength, maxLength)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run transform_e164_phone_number: %w", err)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewTransformE164PhoneNumberOptsFromConfig(config *mgmtv1alpha1.TransformE164PhoneNumber, maxLength *int64) (*TransformE164PhoneNumberOpts, error) {
+func NewTransformE164PhoneNumberOptsFromConfig(
+	config *mgmtv1alpha1.TransformE164PhoneNumber,
+	maxLength *int64,
+) (*TransformE164PhoneNumberOpts, error) {
 	if config == nil {
 		return NewTransformE164PhoneNumberOpts(nil, nil, nil)
 	}
@@ -87,11 +94,21 @@ func (t *TransformE164PhoneNumber) Transform(value, opts any) (any, error) {
 		return nil, errors.New("value is not a string")
 	}
 
-	return transformE164PhoneNumber(parsedOpts.randomizer, valueStr, parsedOpts.preserveLength, &parsedOpts.maxLength)
+	return transformE164PhoneNumber(
+		parsedOpts.randomizer,
+		valueStr,
+		parsedOpts.preserveLength,
+		&parsedOpts.maxLength,
+	)
 }
 
 // Generates a random phone number and returns it as a string
-func transformE164PhoneNumber(randomizer rng.Rand, phone string, preserveLength bool, maxLength *int64) (*string, error) {
+func transformE164PhoneNumber(
+	randomizer rng.Rand,
+	phone string,
+	preserveLength bool,
+	maxLength *int64,
+) (*string, error) {
 	var returnValue string
 
 	if phone == "" {
@@ -123,7 +140,10 @@ func transformE164PhoneNumber(randomizer rng.Rand, phone string, preserveLength 
 }
 
 // generates a random E164 phone number and returns it as a string
-func generateE164FormatPhoneNumberPreserveLength(randomizer rng.Rand, number string) (string, error) {
+func generateE164FormatPhoneNumberPreserveLength(
+	randomizer rng.Rand,
+	number string,
+) (string, error) {
 	val := strings.Split(number, "+")
 
 	length := int64(len(val[1]))

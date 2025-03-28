@@ -24,7 +24,11 @@ import (
 )
 
 type OpenAiCompletionsClient interface {
-	New(ctx context.Context, body openai.ChatCompletionNewParams, opts ...option.RequestOption) (res *openai.ChatCompletion, err error)
+	New(
+		ctx context.Context,
+		body openai.ChatCompletionNewParams,
+		opts ...option.RequestOption,
+	) (res *openai.ChatCompletion, err error)
 }
 
 type Activities struct {
@@ -65,7 +69,10 @@ type ColumnData struct {
 	Comment    *string
 }
 
-func (a *Activities) GetColumnData(ctx context.Context, req *GetColumnDataRequest) (*GetColumnDataResponse, error) {
+func (a *Activities) GetColumnData(
+	ctx context.Context,
+	req *GetColumnDataRequest,
+) (*GetColumnDataResponse, error) {
 	logger := activity.GetLogger(ctx)
 	slogger := temporallogger.NewSlogger(logger)
 
@@ -102,9 +109,12 @@ func (a *Activities) getTableDetailsFromConnection(
 	tableName string,
 	logger *slog.Logger,
 ) ([]*mgmtv1alpha1.DatabaseColumn, error) {
-	connResp, err := a.connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: connectionId,
-	}))
+	connResp, err := a.connclient.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: connectionId,
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +231,10 @@ type DetectPiiRegexResponse struct {
 	PiiColumns map[string]PiiCategory // Changed to map column names to their PII category
 }
 
-func (a *Activities) DetectPiiRegex(ctx context.Context, req *DetectPiiRegexRequest) (*DetectPiiRegexResponse, error) {
+func (a *Activities) DetectPiiRegex(
+	ctx context.Context,
+	req *DetectPiiRegexRequest,
+) (*DetectPiiRegexResponse, error) {
 	logger := activity.GetLogger(ctx)
 
 	piiColumns := make(map[string]PiiCategory)
@@ -367,10 +380,17 @@ const (
 	maxDataSamples = uint(5)
 )
 
-func (a *Activities) getSampleData(ctx context.Context, req *DetectPiiLLMRequest, logger *slog.Logger) (Records, error) {
-	connResp, err := a.connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.ConnectionId,
-	}))
+func (a *Activities) getSampleData(
+	ctx context.Context,
+	req *DetectPiiLLMRequest,
+	logger *slog.Logger,
+) (Records, error) {
+	connResp, err := a.connclient.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: req.ConnectionId,
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -401,7 +421,9 @@ Here is the table name: {{.TableName}}
 
 Here are the fields and (optionally) values: {{.RecordData}}`
 
-var piiDetectionPromptTmpl = template.Must(template.New("pii_detection_prompt").Parse(piiDetectionPrompt))
+var piiDetectionPromptTmpl = template.Must(
+	template.New("pii_detection_prompt").Parse(piiDetectionPrompt),
+)
 
 const (
 	systemMessage = "You are a helpful assistant that classifies database fields for PII."
@@ -459,12 +481,18 @@ func getPrompt(records Records, tableName, userPrompt string, maxRecords uint) (
 
 		// If we're at 0 records and still over limit, something else is wrong
 		if currentMaxRecords == 0 {
-			return "", fmt.Errorf("prompt exceeds token limit (%d) even with no sample data", maxTokenLimit)
+			return "", fmt.Errorf(
+				"prompt exceeds token limit (%d) even with no sample data",
+				maxTokenLimit,
+			)
 		}
 	}
 }
 
-func (a *Activities) DetectPiiLLM(ctx context.Context, req *DetectPiiLLMRequest) (*DetectPiiLLMResponse, error) {
+func (a *Activities) DetectPiiLLM(
+	ctx context.Context,
+	req *DetectPiiLLMRequest,
+) (*DetectPiiLLMResponse, error) {
 	logger := activity.GetLogger(ctx)
 	slogger := temporallogger.NewSlogger(logger)
 
@@ -480,9 +508,13 @@ func (a *Activities) DetectPiiLLM(ctx context.Context, req *DetectPiiLLMRequest)
 	logger.Debug("LLM PII detection prompt", "prompt", userMessage)
 
 	chatResp, err := a.openaiclient.New(ctx, openai.ChatCompletionNewParams{
-		Temperature:    openai.F(0.0),
-		Model:          openai.F(model),
-		ResponseFormat: openai.F[openai.ChatCompletionNewParamsResponseFormatUnion](openai.ResponseFormatJSONObjectParam{Type: openai.F(openai.ResponseFormatJSONObjectTypeJSONObject)}),
+		Temperature: openai.F(0.0),
+		Model:       openai.F(model),
+		ResponseFormat: openai.F[openai.ChatCompletionNewParamsResponseFormatUnion](
+			openai.ResponseFormatJSONObjectParam{
+				Type: openai.F(openai.ResponseFormatJSONObjectTypeJSONObject),
+			},
+		),
 		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
 			openai.SystemMessage(systemMessage),
 			openai.UserMessage(userMessage),
@@ -636,7 +668,10 @@ func isPiiColumn(columnName string) (PiiCategory, bool) {
 	return "", false
 }
 
-func getSchemasByTable(databaseColumns []*mgmtv1alpha1.DatabaseColumn, schema, table string) []*mgmtv1alpha1.DatabaseColumn {
+func getSchemasByTable(
+	databaseColumns []*mgmtv1alpha1.DatabaseColumn,
+	schema, table string,
+) []*mgmtv1alpha1.DatabaseColumn {
 	output := []*mgmtv1alpha1.DatabaseColumn{}
 	for _, databaseColumn := range databaseColumns {
 		if databaseColumn.Schema == schema && databaseColumn.Table == table {

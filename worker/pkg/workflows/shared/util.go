@@ -39,8 +39,12 @@ func HandleWorkflowEventLifecycle[T any](
 	createdFuture := workflow.ExecuteChildWorkflow(
 		workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
 			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
-			WorkflowID:        getAccountHookChildWorkflowId(runId, "job-run-created", workflow.Now(ctx)),
-			StaticSummary:     "Account Hook: Job Run Created",
+			WorkflowID: getAccountHookChildWorkflowId(
+				runId,
+				"job-run-created",
+				workflow.Now(ctx),
+			),
+			StaticSummary: "Account Hook: Job Run Created",
 		}),
 		accounthook_workflow.ProcessAccountHook,
 		&accounthook_workflow.ProcessAccountHookRequest{
@@ -56,8 +60,12 @@ func HandleWorkflowEventLifecycle[T any](
 		failedFuture := workflow.ExecuteChildWorkflow(
 			workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
 				ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
-				WorkflowID:        getAccountHookChildWorkflowId(runId, "job-run-failed", workflow.Now(ctx)),
-				StaticSummary:     "Account Hook: Job Run Failed",
+				WorkflowID: getAccountHookChildWorkflowId(
+					runId,
+					"job-run-failed",
+					workflow.Now(ctx),
+				),
+				StaticSummary: "Account Hook: Job Run Failed",
 			}),
 			accounthook_workflow.ProcessAccountHook,
 			&accounthook_workflow.ProcessAccountHookRequest{
@@ -73,8 +81,12 @@ func HandleWorkflowEventLifecycle[T any](
 	completedFuture := workflow.ExecuteChildWorkflow(
 		workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
 			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
-			WorkflowID:        getAccountHookChildWorkflowId(runId, "job-run-succeeded", workflow.Now(ctx)),
-			StaticSummary:     "Account Hook: Job Run Succeeded",
+			WorkflowID: getAccountHookChildWorkflowId(
+				runId,
+				"job-run-succeeded",
+				workflow.Now(ctx),
+			),
+			StaticSummary: "Account Hook: Job Run Succeeded",
 		}),
 		accounthook_workflow.ProcessAccountHook,
 		&accounthook_workflow.ProcessAccountHookRequest{
@@ -88,7 +100,11 @@ func HandleWorkflowEventLifecycle[T any](
 	return resp, nil
 }
 
-func ensureChildSpawned(ctx workflow.Context, future workflow.ChildWorkflowFuture, logger log.Logger) error {
+func ensureChildSpawned(
+	ctx workflow.Context,
+	future workflow.ChildWorkflowFuture,
+	logger log.Logger,
+) error {
 	var childWE workflow.Execution
 	if waitErr := future.GetChildWorkflowExecution().Get(ctx, &childWE); waitErr != nil {
 		return waitErr
@@ -103,7 +119,12 @@ func getAccountHookChildWorkflowId(parentJobRunId, eventName string, now time.Ti
 
 // Builds a child workflow id that is unique for the given parent execution. Sanitizes the name and cuts to the max allowed limit
 func BuildChildWorkflowId(parentExecutionId, name string, ts time.Time) string {
-	id := fmt.Sprintf("%s-%s-%d", parentExecutionId, SanitizeWorkflowID(strings.ToLower(name)), ts.UnixNano())
+	id := fmt.Sprintf(
+		"%s-%s-%d",
+		parentExecutionId,
+		SanitizeWorkflowID(strings.ToLower(name)),
+		ts.UnixNano(),
+	)
 	if len(id) > 1000 {
 		id = id[:1000]
 	}

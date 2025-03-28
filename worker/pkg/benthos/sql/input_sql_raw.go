@@ -36,7 +36,14 @@ func RegisterPooledSqlRawInput(
 		"pooled_sql_raw",
 		sqlRawInputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
-			input, err := newInput(conf, mgr, dbprovider, stopActivityChannel, onHasMorePages, continuationToken)
+			input, err := newInput(
+				conf,
+				mgr,
+				dbprovider,
+				stopActivityChannel,
+				onHasMorePages,
+				continuationToken,
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -157,7 +164,9 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	var args []any
 	if s.pagedQueryStatic != nil && s.continuationToken != nil && s.expectedTotalRows != nil {
 		if len(s.orderByColumns) != len(s.continuationToken.Contents.LastReadOrderValues) {
-			columnMisMatchErr := fmt.Errorf("order by columns and last read order values must be the same length")
+			columnMisMatchErr := fmt.Errorf(
+				"order by columns and last read order values must be the same length",
+			)
 			s.logger.Error(columnMisMatchErr.Error())
 			s.stopActivityChannel <- columnMisMatchErr
 			return columnMisMatchErr
@@ -193,7 +202,9 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		if neosync_benthos.IsCriticalError(err.Error()) {
-			s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
+			s.logger.Error(
+				fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()),
+			)
 			s.stopActivityChannel <- err
 		}
 		return err
@@ -214,7 +225,13 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 	if s.rows == nil {
 		if s.expectedTotalRows != nil && s.onHasMorePages != nil && len(s.orderByColumns) > 0 {
 			// emit order by column values if ok
-			s.logger.Debug(fmt.Sprintf("rows read: %d, expected total rows: %d", s.rowsRead, *s.expectedTotalRows))
+			s.logger.Debug(
+				fmt.Sprintf(
+					"rows read: %d, expected total rows: %d",
+					s.rowsRead,
+					*s.expectedTotalRows,
+				),
+			)
 			if s.rowsRead >= *s.expectedTotalRows {
 				s.logger.Debug("emitting order by column values")
 				s.onHasMorePages(s.lastReadOrderValues)
@@ -233,9 +250,17 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 
 		if s.expectedTotalRows != nil && s.onHasMorePages != nil && len(s.orderByColumns) > 0 {
 			// emit order by column values if ok
-			s.logger.Debug(fmt.Sprintf("[ROW END] rows read: %d, expected total rows: %d", s.rowsRead, *s.expectedTotalRows))
+			s.logger.Debug(
+				fmt.Sprintf(
+					"[ROW END] rows read: %d, expected total rows: %d",
+					s.rowsRead,
+					*s.expectedTotalRows,
+				),
+			)
 			if s.rowsRead >= *s.expectedTotalRows {
-				s.logger.Debug("[ROW END] emitting onHasMorePages as rows read >= expected total rows")
+				s.logger.Debug(
+					"[ROW END] emitting onHasMorePages as rows read >= expected total rows",
+				)
 				s.onHasMorePages(s.lastReadOrderValues)
 			}
 		}

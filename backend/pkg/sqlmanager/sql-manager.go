@@ -22,26 +22,62 @@ import (
 type SqlDatabase interface {
 	// Schema level methods for managing and retrieving information about the database schema
 	GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error)
-	GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
-	GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*sqlmanager_shared.TableConstraints, error)
-	GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error)
+	GetSchemaColumnMap(
+		ctx context.Context,
+	) (map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow, error) // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+	GetTableConstraintsBySchema(
+		ctx context.Context,
+		schemas []string,
+	) (*sqlmanager_shared.TableConstraints, error)
+	GetTableInitStatements(
+		ctx context.Context,
+		tables []*sqlmanager_shared.SchemaTable,
+	) ([]*sqlmanager_shared.TableInitStatement, error)
 	GetRolePermissionsMap(ctx context.Context) (map[string][]string, error)
 	GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error)
 	GetAllTables(ctx context.Context) ([]*sqlmanager_shared.DatabaseTableRow, error)
 
 	// Table level methods for managing and retrieving information about the tables within the database
-	GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.DatabaseSchemaRow, error)
+	GetDatabaseTableSchemasBySchemasAndTables(
+		ctx context.Context,
+		tables []*sqlmanager_shared.SchemaTable,
+	) ([]*sqlmanager_shared.DatabaseSchemaRow, error)
 	GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error)
-	GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error)
-	GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error)
-	GetSchemaInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error)
-	GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error)
+	GetSchemaTableDataTypes(
+		ctx context.Context,
+		tables []*sqlmanager_shared.SchemaTable,
+	) (*sqlmanager_shared.SchemaTableDataTypeResponse, error)
+	GetSchemaTableTriggers(
+		ctx context.Context,
+		tables []*sqlmanager_shared.SchemaTable,
+	) ([]*sqlmanager_shared.TableTrigger, error)
+	GetSchemaInitStatements(
+		ctx context.Context,
+		tables []*sqlmanager_shared.SchemaTable,
+	) ([]*sqlmanager_shared.InitSchemaStatements, error)
+	GetSequencesByTables(
+		ctx context.Context,
+		schema string,
+		tables []string,
+	) ([]*sqlmanager_shared.DataType, error)
 	// returns a map of schema.table to all constraints for that table
-	GetTableConstraintsByTables(ctx context.Context, schema string, tables []string) (map[string]*sqlmanager_shared.AllTableConstraints, error)
-	GetColumnsByTables(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableColumn, error)
+	GetTableConstraintsByTables(
+		ctx context.Context,
+		schema string,
+		tables []string,
+	) (map[string]*sqlmanager_shared.AllTableConstraints, error)
+	GetColumnsByTables(
+		ctx context.Context,
+		tables []*sqlmanager_shared.SchemaTable,
+	) ([]*sqlmanager_shared.TableColumn, error)
 
 	// Connection level methods for managing database connections and executing statements
-	BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error
+	BatchExec(
+		ctx context.Context,
+		batchSize int,
+		statements []string,
+		opts *sqlmanager_shared.BatchExecOpts,
+	) error
 	Exec(ctx context.Context, statement string) error
 	Close()
 }
@@ -66,7 +102,9 @@ func NewSqlManager(
 		pgQuerier:    pg_queries.New(),
 		mysqlQuerier: mysql_queries.New(),
 		mssqlQuerier: mssql_queries.New(),
-		mgr:          connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{})),
+		mgr: connectionmanager.NewConnectionManager(
+			sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}),
+		),
 	}
 	for _, opt := range opts {
 		opt(config)
@@ -76,7 +114,9 @@ func NewSqlManager(
 	}
 }
 
-func WithConnectionManager(manager connectionmanager.Interface[neosync_benthos_sql.SqlDbtx]) SqlManagerOption {
+func WithConnectionManager(
+	manager connectionmanager.Interface[neosync_benthos_sql.SqlDbtx],
+) SqlManagerOption {
 	return func(smc *sqlManagerConfig) {
 		smc.mgr = manager
 	}
@@ -85,7 +125,9 @@ func WithConnectionManager(manager connectionmanager.Interface[neosync_benthos_s
 // Initializes a default SQL-enabled connection manager, but allows for providing options
 func WithConnectionManagerOpts(opts ...connectionmanager.ManagerOption) SqlManagerOption {
 	return func(smc *sqlManagerConfig) {
-		smc.mgr = connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), opts...)
+		smc.mgr = connectionmanager.NewConnectionManager(
+			sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}),
+			opts...)
 	}
 }
 
@@ -146,16 +188,25 @@ func (s *SqlManager) NewSqlConnection(
 	}
 }
 
-func GetColumnOverrideAndResetProperties(driver string, cInfo *sqlmanager_shared.DatabaseSchemaRow) (needsOverride, needsReset bool, err error) {
+func GetColumnOverrideAndResetProperties(
+	driver string,
+	cInfo *sqlmanager_shared.DatabaseSchemaRow,
+) (needsOverride, needsReset bool, err error) {
 	switch driver {
 	case sqlmanager_shared.PostgresDriver:
-		needsOverride, needsReset := sqlmanager_postgres.GetPostgresColumnOverrideAndResetProperties(cInfo)
+		needsOverride, needsReset := sqlmanager_postgres.GetPostgresColumnOverrideAndResetProperties(
+			cInfo,
+		)
 		return needsOverride, needsReset, nil
 	case sqlmanager_shared.MysqlDriver:
-		needsOverride, needsReset := sqlmanager_mysql.GetMysqlColumnOverrideAndResetProperties(cInfo)
+		needsOverride, needsReset := sqlmanager_mysql.GetMysqlColumnOverrideAndResetProperties(
+			cInfo,
+		)
 		return needsOverride, needsReset, nil
 	case sqlmanager_shared.MssqlDriver:
-		needsOverride, needsReset := sqlmanager_mssql.GetMssqlColumnOverrideAndResetProperties(cInfo)
+		needsOverride, needsReset := sqlmanager_mssql.GetMssqlColumnOverrideAndResetProperties(
+			cInfo,
+		)
 		return needsOverride, needsReset, nil
 	default:
 		return false, false, fmt.Errorf("unsupported sql driver: %s", driver)

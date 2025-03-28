@@ -8,7 +8,9 @@ import (
 )
 
 // Creates idempotent create table statement
-func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasBySchemasAndTablesRow) string {
+func generateCreateTableStatement(
+	rows []*mssql_queries.GetDatabaseTableSchemasBySchemasAndTablesRow,
+) string {
 	if len(rows) == 0 {
 		return ""
 	}
@@ -19,8 +21,13 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 	var sb strings.Builder
 
 	// Create table if not exists
-	sb.WriteString(fmt.Sprintf("IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[%s].[%s]') AND type in (N'U'))\nBEGIN\n",
-		tableSchema, tableName))
+	sb.WriteString(
+		fmt.Sprintf(
+			"IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[%s].[%s]') AND type in (N'U'))\nBEGIN\n",
+			tableSchema,
+			tableName,
+		),
+	)
 	sb.WriteString(fmt.Sprintf("CREATE TABLE [%s].[%s] (\n", tableSchema, tableName))
 
 	primaryKeys := []string{}
@@ -40,7 +47,7 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 
 		sb.WriteString(fmt.Sprintf("    [%s] ", row.ColumnName))
 
-		if !(row.IsComputed && row.GenerationExpression.Valid) {
+		if !row.IsComputed || !row.GenerationExpression.Valid {
 			switch {
 			case row.CharacterMaximumLength.Valid:
 				if row.CharacterMaximumLength.Int32 == -1 {
@@ -118,7 +125,13 @@ func generateCreateTableStatement(rows []*mssql_queries.GetDatabaseTableSchemasB
 	}
 
 	if len(primaryKeys) > 0 {
-		sb.WriteString(fmt.Sprintf("CONSTRAINT pk_%s PRIMARY KEY (%s)", tableName, strings.Join(primaryKeys, ",")))
+		sb.WriteString(
+			fmt.Sprintf(
+				"CONSTRAINT pk_%s PRIMARY KEY (%s)",
+				tableName,
+				strings.Join(primaryKeys, ","),
+			),
+		)
 	}
 
 	if periodDefinition != nil && *periodDefinition != "" {
@@ -229,7 +242,9 @@ END`, record.TypeName, record.SchemaName, record.Definition))
 }
 
 // Creates idempotent alter table add constraint statement
-func generateAddConstraintStatement(constraint *mssql_queries.GetTableConstraintsBySchemasRow) string {
+func generateAddConstraintStatement(
+	constraint *mssql_queries.GetTableConstraintsBySchemasRow,
+) string {
 	var sb strings.Builder
 
 	// Start IF NOT EXISTS check
@@ -260,8 +275,11 @@ BEGIN
 		sb.WriteString(fmt.Sprintf("(%s)", escapeColumnList(constraint.ConstraintColumns)))
 
 	case "FOREIGN KEY":
-		sb.WriteString(fmt.Sprintf("FOREIGN KEY (%s) ", escapeColumnList(constraint.ConstraintColumns)))
-		if constraint.ReferencedSchema.Valid && constraint.ReferencedTable.Valid && constraint.ReferencedColumns.Valid {
+		sb.WriteString(
+			fmt.Sprintf("FOREIGN KEY (%s) ", escapeColumnList(constraint.ConstraintColumns)),
+		)
+		if constraint.ReferencedSchema.Valid && constraint.ReferencedTable.Valid &&
+			constraint.ReferencedColumns.Valid {
 			sb.WriteString(fmt.Sprintf("REFERENCES [%s].[%s] (%s)",
 				constraint.ReferencedSchema.String,
 				constraint.ReferencedTable.String,

@@ -37,8 +37,12 @@ func newEnforcer(
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize casbin synced cached enforcer: %w", err)
 	}
-	enforcer.EnableAutoSave(true)                  // seems to do this automatically but it doesn't hurt
-	enforcer.StartAutoLoadPolicy(time.Second * 10) // allows HA between neosync-api instances or backend changes to RBAC policies to be picked up.
+	enforcer.EnableAutoSave(
+		true,
+	) // seems to do this automatically but it doesn't hurt
+	enforcer.StartAutoLoadPolicy(
+		time.Second * 10,
+	) // allows HA between neosync-api instances or backend changes to RBAC policies to be picked up.
 	return enforcer, nil
 }
 

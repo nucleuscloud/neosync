@@ -22,54 +22,61 @@ func init() {
 		Param(bloblang.NewInt64Param("max_length").Default(100).Description("Specifies the maximum length of the transformed value.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("transform_string", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		value, err := args.GetOptionalString("value")
-		if err != nil {
-			return nil, err
-		}
-
-		preserveLength, err := args.GetBool("preserve_length")
-		if err != nil {
-			return nil, err
-		}
-
-		minLength, err := args.GetInt64("min_length")
-		if err != nil {
-			return nil, err
-		}
-
-		maxLength, err := args.GetInt64("max_length")
-		if err != nil {
-			return nil, err
-		}
-
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			res, err := transformString(randomizer, value, preserveLength, minLength, maxLength)
+	err := bloblang.RegisterFunctionV2(
+		"transform_string",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			value, err := args.GetOptionalString("value")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run transform_string: %w", err)
+				return nil, err
 			}
-			return res, nil
-		}, nil
-	})
+
+			preserveLength, err := args.GetBool("preserve_length")
+			if err != nil {
+				return nil, err
+			}
+
+			minLength, err := args.GetInt64("min_length")
+			if err != nil {
+				return nil, err
+			}
+
+			maxLength, err := args.GetInt64("max_length")
+			if err != nil {
+				return nil, err
+			}
+
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				res, err := transformString(randomizer, value, preserveLength, minLength, maxLength)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run transform_string: %w", err)
+				}
+				return res, nil
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewTransformStringOptsFromConfig(config *mgmtv1alpha1.TransformString, minLength, maxLength *int64) (*TransformStringOpts, error) {
+func NewTransformStringOptsFromConfig(
+	config *mgmtv1alpha1.TransformString,
+	minLength, maxLength *int64,
+) (*TransformStringOpts, error) {
 	if config == nil {
 		return NewTransformStringOpts(nil, nil, nil, nil)
 	}
@@ -92,11 +99,22 @@ func (t *TransformString) Transform(value, opts any) (any, error) {
 		return nil, errors.New("value is not a string")
 	}
 
-	return transformString(parsedOpts.randomizer, &valueStr, parsedOpts.preserveLength, parsedOpts.minLength, parsedOpts.maxLength)
+	return transformString(
+		parsedOpts.randomizer,
+		&valueStr,
+		parsedOpts.preserveLength,
+		parsedOpts.minLength,
+		parsedOpts.maxLength,
+	)
 }
 
 // Transforms an existing string value into another string. Does not account for numbers and other characters. If you want to preserve spaces, capitalization and other characters, use the Transform_Characters transformer.
-func transformString(randomizer rng.Rand, value *string, preserveLength bool, minLength, maxLength int64) (*string, error) {
+func transformString(
+	randomizer rng.Rand,
+	value *string,
+	preserveLength bool,
+	minLength, maxLength int64,
+) (*string, error) {
 	if value == nil || *value == "" {
 		return value, nil
 	}
@@ -115,7 +133,12 @@ func transformString(randomizer rng.Rand, value *string, preserveLength bool, mi
 	}
 	val, err := transformer_utils.GenerateRandomStringWithInclusiveBounds(randomizer, minL, maxL)
 	if err != nil {
-		return nil, fmt.Errorf("unable to transform a random string with length: [%d:%d]: %w", minL, maxL, err)
+		return nil, fmt.Errorf(
+			"unable to transform a random string with length: [%d:%d]: %w",
+			minL,
+			maxL,
+			err,
+		)
 	}
 	return &val, nil
 }

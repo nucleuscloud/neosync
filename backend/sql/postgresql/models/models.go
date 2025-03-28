@@ -347,7 +347,9 @@ type MongoConnectionConfig struct {
 	ClientTls *ClientTls `json:"clientTls,omitempty"`
 }
 
-func (m *MongoConnectionConfig) ToDto(canViewSensitive bool) (*mgmtv1alpha1.MongoConnectionConfig, error) {
+func (m *MongoConnectionConfig) ToDto(
+	canViewSensitive bool,
+) (*mgmtv1alpha1.MongoConnectionConfig, error) {
 	if m.Url == nil {
 		return nil, errors.New("mongo connection does not contain url")
 	}
@@ -519,7 +521,9 @@ type DynamoDBConfig struct {
 	Endpoint    *string           `json:"Endpoint,omitempty"`
 }
 
-func (d *DynamoDBConfig) ToDto(canViewSensitive bool) (*mgmtv1alpha1.DynamoDBConnectionConfig, error) {
+func (d *DynamoDBConfig) ToDto(
+	canViewSensitive bool,
+) (*mgmtv1alpha1.DynamoDBConnectionConfig, error) {
 	var creds *mgmtv1alpha1.AwsS3Credentials
 	if d.Credentials != nil {
 		creds = d.Credentials.ToDto(canViewSensitive)
@@ -965,7 +969,10 @@ func (p *MssqlColumnRemovalStrategy) ToDto() *mgmtv1alpha1.MssqlSourceConnection
 	}
 	return nil
 }
-func (p *MssqlColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy) {
+
+func (p *MssqlColumnRemovalStrategy) FromDto(
+	dto *mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy,
+) {
 	if dto == nil {
 		dto = &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy{}
 	}
@@ -982,9 +989,12 @@ type MssqlContinueJobColumnRemovalStrategy struct{}
 
 func (m *MssqlSourceOptions) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions {
 	dto := &mgmtv1alpha1.MssqlSourceConnectionOptions{
-		HaltOnNewColumnAddition:       m.HaltOnNewColumnAddition,
-		ConnectionId:                  m.ConnectionId,
-		Schemas:                       make([]*mgmtv1alpha1.MssqlSourceSchemaOption, len(m.Schemas)),
+		HaltOnNewColumnAddition: m.HaltOnNewColumnAddition,
+		ConnectionId:            m.ConnectionId,
+		Schemas: make(
+			[]*mgmtv1alpha1.MssqlSourceSchemaOption,
+			len(m.Schemas),
+		),
 		SubsetByForeignKeyConstraints: m.SubsetByForeignKeyConstraints,
 	}
 	for idx := range m.Schemas {
@@ -1032,7 +1042,9 @@ func (m *MssqlSourceSchemaOption) FromDto(dto *mgmtv1alpha1.MssqlSourceSchemaOpt
 	m.Tables = FromDtoMssqlSourceTableOption(dto.GetTables())
 }
 
-func FromDtoMssqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MssqlSourceSchemaOption) []*MssqlSourceSchemaOption {
+func FromDtoMssqlSourceSchemaOptions(
+	dtos []*mgmtv1alpha1.MssqlSourceSchemaOption,
+) []*MssqlSourceSchemaOption {
 	output := make([]*MssqlSourceSchemaOption, len(dtos))
 	for idx := range dtos {
 		output[idx] = &MssqlSourceSchemaOption{}
@@ -1041,7 +1053,9 @@ func FromDtoMssqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MssqlSourceSchemaOptio
 	return output
 }
 
-func FromDtoMssqlSourceTableOption(dtos []*mgmtv1alpha1.MssqlSourceTableOption) []*MssqlSourceTableOption {
+func FromDtoMssqlSourceTableOption(
+	dtos []*mgmtv1alpha1.MssqlSourceTableOption,
+) []*MssqlSourceTableOption {
 	output := make([]*MssqlSourceTableOption, len(dtos))
 	for idx := range dtos {
 		output[idx] = &MssqlSourceTableOption{}
@@ -1091,7 +1105,10 @@ func (s *DynamoDBSourceUnmappedTransformConfig) ToDto() *mgmtv1alpha1.DynamoDBSo
 		S:       s.S.ToTransformerDto(),
 	}
 }
-func (s *DynamoDBSourceUnmappedTransformConfig) FromDto(dto *mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig) error {
+
+func (s *DynamoDBSourceUnmappedTransformConfig) FromDto(
+	dto *mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig,
+) error {
 	if dto == nil {
 		dto = &mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig{}
 	}
@@ -1247,7 +1264,10 @@ func (p *MysqlColumnRemovalStrategy) ToDto() *mgmtv1alpha1.MysqlSourceConnection
 	}
 	return nil
 }
-func (p *MysqlColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy) {
+
+func (p *MysqlColumnRemovalStrategy) FromDto(
+	dto *mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy,
+) {
 	if dto == nil {
 		dto = &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy{}
 	}
@@ -1293,7 +1313,10 @@ func (p *PostgresNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.PostgresSource
 	}
 	return nil
 }
-func (p *PostgresNewColumnAdditionStrategy) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy) {
+
+func (p *PostgresNewColumnAdditionStrategy) FromDto(
+	dto *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy,
+) {
 	if dto == nil {
 		dto = &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{}
 	}
@@ -1329,7 +1352,10 @@ func (p *PostgresColumnRemovalStrategy) ToDto() *mgmtv1alpha1.PostgresSourceConn
 	}
 	return nil
 }
-func (p *PostgresColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy) {
+
+func (p *PostgresColumnRemovalStrategy) FromDto(
+	dto *mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy,
+) {
 	if dto == nil {
 		dto = &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy{}
 	}
@@ -1429,7 +1455,9 @@ func (s *PostgresSourceOptions) FromDto(dto *mgmtv1alpha1.PostgresSourceConnecti
 	}
 }
 
-func FromDtoPostgresSourceSchemaOptions(dtos []*mgmtv1alpha1.PostgresSourceSchemaOption) []*PostgresSourceSchemaOption {
+func FromDtoPostgresSourceSchemaOptions(
+	dtos []*mgmtv1alpha1.PostgresSourceSchemaOption,
+) []*PostgresSourceSchemaOption {
 	output := make([]*PostgresSourceSchemaOption, len(dtos))
 	for idx := range dtos {
 		schema := dtos[idx]
@@ -1508,7 +1536,9 @@ func (s *MysqlNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.MysqlSourceConnec
 	return nil
 }
 
-func (s *MysqlNewColumnAdditionStrategy) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy) {
+func (s *MysqlNewColumnAdditionStrategy) FromDto(
+	dto *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy,
+) {
 	if dto.GetStrategy() != nil {
 		switch dto.GetStrategy().(type) {
 		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
@@ -1539,7 +1569,9 @@ func (s *MysqlSourceOptions) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOpti
 	}
 }
 
-func FromDtoMysqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MysqlSourceSchemaOption) []*MysqlSourceSchemaOption {
+func FromDtoMysqlSourceSchemaOptions(
+	dtos []*mgmtv1alpha1.MysqlSourceSchemaOption,
+) []*MysqlSourceSchemaOption {
 	output := make([]*MysqlSourceSchemaOption, len(dtos))
 	for idx := range dtos {
 		schema := dtos[idx]
@@ -1560,7 +1592,9 @@ func FromDtoMysqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MysqlSourceSchemaOptio
 	return output
 }
 
-func FromDtoDynamoDBSourceTableOptions(dtos []*mgmtv1alpha1.DynamoDBSourceTableOption) []*DynamoDBSourceTableOption {
+func FromDtoDynamoDBSourceTableOptions(
+	dtos []*mgmtv1alpha1.DynamoDBSourceTableOption,
+) []*DynamoDBSourceTableOption {
 	tables := make([]*DynamoDBSourceTableOption, len(dtos))
 	for i, table := range dtos {
 		t := &DynamoDBSourceTableOption{}
@@ -1598,7 +1632,9 @@ func (s *GenerateSourceOptions) FromDto(dto *mgmtv1alpha1.GenerateSourceOptions)
 	s.Schemas = FromDtoGenerateSourceSchemaOptions(dto.Schemas)
 }
 
-func FromDtoGenerateSourceSchemaOptions(dtos []*mgmtv1alpha1.GenerateSourceSchemaOption) []*GenerateSourceSchemaOption {
+func FromDtoGenerateSourceSchemaOptions(
+	dtos []*mgmtv1alpha1.GenerateSourceSchemaOption,
+) []*GenerateSourceSchemaOption {
 	output := make([]*GenerateSourceSchemaOption, len(dtos))
 	for idx := range dtos {
 		schema := dtos[idx]
@@ -1654,7 +1690,9 @@ func (s *AiGenerateSourceOptions) FromDto(dto *mgmtv1alpha1.AiGenerateSourceOpti
 	s.GenerateBatchSize = dto.GenerateBatchSize
 }
 
-func FromDtoAiGenerateSourceSchemaOptions(dtos []*mgmtv1alpha1.AiGenerateSourceSchemaOption) []*AiGenerateSourceSchemaOption {
+func FromDtoAiGenerateSourceSchemaOptions(
+	dtos []*mgmtv1alpha1.AiGenerateSourceSchemaOption,
+) []*AiGenerateSourceSchemaOption {
 	output := make([]*AiGenerateSourceSchemaOption, len(dtos))
 	for idx := range dtos {
 		schema := dtos[idx]
@@ -1808,7 +1846,10 @@ func (d *DynamoDBDestinationOptions) ToDto() *mgmtv1alpha1.DynamoDBDestinationCo
 		TableMappings: tableMappings,
 	}
 }
-func (d *DynamoDBDestinationOptions) FromDto(dto *mgmtv1alpha1.DynamoDBDestinationConnectionOptions) {
+
+func (d *DynamoDBDestinationOptions) FromDto(
+	dto *mgmtv1alpha1.DynamoDBDestinationConnectionOptions,
+) {
 	d.TableMappings = make([]*DynamoDBDestinationTableMapping, 0, len(dto.GetTableMappings()))
 
 	for _, dtotm := range dto.GetTableMappings() {
@@ -1829,7 +1870,10 @@ func (d *DynamoDBDestinationTableMapping) ToDto() *mgmtv1alpha1.DynamoDBDestinat
 		DestinationTable: d.DestinationTable,
 	}
 }
-func (d *DynamoDBDestinationTableMapping) FromDto(dto *mgmtv1alpha1.DynamoDBDestinationTableMapping) {
+
+func (d *DynamoDBDestinationTableMapping) FromDto(
+	dto *mgmtv1alpha1.DynamoDBDestinationTableMapping,
+) {
 	d.SourceTable = dto.GetSourceTable()
 	d.DestinationTable = dto.GetDestinationTable()
 }
@@ -1880,7 +1924,9 @@ func (m *PostgresDestinationOptions) ToDto() *mgmtv1alpha1.PostgresDestinationCo
 	}
 }
 
-func (m *PostgresDestinationOptions) FromDto(dto *mgmtv1alpha1.PostgresDestinationConnectionOptions) {
+func (m *PostgresDestinationOptions) FromDto(
+	dto *mgmtv1alpha1.PostgresDestinationConnectionOptions,
+) {
 	if dto == nil {
 		dto = &mgmtv1alpha1.PostgresDestinationConnectionOptions{}
 	}
@@ -2219,7 +2265,9 @@ func (a *AwsS3DestinationOptions) ToDto() *mgmtv1alpha1.AwsS3DestinationConnecti
 	storageClass := mgmtv1alpha1.AwsS3DestinationConnectionOptions_STORAGE_CLASS_UNSPECIFIED
 	if a.StorageClass != nil {
 		if _, ok := mgmtv1alpha1.AwsS3DestinationConnectionOptions_StorageClass_name[*a.StorageClass]; ok {
-			storageClass = mgmtv1alpha1.AwsS3DestinationConnectionOptions_StorageClass(*a.StorageClass)
+			storageClass = mgmtv1alpha1.AwsS3DestinationConnectionOptions_StorageClass(
+				*a.StorageClass,
+			)
 		}
 	}
 	var batch *mgmtv1alpha1.BatchConfig
