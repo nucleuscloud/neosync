@@ -11,6 +11,33 @@ type ExistsInSource struct {
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
 	Triggers                 []*sqlmanager_shared.TableTrigger
 	Functions                []*sqlmanager_shared.DataType
+	Enums                    []*sqlmanager_shared.EnumDataType
+	Domains                  []*sqlmanager_shared.DomainDataType
+	Composites               []*sqlmanager_shared.CompositeDataType
+}
+
+type EnumDiff struct {
+	Enum          *sqlmanager_shared.EnumDataType
+	NewValues     []string
+	ChangedValues map[string]string
+}
+
+type CompositeDiff struct {
+	Composite                *sqlmanager_shared.CompositeDataType
+	ChangedAttributeDatatype map[string]string
+	NewAttributes            map[string]string
+	RemovedAttributes        []string
+	ChangedAttributeName     map[string]string
+}
+
+type DomainDiff struct {
+	Domain             *sqlmanager_shared.DomainDataType
+	IsNullDifferent    bool
+	IsDefaultDifferent bool
+
+	// constraints
+	NewConstraints     map[string]string
+	RemovedConstraints []string
 }
 
 type Different struct {
@@ -19,6 +46,9 @@ type Different struct {
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
 	Triggers                 []*sqlmanager_shared.TableTrigger
 	Functions                []*sqlmanager_shared.DataType
+	Enums                    []*EnumDiff
+	Composites               []*CompositeDiff
+	Domains                  []*DomainDiff
 }
 type ExistsInBoth struct {
 	Tables []*sqlmanager_shared.SchemaTable
@@ -33,6 +63,9 @@ type ExistsInDestination struct {
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
 	Triggers                 []*sqlmanager_shared.TableTrigger
 	Functions                []*sqlmanager_shared.DataType
+	Enums                    []*sqlmanager_shared.EnumDataType
+	Domains                  []*sqlmanager_shared.DomainDataType
+	Composites               []*sqlmanager_shared.CompositeDataType
 }
 
 type SchemaDifferences struct {
@@ -46,10 +79,13 @@ type SchemaDifferences struct {
 
 type DatabaseData struct {
 	Columns                  map[string]map[string]*sqlmanager_shared.TableColumn  // map of schema.table -> column name -> column info
-	ForeignKeyConstraints    map[string]*sqlmanager_shared.ForeignKeyConstraint    // map of fingerprint -> foreign key constraint
-	NonForeignKeyConstraints map[string]*sqlmanager_shared.NonForeignKeyConstraint // map of fingerprint -> non foreign key constraint
-	Triggers                 map[string]*sqlmanager_shared.TableTrigger            // map of fingerprint -> trigger
-	Functions                map[string]*sqlmanager_shared.DataType                // map of fingerprint -> function
+	ForeignKeyConstraints    map[string]*sqlmanager_shared.ForeignKeyConstraint    // map of key -> foreign key constraint
+	NonForeignKeyConstraints map[string]*sqlmanager_shared.NonForeignKeyConstraint // map of key -> non foreign key constraint
+	Triggers                 map[string]*sqlmanager_shared.TableTrigger            // map of key -> trigger
+	Functions                map[string]*sqlmanager_shared.DataType                // map of key -> function
+	Domains                  map[string]*sqlmanager_shared.DomainDataType          // map of key -> domain
+	Enums                    map[string]*sqlmanager_shared.EnumDataType            // map of key -> enum
+	Composites               map[string]*sqlmanager_shared.CompositeDataType       // map of key -> composite
 }
 
 type SchemaDifferencesBuilder struct {
@@ -93,6 +129,8 @@ func NewSchemaDifferencesBuilder(
 					ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
 					Triggers:                 []*sqlmanager_shared.TableTrigger{},
 					Functions:                []*sqlmanager_shared.DataType{},
+					Enums:                    []*EnumDiff{},
+					Composites:               []*CompositeDiff{},
 				},
 			},
 		},
@@ -105,6 +143,9 @@ func (b *SchemaDifferencesBuilder) Build() *SchemaDifferences {
 	b.buildTableNonForeignKeyConstraintDifferences()
 	b.buildTableTriggerDifferences()
 	b.buildSchemaFunctionDifferences()
+	b.buildTableEnumDifferences()
+	b.buildTableCompositeDifferences()
+	b.buildTableDomainDifferences()
 	return b.diff
 }
 
@@ -177,6 +218,140 @@ func (b *SchemaDifferencesBuilder) buildSchemaFunctionDifferences() {
 	b.diff.ExistsInSource.Functions = existsInSource
 	b.diff.ExistsInBoth.Different.Functions = existsInBoth
 	b.diff.ExistsInDestination.Functions = existsInDestination
+}
+
+func (b *SchemaDifferencesBuilder) buildTableEnumDifferences() {
+	for key, srcEnum := range b.source.Enums {
+		if destEnum, ok := b.destination.Enums[key]; ok {
+			newValues := []string{}
+			changedValues := map[string]string{}
+			for idx, srcValue := range srcEnum.Values {
+				if idx >= len(destEnum.Values) {
+					newValues = append(newValues, srcValue)
+				} else if srcValue != destEnum.Values[idx] {
+					changedValues[destEnum.Values[idx]] = srcValue
+				}
+			}
+			b.diff.ExistsInBoth.Different.Enums = append(b.diff.ExistsInBoth.Different.Enums, &EnumDiff{
+				Enum:          srcEnum,
+				NewValues:     newValues,
+				ChangedValues: changedValues,
+			})
+		} else {
+			b.diff.ExistsInSource.Enums = append(b.diff.ExistsInSource.Enums, srcEnum)
+		}
+	}
+
+	for key, destEnum := range b.destination.Enums {
+		if _, ok := b.source.Enums[key]; !ok {
+			b.diff.ExistsInDestination.Enums = append(b.diff.ExistsInDestination.Enums, destEnum)
+		}
+	}
+}
+
+func (b *SchemaDifferencesBuilder) buildTableCompositeDifferences() {
+	for key, srcComposite := range b.source.Composites {
+		if destComposite, ok := b.destination.Composites[key]; ok {
+			changedAttributesDatatype := map[string]string{}
+			changedAttributesName := map[string]string{}
+			newAttributes := map[string]string{}
+			removedAttributes := []string{}
+
+			srcAttributes := map[int]*sqlmanager_shared.CompositeAttribute{}
+			for _, attr := range srcComposite.Attributes {
+				srcAttributes[attr.Id] = attr
+			}
+			destAttributes := map[int]*sqlmanager_shared.CompositeAttribute{}
+			for _, attr := range destComposite.Attributes {
+				destAttributes[attr.Id] = attr
+			}
+
+			// The id here is unique to the attribute and doesn't get reused when deleted.
+			for id, attr := range srcAttributes {
+				if destAttr, ok := destAttributes[id]; ok {
+					if attr.Datatype != destAttr.Datatype {
+						changedAttributesDatatype[destAttr.Name] = attr.Datatype
+					}
+					if attr.Name != destAttr.Name {
+						changedAttributesName[destAttr.Name] = attr.Name
+					}
+				} else {
+					newAttributes[attr.Name] = attr.Datatype
+				}
+			}
+
+			for id, attr := range destAttributes {
+				if _, ok := srcAttributes[id]; !ok {
+					removedAttributes = append(removedAttributes, attr.Name)
+				}
+			}
+
+			b.diff.ExistsInBoth.Different.Composites = append(b.diff.ExistsInBoth.Different.Composites, &CompositeDiff{
+				Composite:                srcComposite,
+				ChangedAttributeDatatype: changedAttributesDatatype,
+				NewAttributes:            newAttributes,
+				RemovedAttributes:        removedAttributes,
+				ChangedAttributeName:     changedAttributesName,
+			})
+		} else {
+			b.diff.ExistsInSource.Composites = append(b.diff.ExistsInSource.Composites, srcComposite)
+		}
+	}
+
+	for key, destComposite := range b.destination.Composites {
+		if _, ok := b.source.Composites[key]; !ok {
+			b.diff.ExistsInDestination.Composites = append(b.diff.ExistsInDestination.Composites, destComposite)
+		}
+	}
+}
+
+func (b *SchemaDifferencesBuilder) buildTableDomainDifferences() {
+	for key, srcDomain := range b.source.Domains {
+		if destDomain, ok := b.destination.Domains[key]; ok {
+			domain := &DomainDiff{
+				Domain:             srcDomain,
+				IsNullDifferent:    srcDomain.IsNullable != destDomain.IsNullable,
+				IsDefaultDifferent: srcDomain.Default != destDomain.Default,
+				NewConstraints:     map[string]string{},
+				RemovedConstraints: []string{},
+			}
+
+			srcConstraints := map[string]*sqlmanager_shared.DomainConstraint{}
+			for _, constraint := range srcDomain.Constraints {
+				srcConstraints[constraint.Name] = constraint
+			}
+			destConstraints := map[string]*sqlmanager_shared.DomainConstraint{}
+			for _, constraint := range destDomain.Constraints {
+				destConstraints[constraint.Name] = constraint
+			}
+
+			for _, constraint := range srcConstraints {
+				if destConstraint, ok := destConstraints[constraint.Name]; ok {
+					if constraint.Definition != destConstraint.Definition {
+						domain.RemovedConstraints = append(domain.RemovedConstraints, constraint.Name)
+					}
+				} else {
+					domain.NewConstraints[constraint.Name] = constraint.Definition
+				}
+			}
+
+			for _, constraint := range destConstraints {
+				if _, ok := srcConstraints[constraint.Name]; !ok {
+					domain.NewConstraints[constraint.Name] = constraint.Definition
+				}
+			}
+
+			b.diff.ExistsInBoth.Different.Domains = append(b.diff.ExistsInBoth.Different.Domains, domain)
+		} else {
+			b.diff.ExistsInSource.Domains = append(b.diff.ExistsInSource.Domains, srcDomain)
+		}
+	}
+
+	for key, destDomain := range b.destination.Domains {
+		if _, ok := b.source.Domains[key]; !ok {
+			b.diff.ExistsInDestination.Domains = append(b.diff.ExistsInDestination.Domains, destDomain)
+		}
+	}
 }
 
 type FingerprintedType interface {

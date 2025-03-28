@@ -321,6 +321,13 @@ func (m *Manager) GetSchemaTableDataTypes(
 	return output, nil
 }
 
+func (m *Manager) GetDataTypesByTables(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) (*sqlmanager_shared.AllTableDataTypes, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (m *Manager) GetSchemaTableTriggers(
 	ctx context.Context,
 	tables []*sqlmanager_shared.SchemaTable,

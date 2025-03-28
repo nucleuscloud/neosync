@@ -3,6 +3,7 @@ package sqlmanager_postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -268,9 +269,129 @@ func (p *PostgresManager) GetTableConstraintsByTables(
 	return result, nil
 }
 
-func (p *PostgresManager) GetAllSchemas(
+func (p *PostgresManager) GetDataTypesByTables(
 	ctx context.Context,
-) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
+	tables []*sqlmanager_shared.SchemaTable,
+) (*sqlmanager_shared.AllTableDataTypes, error) {
+	if len(tables) == 0 {
+		return &sqlmanager_shared.AllTableDataTypes{}, nil
+	}
+
+	tableNames := make([]string, 0, len(tables))
+	for _, t := range tables {
+		tableNames = append(tableNames, t.String())
+	}
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+
+	enumTypes := []*sqlmanager_shared.EnumDataType{}
+	errgrp.Go(func() error {
+		var err error
+		enums, err := p.querier.GetEnumTypesByTables(errctx, p.db, tableNames)
+		if err != nil {
+			return err
+		}
+		for _, row := range enums {
+			enum := &sqlmanager_shared.EnumDataType{
+				Schema: row.Schema,
+				Name:   row.Name,
+				Values: row.Values,
+			}
+			enum.Fingerprint = sqlmanager_shared.BuildEnumDataTypeFingerprint(enum)
+			enumTypes = append(enumTypes, enum)
+		}
+		return nil
+	})
+
+	compositeTypes := []*sqlmanager_shared.CompositeDataType{}
+	errgrp.Go(func() error {
+		var err error
+		composites, err := p.querier.GetCompositeTypesByTables(errctx, p.db, tableNames)
+		if err != nil {
+			return err
+		}
+		for _, row := range composites {
+			var attributes []*sqlmanager_shared.CompositeAttribute
+			if err := json.Unmarshal(row.Attributes, &attributes); err != nil {
+				return err
+			}
+			composite := &sqlmanager_shared.CompositeDataType{
+				Schema:     row.Schema,
+				Name:       row.Name,
+				Attributes: attributes,
+			}
+			composite.Fingerprint = sqlmanager_shared.BuildCompositeDataTypeFingerprint(composite)
+			compositeTypes = append(compositeTypes, composite)
+		}
+		return nil
+	})
+
+	domainTypes := []*sqlmanager_shared.DomainDataType{}
+	errgrp.Go(func() error {
+		var err error
+		domains, err := p.querier.GetDomainsByTables(errctx, p.db, tableNames)
+		if err != nil {
+			return err
+		}
+		for _, row := range domains {
+			var constraints []*sqlmanager_shared.DomainConstraint
+			if err := json.Unmarshal(row.Constraints, &constraints); err != nil {
+				return err
+			}
+			domain := &sqlmanager_shared.DomainDataType{
+				Schema:      row.Schema,
+				Name:        row.Name,
+				Constraints: constraints,
+			}
+			domain.Fingerprint = sqlmanager_shared.BuildDomainDataTypeFingerprint(domain)
+			domainTypes = append(domainTypes, domain)
+		}
+		return nil
+	})
+
+	schemaTablesMap := map[string][]string{}
+	for _, t := range tables {
+		schemaTablesMap[t.Schema] = append(schemaTablesMap[t.Schema], t.Table)
+	}
+
+	functions := []*sqlmanager_shared.DataType{}
+	errgrp.Go(func() error {
+		for schema, tables := range schemaTablesMap {
+			rows, err := p.querier.GetCustomFunctionsBySchemaAndTables(ctx, p.db, &pg_queries.GetCustomFunctionsBySchemaAndTablesParams{
+				Schema: schema,
+				Tables: tables,
+			})
+			if err != nil && !neosyncdb.IsNoRows(err) {
+				return err
+			} else if err != nil && neosyncdb.IsNoRows(err) {
+				return nil
+			}
+			for _, row := range rows {
+				function := &sqlmanager_shared.DataType{
+					Schema:     row.SchemaName,
+					Name:       row.FunctionName,
+					Definition: row.Definition,
+				}
+				function.Fingerprint = sqlmanager_shared.BuildFingerprint(function.Schema, function.Name, function.Definition)
+				functions = append(functions, function)
+			}
+		}
+		return nil
+	})
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	return &sqlmanager_shared.AllTableDataTypes{
+		Functions:  functions,
+		Enums:      enumTypes,
+		Composites: compositeTypes,
+		Domains:    domainTypes,
+	}, nil
+}
+
+func (p *PostgresManager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
 	rows, err := p.querier.GetAllSchemas(ctx, p.db)
 	if err != nil {
 		return nil, err
@@ -1303,6 +1424,7 @@ func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) string {
 		IsNullable:         column.IsNullable,
 		GeneratedType:      *column.GeneratedType,
 		SequenceDefinition: column.SequenceDefinition,
+		IsSerial:           column.IsSerial,
 	})
 	return fmt.Sprintf("ALTER TABLE %q.%q ADD COLUMN %s;", column.Schema, column.Table, col)
 }
@@ -1331,7 +1453,84 @@ func BuildDropFunctionStatement(schema, functionName string) string {
 }
 
 func BuildUpdateFunctionStatement(schema, functionName, createStatement string) string {
-	return fmt.Sprintf("CREATE OR REPLACE FUNCTION %q.%q %s;", schema, functionName, addSuffixIfNotExist(createStatement, ";"))
+	if strings.Contains(strings.ToUpper(createStatement), "CREATE FUNCTION") &&
+		!strings.Contains(strings.ToUpper(createStatement), "CREATE OR REPLACE FUNCTION") {
+		createStatement = strings.Replace(strings.ToUpper(createStatement), "CREATE FUNCTION", "CREATE OR REPLACE FUNCTION", 1)
+	}
+	return createStatement
+}
+
+func BuildDropDatatypesStatement(schema, enumName string) string {
+	return fmt.Sprintf("DROP TYPE IF EXISTS %q.%q;", schema, enumName)
+}
+
+func BuildUpdateEnumStatements(schema, enumName string, newValues []string, changedValues map[string]string) []string {
+	statements := []string{}
+	for _, value := range newValues {
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q ADD VALUE IF NOT EXISTS '%s';", schema, enumName, value))
+	}
+	for value, newVal := range changedValues {
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q RENAME VALUE '%s' TO '%s';", schema, enumName, value, newVal))
+	}
+	return statements
+}
+
+func BuildUpdateCompositeStatements(
+	schema, compositeName string,
+	changedAttributesDatatype, changedAttributesName, newAttributes map[string]string,
+	removedAttributes []string,
+) []string {
+	statements := []string{}
+	for attribute, newDatatype := range changedAttributesDatatype {
+		statements = append(
+			statements,
+			fmt.Sprintf("ALTER TYPE %q.%q ALTER ATTRIBUTE %q SET DATA TYPE '%s';", schema, compositeName, attribute, newDatatype),
+		)
+	}
+	for oldName, newName := range changedAttributesName {
+		statements = append(
+			statements,
+			fmt.Sprintf("ALTER TYPE %q.%q RENAME ATTRIBUTE %q TO  %q;", schema, compositeName, oldName, newName),
+		)
+	}
+	for attribute, datatype := range newAttributes {
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q ADD ATTRIBUTE %q %s;", schema, compositeName, attribute, datatype))
+	}
+	for _, attribute := range removedAttributes {
+		statements = append(statements, fmt.Sprintf("ALTER TYPE %q.%q DROP ATTRIBUTE IF EXISTS %q;", schema, compositeName, attribute))
+	}
+	return statements
+}
+
+func BuildDropDomainStatement(schema, domainName string) string {
+	return fmt.Sprintf("DROP DOMAIN IF EXISTS %q.%q;", schema, domainName)
+}
+
+func BuildDomainConstraintStatements(schema, domainName string, newConstraints map[string]string, removedConstraints []string) []string {
+	statements := []string{}
+	for constraint, definition := range newConstraints {
+		statements = append(statements, fmt.Sprintf("ALTER DOMAIN %q.%q ADD CONSTRAINT %q %s;", schema, domainName, constraint, definition))
+	}
+	for _, constraint := range removedConstraints {
+		statements = append(statements, fmt.Sprintf("ALTER DOMAIN %q.%q DROP CONSTRAINT IF EXISTS %q;", schema, domainName, constraint))
+	}
+	return statements
+}
+
+func BuildUpdateDomainDefaultStatement(schema, domainName, defaultString string) string {
+	return fmt.Sprintf("ALTER DOMAIN %q.%q SET DEFAULT %s;", schema, domainName, defaultString)
+}
+
+func BuildDropDomainDefaultStatement(schema, domainName string) string {
+	return fmt.Sprintf("ALTER DOMAIN %q.%q DROP DEFAULT;", schema, domainName)
+}
+
+func BuildUpdateDomainNotNullStatement(schema, domainName string, isNullable bool) string {
+	nullString := "NOT NULL"
+	if isNullable {
+		nullString = "NULL"
+	}
+	return fmt.Sprintf("ALTER DOMAIN %q.%q SET %s;", schema, domainName, nullString)
 }
 
 type buildTableColRequest struct {

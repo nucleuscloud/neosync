@@ -1030,6 +1030,13 @@ func (m *MysqlManager) GetSchemaTableDataTypes(
 	return output, nil
 }
 
+func (m *MysqlManager) GetDataTypesByTables(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) (*sqlmanager_shared.AllTableDataTypes, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (m *MysqlManager) GetSchemaTableTriggers(
 	ctx context.Context,
 	tables []*sqlmanager_shared.SchemaTable,
