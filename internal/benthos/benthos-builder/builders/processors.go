@@ -163,13 +163,13 @@ func buildProcessorConfigs(
 	mappedKeys []string,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
 	// filter columns by config insert cols
-	filteredCols := []*shared.JobTransformationMapping{}
+	filteredColumnMappings := []*shared.JobTransformationMapping{}
 	for _, col := range cols {
 		if slices.Contains(runconfig.InsertColumns(), col.Column) {
-			filteredCols = append(filteredCols, col)
+			filteredColumnMappings = append(filteredColumnMappings, col)
 		}
 	}
-	jsCode, err := extractJsFunctionsAndOutputs(ctx, transformerclient, filteredCols)
+	jsCode, err := extractJsFunctionsAndOutputs(ctx, transformerclient, filteredColumnMappings)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func buildProcessorConfigs(
 	mutations, err := buildMutationConfigs(
 		ctx,
 		transformerclient,
-		filteredCols,
+		filteredColumnMappings,
 		tableColumnInfo,
 		runconfig.SplitColumnPaths(),
 	)
@@ -186,7 +186,7 @@ func buildProcessorConfigs(
 	}
 
 	cacheBranches, err := buildBranchCacheConfigs(
-		filteredCols,
+		filteredColumnMappings,
 		transformedFktoPkMap,
 		jobId,
 		runId,
@@ -196,7 +196,7 @@ func buildProcessorConfigs(
 		return nil, err
 	}
 
-	pkMapping := buildPrimaryKeyMappingConfigs(filteredCols, fkSourceCols)
+	pkMapping := buildPrimaryKeyMappingConfigs(filteredColumnMappings, fkSourceCols)
 
 	defaultTransformerConfig, err := buildDefaultTransformerConfigs(jobSourceOptions, mappedKeys)
 	if err != nil {
@@ -275,7 +275,7 @@ func buildDefaultTransformerConfigs(
 func extractJsFunctionsAndOutputs(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	cols []*mgmtv1alpha1.JobMapping,
+	cols []*shared.JobTransformationMapping,
 ) (string, error) {
 	var benthosOutputs []string
 	var jsFunctions []string
@@ -332,7 +332,7 @@ func isJavascriptTransformer(jmt *mgmtv1alpha1.JobMappingTransformer) bool {
 func buildIdentityCursors(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	cols []*mgmtv1alpha1.JobMapping,
+	cols []*shared.JobTransformationMapping,
 ) (map[string]*tablesync_shared.IdentityCursor, error) {
 	cursors := map[string]*tablesync_shared.IdentityCursor{}
 
@@ -362,7 +362,7 @@ func buildIdentityCursors(
 func buildMutationConfigs(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	cols []*mgmtv1alpha1.JobMapping,
+	cols []*shared.JobTransformationMapping,
 	tableColumnInfo map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	splitColumnPaths bool,
 ) (string, error) {
@@ -420,7 +420,7 @@ func getBenthosColumnKey(column string, shouldSplitPath bool) string {
 	return fmt.Sprintf("%q", column)
 }
 
-func buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys []string) string {
+func buildPrimaryKeyMappingConfigs(cols []*shared.JobTransformationMapping, primaryKeys []string) string {
 	mappings := []string{}
 	for _, col := range cols {
 		if shouldProcessColumn(col.Transformer) && slices.Contains(primaryKeys, col.Column) {
@@ -449,7 +449,7 @@ func generateSha1Hash(input string) string {
 }
 
 func buildBranchCacheConfigs(
-	cols []*mgmtv1alpha1.JobMapping,
+	cols []*shared.JobTransformationMapping,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	jobId, runId string,
 	redisConfig *neosync_redis.RedisConfig,
@@ -560,7 +560,7 @@ func convertUserDefinedFunctionConfig(
 }
 
 func computeMutationFunction(
-	col *mgmtv1alpha1.JobMapping,
+	col *shared.JobTransformationMapping,
 	colInfo *sqlmanager_shared.DatabaseSchemaRow,
 	splitColumnPath bool,
 ) (string, error) {
@@ -861,7 +861,7 @@ func computeMutationFunction(
 	}
 }
 
-func buildScrambleIdentityToken(col *mgmtv1alpha1.JobMapping) string {
+func buildScrambleIdentityToken(col *shared.JobTransformationMapping) string {
 	return neosync_benthos.ToSha256(
 		fmt.Sprintf("%s.%s.%s", col.GetSchema(), col.GetTable(), col.GetColumn()),
 	)

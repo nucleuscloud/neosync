@@ -4,10 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"iter"
 	"log/slog"
-	"maps"
-	"slices"
 	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -42,6 +39,8 @@ type sqlSyncBuilder struct {
 	// merged source and destination schema. with preference given to destination schema
 	mergedSchemaColumnMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
 	configQueryMap        map[string]*sqlmanager_shared.SelectQuery                  // config id -> query info
+
+	jobMappings []*shared.JobTransformationMapping
 }
 
 func NewSqlSyncBuilder(
@@ -62,247 +61,8 @@ func NewSqlSyncBuilder(
 	}
 }
 
-type CascadeSchemaSettings struct {
-	config *mgmtv1alpha1.JobTypeConfig_JobTypeSync
-}
-
-func (c *CascadeSchemaSettings) GetSchemaStrategy() *mgmtv1alpha1.JobTypeConfig_JobTypeSync_SchemaStrategy {
-	return c.config.GetSchemaChange().GetSchemaStrategy()
-}
-
-func (c *CascadeSchemaSettings) GetTableStrategy(schemaName string) *mgmtv1alpha1.JobTypeConfig_JobTypeSync_TableStrategy {
-	for _, schemaMapping := range c.config.GetSchemaMappings() {
-		if schemaMapping.GetSchema() == schemaName {
-			ts := schemaMapping.GetTableStrategy()
-			if ts != nil {
-				return ts
-			} else {
-				break // fall back to global table strategy
-			}
-		}
-	}
-	return c.config.GetSchemaChange().GetTableStrategy()
-}
-
-func (c *CascadeSchemaSettings) GetColumnStrategy(schemaName, tableName string) *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy {
-	for _, schemaMapping := range c.config.GetSchemaMappings() {
-		if schemaMapping.GetSchema() == schemaName {
-			for _, tableMapping := range schemaMapping.GetTableMappings() {
-				if tableMapping.GetTable() == tableName {
-					tableLevelColumnStrategy := tableMapping.GetColumnStrategy()
-					if tableLevelColumnStrategy != nil {
-						return tableLevelColumnStrategy
-					}
-					break // fall back to schema level column strategy
-				}
-			}
-			schemaLevelColumnStrategy := schemaMapping.GetColumnStrategy()
-			if schemaLevelColumnStrategy != nil {
-				return schemaLevelColumnStrategy
-			}
-			break // fall back to global column strategy
-		}
-	}
-	return c.config.GetSchemaChange().GetColumnStrategy()
-}
-
-func (c *CascadeSchemaSettings) GetDefinedSchemas() []string {
-	output := map[string]bool{}
-	for _, schemaMapping := range c.config.GetSchemaMappings() {
-		output[schemaMapping.GetSchema()] = true
-	}
-	return slices.Collect(maps.Keys(output))
-}
-
-func (c *CascadeSchemaSettings) GetDefinedTables(schemaName string) []string {
-	output := map[string]bool{}
-	for _, schemaMapping := range c.config.GetSchemaMappings() {
-		if schemaMapping.GetSchema() == schemaName {
-			for _, tableMapping := range schemaMapping.GetTableMappings() {
-				output[tableMapping.GetTable()] = true
-			}
-		}
-	}
-	return slices.Collect(maps.Keys(output))
-}
-
-func (c *CascadeSchemaSettings) GetColumnTransforms(
-	schemaName,
-	tableName string,
-	sourceColumnMap map[string]*sqlmanager_shared.DatabaseSchemaRow,
-	destColumnMap map[string]*sqlmanager_shared.DatabaseSchemaRow,
-) (map[string]*mgmtv1alpha1.TransformerConfig, error) {
-	colStrategy := c.GetColumnStrategy(schemaName, tableName)
-
-	output := map[string]*mgmtv1alpha1.TransformerConfig{}
-	maps.Insert(output, c.getDirectColumnTransforms(schemaName, tableName))
-
-	switch colStrat := colStrategy.GetStrategy().(type) {
-	case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns_:
-		if colStrat.MapAllColumns == nil {
-			colStrat.MapAllColumns = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_MapAllColumns{}
-		}
-
-		for colName := range output {
-			if _, ok := sourceColumnMap[colName]; !ok {
-				switch colStrat.MapAllColumns.GetColumnMappedNotInSource().GetStrategy().(type) {
-				case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy_Continue_:
-					// do nothing
-				case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy_Halt_:
-					return nil, fmt.Errorf("column %s in source but not mapped, and halt is set", colName)
-				default:
-					// do nothing
-				}
-			}
-		}
-
-		for _, columnRow := range sourceColumnMap {
-			// column in source, but not mapped
-			if _, ok := output[columnRow.ColumnName]; !ok {
-				switch colStrat.MapAllColumns.GetColumnInSourceNotMapped().GetStrategy().(type) {
-				case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_AutoMap_:
-					// todo: handle this, should not be passthrough
-					output[columnRow.ColumnName] = &mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					}
-				case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Passthrough_:
-					output[columnRow.ColumnName] = &mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					}
-
-				case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Halt_:
-					// todo: handle this
-					return nil, fmt.Errorf("column %s in source but not mapped, and halt is set", columnRow.ColumnName)
-				case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Drop_:
-					// todo: handle this
-				default:
-					output[columnRow.ColumnName] = &mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					}
-				}
-			}
-		}
-
-		missingInDestColumns := []string{}
-		for colName := range output {
-			if _, ok := destColumnMap[colName]; !ok {
-				missingInDestColumns = append(missingInDestColumns, colName)
-			}
-		}
-		if len(missingInDestColumns) > 0 {
-			switch colStrat.MapAllColumns.GetColumnInSourceMappedNotInDestination().GetStrategy().(type) {
-			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Continue_:
-				// do nothing
-			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Drop_:
-				for _, colName := range missingInDestColumns {
-					delete(output, colName)
-				}
-			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Halt_:
-				return nil, fmt.Errorf("columns in source + mapped, but not in destination: %s.%s.[%s]", schemaName, tableName, strings.Join(missingInDestColumns, ", "))
-			}
-		}
-
-		missingInSourceColumns := []string{}
-		for _, columnRow := range destColumnMap {
-			if _, ok := sourceColumnMap[columnRow.ColumnName]; !ok {
-				missingInSourceColumns = append(missingInSourceColumns, columnRow.ColumnName)
-			}
-		}
-		if len(missingInSourceColumns) > 0 {
-			switch colStrat.MapAllColumns.GetColumnInDestinationNoLongerInSource().GetStrategy().(type) {
-			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_Continue_:
-				// do nothing
-			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_Halt_:
-				return nil, fmt.Errorf("columns in destination but not in source: %s.%s.[%s]", schemaName, tableName, strings.Join(missingInSourceColumns, ", "))
-			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_AutoMap_:
-				// todo: handle this, should not be passthrough
-				for _, colName := range missingInSourceColumns {
-					output[colName] = &mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
-					}
-				}
-			default:
-				// do nothing, should be the same as auto map
-			}
-		}
-
-	case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_MapDefinedColumns_:
-		if colStrat.MapDefinedColumns == nil {
-			colStrat.MapDefinedColumns = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_MapDefinedColumns{}
-		}
-		for colName := range output {
-			if _, ok := sourceColumnMap[colName]; !ok {
-				switch colStrat.MapDefinedColumns.GetColumnMappedNotInSource().GetStrategy().(type) {
-				case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy_Continue_:
-					// do nothing
-				case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy_Halt_:
-					return nil, fmt.Errorf("column %s in source but not mapped, and halt is set", colName)
-				default:
-					// do nothing
-				}
-			}
-		}
-
-		missingInDestColumns := []string{}
-		for colName := range output {
-			if _, ok := destColumnMap[colName]; !ok {
-				missingInDestColumns = append(missingInDestColumns, colName)
-			}
-		}
-		if len(missingInDestColumns) > 0 {
-			switch colStrat.MapDefinedColumns.GetColumnInSourceMappedNotInDestination().GetStrategy().(type) {
-			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Continue_:
-				// do nothing
-			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Drop_:
-				for _, colName := range missingInDestColumns {
-					delete(output, colName)
-				}
-			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Halt_:
-				return nil, fmt.Errorf("columns in source + mapped, but not in destination: %s.%s.[%s]", schemaName, tableName, strings.Join(missingInDestColumns, ", "))
-			}
-		}
-	default:
-		// do nothing for now
-	}
-
-	return output, nil
-}
-
-func (c *CascadeSchemaSettings) getDirectColumnTransforms(schemaName, tableName string) iter.Seq2[string, *mgmtv1alpha1.TransformerConfig] {
-	return func(yield func(string, *mgmtv1alpha1.TransformerConfig) bool) {
-		for _, schemaMapping := range c.config.GetSchemaMappings() {
-			if schemaMapping.GetSchema() == schemaName {
-				for _, tableMapping := range schemaMapping.GetTableMappings() {
-					if tableMapping.GetTable() == tableName {
-						for _, columnMapping := range tableMapping.GetColumnMappings() {
-							if !yield(columnMapping.GetColumn(), columnMapping.GetTransformer()) {
-								return
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-// assumes the columnRows are already scoped to a table
-func getColumnMapFromDbInfo(columnRows []*sqlmanager_shared.DatabaseSchemaRow) iter.Seq2[string, *sqlmanager_shared.DatabaseSchemaRow] {
-	return func(yield func(string, *sqlmanager_shared.DatabaseSchemaRow) bool) {
-		for _, columnRow := range columnRows {
-			if !yield(columnRow.ColumnName, columnRow) {
-				return
-			}
-		}
-	}
+func isLegacyJob(job *mgmtv1alpha1.Job) bool {
+	return len(job.GetMappings()) > 0
 }
 
 func (b *sqlSyncBuilder) hydrateJobMappings(
@@ -310,13 +70,11 @@ func (b *sqlSyncBuilder) hydrateJobMappings(
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	logger *slog.Logger,
 ) ([]*shared.JobTransformationMapping, error) {
-	legacyMappings := job.GetMappings()
-	if len(legacyMappings) > 0 {
-		jobMappings := make([]*shared.JobTransformationMapping, len(legacyMappings))
-		for i, mapping := range legacyMappings {
-			jobMappings[i] = &shared.JobTransformationMapping{
-				JobMapping: mapping,
-			}
+	if isLegacyJob(job) {
+		jmBuilder := NewLegacySqlJobMappingBuilder(job, groupedColumnInfo, b.driver, logger)
+		jobMappings, err := jmBuilder.BuildJobMappings()
+		if err != nil {
+			return nil, fmt.Errorf("unable to build legacy job mappings: %w", err)
 		}
 		return jobMappings, nil
 	}
@@ -326,75 +84,17 @@ func (b *sqlSyncBuilder) hydrateJobMappings(
 		return nil, fmt.Errorf("unable to hydrate job mappings: sync config not found")
 	}
 
-	c := &CascadeSchemaSettings{
-		config: syncConfig,
-	}
-
 	schemaTableColumnDbInfo := getSchemaTableColumnDbInfo(groupedColumnInfo)
-	schemas := []string{}
-	switch c.GetSchemaStrategy().GetStrategy().(type) {
-	case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_SchemaStrategy_MapAllSchemas_:
-		schemas = slices.Collect(maps.Keys(schemaTableColumnDbInfo))
-	case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_SchemaStrategy_MapDefinedSchemas_:
-		schemas = append(schemas, c.GetDefinedSchemas()...)
-	default:
-		schemas = slices.Collect(maps.Keys(schemaTableColumnDbInfo))
-	}
 
-	schemaTables := map[string][]string{}
-	for _, schema := range schemas {
-		tableMap, ok := schemaTableColumnDbInfo[schema]
-		if !ok {
-			continue
-		}
-		tableStrat := c.GetTableStrategy(schema)
-		switch tableStrat.GetStrategy().(type) {
-		case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_TableStrategy_MapAllTables_:
-			schemaTables[schema] = slices.Collect(maps.Keys(tableMap))
-		case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_TableStrategy_MapDefinedTables_:
-			schemaTables[schema] = append(schemaTables[schema], c.GetDefinedTables(schema)...)
-		default:
-			schemaTables[schema] = slices.Collect(maps.Keys(tableMap)) // same as map all tables
-		}
+	jmBuilder := NewSqlJobMappingBuilder(
+		NewCascadeSchemaSettings(syncConfig),
+		schemaTableColumnDbInfo,
+		schemaTableColumnDbInfo,
+	) // todo: add dest db info
+	jobMappings, err := jmBuilder.BuildJobMappings()
+	if err != nil {
+		return nil, fmt.Errorf("unable to build job mappings: %w", err)
 	}
-
-	columnTransformErrors := []error{}
-	jobMappings := []*shared.JobTransformationMapping{}
-	for _, schema := range schemas {
-		tables, ok := schemaTables[schema]
-		if !ok {
-			continue
-		}
-		for _, table := range tables {
-			columnRows, ok := schemaTableColumnDbInfo[schema][table]
-			if !ok {
-				continue
-			}
-			columnMap := maps.Collect(getColumnMapFromDbInfo(columnRows))
-			// todo: add separate destination column map
-			columnTransforms, err := c.GetColumnTransforms(schema, table, columnMap, columnMap)
-			if err != nil {
-				columnTransformErrors = append(columnTransformErrors, err)
-				continue
-			}
-			for colName, transformerConfig := range columnTransforms {
-				jobMappings = append(jobMappings, &shared.JobTransformationMapping{
-					JobMapping: &mgmtv1alpha1.JobMapping{
-						Schema: schema,
-						Table:  table,
-						Column: colName,
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Config: transformerConfig,
-						},
-					},
-				})
-			}
-		}
-	}
-	if len(columnTransformErrors) > 0 {
-		return nil, fmt.Errorf("unable to build column transforms: %w", columnTransformErrors)
-	}
-
 	return jobMappings, nil
 }
 
@@ -453,44 +153,10 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(
 	if err != nil {
 		return nil, fmt.Errorf("unable to hydrate job mappings: %w", err)
 	}
+	b.sqlSourceSchemaColumnInfoMap = groupedColumnInfo
+	b.jobMappings = jobMappings // needed when building destination config
 
-	var existingSourceMappings []*shared.JobTransformationMapping
-	if len(job.Mappings) > 0 && job.GetJobType() == nil {
-		b.sqlSourceSchemaColumnInfoMap = groupedColumnInfo
-		if sqlSourceOpts != nil && sqlSourceOpts.HaltOnNewColumnAddition {
-			newColumns, shouldHalt := shouldHaltOnSchemaAddition(groupedColumnInfo, job.Mappings)
-			if shouldHalt {
-				return nil, fmt.Errorf("%s: [%s]", haltOnSchemaAdditionErrMsg, strings.Join(newColumns, ", "))
-			}
-		}
-
-		if sqlSourceOpts != nil && sqlSourceOpts.HaltOnColumnRemoval {
-			missing, shouldHalt := isSourceMissingColumnsFoundInMappings(groupedColumnInfo, job.Mappings)
-			if shouldHalt {
-				return nil, fmt.Errorf("%s: [%s]", haltOnSchemaAdditionErrMsg, strings.Join(missing, ", "))
-			}
-		}
-
-		// remove mappings that are not found in the source
-		filteredExistingSourceMappings := removeMappingsNotFoundInSource(job.Mappings, groupedColumnInfo)
-
-		if sqlSourceOpts != nil && sqlSourceOpts.GenerateNewColumnTransformers {
-			extraMappings, err := getAdditionalJobMappings(b.driver, groupedColumnInfo, filteredExistingSourceMappings, splitKeyToTablePieces, logger)
-			if err != nil {
-				return nil, err
-			}
-			logger.Debug(fmt.Sprintf("adding %d extra mappings due to unmapped columns", len(extraMappings)))
-			filteredExistingSourceMappings = append(filteredExistingSourceMappings, extraMappings...)
-		}
-		for _, mapping := range filteredExistingSourceMappings {
-			existingSourceMappings = append(existingSourceMappings, &shared.JobTransformationMapping{
-				JobMapping: mapping,
-			})
-		}
-	} else {
-		existingSourceMappings = jobMappings
-	}
-	uniqueSchemas := shared.GetUniqueSchemasFromMappings(existingSourceMappings)
+	uniqueSchemas := shared.GetUniqueSchemasFromMappings(jobMappings)
 
 	tableConstraints, err := db.Db().GetTableConstraintsBySchema(ctx, uniqueSchemas)
 	if err != nil {
@@ -519,7 +185,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(
 		),
 	)
 
-	groupedMappings := groupMappingsByTable(existingSourceMappings)
+	groupedMappings := groupMappingsByTable(jobMappings)
 	groupedTableMapping := getTableMappingsMap(groupedMappings)
 	colTransformerMap := getColumnTransformerMap(
 		groupedTableMapping,
@@ -609,7 +275,7 @@ func buildBenthosSqlSourceConfigResponses(
 	transformedForeignKeyToSourceMap := getTransformedFksMap(tableDependencies, colTransformerMap)
 
 	for _, config := range runconfigs {
-		mappings, ok := groupedTableMapping[config.Table()]
+		tableMapping, ok := groupedTableMapping[config.Table()]
 		if !ok {
 			return nil, fmt.Errorf("missing column mappings for table: %s", config.Table())
 		}
@@ -661,7 +327,7 @@ func buildBenthosSqlSourceConfigResponses(
 			jobId,
 			runId,
 			redisConfig,
-			mappings.Mappings,
+			tableMapping.Mappings,
 			colInfoMap,
 			nil,
 			[]string{},
@@ -673,7 +339,7 @@ func buildBenthosSqlSourceConfigResponses(
 			bc.Pipeline.Processors = append(bc.Pipeline.Processors, *pc)
 		}
 
-		cursors, err := buildIdentityCursors(ctx, transformerclient, mappings.Mappings)
+		cursors, err := buildIdentityCursors(ctx, transformerclient, tableMapping.Mappings)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build identity cursors: %w", err)
 		}
@@ -686,16 +352,16 @@ func buildBenthosSqlSourceConfigResponses(
 
 			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: dsnConnectionId}},
 
-			TableSchema: mappings.Schema,
-			TableName:   mappings.Table,
+			TableSchema: tableMapping.Schema,
+			TableName:   tableMapping.Table,
 			Columns:     config.InsertColumns(),
 			PrimaryKeys: config.PrimaryKeys(),
 
 			ColumnIdentityCursors: cursors,
 
 			Metriclabels: metrics.MetricLabels{
-				metrics.NewEqLabel(metrics.TableSchemaLabel, mappings.Schema),
-				metrics.NewEqLabel(metrics.TableNameLabel, mappings.Table),
+				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
+				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),
 				metrics.NewEqLabel(metrics.JobTypeLabel, "sync"),
 			},
 		})
@@ -752,7 +418,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(
 	colTransformerMap := b.colTransformerMap
 	// lazy load
 	if len(colTransformerMap) == 0 {
-		groupedMappings := groupMappingsByTable(params.Job.Mappings)
+		groupedMappings := groupMappingsByTable(b.jobMappings)
 		groupedTableMapping := getTableMappingsMap(groupedMappings)
 		colTMap := getColumnTransformerMap(
 			groupedTableMapping,
