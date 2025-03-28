@@ -111,6 +111,8 @@ formatters:
       rewrite-rules:
         - pattern: interface{}
           replacement: any
+    golines:
+      max-len: 140
   exclusions:
     generated: lax
     paths:
