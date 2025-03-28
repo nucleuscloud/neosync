@@ -16,7 +16,6 @@ type ExistsInSource struct {
 	Composites               []*sqlmanager_shared.CompositeDataType
 }
 
-<<<<<<< HEAD
 type EnumDiff struct {
 	Enum          *sqlmanager_shared.EnumDataType
 	NewValues     []string
@@ -41,20 +40,15 @@ type DomainDiff struct {
 	RemovedConstraints []string
 }
 
-=======
->>>>>>> main
 type Different struct {
 	Columns                  []*sqlmanager_shared.TableColumn
 	NonForeignKeyConstraints []*sqlmanager_shared.NonForeignKeyConstraint
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
 	Triggers                 []*sqlmanager_shared.TableTrigger
 	Functions                []*sqlmanager_shared.DataType
-<<<<<<< HEAD
 	Enums                    []*EnumDiff
 	Composites               []*CompositeDiff
 	Domains                  []*DomainDiff
-=======
->>>>>>> main
 }
 type ExistsInBoth struct {
 	Tables []*sqlmanager_shared.SchemaTable
@@ -135,11 +129,8 @@ func NewSchemaDifferencesBuilder(
 					ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
 					Triggers:                 []*sqlmanager_shared.TableTrigger{},
 					Functions:                []*sqlmanager_shared.DataType{},
-<<<<<<< HEAD
 					Enums:                    []*EnumDiff{},
 					Composites:               []*CompositeDiff{},
-=======
->>>>>>> main
 				},
 			},
 		},
@@ -223,7 +214,6 @@ func (b *SchemaDifferencesBuilder) buildSchemaFunctionDifferences() {
 	b.diff.ExistsInDestination.Functions = existsInDestination
 }
 
-<<<<<<< HEAD
 func (b *SchemaDifferencesBuilder) buildTableEnumDifferences() {
 	for key, srcEnum := range b.source.Enums {
 		if destEnum, ok := b.destination.Enums[key]; ok {
@@ -384,33 +374,5 @@ func buildDifferencesByFingerprint[T FingerprintedType](
 			inDestination = append(inDestination, destVal)
 		}
 	}
-=======
-type FingerprintedType interface {
-	GetFingerprint() string
-}
-
-// buildDifferencesForMap compares two maps keyed by an identifier.
-// It appends items in `src` that are not in `dest` to `existsInSource`,
-// and items in `dest` not in `src` to `existsInDestination`.
-func buildDifferencesByFingerprint[T FingerprintedType](
-	src, dest map[string]T,
-) (existsInSource, existsInBoth, existsInDestination []T) {
-	inSource := []T{}
-	inDestination := []T{}
-	inBoth := []T{}
-	for key, srcVal := range src {
-		if _, ok := dest[key]; !ok {
-			inSource = append(inSource, srcVal)
-		} else if dest[key].GetFingerprint() != srcVal.GetFingerprint() {
-			inBoth = append(inBoth, srcVal)
-		}
-	}
-
-	for key, destVal := range dest {
-		if _, ok := src[key]; !ok {
-			inDestination = append(inDestination, destVal)
-		}
-	}
->>>>>>> main
 	return inSource, inBoth, inDestination
 }

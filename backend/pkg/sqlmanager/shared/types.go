@@ -17,11 +17,8 @@ const (
 	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
 	UpdateColumnsLabel                = "update columns"
 	UpdateFunctionsLabel              = "update functions"
-<<<<<<< HEAD
 	DropDatatypesLabel                = "drop datatypes"
 	UpdateDatatypesLabel              = "update datatypes"
-=======
->>>>>>> main
 )
 
 type DatabaseSchemaRow struct {
@@ -129,7 +126,6 @@ func (t *TableTrigger) GetFingerprint() string {
 	return t.Fingerprint
 }
 
-<<<<<<< HEAD
 type DomainConstraint struct {
 	Name       string `json:"name"`
 	Definition string `json:"definition"`
@@ -183,8 +179,6 @@ type AllTableDataTypes struct {
 	Composites []*CompositeDataType
 }
 
-=======
->>>>>>> main
 type TableInitStatement struct {
 	CreateTableStatement string
 	AlterTableStatements []*AlterTableStatement
