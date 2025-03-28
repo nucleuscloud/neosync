@@ -1414,10 +1414,15 @@ func verify_postgres_schemas(
 	srcManager := sqlmanager_postgres.NewManager(pg_queries.New(), source, func() {})
 	destManager := sqlmanager_postgres.NewManager(pg_queries.New(), target, func() {})
 
+	schematables := []*sqlmanager_shared.SchemaTable{}
+	for _, table := range tables {
+		schematables = append(schematables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
+	}
+
 	t.Logf("checking columns are the same in source and destination")
-	srcColumns, err := srcManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	srcColumns, err := srcManager.GetColumnsByTables(ctx, schematables)
 	require.NoError(t, err, "failed to get source columns")
-	destColumns, err := destManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	destColumns, err := destManager.GetColumnsByTables(ctx, schematables)
 	require.NoError(t, err, "failed to get destination columns")
 
 	srcColumnsMap := make(map[string]*sqlmanager_shared.TableColumn)
@@ -1472,11 +1477,6 @@ func verify_postgres_schemas(
 		for _, nonFk := range destNonFk {
 			require.Contains(t, srcNonFk, nonFk, "source missing non-foreign key constraint in table %s", table)
 		}
-	}
-
-	schematables := []*sqlmanager_shared.SchemaTable{}
-	for _, table := range tables {
-		schematables = append(schematables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
 	}
 
 	t.Logf("checking triggers are the same in source and destination")
