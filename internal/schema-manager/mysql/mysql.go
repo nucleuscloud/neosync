@@ -169,7 +169,12 @@ func getDatabaseDataForSchemaDiff(
 					nonFkConstraints[key] = nonFkConstraint
 				}
 				for _, fkConstraint := range tableconstraint.ForeignKeyConstraints {
-					key := fmt.Sprintf("%s.%s.%s", fkConstraint.ReferencingSchema, fkConstraint.ReferencingTable, fkConstraint.ConstraintName)
+					key := fmt.Sprintf(
+						"%s.%s.%s",
+						fkConstraint.ReferencingSchema,
+						fkConstraint.ReferencingTable,
+						fkConstraint.ConstraintName,
+					)
 					fkConstraints[key] = fkConstraint
 				}
 			}
@@ -223,7 +228,15 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(
 	}
 	// only way to update non fk constraint is to drop and recreate
 	for _, constraint := range diff.ExistsInBoth.Different.NonForeignKeyConstraints {
-		dropNonFkConstraintStatements = append(dropNonFkConstraintStatements, sqlmanager_mysql.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintType, constraint.ConstraintName))
+		dropNonFkConstraintStatements = append(
+			dropNonFkConstraintStatements,
+			sqlmanager_mysql.BuildDropConstraintStatement(
+				constraint.SchemaName,
+				constraint.TableName,
+				constraint.ConstraintType,
+				constraint.ConstraintName,
+			),
+		)
 	}
 
 	orderedForeignKeysToDrop := shared.BuildOrderedForeignKeyConstraintsToDrop(d.logger, diff)
@@ -257,7 +270,10 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(
 	}
 	// only way to update trigger is to drop and recreate
 	for _, trigger := range diff.ExistsInBoth.Different.Triggers {
-		dropTriggerStatements = append(dropTriggerStatements, sqlmanager_mysql.BuildDropTriggerStatement(trigger.TriggerSchema, trigger.TriggerName))
+		dropTriggerStatements = append(
+			dropTriggerStatements,
+			sqlmanager_mysql.BuildDropTriggerStatement(trigger.TriggerSchema, trigger.TriggerName),
+		)
 	}
 
 	updateColumnStatements := []string{}

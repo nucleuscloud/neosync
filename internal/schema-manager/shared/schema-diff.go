@@ -146,14 +146,20 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 }
 
 func (b *SchemaDifferencesBuilder) buildTableForeignKeyConstraintDifferences() {
-	existsInSource, existsInBoth, existsInDestination := buildDifferencesByFingerprint(b.source.ForeignKeyConstraints, b.destination.ForeignKeyConstraints)
+	existsInSource, existsInBoth, existsInDestination := buildDifferencesByFingerprint(
+		b.source.ForeignKeyConstraints,
+		b.destination.ForeignKeyConstraints,
+	)
 	b.diff.ExistsInSource.ForeignKeyConstraints = existsInSource
 	b.diff.ExistsInBoth.Different.ForeignKeyConstraints = existsInBoth
 	b.diff.ExistsInDestination.ForeignKeyConstraints = existsInDestination
 }
 
 func (b *SchemaDifferencesBuilder) buildTableNonForeignKeyConstraintDifferences() {
-	existsInSource, existsInBoth, existsInDestination := buildDifferencesByFingerprint(b.source.NonForeignKeyConstraints, b.destination.NonForeignKeyConstraints)
+	existsInSource, existsInBoth, existsInDestination := buildDifferencesByFingerprint(
+		b.source.NonForeignKeyConstraints,
+		b.destination.NonForeignKeyConstraints,
+	)
 	b.diff.ExistsInSource.NonForeignKeyConstraints = existsInSource
 	b.diff.ExistsInBoth.Different.NonForeignKeyConstraints = existsInBoth
 	b.diff.ExistsInDestination.NonForeignKeyConstraints = existsInDestination
