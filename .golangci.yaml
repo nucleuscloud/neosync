@@ -2,7 +2,7 @@ version: "2"
 run:
   tests: false
 linters:
-  default: none
+  default: standard
   enable:
     - bodyclose
     - dogsled
