@@ -616,7 +616,7 @@ export function CheckConnectionButton(
       setValidationResponse(
         createMessage(CheckConnectionConfigResponseSchema, {
           isConnected: false,
-          connectionError: err instanceof Error ? err.message : 'unknown error',
+          connectionError: getErrorMessage(err),
         })
       );
     } finally {
