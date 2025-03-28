@@ -12,7 +12,13 @@ func BuildOrderedForeignKeyConstraintsToDrop(
 	logger *slog.Logger,
 	diff *SchemaDifferences,
 ) []*sqlmanager_shared.ForeignKeyConstraint {
-	allFks := diff.ExistsInDestination.ForeignKeyConstraints
+	allFks := []*sqlmanager_shared.ForeignKeyConstraint{}
+	if diff.ExistsInDestination != nil {
+		allFks = append(allFks, diff.ExistsInDestination.ForeignKeyConstraints...)
+	}
+	if diff.ExistsInBoth != nil && diff.ExistsInBoth.Different != nil {
+		allFks = append(allFks, diff.ExistsInBoth.Different.ForeignKeyConstraints...)
+	}
 	if len(allFks) == 0 {
 		return nil
 	}
