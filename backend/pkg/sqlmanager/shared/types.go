@@ -13,6 +13,7 @@ type DatabaseSchemaRow struct {
 	TableName              string
 	ColumnName             string
 	DataType               string
+	MysqlColumnType        string // will only be populated for mysql. Same as the DataType but includes length, etc. varchar(255), enum('a', 'b'), etc.
 	ColumnDefault          string
 	ColumnDefaultType      *string
 	IsNullable             bool

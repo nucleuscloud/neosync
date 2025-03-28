@@ -42,10 +42,12 @@ export default function ColumnRemovalStrategyOptionsForm(
         <StrategyRadioItem
           value="halt"
           label="Halt - Stop the job if a mapped column is missing from the source database"
+          idPrefix="column-removal-strategy"
         />
         <StrategyRadioItem
           value="continue"
           label="Continue - Proceed with the job and ignore any mapped columns that are no longer present in the source database"
+          idPrefix="column-removal-strategy"
         />
       </RadioGroup>
     </div>
@@ -55,14 +57,18 @@ export default function ColumnRemovalStrategyOptionsForm(
 interface StrategyRadioItemProps {
   value: ColumnRemovalStrategy;
   label: string;
+  idPrefix: string;
 }
 
 function StrategyRadioItem(props: StrategyRadioItemProps): ReactElement {
-  const { value, label } = props;
+  const { value, label, idPrefix } = props;
+  const id = `${idPrefix}-${value}`;
   return (
     <div className="flex items-center gap-2">
-      <RadioGroupItem value={value} id={value} />
-      <Label htmlFor={value}>{label}</Label>
+      <RadioGroupItem value={value} id={id} className="cursor-pointer" />
+      <Label htmlFor={id} className="cursor-pointer">
+        {label}
+      </Label>
     </div>
   );
 }

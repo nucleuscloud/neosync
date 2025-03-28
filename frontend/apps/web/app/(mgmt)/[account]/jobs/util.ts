@@ -19,6 +19,7 @@ import {
   toColumnRemovalStrategy,
   toJobSourceMssqlColumnRemovalStrategy,
   toJobSourceMysqlColumnRemovalStrategy,
+  toJobSourceMysqlNewColumnAdditionStrategy,
   toJobSourcePostgresColumnRemovalStrategy,
   toJobSourcePostgresNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
@@ -91,6 +92,8 @@ import {
   MysqlOnConflictConfig_MysqlOnConflictDoNothingSchema,
   MysqlOnConflictConfig_MysqlOnConflictUpdateSchema,
   MysqlOnConflictConfigSchema,
+  MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
+  MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
   MysqlSourceConnectionOptionsSchema,
   MysqlSourceSchemaOption,
   MysqlSourceSchemaOptionSchema,
@@ -798,9 +801,10 @@ function toJobSourceOptions(
           case: 'mysql',
           value: create(MysqlSourceConnectionOptionsSchema, {
             connectionId: values.connect.sourceId,
-            haltOnNewColumnAddition:
-              values.connect.sourceOptions.mysql?.haltOnNewColumnAddition ??
-              false,
+            newColumnAdditionStrategy:
+              toJobSourceMysqlNewColumnAdditionStrategy(
+                values.connect.sourceOptions.mysql?.newColumnAdditionStrategy
+              ),
             columnRemovalStrategy: toJobSourceMysqlColumnRemovalStrategy(
               values.connect.sourceOptions.mysql?.columnRemovalStrategy
             ),
@@ -1294,12 +1298,30 @@ function setDefaultConnectFormValues(
         storage.setItem(sessionKeys.piidetect.connect, JSON.stringify(values));
         return;
       }
+      if (
+        job.source.options.config.value.haltOnNewColumnAddition &&
+        !job.source.options.config.value.newColumnAdditionStrategy
+      ) {
+        job.source.options.config.value.newColumnAdditionStrategy = create(
+          MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
+          {
+            strategy: {
+              case: 'haltJob',
+              value: create(
+                MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
+                {}
+              ),
+            },
+          }
+        );
+      }
       const values: ConnectFormValues = {
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {
           mysql: {
-            haltOnNewColumnAddition:
-              job.source.options.config.value.haltOnNewColumnAddition,
+            newColumnAdditionStrategy: toNewColumnAdditionStrategy(
+              job.source.options.config.value.newColumnAdditionStrategy
+            ),
             columnRemovalStrategy: toColumnRemovalStrategy(
               job.source.options.config.value.columnRemovalStrategy
             ),
