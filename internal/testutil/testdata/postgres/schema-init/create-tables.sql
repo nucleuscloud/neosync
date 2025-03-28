@@ -68,6 +68,12 @@ CREATE TABLE dependents (
 	FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE TABLE test_table_single_col (
+ 	name TEXT PRIMARY KEY
+);
+
+INSERT INTO test_table_single_col (name) VALUES ('TEST_VAL');
+
 /*Data for the table regions */
 INSERT INTO regions(region_id,region_name) VALUES (1,'Europe');
 INSERT INTO regions(region_id,region_name) VALUES (2,'Americas');
