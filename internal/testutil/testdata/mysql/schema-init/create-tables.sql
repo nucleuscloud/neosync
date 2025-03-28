@@ -488,3 +488,9 @@ VALUES
     ('Flower', 'Dead', 'Wellwater');
 
 
+CREATE TABLE IF NOT EXISTS test_table_single_col (
+    name VARCHAR(255) NOT NULL,
+    PRIMARY KEY (name)
+);
+
+INSERT INTO test_table_single_col (name) VALUES ('TEST_VAL');

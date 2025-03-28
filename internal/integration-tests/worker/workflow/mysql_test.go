@@ -603,6 +603,7 @@ func test_mysql_schema_reconciliation(
 		{schema: schema, table: "astronaut", rowCount: 2},
 		{schema: schema, table: "astronaut_log", rowCount: 2},
 		{schema: schema, table: "plants", rowCount: 3},
+		{schema: schema, table: "test_table_single_col", rowCount: 1},
 	}
 
 	for _, expected := range expectedResults {
@@ -796,6 +797,7 @@ func test_mysql_schema_reconciliation_column_values(
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "multi_col_child", sqlmanager_shared.MysqlDriver, []string{"mc_child_id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "cyclic_table", sqlmanager_shared.MysqlDriver, []string{"cycle_id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "plants", sqlmanager_shared.MysqlDriver, []string{"plant_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mysql.Source.DB, mysql.Target.DB, schema, "test_table_single_col", sqlmanager_shared.MysqlDriver, []string{"name"})
 }
 
 func cleanupMysqlDatabases(ctx context.Context, mysql *tcmysql.MysqlTestSyncContainer, databases []string) error {
