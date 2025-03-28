@@ -178,11 +178,11 @@ func switchAccount(
 		return fmt.Errorf("unable to set account context: %w", err)
 	}
 
-	fmt.Println(
+	fmt.Println( //nolint:forbidigo
 		itemStyle.Render(
 			fmt.Sprintf("\n Switched account to %s (%s) \n", account.Name, account.Id),
 		),
-	) //nolint:forbidigo
+	)
 
 	return nil
 }
@@ -217,10 +217,10 @@ func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 
 func (d itemDelegate) Render(
 	w io.Writer,
-	m list.Model,
+	m list.Model, //nolint:gocritic
 	index int,
 	listItem list.Item,
-) { //nolint:gocritic
+) {
 	i, ok := listItem.(item)
 	if !ok {
 		return

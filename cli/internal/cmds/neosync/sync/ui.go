@@ -180,7 +180,6 @@ func (m *model) syncConfigs(
 		}
 
 		results := map[string]string{}
-		//nolint:gofmt
 		messageMap.Range(func(key, value any) bool {
 			d := value.(time.Duration)
 			results[key.(string)] = fmt.Sprintf("%s %s %s", checkMark, key,

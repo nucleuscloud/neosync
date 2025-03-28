@@ -844,8 +844,11 @@ func (p *PostgresManager) GetTableInitStatements(
 		for _, record := range tableData {
 			record := record
 			var seqDefinition *string
-			if record.IdentityGeneration != "" && record.SeqStartValue.Valid && record.SeqMinValue.Valid &&
-				record.SeqMaxValue.Valid && record.SeqIncrementBy.Valid &&
+			if record.IdentityGeneration != "" &&
+				record.SeqStartValue.Valid &&
+				record.SeqMinValue.Valid &&
+				record.SeqMaxValue.Valid &&
+				record.SeqIncrementBy.Valid &&
 				record.SeqCycleOption.Valid &&
 				record.SeqCacheValue.Valid {
 				seqConfig := &SequenceConfiguration{

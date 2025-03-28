@@ -200,8 +200,8 @@ func executeWebhookRequest(
 	if skipSslVerification {
 		client.Transport = &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			}, //nolint:gosec // we want to enable this if it's user specified
+				InsecureSkipVerify: true, //nolint:gosec // we want to enable this if it's user specified
+			},
 		}
 	}
 	resp, err := client.Do(httpReq)

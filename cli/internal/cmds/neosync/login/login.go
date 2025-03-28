@@ -151,10 +151,10 @@ func oAuthLogin(
 	}()
 
 	if err := webbrowser.Open(authorizeurlResp.Msg.Url); err != nil {
-		fmt.Println(
+		fmt.Println( //nolint:forbidigo
 			"There was an issue opening the web browser, proceed to the following url to finish logging in to Neosync:\n",
 			authorizeurlResp.Msg.Url,
-		) //nolint
+		)
 	}
 
 	select {
