@@ -1079,6 +1079,126 @@ func (q *Queries) GetForeignKeyConstraintsBySchemas(ctx context.Context, db DBTX
 	return items, nil
 }
 
+const getForeignKeyConstraintsBySchemasAndTables = `-- name: GetForeignKeyConstraintsBySchemasAndTables :many
+SELECT
+    -- Name of the foreign key constraint
+    constraint_def.conname AS constraint_name,
+
+    -- Schema of the table that contains the foreign key constraint
+    referencing_schema.nspname AS referencing_schema,
+
+    -- Name of the table that holds the foreign key constraint
+    referencing_tbl.relname AS referencing_table,
+
+    -- Array of column names in the referencing table involved in the constraint,
+    -- ordered by the column's ordinal position (attnum) to maintain the defined column order.
+    array_agg(referencing_attr.attname ORDER BY referencing_attr.attnum)::TEXT[] AS referencing_columns,
+
+    -- Array of boolean values indicating whether each referencing column is NOT NULL,
+    -- ordered to correspond with the column names.
+    array_agg(referencing_attr.attnotnull ORDER BY referencing_attr.attnum)::BOOL[] AS not_nullable,
+
+    -- Schema of the referenced table (the table that the foreign key points to)
+    referenced_schema.nspname::TEXT AS referenced_schema,
+
+    -- Name of the referenced table
+    referenced_tbl.relname::TEXT AS referenced_table,
+
+    -- Array of column names in the referenced table involved in the foreign key constraint
+    ref_columns.foreign_column_names::TEXT[] AS referenced_columns
+FROM
+    pg_catalog.pg_constraint AS constraint_def
+    -- Join to retrieve attributes (columns) for the referencing table based on the constraint definition
+    JOIN pg_catalog.pg_attribute AS referencing_attr
+      ON referencing_attr.attrelid = constraint_def.conrelid
+     AND referencing_attr.attnum = ANY(constraint_def.conkey)
+    -- Join to retrieve the referencing table details
+    JOIN pg_catalog.pg_class AS referencing_tbl
+      ON constraint_def.conrelid = referencing_tbl.oid
+    -- Join to retrieve the schema details of the referencing table
+    JOIN pg_catalog.pg_namespace AS referencing_schema
+      ON referencing_tbl.relnamespace = referencing_schema.oid
+    -- Left join to retrieve the referenced table details (if the constraint is a foreign key)
+    LEFT JOIN pg_catalog.pg_class AS referenced_tbl
+      ON referenced_tbl.oid = constraint_def.confrelid
+    -- Left join to retrieve the schema details of the referenced table
+    LEFT JOIN pg_catalog.pg_namespace AS referenced_schema
+      ON referenced_tbl.relnamespace = referenced_schema.oid
+    -- Lateral join to aggregate the names of the columns in the referenced table
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(referenced_attr.attname) AS foreign_column_names
+        FROM
+            pg_catalog.pg_attribute AS referenced_attr
+        WHERE
+            referenced_attr.attrelid = constraint_def.confrelid
+            AND referenced_attr.attnum = ANY(constraint_def.confkey)
+    ) AS ref_columns ON TRUE
+WHERE
+    -- Filter to include only constraints from the provided tables
+    referencing_schema.nspname = $1
+    AND referencing_tbl.relname = ANY($2::TEXT[])
+    -- Limit results to FOREIGN KEY constraints
+    AND constraint_def.contype = 'f'
+GROUP BY
+    constraint_def.oid,
+    referencing_schema.nspname,
+    constraint_def.conname,
+    referencing_tbl.relname,
+    constraint_def.contype,
+    referenced_schema.nspname,
+    referenced_tbl.relname,
+    ref_columns.foreign_column_names
+`
+
+type GetForeignKeyConstraintsBySchemasAndTablesParams struct {
+	Schema string
+	Tables []string
+}
+
+type GetForeignKeyConstraintsBySchemasAndTablesRow struct {
+	ConstraintName     string
+	ReferencingSchema  string
+	ReferencingTable   string
+	ReferencingColumns []string
+	NotNullable        []bool
+	ReferencedSchema   string
+	ReferencedTable    string
+	ReferencedColumns  []string
+}
+
+func (q *Queries) GetForeignKeyConstraintsBySchemasAndTables(ctx context.Context, db DBTX, arg *GetForeignKeyConstraintsBySchemasAndTablesParams) ([]*GetForeignKeyConstraintsBySchemasAndTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getForeignKeyConstraintsBySchemasAndTables, arg.Schema, pq.Array(arg.Tables))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetForeignKeyConstraintsBySchemasAndTablesRow
+	for rows.Next() {
+		var i GetForeignKeyConstraintsBySchemasAndTablesRow
+		if err := rows.Scan(
+			&i.ConstraintName,
+			&i.ReferencingSchema,
+			&i.ReferencingTable,
+			pq.Array(&i.ReferencingColumns),
+			pq.Array(&i.NotNullable),
+			&i.ReferencedSchema,
+			&i.ReferencedTable,
+			pq.Array(&i.ReferencedColumns),
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getIndicesBySchemasAndTables = `-- name: GetIndicesBySchemasAndTables :many
 SELECT
     ns.nspname AS schema_name,
@@ -1182,6 +1302,79 @@ func (q *Queries) GetNonForeignKeyTableConstraintsBySchema(ctx context.Context, 
 	var items []*GetNonForeignKeyTableConstraintsBySchemaRow
 	for rows.Next() {
 		var i GetNonForeignKeyTableConstraintsBySchemaRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ConstraintName,
+			&i.ConstraintType,
+			pq.Array(&i.ConstraintColumns),
+			&i.ConstraintDefinition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getNonForeignKeyTableConstraintsBySchemaAndTables = `-- name: GetNonForeignKeyTableConstraintsBySchemaAndTables :many
+SELECT
+	pn.nspname AS schema_name,
+	c.relname AS table_name,
+	pgcon.conname AS constraint_name,
+	pgcon.contype::TEXT AS constraint_type,
+    -- Collect all columns associated with this constraint, if any
+	ARRAY_AGG(kcu.column_name ORDER BY kcu.ordinal_position) FILTER (WHERE kcu.column_name IS NOT NULL)::TEXT [] AS constraint_columns,
+	pg_get_constraintdef(pgcon.oid)::TEXT AS constraint_definition
+FROM
+	pg_catalog.pg_constraint pgcon
+	JOIN pg_catalog.pg_namespace pn ON pn.oid = pgcon.connamespace /* schema info */
+	JOIN pg_catalog.pg_class c ON c.oid = pgcon.conrelid /* table info */
+	LEFT JOIN information_schema.key_column_usage AS kcu ON pgcon.conname = kcu.constraint_name /* column info */
+		AND pn.nspname = kcu.table_schema
+		AND c.relname = kcu.table_name
+WHERE
+    pn.nspname = $1
+    AND c.relname = ANY($2::TEXT[])
+	-- Exclude foreign keys, and partition tables
+	AND pgcon.contype != 'f' AND c.relispartition = FALSE
+GROUP BY
+	pgcon.oid,
+	pgcon.conname,
+	pgcon.contype,
+	pn.nspname,
+	c.relname
+`
+
+type GetNonForeignKeyTableConstraintsBySchemaAndTablesParams struct {
+	Schema string
+	Tables []string
+}
+
+type GetNonForeignKeyTableConstraintsBySchemaAndTablesRow struct {
+	SchemaName           string
+	TableName            string
+	ConstraintName       string
+	ConstraintType       string
+	ConstraintColumns    []string
+	ConstraintDefinition string
+}
+
+func (q *Queries) GetNonForeignKeyTableConstraintsBySchemaAndTables(ctx context.Context, db DBTX, arg *GetNonForeignKeyTableConstraintsBySchemaAndTablesParams) ([]*GetNonForeignKeyTableConstraintsBySchemaAndTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getNonForeignKeyTableConstraintsBySchemaAndTables, arg.Schema, pq.Array(arg.Tables))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetNonForeignKeyTableConstraintsBySchemaAndTablesRow
+	for rows.Next() {
+		var i GetNonForeignKeyTableConstraintsBySchemaAndTablesRow
 		if err := rows.Scan(
 			&i.SchemaName,
 			&i.TableName,

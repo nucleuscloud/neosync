@@ -16,13 +16,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const (
-	SchemasLabel      = "schemas"
-	ExtensionsLabel   = "extensions"
-	CreateTablesLabel = "create table"
-	AddColumnsLabel   = "add columns"
-)
-
 type PostgresManager struct {
 	querier pg_queries.Querier
 	db      pg_queries.DBTX
@@ -155,7 +148,93 @@ func (p *PostgresManager) GetColumnsByTables(ctx context.Context, tables []*sqlm
 }
 
 func (p *PostgresManager) GetTableConstraintsByTables(ctx context.Context, schema string, tables []string) (map[string]*sqlmanager_shared.AllTableConstraints, error) {
-	return nil, errors.ErrUnsupported
+	if len(tables) == 0 {
+		return map[string]*sqlmanager_shared.AllTableConstraints{}, nil
+	}
+	errgrp, errctx := errgroup.WithContext(ctx)
+	var nonFkConstraints []*pg_queries.GetNonForeignKeyTableConstraintsBySchemaAndTablesRow
+	var fkConstraints []*pg_queries.GetForeignKeyConstraintsBySchemasAndTablesRow
+	errgrp.Go(func() error {
+		var err error
+		constraints, err := p.querier.GetNonForeignKeyTableConstraintsBySchemaAndTables(errctx, p.db, &pg_queries.GetNonForeignKeyTableConstraintsBySchemaAndTablesParams{
+			Schema: schema,
+			Tables: tables,
+		})
+		if err != nil {
+			return err
+		}
+		nonFkConstraints = constraints
+		return nil
+	})
+
+	errgrp.Go(func() error {
+		var err error
+		constraints, err := p.querier.GetForeignKeyConstraintsBySchemasAndTables(errctx, p.db, &pg_queries.GetForeignKeyConstraintsBySchemasAndTablesParams{
+			Schema: schema,
+			Tables: tables,
+		})
+		if err != nil {
+			return err
+		}
+		fkConstraints = constraints
+		return nil
+	})
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	result := map[string]*sqlmanager_shared.AllTableConstraints{}
+
+	for _, row := range nonFkConstraints {
+		key := sqlmanager_shared.SchemaTable{
+			Schema: row.SchemaName,
+			Table:  row.TableName,
+		}.String()
+		if result[key] == nil {
+			result[key] = &sqlmanager_shared.AllTableConstraints{
+				NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
+				ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
+			}
+		}
+		constraint := &sqlmanager_shared.NonForeignKeyConstraint{
+			SchemaName:     row.SchemaName,
+			TableName:      row.TableName,
+			ConstraintName: row.ConstraintName,
+			ConstraintType: row.ConstraintType,
+			Columns:        row.ConstraintColumns,
+			Definition:     row.ConstraintDefinition,
+		}
+		constraint.Fingerprint = sqlmanager_shared.BuildNonForeignKeyConstraintFingerprint(constraint)
+		result[key].NonForeignKeyConstraints = append(result[key].NonForeignKeyConstraints, constraint)
+	}
+
+	for _, row := range fkConstraints {
+		key := sqlmanager_shared.SchemaTable{
+			Schema: row.ReferencingSchema,
+			Table:  row.ReferencingTable,
+		}.String()
+		if result[key] == nil {
+			result[key] = &sqlmanager_shared.AllTableConstraints{
+				NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
+				ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
+			}
+		}
+		constraint := &sqlmanager_shared.ForeignKeyConstraint{
+			ConstraintName:     row.ConstraintName,
+			ConstraintType:     "FOREIGN KEY",
+			ReferencingSchema:  row.ReferencingSchema,
+			ReferencingTable:   row.ReferencingTable,
+			ReferencingColumns: row.ReferencingColumns,
+			ReferencedSchema:   row.ReferencedSchema,
+			ReferencedTable:    row.ReferencedTable,
+			ReferencedColumns:  row.ReferencedColumns,
+			NotNullable:        row.NotNullable,
+		}
+		constraint.Fingerprint = sqlmanager_shared.BuildForeignKeyConstraintFingerprint(constraint)
+		result[key].ForeignKeyConstraints = append(result[key].ForeignKeyConstraints, constraint)
+	}
+	return result, nil
 }
 
 func (p *PostgresManager) GetAllSchemas(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaNameRow, error) {
@@ -792,10 +871,10 @@ func (p *PostgresManager) GetSchemaInitStatements(
 	schemaStmts = append(schemaStmts, additionalSchemaStmts...)
 
 	return []*sqlmanager_shared.InitSchemaStatements{
-		{Label: SchemasLabel, Statements: schemaStmts},
-		{Label: ExtensionsLabel, Statements: extensionStmts},
+		{Label: sqlmanager_shared.SchemasLabel, Statements: schemaStmts},
+		{Label: sqlmanager_shared.ExtensionsLabel, Statements: extensionStmts},
 		{Label: "data types", Statements: dataTypeStmts},
-		{Label: CreateTablesLabel, Statements: createTables},
+		{Label: sqlmanager_shared.CreateTablesLabel, Statements: createTables},
 		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
 		{Label: "table index", Statements: idxStmts},
 		{Label: "fk alter table", Statements: fkAlterStmts},
@@ -1012,7 +1091,7 @@ func buildAlterStatementByConstraint(
 	), nil
 }
 
-func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) (string, error) {
+func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) string {
 	col := buildTableCol(&buildTableColRequest{
 		ColumnName:         column.Name,
 		ColumnDefault:      column.ColumnDefault,
@@ -1021,7 +1100,17 @@ func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) (string, err
 		GeneratedType:      *column.GeneratedType,
 		SequenceDefinition: column.SequenceDefinition,
 	})
-	return fmt.Sprintf("ALTER TABLE %q.%q ADD COLUMN %s;", column.Schema, column.Table, col), nil
+	return fmt.Sprintf("ALTER TABLE %q.%q ADD COLUMN %s;", column.Schema, column.Table, col)
+}
+
+func BuildDropColumnStatement(schema, table, column string) string {
+	// cascade is used to drop the column and all the constraints, views, and indexes that depend on it
+	return fmt.Sprintf("ALTER TABLE %q.%q DROP COLUMN IF EXISTS %q CASCADE;", schema, table, column)
+}
+
+func BuildDropConstraintStatement(schema, table, constraintName string) string {
+	// cascade is used to drop the constraint and any dependent objects (other constraints, indexes, triggers, etc)
+	return fmt.Sprintf("ALTER TABLE %q.%q DROP CONSTRAINT IF EXISTS %q CASCADE;", schema, table, constraintName)
 }
 
 type buildTableColRequest struct {

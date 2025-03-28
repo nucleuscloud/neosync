@@ -232,31 +232,31 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(ctx context.Context, diff
 
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{
-			Label:      sqlmanager_mysql.DropFunctionsLabel,
+			Label:      sqlmanager_shared.DropFunctionsLabel,
 			Statements: dropFunctionStatements,
 		},
 		{
-			Label:      sqlmanager_mysql.DropTriggersLabel,
+			Label:      sqlmanager_shared.DropTriggersLabel,
 			Statements: dropTriggerStatements,
 		},
 		{
-			Label:      sqlmanager_mysql.AddColumnsLabel,
+			Label:      sqlmanager_shared.AddColumnsLabel,
 			Statements: addColumnStatements,
 		},
 		{
-			Label:      sqlmanager_mysql.UpdateColumnsLabel,
+			Label:      sqlmanager_shared.UpdateColumnsLabel,
 			Statements: updateColumnStatements,
 		},
 		{
-			Label:      sqlmanager_mysql.DropForeignKeyConstraintsLabel,
+			Label:      sqlmanager_shared.DropForeignKeyConstraintsLabel,
 			Statements: orderedForeignKeyDropStatements,
 		},
 		{
-			Label:      sqlmanager_mysql.DropNonForeignKeyConstraintsLabel,
+			Label:      sqlmanager_shared.DropNonForeignKeyConstraintsLabel,
 			Statements: dropNonFkConstraintStatements,
 		},
 		{
-			Label:      sqlmanager_mysql.DropColumnsLabel,
+			Label:      sqlmanager_shared.DropColumnsLabel,
 			Statements: dropColumnStatements,
 		},
 	}, nil
@@ -290,16 +290,16 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(ctx context.Context, uni
 	statementBlocks := []*sqlmanager_shared.InitSchemaStatements{}
 	for _, statement := range initblocks {
 		statementBlocks = append(statementBlocks, statement)
-		if statement.Label == sqlmanager_mysql.SchemasLabel {
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropFunctionsLabel]...)
+		if statement.Label == sqlmanager_shared.SchemasLabel {
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropFunctionsLabel]...)
 		}
-		if statement.Label == sqlmanager_mysql.CreateTablesLabel {
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropTriggersLabel]...)
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropForeignKeyConstraintsLabel]...)
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropNonForeignKeyConstraintsLabel]...)
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.DropColumnsLabel]...)
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.AddColumnsLabel]...)
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_mysql.UpdateColumnsLabel]...)
+		if statement.Label == sqlmanager_shared.CreateTablesLabel {
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropTriggersLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropForeignKeyConstraintsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropNonForeignKeyConstraintsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.AddColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateColumnsLabel]...)
 		}
 	}
 
@@ -372,7 +372,7 @@ func (d *MysqlSchemaManager) InitializeSchema(ctx context.Context, uniqueTables 
 		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 		if err != nil {
 			d.logger.Error(fmt.Sprintf("unable to exec mysql %s statements: %s", block.Label, err.Error()))
-			if block.Label != sqlmanager_mysql.SchemasLabel {
+			if block.Label != sqlmanager_shared.SchemasLabel {
 				return nil, fmt.Errorf("unable to exec mysql %s statements: %w", block.Label, err)
 			}
 			for _, stmt := range block.Statements {

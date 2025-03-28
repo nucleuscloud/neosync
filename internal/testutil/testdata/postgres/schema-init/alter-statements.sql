@@ -79,7 +79,21 @@ UPDATE employees
 SET profile = '{"hobbies":["hiking"],"location":"On-site"}'
 WHERE employee_id = 101;
 
--- Example: set a more complex JSON structure for a different employee
 UPDATE employees
 SET profile = '{"languages":["English","German"],"certifications":["CPA","MBA"]}'
 WHERE employee_id = 108;
+
+ALTER TABLE employees 
+    DROP CONSTRAINT employees_temp_col_check;
+
+ALTER TABLE employees
+    DROP CONSTRAINT employees_salary_check;
+
+ALTER TABLE employees
+    DROP COLUMN temp_col;
+
+ALTER TABLE countries
+    DROP CONSTRAINT countries_country_name_uniq;
+
+ALTER TABLE countries
+    DROP COLUMN temp_col;

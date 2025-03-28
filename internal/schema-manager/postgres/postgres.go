@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
@@ -59,15 +60,17 @@ func NewPostgresSchemaManager(
 func (d *PostgresSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueTables map[string]*sqlmanager_shared.SchemaTable) (*shared.SchemaDifferences, error) {
 	d.logger.Debug("calculating schema diff")
 	tables := []*sqlmanager_shared.SchemaTable{}
+	schemaMap := map[string][]*sqlmanager_shared.SchemaTable{}
 	for _, schematable := range uniqueTables {
 		tables = append(tables, schematable)
+		schemaMap[schematable.Schema] = append(schemaMap[schematable.Schema], schematable)
 	}
 
 	sourceData := &shared.DatabaseData{}
 	destData := &shared.DatabaseData{}
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.Go(func() error {
-		dbData, err := getDatabaseDataForSchemaDiff(errctx, d.sourcedb, tables)
+		dbData, err := getDatabaseDataForSchemaDiff(errctx, d.sourcedb, tables, schemaMap)
 		if err != nil {
 			return fmt.Errorf("failed to get database data for schema diff: %w", err)
 		}
@@ -75,7 +78,7 @@ func (d *PostgresSchemaManager) CalculateSchemaDiff(ctx context.Context, uniqueT
 		return nil
 	})
 	errgrp.Go(func() error {
-		dbData, err := getDatabaseDataForSchemaDiff(errctx, d.destdb, tables)
+		dbData, err := getDatabaseDataForSchemaDiff(errctx, d.destdb, tables, schemaMap)
 		if err != nil {
 			return fmt.Errorf("failed to get database data for schema diff: %w", err)
 		}
@@ -95,14 +98,60 @@ func getDatabaseDataForSchemaDiff(
 	ctx context.Context,
 	db *sqlmanager.SqlConnection,
 	tables []*sqlmanager_shared.SchemaTable,
+	schemaMap map[string][]*sqlmanager_shared.SchemaTable,
 ) (*shared.DatabaseData, error) {
-	columns, err := db.Db().GetColumnsByTables(ctx, tables)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve database table schemas: %w", err)
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(5)
+
+	columns := []*sqlmanager_shared.TableColumn{}
+	errgrp.Go(func() error {
+		cols, err := db.Db().GetColumnsByTables(errctx, tables)
+		if err != nil {
+			return fmt.Errorf("failed to retrieve database table schemas: %w", err)
+		}
+		columns = cols
+		return nil
+	})
+
+	nonFkConstraints := map[string]*sqlmanager_shared.NonForeignKeyConstraint{}
+	fkConstraints := map[string]*sqlmanager_shared.ForeignKeyConstraint{}
+
+	mu := sync.Mutex{}
+	for schema, tables := range schemaMap {
+		tableNames := make([]string, len(tables))
+		for i, table := range tables {
+			tableNames[i] = table.Table
+		}
+
+		schema, tableNames := schema, tableNames
+		errgrp.Go(func() error {
+			tableconstraints, err := db.Db().GetTableConstraintsByTables(errctx, schema, tableNames)
+			if err != nil {
+				return fmt.Errorf("failed to retrieve  database table constraints for schema %s: %w", schema, err)
+			}
+			mu.Lock()
+			defer mu.Unlock()
+			for _, tableconstraint := range tableconstraints {
+				for _, nonFkConstraint := range tableconstraint.NonForeignKeyConstraints {
+					nonFkConstraints[nonFkConstraint.Fingerprint] = nonFkConstraint
+				}
+				for _, fkConstraint := range tableconstraint.ForeignKeyConstraints {
+					fkConstraints[fkConstraint.Fingerprint] = fkConstraint
+				}
+			}
+			return nil
+		})
 	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
 	columnsMap := shared.GetUniqueSchemaColMappings(columns)
 	return &shared.DatabaseData{
-		Columns: columnsMap,
+		Columns:                  columnsMap,
+		NonForeignKeyConstraints: nonFkConstraints,
+		ForeignKeyConstraints:    fkConstraints,
 	}, nil
 }
 
@@ -114,18 +163,42 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(ctx context.Context, d
 	}
 	addColumnStatements := []string{}
 	for _, column := range diff.ExistsInSource.Columns {
-		stmt, err := sqlmanager_postgres.BuildAddColumnStatement(column)
-		if err != nil {
-			return nil, fmt.Errorf("failed to build add column statement: %w", err)
-		}
+		stmt := sqlmanager_postgres.BuildAddColumnStatement(column)
 		commentStmt := sqlmanager_postgres.BuildUpdateCommentStatement(column.Schema, column.Table, column.Name, column.Comment)
 		addColumnStatements = append(addColumnStatements, stmt, commentStmt)
 	}
 
+	dropNonFkConstraintStatements := []string{}
+	for _, constraint := range diff.ExistsInDestination.NonForeignKeyConstraints {
+		dropNonFkConstraintStatements = append(dropNonFkConstraintStatements, sqlmanager_postgres.BuildDropConstraintStatement(constraint.SchemaName, constraint.TableName, constraint.ConstraintName))
+	}
+
+	dropFkConstraintStatements := []string{}
+	for _, constraint := range diff.ExistsInDestination.ForeignKeyConstraints {
+		dropFkConstraintStatements = append(dropFkConstraintStatements, sqlmanager_postgres.BuildDropConstraintStatement(constraint.ReferencingSchema, constraint.ReferencingTable, constraint.ConstraintName))
+	}
+
+	dropColumnStatements := []string{}
+	for _, column := range diff.ExistsInDestination.Columns {
+		dropColumnStatements = append(dropColumnStatements, sqlmanager_postgres.BuildDropColumnStatement(column.Schema, column.Table, column.Name))
+	}
+
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{
-			Label:      sqlmanager_postgres.AddColumnsLabel,
+			Label:      sqlmanager_shared.AddColumnsLabel,
 			Statements: addColumnStatements,
+		},
+		{
+			Label:      sqlmanager_shared.DropForeignKeyConstraintsLabel,
+			Statements: dropFkConstraintStatements,
+		},
+		{
+			Label:      sqlmanager_shared.DropNonForeignKeyConstraintsLabel,
+			Statements: dropNonFkConstraintStatements,
+		},
+		{
+			Label:      sqlmanager_shared.DropColumnsLabel,
+			Statements: dropColumnStatements,
 		},
 	}, nil
 }
@@ -158,8 +231,11 @@ func (d *PostgresSchemaManager) ReconcileDestinationSchema(ctx context.Context, 
 	statementBlocks := []*sqlmanager_shared.InitSchemaStatements{}
 	for _, statement := range initblocks {
 		statementBlocks = append(statementBlocks, statement)
-		if statement.Label == sqlmanager_postgres.CreateTablesLabel {
-			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_postgres.AddColumnsLabel]...)
+		if statement.Label == sqlmanager_shared.CreateTablesLabel {
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropForeignKeyConstraintsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropNonForeignKeyConstraintsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.AddColumnsLabel]...)
 		}
 	}
 
@@ -232,7 +308,7 @@ func (d *PostgresSchemaManager) InitializeSchema(ctx context.Context, uniqueTabl
 		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 		if err != nil {
 			d.logger.Error(fmt.Sprintf("unable to exec pg %s statements: %s", block.Label, err.Error()))
-			if block.Label != sqlmanager_postgres.SchemasLabel && block.Label != sqlmanager_postgres.ExtensionsLabel {
+			if block.Label != sqlmanager_shared.SchemasLabel && block.Label != sqlmanager_shared.ExtensionsLabel {
 				return nil, fmt.Errorf("unable to exec pg %s statements: %w", block.Label, err)
 			}
 			for _, stmt := range block.Statements {
