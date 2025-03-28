@@ -53,17 +53,18 @@ func (s *Service) CheckConnectionConfig(
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		role, err := getDbRoleFromConnectionConfig(req.Msg.GetConnectionConfig(), logger)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to retrieve db role/user from connection config prior to checking connection: %w", err)
 		}
 
 		db, err := s.sqlmanager.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(), &connInput{cc: req.Msg.GetConnectionConfig(), id: uuid.NewString()}, logger)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to create sql connection: %w", err)
 		}
 		defer db.Db().Close()
 		schematablePrivsMap, err := db.Db().GetRolePermissionsMap(ctx)
 		if err != nil {
 			errmsg := err.Error()
+			logger.Warn(fmt.Sprintf("unable to retrieve role permissions map from sql connection: %s", errmsg))
 			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
 				IsConnected:     false,
 				ConnectionError: &errmsg,
@@ -210,7 +211,7 @@ func (s *Service) CheckConnectionConfigById(
 
 func getDbRoleFromConnectionConfig(cconfig *mgmtv1alpha1.ConnectionConfig, logger *slog.Logger) (string, error) {
 	if cconfig == nil {
-		return "", errors.New("connection config was nil, unable to retrieve db role")
+		return "", errors.New("connection config was nil, unable to retrieve db role/user from config")
 	}
 
 	switch typedconfig := cconfig.GetConfig().(type) {
@@ -233,7 +234,7 @@ func getDbRoleFromConnectionConfig(cconfig *mgmtv1alpha1.ConnectionConfig, logge
 		}
 		return parsedCfg.GetUser(), nil
 	default:
-		return "", fmt.Errorf("invalid database connection config (%T) for retrieving db role: %w", typedconfig, errors.ErrUnsupported)
+		return "", fmt.Errorf("invalid database connection config (%T) for retrieving db role/user: %w", typedconfig, errors.ErrUnsupported)
 	}
 }
 
