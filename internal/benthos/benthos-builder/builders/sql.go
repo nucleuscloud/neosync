@@ -250,12 +250,16 @@ func buildBenthosSqlSourceConfigResponses(
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
 		}
 
+		cursors, err := buildIdentityCursors(ctx, transformerclient, mappings.Mappings)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build identity cursors: %w", err)
+		}
+
 		configs = append(configs, &bb_internal.BenthosSourceConfig{
-			Name:           config.Id(),
-			Config:         bc,
-			DependsOn:      config.DependsOn(),
-			RedisDependsOn: buildRedisDependsOnMap(transformedFktoPkMap, config),
-			RunType:        config.RunType(),
+			Name:      config.Id(),
+			Config:    bc,
+			DependsOn: config.DependsOn(),
+			RunType:   config.RunType(),
 
 			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: dsnConnectionId}},
 
@@ -263,6 +267,8 @@ func buildBenthosSqlSourceConfigResponses(
 			TableName:   mappings.Table,
 			Columns:     config.InsertColumns(),
 			PrimaryKeys: config.PrimaryKeys(),
+
+			ColumnIdentityCursors: cursors,
 
 			Metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, mappings.Schema),

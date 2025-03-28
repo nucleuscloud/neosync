@@ -1351,6 +1351,11 @@ func test_postgres_schema_reconciliation(
 		tables = append(tables, expected.table)
 	}
 
+	tables := []string{}
+	for _, expected := range expectedResults {
+		tables = append(tables, expected.table)
+	}
+
 	for _, expected := range expectedResults {
 		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)

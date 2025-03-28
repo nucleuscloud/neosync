@@ -11,6 +11,7 @@ import (
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
 )
 
 // Determines SQL driver from connection type
@@ -105,6 +106,7 @@ type BenthosSourceConfig struct {
 	RedisConfig             []*bb_shared.BenthosRedisConfig
 	PrimaryKeys             []string
 	Metriclabels            metrics.MetricLabels
+	ColumnIdentityCursors   map[string]*tablesync_shared.IdentityCursor
 }
 
 // BenthosDestinationConfig represents a Benthos destination configuration

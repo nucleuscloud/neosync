@@ -116,7 +116,7 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 			start = true
 			benthosSpecStr += strings.TrimSpace(fileScanner.Text())
 		} else if start {
-			if strings.Contains(line, "bloblang.RegisterFunctionV2") {
+			if strings.Contains(line, ".RegisterFunctionV2") {
 				benthosSpecStr += strings.TrimSpace(fileScanner.Text())
 				break
 			}
@@ -182,7 +182,7 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 
 func extractBloblangFunctionName(input, sourceFile string) (string, error) {
 	// Looks for bloblang.RegisterFunctionV2 and captures the function name in quotes
-	re := regexp.MustCompile(`bloblang\.RegisterFunctionV2\("([^"]+)"`)
+	re := regexp.MustCompile(`\.RegisterFunctionV2\("([^"]+)"`)
 
 	matches := re.FindStringSubmatch(input)
 

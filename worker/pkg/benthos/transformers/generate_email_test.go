@@ -2,16 +2,16 @@ package transformers
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_GenerateRandomEmailShort(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	shortMaxLength := int64(15)
 
 	res, err := generateRandomEmail(randomizer, shortMaxLength, GenerateEmailType_FullName, []string{})
@@ -23,7 +23,7 @@ func Test_GenerateRandomEmailShort(t *testing.T) {
 }
 
 func Test_GenerateRandomEmail(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 
 	res, err := generateRandomEmail(randomizer, int64(40), GenerateEmailType_FullName, []string{})
 
@@ -34,7 +34,7 @@ func Test_GenerateRandomEmail(t *testing.T) {
 }
 
 func Test_GenerateRandomEmail_Uuid(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 
 	res, err := generateRandomEmail(randomizer, int64(40), GenerateEmailType_UuidV4, []string{})
 
@@ -44,7 +44,7 @@ func Test_GenerateRandomEmail_Uuid(t *testing.T) {
 	require.LessOrEqual(t, int64(len(res)), int64(40), fmt.Sprintf("The email should be less than or equal to the max length. This is the error email:%s", res))
 }
 func Test_GenerateRandomEmail_Uuid_Small(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 
 	res, err := generateRandomEmail(randomizer, int64(8), GenerateEmailType_UuidV4, []string{})
 

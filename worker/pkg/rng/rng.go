@@ -11,6 +11,7 @@ type Rand interface {
 	Float64() float64
 	Int63() int64
 	Int() int
+	Uint() uint
 }
 
 var _ Rand = &Randomizer{} // Ensures Randomizer always conforms to the Rand interface
@@ -21,7 +22,11 @@ type Randomizer struct {
 }
 
 func New(seed int64) *Randomizer {
-	rng := rand.New(rand.NewPCG(uint64(seed), uint64(seed))) //nolint:gosec
+	return NewSplit(uint64(seed), uint64(seed)) //nolint:gosec
+}
+
+func NewSplit(seed1, seed2 uint64) *Randomizer {
+	rng := rand.New(rand.NewPCG(seed1, seed2)) //nolint:gosec
 	return &Randomizer{rng: rng}
 }
 
@@ -53,4 +58,10 @@ func (r *Randomizer) Int() int {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	return r.rng.Int()
+}
+
+func (r *Randomizer) Uint() uint {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.rng.Uint()
 }

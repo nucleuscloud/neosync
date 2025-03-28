@@ -21,6 +21,7 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -257,6 +258,33 @@ func isJavascriptTransformer(jmt *mgmtv1alpha1.JobMappingTransformer) bool {
 
 	isConfig := jmt.GetConfig().GetTransformJavascriptConfig() != nil || jmt.GetConfig().GetGenerateJavascriptConfig() != nil
 	return isConfig
+}
+
+func buildIdentityCursors(
+	ctx context.Context,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	cols []*mgmtv1alpha1.JobMapping,
+) (map[string]*tablesync_shared.IdentityCursor, error) {
+	cursors := map[string]*tablesync_shared.IdentityCursor{}
+
+	for _, col := range cols {
+		transformer := col.GetTransformer()
+
+		if transformer.GetConfig().GetUserDefinedTransformerConfig() != nil {
+			val, err := convertUserDefinedFunctionConfig(ctx, transformerclient, transformer)
+			if err != nil {
+				return nil, fmt.Errorf("unable to look up user defined transformer config by id: %w", err)
+			}
+			transformer = val
+		}
+
+		scrambleConfig := transformer.GetConfig().GetTransformScrambleIdentityConfig()
+		if scrambleConfig != nil {
+			cursors[buildScrambleIdentityToken(col)] = tablesync_shared.NewDefaultIdentityCursor()
+		}
+	}
+
+	return cursors, nil
 }
 
 func buildMutationConfigs(
@@ -708,9 +736,20 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
+	case *mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig:
+		token := buildScrambleIdentityToken(col)
+		opts, err := transformers.NewTransformIdentityScrambleOptsFromConfigWithToken(token)
+		if err != nil {
+			return "", err
+		}
+		return opts.BuildBloblangString(formattedColPath), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer: %T", cfg)
 	}
+}
+
+func buildScrambleIdentityToken(col *mgmtv1alpha1.JobMapping) string {
+	return neosync_benthos.ToSha256(fmt.Sprintf("%s.%s.%s", col.GetSchema(), col.GetTable(), col.GetColumn()))
 }
 
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {

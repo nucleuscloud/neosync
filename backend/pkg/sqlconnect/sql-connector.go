@@ -8,8 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net"
-	"strconv"
 	"sync"
 	"time"
 
@@ -21,7 +19,6 @@ import (
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mssqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mysqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/postgrestunconnector"
-	"golang.org/x/crypto/ssh"
 )
 
 // interface used by SqlConnector to abstract away the opening and closing of a sqldb that includes tunnelingff
@@ -134,7 +131,7 @@ func getPgConnectorFn(dsn string, config *mgmtv1alpha1.PostgresConnectionConfig,
 			connectorOpts = append(connectorOpts, postgrestunconnector.WithTLSConfig(tlsConfig))
 		}
 		if config.GetTunnel() != nil {
-			cfg, err := getTunnelConfig(config.GetTunnel())
+			cfg, err := tun.GetTunnelConfigFromSSHDto(config.GetTunnel())
 			if err != nil {
 				return nil, nil, fmt.Errorf("unable to construct postgres client tunnel config: %w", err)
 			}
@@ -179,7 +176,7 @@ func getMysqlConnectorFn(dsn string, config *mgmtv1alpha1.MysqlConnectionConfig,
 			connectorOpts = append(connectorOpts, mysqltunconnector.WithTLSConfig(tlsConfig))
 		}
 		if config.GetTunnel() != nil {
-			cfg, err := getTunnelConfig(config.GetTunnel())
+			cfg, err := tun.GetTunnelConfigFromSSHDto(config.GetTunnel())
 			if err != nil {
 				return nil, nil, fmt.Errorf("unable to construct mysql client tunnel config: %w", err)
 			}
@@ -224,7 +221,7 @@ func getMssqlConnectorFn(dsn string, config *mgmtv1alpha1.MssqlConnectionConfig,
 			connectorOpts = append(connectorOpts, mssqltunconnector.WithTLSConfig(tlsConfig))
 		}
 		if config.GetTunnel() != nil {
-			cfg, err := getTunnelConfig(config.GetTunnel())
+			cfg, err := tun.GetTunnelConfigFromSSHDto(config.GetTunnel())
 			if err != nil {
 				return nil, nil, fmt.Errorf("unable to construct mssql tunnel config: %w", err)
 			}
@@ -302,52 +299,6 @@ func convertInt32PtrToIntPtr(input *int32) *int {
 	}
 	value := int(*input)
 	return &value
-}
-
-type tunnelConfig struct {
-	Addr         string
-	ClientConfig *ssh.ClientConfig
-}
-
-func getTunnelConfig(tunnel *mgmtv1alpha1.SSHTunnel) (*tunnelConfig, error) {
-	var hostcallback ssh.HostKeyCallback
-	if tunnel.GetKnownHostPublicKey() != "" {
-		publickey, err := tun.ParseSshKey(tunnel.GetKnownHostPublicKey())
-		if err != nil {
-			return nil, fmt.Errorf("unable to parse ssh known host public key: %w", err)
-		}
-		hostcallback = ssh.FixedHostKey(publickey)
-	} else {
-		hostcallback = ssh.InsecureIgnoreHostKey() //nolint:gosec // the user has chosen to not provide a known host public key
-	}
-	authmethod, err := tun.GetTunnelAuthMethodFromSshConfig(tunnel.GetAuthentication())
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse ssh auth method: %w", err)
-	}
-
-	authmethods := []ssh.AuthMethod{}
-	if authmethod != nil {
-		authmethods = append(authmethods, authmethod)
-	}
-
-	return &tunnelConfig{
-		Addr: getSshAddr(tunnel),
-		ClientConfig: &ssh.ClientConfig{
-			User:            tunnel.GetUser(),
-			Auth:            authmethods,
-			HostKeyCallback: hostcallback,
-			Timeout:         15 * time.Second, // todo: make configurable
-		},
-	}, nil
-}
-
-func getSshAddr(tunnel *mgmtv1alpha1.SSHTunnel) string {
-	host := tunnel.GetHost()
-	port := tunnel.GetPort()
-	if port > 0 {
-		return net.JoinHostPort(host, strconv.FormatInt(int64(port), 10))
-	}
-	return host
 }
 
 type stdlibConnectorGetter func() (driver.Connector, func(), error)

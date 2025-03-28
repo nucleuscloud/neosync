@@ -6,7 +6,7 @@ ALTER TABLE regions
 
 ALTER TABLE countries
   ADD COLUMN updated_at DATETIME NOT NULL
-    DEFAULT CURRENT_TIMESTAMP
+    DEFAULT (CURRENT_TIMESTAMP)
     ON UPDATE CURRENT_TIMESTAMP;
 
 ALTER TABLE locations
@@ -269,3 +269,10 @@ ALTER TABLE astronaut_log
 
 ALTER TABLE astronaut
   MODIFY COLUMN first_name VARCHAR (20) COMMENT 'I\'m an astronaut';
+
+
+ALTER TABLE plants
+ADD COLUMN climate ENUM('Tropical', 'Desert', 'Temperate') NOT NULL DEFAULT 'Temperate';
+
+ALTER TABLE plants
+ADD COLUMN soil_types SET('Sandy', 'Clay', 'Loamy', 'Silty', 'Peaty') NOT NULL DEFAULT 'Loamy';

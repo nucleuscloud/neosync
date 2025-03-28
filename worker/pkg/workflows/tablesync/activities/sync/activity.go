@@ -22,11 +22,14 @@ import (
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/redpanda-data/benthos/v4/public/service"
 	"go.opentelemetry.io/otel/metric"
 	"go.temporal.io/sdk/activity"
+	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/log"
 	"golang.org/x/sync/errgroup"
 
@@ -41,6 +44,7 @@ type Activity struct {
 	mongoconnmanager     connectionmanager.Interface[neosync_benthos_mongodb.MongoClient]
 	meter                metric.Meter // optional
 	benthosStreamManager benthosstream.BenthosStreamManagerClient
+	temporalclient       temporalclient.Client
 }
 
 func New(
@@ -50,6 +54,7 @@ func New(
 	mongoconnmanager connectionmanager.Interface[neosync_benthos_mongodb.MongoClient],
 	meter metric.Meter,
 	benthosStreamManager benthosstream.BenthosStreamManagerClient,
+	temporalclient temporalclient.Client,
 ) *Activity {
 	return &Activity{
 		connclient:           connclient,
@@ -58,6 +63,7 @@ func New(
 		mongoconnmanager:     mongoconnmanager,
 		meter:                meter,
 		benthosStreamManager: benthosStreamManager,
+		temporalclient:       temporalclient,
 	}
 }
 
@@ -180,6 +186,8 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncTableRequest, metadat
 		}
 	}
 
+	identityAllocator := a.getIdentityAllocator(a.temporalclient, &info)
+
 	bstream, err := a.getBenthosStream(
 		&info,
 		benthosConfig,
@@ -188,6 +196,7 @@ func (a *Activity) SyncTable(ctx context.Context, req *SyncTableRequest, metadat
 		getConnectionById,
 		hasMorePages,
 		continuationToken,
+		identityAllocator,
 		logger,
 	)
 	if err != nil {
@@ -225,6 +234,20 @@ func (a *Activity) getConnectionByIdFn(
 	}
 
 	return getConnectionByIdFn(maps.Collect(getDtoSeq(connections))), nil
+}
+
+const (
+	allocatorBlockSize = 1_000 // todo: should be the page limit
+)
+
+func (a *Activity) getIdentityAllocator(tclient temporalclient.Client, info *activity.Info) tablesync_shared.IdentityAllocator {
+	blockAllocator := tablesync_shared.NewTemporalBlockAllocator(
+		tclient,
+		info.WorkflowExecution.ID,
+		info.WorkflowExecution.RunID,
+	)
+	seed := uint64(info.StartedTime.UnixNano()) //nolint:gosec
+	return tablesync_shared.NewMultiIdentityAllocator(blockAllocator, allocatorBlockSize, seed)
 }
 
 func monitorActivityHeartbeat(
@@ -308,9 +331,19 @@ func (a *Activity) getBenthosStream(
 	getConnectionById func(connectionId string) (connectionmanager.ConnectionInput, error),
 	hasMorePages neosync_benthos_sql.OnHasMorePagesFn,
 	continuationToken *continuation_token.ContinuationToken,
+	identityAllocator tablesync_shared.IdentityAllocator,
 	logger *slog.Logger,
 ) (benthosstream.BenthosStreamClient, error) {
-	benenv, err := a.getBenthosEnvironment(logger, info.Attempt > 1, getConnectionById, session, stopActivityChan, hasMorePages, continuationToken)
+	benenv, err := a.getBenthosEnvironment(
+		logger,
+		info.Attempt > 1,
+		getConnectionById,
+		session,
+		stopActivityChan,
+		hasMorePages,
+		continuationToken,
+		identityAllocator,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +382,13 @@ func (a *Activity) getBenthosEnvironment(
 	stopActivityChan chan error,
 	hasMorePages neosync_benthos_sql.OnHasMorePagesFn,
 	continuationToken *continuation_token.ContinuationToken,
+	identityAllocator tablesync_shared.IdentityAllocator,
 ) (*service.Environment, error) {
+	blobEnv := bloblang.NewEnvironment()
+	err := transformers.RegisterTransformIdentityScramble(blobEnv, identityAllocator)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register identity scramble transformer: %w", err)
+	}
 	benenv, err := benthos_environment.NewEnvironment(
 		logger,
 		benthos_environment.WithMeter(a.meter),
@@ -363,7 +402,7 @@ func (a *Activity) getBenthosEnvironment(
 			Provider: pool_mongo_provider.NewProvider(a.mongoconnmanager, getConnectionById, session, logger),
 		}),
 		benthos_environment.WithStopChannel(stopActivityChan),
-		benthos_environment.WithBlobEnv(bloblang.NewEnvironment()),
+		benthos_environment.WithBlobEnv(blobEnv),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to instantiate benthos environment: %w", err)

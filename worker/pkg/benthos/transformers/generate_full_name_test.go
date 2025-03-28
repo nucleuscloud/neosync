@@ -2,16 +2,16 @@ package transformers
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_GenerateRandomFullName(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 
 	res, err := generateRandomFullName(randomizer, maxCharacterLimit)
 
@@ -21,7 +21,7 @@ func Test_GenerateRandomFullName(t *testing.T) {
 }
 
 func Test_generateRandomFullName_MinLength_Error(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 
 	res, err := generateRandomFullName(randomizer, 1)
 	assert.Error(t, err)
@@ -29,7 +29,7 @@ func Test_generateRandomFullName_MinLength_Error(t *testing.T) {
 }
 
 func Test_generateRandomFullName_Small(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 
 	res, err := generateRandomFullName(randomizer, 4)
 	assert.Error(t, err)

@@ -1143,6 +1143,58 @@ func GetDefaultSyncJobMappings(schema string)[]*mgmtv1alpha1.JobMapping {
 		},
 		{
 			Schema: schema,
+			Table:  "plants",
+			Column: "plant_id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "plants",
+			Column: "plant_name",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "plants",
+			Column: "plant_type",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
+			Table:  "plants",
+			Column: "water_types",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config:
+					&mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+						},
+					},
+			},
+		},
+		{
+			Schema: schema,
 			Table:  "regions",
 			Column: "region_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{

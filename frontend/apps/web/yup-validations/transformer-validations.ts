@@ -436,6 +436,7 @@ const TRANSFORMER_SCHEMA_CONFIGS = {
   generateBusinessNameConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
   generateIpAddressConfig: generateIpAddressConfig,
   transformUuidConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  transformScrambleIdentityConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
 
   transformPiiTextConfig: transformPiiTextConfig,
 } as const;
@@ -531,7 +532,7 @@ const transformerNameSchema = Yup.string()
         return true;
       } catch (error) {
         return context.createError({
-          message: 'Error validating name availability.',
+          message: `Error validating name availability: ${error}`,
         });
       }
     }

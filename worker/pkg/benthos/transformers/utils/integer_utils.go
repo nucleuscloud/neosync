@@ -65,8 +65,19 @@ func GenerateRandomInt64InValueRange(randomizer rng.Rand, minValue, maxValue int
 		return minValue, nil
 	}
 
-	rangeVal := maxValue - minValue + 1
-	return minValue + randomizer.Int63n(rangeVal), nil
+	// Calculate range without the +1 to avoid overflow
+	rangeVal := maxValue - minValue
+	if rangeVal < 0 {
+		return 0, fmt.Errorf("invalid range: difference between max (%d) and min (%d) would result in non-positive range", maxValue, minValue)
+	}
+
+	// Special case when maxValue is MaxInt64 to avoid overflow
+	if maxValue == math.MaxInt64 {
+		return minValue + randomizer.Int63n(rangeVal), nil
+	}
+
+	// Normal case
+	return minValue + randomizer.Int63n(rangeVal+1), nil
 }
 
 // gets the number of digits in an int64
@@ -174,7 +185,11 @@ func AnyToInt64(value any) (int64, error) {
 
 	switch v := value.(type) {
 	case string:
-		return strconv.ParseInt(v, 10, 64)
+		val, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return 0, fmt.Errorf("failed to convert string to int64 in AnyToInt64: %s", err)
+		}
+		return val, nil
 	case float32:
 		return int64(v), nil
 	case float64:

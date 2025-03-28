@@ -1358,6 +1358,87 @@ paths:
                 $ref: '#/components/schemas/connect.error'
       security:
         - BearerAuth: []
+  /mgmt.v1alpha1.ConnectionService/CheckSSHConnection:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: CheckSSHConnection
+      description: >-
+        Checks if the SSH server is reachable and accessible with the given
+        credentials
+      operationId: mgmt.v1alpha1.ConnectionService.CheckSSHConnection
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.ConnectionService/CheckSSHConnectionById:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: CheckSSHConnectionById
+      description: >-
+        Checks if the SSH server is reachable and accessible with the given
+        credentials
+      operationId: mgmt.v1alpha1.ConnectionService.CheckSSHConnectionById
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionByIdRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.CheckSSHConnectionByIdResponse
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionDataService/GetConnectionDataStream: {}
   /mgmt.v1alpha1.ConnectionDataService/GetConnectionSchema:
     post:
@@ -6751,6 +6832,14 @@ components:
           title: value
       title: EntityAnonymizersEntry
       additionalProperties: false
+    mgmt.v1alpha1.TransformScrambleIdentity:
+      type: object
+      title: TransformScrambleIdentity
+      additionalProperties: false
+      description: >-
+        Takes an input integer and scrambles it, effectively outputing another
+        integer that is not the same as the input.
+         This is effectively a random integer generator that has unique properties.
     mgmt.v1alpha1.TransformString:
       type: object
       allOf:
@@ -6874,6 +6963,8 @@ components:
             - required:
                 - transformPiiTextConfig
             - required:
+                - transformScrambleIdentityConfig
+            - required:
                 - transformStringConfig
             - required:
                 - transformUuidConfig
@@ -6970,6 +7061,8 @@ components:
                   - required:
                       - transformPiiTextConfig
                   - required:
+                      - transformScrambleIdentityConfig
+                  - required:
                       - transformStringConfig
                   - required:
                       - transformUuidConfig
@@ -7064,6 +7157,8 @@ components:
             - transformPhoneNumberConfig
         - required:
             - transformPiiTextConfig
+        - required:
+            - transformScrambleIdentityConfig
         - required:
             - transformStringConfig
         - required:
@@ -7160,6 +7255,8 @@ components:
                   - transformPhoneNumberConfig
               - required:
                   - transformPiiTextConfig
+              - required:
+                  - transformScrambleIdentityConfig
               - required:
                   - transformStringConfig
               - required:
@@ -7356,6 +7453,11 @@ components:
           allOf:
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformUuid'
           title: transform_uuid_config
+        transformScrambleIdentityConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformScrambleIdentity'
+          title: transform_scramble_identity_config
+          description: Scrambles an integer while keeping it unique.
       title: TransformerConfig
       additionalProperties: false
       description: >-
@@ -7964,6 +8066,76 @@ components:
             $ref: '#/components/schemas/mgmt.v1alpha1.ConnectionRolePrivilege'
           title: privileges
       title: CheckConnectionConfigResponse
+      additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionByIdRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The connection id that the SSH connection will be checked against
+      title: CheckSSHConnectionByIdRequest
+      additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionByIdResponse:
+      type: object
+      properties:
+        result:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionResult'
+          title: result
+          description: The result of the SSH connection check
+      title: CheckSSHConnectionByIdResponse
+      additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionRequest:
+      type: object
+      properties:
+        tunnel:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
+          title: tunnel
+          description: The SSH tunnel configuration to use for the connection
+      title: CheckSSHConnectionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionResponse:
+      type: object
+      properties:
+        result:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionResult'
+          title: result
+          description: The result of the SSH connection check
+      title: CheckSSHConnectionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionResult:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - errorMessage
+            - not:
+                anyOf:
+                  - required:
+                      - errorMessage
+      anyOf:
+        - required:
+            - errorMessage
+        - not:
+            anyOf:
+              - required:
+                  - errorMessage
+      properties:
+        isSuccessful:
+          type: boolean
+          title: is_successful
+          description: Whether or not the SSH connection is successful
+        errorMessage:
+          type: string
+          title: error_message
+          description: >-
+            The error message returned by the SSH client if the connection is
+            not successful
+      title: CheckSSHConnectionResult
       additionalProperties: false
     mgmt.v1alpha1.CheckSqlQueryRequest:
       type: object
@@ -13129,7 +13301,9 @@ components:
         haltOnNewColumnAddition:
           type: boolean
           title: halt_on_new_column_addition
-          description: Whether to halt the job if a new column is added
+          description: |-
+            Whether to halt the job if a new column is added
+             Deprecated: Use new_column_addition_strategy instead
         schemas:
           type: array
           items:
@@ -13155,6 +13329,14 @@ components:
           description: >-
             Provide a strategy of what to do in the event Neosync encounters a
             column that is removed from the source table.
+        newColumnAdditionStrategy:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy
+          title: new_column_addition_strategy
+          description: >-
+            Provide a strategy of what to do in the event Neosync encounters an
+            unmapped column for the job's mapped tables.
       title: MysqlSourceConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy:
@@ -13203,6 +13385,60 @@ components:
       additionalProperties: false
       description: Configuration for the ContinueJob strategy
     mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob:
+      type: object
+      title: HaltJob
+      additionalProperties: false
+      description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - autoMap
+            - required:
+                - haltJob
+            - not:
+                anyOf:
+                  - required:
+                      - autoMap
+                  - required:
+                      - haltJob
+      anyOf:
+        - required:
+            - autoMap
+        - required:
+            - haltJob
+        - not:
+            anyOf:
+              - required:
+                  - autoMap
+              - required:
+                  - haltJob
+      properties:
+        haltJob:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
+          title: halt_job
+          description: halt job if a new column is detected.
+        autoMap:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
+          title: auto_map
+          description: >-
+            automatically handle unmapped columns. It handles this by using the
+            DBs default/nullable values.
+             If this doesn't exist, will fall back to configuring generators for supported datatypes.
+             If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+      title: NewColumnAdditionStrategy
+      additionalProperties: false
+    mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap:
+      type: object
+      title: AutoMap
+      additionalProperties: false
+      description: Configuration for the AutoMap strategy
+    mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob:
       type: object
       title: HaltJob
       additionalProperties: false
@@ -14730,6 +14966,7 @@ components:
         - TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME
         - TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS
         - TRANSFORMER_SOURCE_TRANSFORM_UUID
+        - TRANSFORMER_SOURCE_TRANSFORM_SCRAMBLE_IDENTITY
     mgmt.v1alpha1.CreateUserDefinedTransformerRequest:
       type: object
       properties:

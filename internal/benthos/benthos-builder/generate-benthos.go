@@ -133,6 +133,7 @@ func convertToResponse(sourceConfig *bb_internal.BenthosSourceConfig) *BenthosCo
 		RedisDependsOn:          sourceConfig.RedisDependsOn,
 		BenthosDsns:             sourceConfig.BenthosDsns,
 		RedisConfig:             sourceConfig.RedisConfig,
+		ColumnIdentityCursors:   sourceConfig.ColumnIdentityCursors,
 	}
 }
 

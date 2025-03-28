@@ -4,13 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 	"sync"
 	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
-	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
@@ -177,15 +175,6 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 		return nil, err
 	}
 
-	redisDependsOn := map[string]map[string][]string{} // schema.table -> dependson
-	redisConfigs := map[string]*benthosbuilder_shared.BenthosRedisConfig{}
-	for _, cfg := range bcResp.BenthosConfigs {
-		for _, redisCfg := range cfg.RedisConfig {
-			redisConfigs[redisCfg.Key] = redisCfg
-		}
-		redisDependsOn[cfg.Name] = cfg.RedisDependsOn
-	}
-
 	// spawn account status checker in loop
 	stopChan := workflow.NewNamedChannel(ctx, "account-status")
 	if initialCheckAccountStatusResponse.ShouldPoll {
@@ -276,9 +265,8 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 				activityErr = err
 				cancelHandler()
 
-				// empty depends on map will clean up all redis inserts
 				detachedCtx, _ := workflow.NewDisconnectedContext(ctx)
-				redisErr := runRedisCleanUpActivity(detachedCtx, logger, map[string]map[string][]string{}, req.JobId, redisConfigs)
+				redisErr := runRedisCleanUpActivity(detachedCtx, logger, req.JobId, bcResp.BenthosConfigs)
 				if redisErr != nil {
 					logger.Error("redis clean up activity did not complete")
 				}
@@ -288,11 +276,6 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 			err = runPostTableSyncActivity(ctx, logger, actOptResp, bc.Name)
 			if err != nil {
 				logger.Error(fmt.Sprintf("post table sync activity did not complete: %s", err.Error()), "schema", bc.TableSchema, "table", bc.TableName)
-			}
-			delete(redisDependsOn, bc.Name)
-			err = runRedisCleanUpActivity(ctx, logger, redisDependsOn, req.JobId, redisConfigs)
-			if err != nil {
-				logger.Error(fmt.Sprintf("redis clean up activity did not complete: %s", err))
 			}
 		})
 	}
@@ -386,6 +369,11 @@ func executeWorkflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowRes
 	logger.Info("data syncs completed")
 
 	err = execRunJobHooksByTiming(ctx, &jobhooks_by_timing_activity.RunJobHooksByTimingRequest{JobId: req.JobId, Timing: mgmtv1alpha1.GetActiveJobHooksByTimingRequest_TIMING_POSTSYNC}, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	err = runRedisCleanUpActivity(ctx, logger, req.JobId, bcResp.BenthosConfigs)
 	if err != nil {
 		return nil, err
 	}
@@ -520,16 +508,12 @@ func runPostTableSyncActivity(
 func runRedisCleanUpActivity(
 	ctx workflow.Context,
 	logger log.Logger,
-	dependsOnMap map[string]map[string][]string,
 	jobId string,
-	redisConfigs map[string]*benthosbuilder_shared.BenthosRedisConfig,
+	configs []*benthosbuilder.BenthosConfigResponse,
 ) error {
-	if len(redisConfigs) > 0 {
-		for k, cfg := range redisConfigs {
-			if !isReadyForCleanUp(cfg.Table, cfg.Column, dependsOnMap) {
-				continue
-			}
-			logger.Debug("executing redis clean up activity")
+	for _, cfg := range configs {
+		for _, redisCfg := range cfg.RedisConfig {
+			logger.Debug("executing redis clean up activity", "hashKey", redisCfg.Key)
 			var resp *syncrediscleanup_activity.DeleteRedisHashResponse
 			var redisCleanUpActivity *syncrediscleanup_activity.Activity
 			err := workflow.ExecuteActivity(
@@ -543,26 +527,14 @@ func runRedisCleanUpActivity(
 				redisCleanUpActivity.DeleteRedisHash,
 				&syncrediscleanup_activity.DeleteRedisHashRequest{
 					JobId:   jobId,
-					HashKey: cfg.Key,
+					HashKey: redisCfg.Key,
 				}).Get(ctx, &resp)
 			if err != nil {
 				return err
 			}
-			delete(redisConfigs, k)
 		}
 	}
 	return nil
-}
-
-func isReadyForCleanUp(table, col string, dependsOnMap map[string]map[string][]string) bool {
-	for _, dependsOn := range dependsOnMap {
-		for t, cols := range dependsOn {
-			if t == table && slices.Contains(cols, col) {
-				return false
-			}
-		}
-	}
-	return true
 }
 
 func withBenthosConfigResponseLoggerTags(bc *benthosbuilder.BenthosConfigResponse) []any {
@@ -616,13 +588,14 @@ func invokeSync(
 				MaximumAttempts: 1,
 			},
 		}), tsWf.TableSync, &tablesync_workflow.TableSyncRequest{
-			AccountId:           accId,
-			Id:                  config.Name,
-			SyncActivityOptions: syncActivityOptions,
-			ContinuationToken:   nil,
-			JobRunId:            info.WorkflowExecution.ID,
-			TableSchema:         config.TableSchema,
-			TableName:           config.TableName,
+			AccountId:             accId,
+			Id:                    config.Name,
+			SyncActivityOptions:   syncActivityOptions,
+			ContinuationToken:     nil,
+			JobRunId:              info.WorkflowExecution.ID,
+			TableSchema:           config.TableSchema,
+			TableName:             config.TableName,
+			ColumnIdentityCursors: config.ColumnIdentityCursors,
 		}).Get(ctx, &wfResult)
 		if err == nil {
 			tn := neosync_benthos.BuildBenthosTable(config.TableSchema, config.TableName)
