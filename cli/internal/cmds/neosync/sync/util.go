@@ -123,11 +123,11 @@ func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destination
 	switch connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		if destinationDriver != nil && *destinationDriver != postgresDriver {
-			return fmt.Errorf("Connection and destination types are incompatible [postgres, %s]", *destinationDriver)
+			return fmt.Errorf("connection and destination types are incompatible [postgres, %s]", *destinationDriver)
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		if destinationDriver != nil && *destinationDriver != mysqlDriver {
-			return fmt.Errorf("Connection and destination types are incompatible [mysql, %s]", *destinationDriver)
+			return fmt.Errorf("connection and destination types are incompatible [mysql, %s]", *destinationDriver)
 		}
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig, *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
 	default:

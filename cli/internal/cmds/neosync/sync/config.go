@@ -258,7 +258,7 @@ func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1
 	}
 
 	if sourceConnection.AccountId != *cmd.AccountId {
-		return fmt.Errorf("Connection not found. AccountId: %s", *cmd.AccountId)
+		return fmt.Errorf("connection not found. accountId: %s", *cmd.AccountId)
 	}
 
 	var destinationDriver *DriverType

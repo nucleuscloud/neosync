@@ -69,7 +69,7 @@ func ExtractBenthosSpec(fileSet *token.FileSet) ([]*BenthosSpec, error) {
 		if !d.IsDir() && filepath.Ext(path) == ".go" {
 			node, err := parser.ParseFile(fileSet, path, nil, parser.ParseComments)
 			if err != nil {
-				return fmt.Errorf("Failed to parse file %s: %v", path, err)
+				return fmt.Errorf("failed to parse file %s: %v", path, err)
 			}
 			for _, cgroup := range node.Comments {
 				for _, comment := range cgroup.List {

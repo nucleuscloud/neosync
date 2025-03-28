@@ -67,7 +67,7 @@ func (d *MssqlSchemaManager) InitializeSchema(ctx context.Context, uniqueTables 
 		return initErrors, nil
 	}
 	if !d.eelicense.IsValid() {
-		return nil, fmt.Errorf("invalid or non-existent Neosync License. SQL Server schema init requires valid Enterprise license.")
+		return nil, fmt.Errorf("invalid or non-existent Neosync License. SQL Server schema init requires valid Enterprise license")
 	}
 	tables := []*sqlmanager_shared.SchemaTable{}
 	for tableKey := range uniqueTables {

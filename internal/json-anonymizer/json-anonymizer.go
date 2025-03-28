@@ -54,7 +54,7 @@ func NewAnonymizer(opts ...Option) (*JsonAnonymizer, error) {
 	}
 
 	if len(a.transformerMappings) == 0 && a.defaultTransformers == nil {
-		return nil, fmt.Errorf("failed to initialize JSON anonymizer. must provide either default transformers or transformer mappings.")
+		return nil, fmt.Errorf("failed to initialize JSON anonymizer. must provide either default transformers or transformer mappings")
 	}
 
 	// Initialize transformerExecutors

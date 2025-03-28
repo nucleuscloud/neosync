@@ -1140,7 +1140,7 @@ func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
 			},
 		}, nil
 	default:
-		return nil, errors.New("unsupported or no run log type configured, but run logs are enabled.")
+		return nil, errors.New("unsupported or no run log type configured, but run logs are enabled")
 	}
 }
 
