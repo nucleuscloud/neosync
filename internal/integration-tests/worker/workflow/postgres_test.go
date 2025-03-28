@@ -1343,6 +1343,7 @@ func test_postgres_schema_reconciliation(
 		{schema: schema, table: "jobs", rowCount: 19},
 		{schema: schema, table: "employees", rowCount: 40},
 		{schema: schema, table: "dependents", rowCount: 30},
+		{schema: schema, table: "test_table_single_col", rowCount: 1},
 	}
 
 	tables := []string{}
@@ -1389,7 +1390,7 @@ func test_postgres_schema_reconciliation(
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "departments", sqlmanager_shared.PostgresDriver, []string{"department_id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "countries", sqlmanager_shared.PostgresDriver, []string{"country_id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "locations", sqlmanager_shared.PostgresDriver, []string{"location_id"})
-
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "test_table_single_col", sqlmanager_shared.PostgresDriver, []string{"name"})
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
 	require.NoError(t, err)
