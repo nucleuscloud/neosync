@@ -1219,6 +1219,7 @@ func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) string {
 		IsNullable:         column.IsNullable,
 		GeneratedType:      *column.GeneratedType,
 		SequenceDefinition: column.SequenceDefinition,
+		IsSerial:           column.IsSerial,
 	})
 	return fmt.Sprintf("ALTER TABLE %q.%q ADD COLUMN %s;", column.Schema, column.Table, col)
 }

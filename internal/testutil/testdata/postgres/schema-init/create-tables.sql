@@ -111,9 +111,7 @@ CREATE TABLE example_table (
     description text
 );
 
-
-
- CREATE OR REPLACE FUNCTION other_trigger_function()
+CREATE OR REPLACE FUNCTION other_trigger_function()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
