@@ -45,6 +45,7 @@ type Activity struct {
 	meter                metric.Meter // optional
 	benthosStreamManager benthosstream.BenthosStreamManagerClient
 	temporalclient       temporalclient.Client
+	transformPiiTextApi  transformers.TransformPiiTextApi
 }
 
 func New(
@@ -55,6 +56,7 @@ func New(
 	meter metric.Meter,
 	benthosStreamManager benthosstream.BenthosStreamManagerClient,
 	temporalclient temporalclient.Client,
+	transformPiiTextApi transformers.TransformPiiTextApi,
 ) *Activity {
 	return &Activity{
 		connclient:           connclient,
@@ -64,6 +66,7 @@ func New(
 		meter:                meter,
 		benthosStreamManager: benthosStreamManager,
 		temporalclient:       temporalclient,
+		transformPiiTextApi:  transformPiiTextApi,
 	}
 }
 
@@ -405,6 +408,10 @@ func (a *Activity) getBenthosEnvironment(
 	if err != nil {
 		return nil, fmt.Errorf("unable to register identity scramble transformer: %w", err)
 	}
+	err = transformers.RegisterTransformPiiText(blobEnv, a.transformPiiTextApi)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register pii text transformer: %w", err)
+	}
 	benenv, err := benthos_environment.NewEnvironment(
 		logger,
 		benthos_environment.WithMeter(a.meter),
@@ -429,6 +436,7 @@ func (a *Activity) getBenthosEnvironment(
 		}),
 		benthos_environment.WithStopChannel(stopActivityChan),
 		benthos_environment.WithBlobEnv(blobEnv),
+		benthos_environment.WithTransformPiiTextApi(a.transformPiiTextApi),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to instantiate benthos environment: %w", err)
