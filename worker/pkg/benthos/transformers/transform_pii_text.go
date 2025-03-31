@@ -48,7 +48,7 @@ func RegisterTransformPiiText(
 		).
 		Param(bloblang.NewAnyParam("deny_recognizers").
 			Optional().
-			Default([]map[string]any{}).
+			Default([]any{}).
 			Description("Configure deny lists where each word is treated as PII. Each entry should contain 'name' and 'deny_words' fields."),
 		).
 		Param(bloblang.NewAnyParam("entity_anonymizers").
@@ -66,9 +66,13 @@ func RegisterTransformPiiText(
 				return nil, err
 			}
 
-			scoreThreshold, err := args.GetFloat64("score_threshold")
+			scoreThresholdParam, err := args.GetOptionalFloat64("score_threshold")
 			if err != nil {
 				return nil, err
+			}
+			scoreThreshold := float32(0.5)
+			if scoreThresholdParam != nil {
+				scoreThreshold = float32(*scoreThresholdParam)
 			}
 
 			language, err := args.GetOptionalString("language")
@@ -183,39 +187,6 @@ func transformPiiText(api TransformPiiTextApi, config *mgmtv1alpha1.TransformPii
 	return &transformedResult, nil
 }
 
-type PiiAnonymizer struct {
-	Replace   *Replace
-	Redact    *Redact
-	Mask      *Mask
-	Hash      *Hash
-	Transform *Transform
-}
-
-type Replace struct {
-	Value *string
-}
-
-type Redact struct{}
-
-type Mask struct {
-	MaskingChar *string
-	CharsToMask *int32
-	FromEnd     *bool
-}
-
-type Hash struct {
-	Algo *string
-}
-
-type Transform struct {
-	Config map[string]interface{}
-}
-
-type PiiDenyRecognizer struct {
-	Name      string
-	DenyWords []string
-}
-
 func convertToPiiDenyRecognizerArray(raw any) ([]*mgmtv1alpha1.PiiDenyRecognizer, error) {
 	denyRecognizers := make([]*mgmtv1alpha1.PiiDenyRecognizer, 0)
 	if raw == nil {
@@ -228,7 +199,7 @@ func convertToPiiDenyRecognizerArray(raw any) ([]*mgmtv1alpha1.PiiDenyRecognizer
 	for _, recognizer := range denyRecognizersRawArray {
 		recognizerMap, ok := recognizer.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("deny_recognizer must be a map")
+			return nil, fmt.Errorf("deny_recognizer must be a map, was: %T", recognizer)
 		}
 		denyRecognizer, err := convertToPiiDenyRecognizer(recognizerMap)
 		if err != nil {
@@ -246,7 +217,7 @@ func convertToPiiAnonymizerMap(raw any) (map[string]*mgmtv1alpha1.PiiAnonymizer,
 	}
 	entityAnonymizersRawMap, ok := raw.(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("entity_anonymizers must be a map")
+		return nil, fmt.Errorf("entity_anonymizers must be a map, was: %T", raw)
 	}
 	for entity, anonymizer := range entityAnonymizersRawMap {
 		anonymizerConfig, err := convertToPiiAnonymizer(anonymizer)
@@ -272,13 +243,14 @@ func convertToPiiAnonymizer(raw any) (*mgmtv1alpha1.PiiAnonymizer, error) {
 
 	// Check for each possible config type and set accordingly
 	if replace, ok := configMap["replace"].(map[string]any); ok {
-		value, ok := replace["value"].(string)
-		if !ok {
-			return nil, fmt.Errorf("replace value must be a string")
+		var value *string
+		valueParam, ok := replace["value"].(string)
+		if ok && valueParam != "" {
+			value = &valueParam
 		}
 		anonymizer.Config = &mgmtv1alpha1.PiiAnonymizer_Replace_{
 			Replace: &mgmtv1alpha1.PiiAnonymizer_Replace{
-				Value: &value,
+				Value: value,
 			},
 		}
 	} else if _, ok := configMap["redact"].(map[string]any); ok {
@@ -286,7 +258,7 @@ func convertToPiiAnonymizer(raw any) (*mgmtv1alpha1.PiiAnonymizer, error) {
 			Redact: &mgmtv1alpha1.PiiAnonymizer_Redact{},
 		}
 	} else if mask, ok := configMap["mask"].(map[string]any); ok {
-		maskConfig := &Mask{}
+		maskConfig := &mgmtv1alpha1.PiiAnonymizer_Mask{}
 		if char, ok := mask["masking_char"].(string); ok {
 			maskConfig.MaskingChar = &char
 		}
@@ -304,8 +276,8 @@ func convertToPiiAnonymizer(raw any) (*mgmtv1alpha1.PiiAnonymizer, error) {
 				FromEnd:     maskConfig.FromEnd,
 			},
 		}
-	} else if hash, ok := configMap["hash"].(map[string]interface{}); ok {
-		if algo, ok := hash["algo"].(int32); ok {
+	} else if hash, ok := configMap["hash"].(map[string]any); ok {
+		if algo, ok := hash["algo"].(int64); ok {
 			convertedAlgo := mgmtv1alpha1.PiiAnonymizer_Hash_HashType(algo)
 			if _, ok := mgmtv1alpha1.PiiAnonymizer_Hash_HashType_name[int32(convertedAlgo)]; !ok {
 				return nil, fmt.Errorf("invalid hash algorithm: %d", convertedAlgo)
@@ -315,6 +287,8 @@ func convertToPiiAnonymizer(raw any) (*mgmtv1alpha1.PiiAnonymizer, error) {
 					Algo: &convertedAlgo,
 				},
 			}
+		} else {
+			return nil, fmt.Errorf("invalid hash algorithm: %T", hash["algo"])
 		}
 	} else if _, ok := configMap["transform"].(map[string]any); ok {
 		return nil, fmt.Errorf("transform not currently supported")
