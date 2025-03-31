@@ -59,7 +59,7 @@ type TransformerConfig struct {
 	GenerateIpAddress          *GenerateIpAddressConfig         `json:"generateIpAddressConfig,omitempty"`
 	TransformUuid              *TransformUuidConfig             `json:"transformUuid,omitempty"`
 	TransformScrambleIdentity  *TransformScrambleIdentityConfig `json:"transformScrambleIdentity,omitempty"`
-	TransformPiiText           []byte                           `json:"transformPiiText,omitempty"`
+	TransformPiiText           string                           `json:"transformPiiText,omitempty"`
 }
 
 type TransformScrambleIdentityConfig struct{}
@@ -409,7 +409,7 @@ func (t *TransformerConfig) FromTransformerConfigDto(tr *mgmtv1alpha1.Transforme
 		if err != nil {
 			return fmt.Errorf("unable to marshal transform pii text config: %w", err)
 		}
-		t.TransformPiiText = bits
+		t.TransformPiiText = string(bits)
 	default:
 		t = &TransformerConfig{}
 	}
@@ -784,9 +784,9 @@ func (t *TransformerConfig) ToTransformerConfigDto() (*mgmtv1alpha1.TransformerC
 				TransformScrambleIdentityConfig: &mgmtv1alpha1.TransformScrambleIdentity{},
 			},
 		}, nil
-	case t.TransformPiiText != nil:
+	case t.TransformPiiText != "":
 		var v *mgmtv1alpha1.TransformPiiText
-		err := json.Unmarshal(t.TransformPiiText, &v)
+		err := json.Unmarshal([]byte(t.TransformPiiText), &v)
 		if err != nil {
 			return nil, fmt.Errorf("unable to unmarshal transform pii text config: %w", err)
 		}
