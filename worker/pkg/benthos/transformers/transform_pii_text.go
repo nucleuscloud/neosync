@@ -321,9 +321,6 @@ func transformPiiText(api TransformPiiTextApi, config *mgmtv1alpha1.TransformPii
 		return &result, nil
 	}
 
-	bits, _ := json.Marshal(config)
-	fmt.Println("result!!!", string(bits))
-
 	transformedResult, err := api.Transform(context.Background(), config, result)
 	if err != nil {
 		return nil, fmt.Errorf("unable to transform PII text: %w", err)
