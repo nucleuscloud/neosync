@@ -45,7 +45,7 @@ type Activity struct {
 	meter                metric.Meter // optional
 	benthosStreamManager benthosstream.BenthosStreamManagerClient
 	temporalclient       temporalclient.Client
-	transformPiiTextApi  transformers.TransformPiiTextApi
+	anonymizationClient  mgmtv1alpha1connect.AnonymizationServiceClient
 }
 
 func New(
@@ -56,7 +56,7 @@ func New(
 	meter metric.Meter,
 	benthosStreamManager benthosstream.BenthosStreamManagerClient,
 	temporalclient temporalclient.Client,
-	transformPiiTextApi transformers.TransformPiiTextApi,
+	anonymizationClient mgmtv1alpha1connect.AnonymizationServiceClient,
 ) *Activity {
 	return &Activity{
 		connclient:           connclient,
@@ -66,7 +66,7 @@ func New(
 		meter:                meter,
 		benthosStreamManager: benthosStreamManager,
 		temporalclient:       temporalclient,
-		transformPiiTextApi:  transformPiiTextApi,
+		anonymizationClient:  anonymizationClient,
 	}
 }
 
@@ -203,6 +203,7 @@ func (a *Activity) SyncTable(
 
 	bstream, err := a.getBenthosStream(
 		&info,
+		req.AccountId,
 		benthosConfig,
 		session,
 		stopActivityChan,
@@ -210,6 +211,7 @@ func (a *Activity) SyncTable(
 		hasMorePages,
 		continuationToken,
 		identityAllocator,
+		a.anonymizationClient,
 		logger,
 	)
 	if err != nil {
@@ -341,6 +343,7 @@ func runStream(
 
 func (a *Activity) getBenthosStream(
 	info *activity.Info,
+	accountId string,
 	benthosConfig string,
 	session connectionmanager.SessionInterface,
 	stopActivityChan chan error,
@@ -348,17 +351,20 @@ func (a *Activity) getBenthosStream(
 	hasMorePages neosync_benthos_sql.OnHasMorePagesFn,
 	continuationToken *continuation_token.ContinuationToken,
 	identityAllocator tablesync_shared.IdentityAllocator,
+	anonymizationClient mgmtv1alpha1connect.AnonymizationServiceClient,
 	logger *slog.Logger,
 ) (benthosstream.BenthosStreamClient, error) {
 	benenv, err := a.getBenthosEnvironment(
 		logger,
 		info.Attempt > 1,
+		accountId,
 		getConnectionById,
 		session,
 		stopActivityChan,
 		hasMorePages,
 		continuationToken,
 		identityAllocator,
+		anonymizationClient,
 	)
 	if err != nil {
 		return nil, err
@@ -396,19 +402,25 @@ func (a *Activity) getBenthosStream(
 func (a *Activity) getBenthosEnvironment(
 	logger *slog.Logger,
 	isRetry bool,
+	accountId string,
 	getConnectionById func(connectionId string) (connectionmanager.ConnectionInput, error),
 	session connectionmanager.SessionInterface,
 	stopActivityChan chan error,
 	hasMorePages neosync_benthos_sql.OnHasMorePagesFn,
 	continuationToken *continuation_token.ContinuationToken,
 	identityAllocator tablesync_shared.IdentityAllocator,
+	anonymizationClient mgmtv1alpha1connect.AnonymizationServiceClient,
 ) (*service.Environment, error) {
 	blobEnv := bloblang.NewEnvironment()
 	err := transformers.RegisterTransformIdentityScramble(blobEnv, identityAllocator)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register identity scramble transformer: %w", err)
 	}
-	err = transformers.RegisterTransformPiiText(blobEnv, a.transformPiiTextApi)
+	transformPiiTextApiForAccount := transformers.NewAccountAwareAnonymizationPiiTextApi(
+		anonymizationClient,
+		accountId,
+	)
+	err = transformers.RegisterTransformPiiText(blobEnv, transformPiiTextApiForAccount)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register pii text transformer: %w", err)
 	}
@@ -436,7 +448,7 @@ func (a *Activity) getBenthosEnvironment(
 		}),
 		benthos_environment.WithStopChannel(stopActivityChan),
 		benthos_environment.WithBlobEnv(blobEnv),
-		benthos_environment.WithTransformPiiTextApi(a.transformPiiTextApi),
+		benthos_environment.WithTransformPiiTextApi(transformPiiTextApiForAccount),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to instantiate benthos environment: %w", err)

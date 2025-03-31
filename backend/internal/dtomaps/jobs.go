@@ -17,7 +17,11 @@ func ToJobDto(
 ) (*mgmtv1alpha1.Job, error) {
 	mappings := []*mgmtv1alpha1.JobMapping{}
 	for _, mapping := range inputJob.Mappings {
-		mappings = append(mappings, mapping.ToDto())
+		dto, err := mapping.ToDto()
+		if err != nil {
+			return nil, fmt.Errorf("unable to convert job mapping to dto: %w", err)
+		}
+		mappings = append(mappings, dto)
 	}
 
 	virtualForeignKeys := []*mgmtv1alpha1.VirtualForeignConstraint{}
@@ -50,6 +54,11 @@ func ToJobDto(
 		}
 	}
 
+	sourceOptions, err := inputJob.ConnectionOptions.ToDto()
+	if err != nil {
+		return nil, fmt.Errorf("unable to convert job source options to dto: %w", err)
+	}
+
 	return &mgmtv1alpha1.Job{
 		Id:                 neosyncdb.UUIDString(inputJob.ID),
 		Name:               inputJob.Name,
@@ -61,7 +70,7 @@ func ToJobDto(
 		Mappings:           mappings,
 		VirtualForeignKeys: virtualForeignKeys,
 		Source: &mgmtv1alpha1.JobSource{
-			Options: inputJob.ConnectionOptions.ToDto(),
+			Options: sourceOptions,
 		},
 		Destinations:    destinations,
 		AccountId:       neosyncdb.UUIDString(inputJob.AccountID),

@@ -2,16 +2,85 @@ package transformers
 
 import (
 	context "context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
 
+	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 )
 
+// Minimal interface that includes the config and value
+// To be used deep in the transformers so we don't have to be aware of the account id at the benthos level
 type TransformPiiTextApi interface {
 	Transform(ctx context.Context, config *mgmtv1alpha1.TransformPiiText, value string) (string, error)
+}
+
+// Full interface that includes the account id
+type AccountTransformPiiTextApi interface {
+	Transform(ctx context.Context, accountId string, config *mgmtv1alpha1.TransformPiiText, value string) (string, error)
+}
+
+type AccountAwareAnonymizationPiiTextApi struct {
+	anonApi   mgmtv1alpha1connect.AnonymizationServiceClient
+	accountId string
+}
+
+func NewAccountAwareAnonymizationPiiTextApi(
+	anonApi mgmtv1alpha1connect.AnonymizationServiceClient,
+	accountId string,
+) *AccountAwareAnonymizationPiiTextApi {
+	return &AccountAwareAnonymizationPiiTextApi{
+		anonApi:   anonApi,
+		accountId: accountId,
+	}
+}
+
+func (a *AccountAwareAnonymizationPiiTextApi) Transform(
+	ctx context.Context,
+	config *mgmtv1alpha1.TransformPiiText,
+	value string,
+) (string, error) {
+	wrapper := valueWrapper{
+		Input: value,
+	}
+	bits, err := json.Marshal(wrapper)
+	if err != nil {
+		return "", fmt.Errorf("unable to marshal value: %w", err)
+	}
+
+	resp, err := a.anonApi.AnonymizeSingle(ctx, connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+		InputData: string(bits),
+		AccountId: a.accountId,
+		TransformerMappings: []*mgmtv1alpha1.TransformerMapping{
+			{
+				Expression: ".input",
+				Transformer: &mgmtv1alpha1.TransformerConfig{
+					Config: nil, // TODO: add config
+				},
+			},
+		},
+	}))
+
+	if err != nil {
+		return "", fmt.Errorf("unable to anonymize text: %w", err)
+	}
+
+	outputData := resp.Msg.GetOutputData()
+	var output valueWrapper
+	err = json.Unmarshal([]byte(outputData), &output)
+	if err != nil {
+		return "", fmt.Errorf("unable to unmarshal output: %w", err)
+	}
+
+	return output.Input, nil
+}
+
+type valueWrapper struct {
+	Input string `json:"input"`
 }
 
 func RegisterTransformPiiText(

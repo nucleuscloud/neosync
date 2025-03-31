@@ -1,6 +1,9 @@
 package pg_models
 
 import (
+	"encoding/json"
+	"fmt"
+
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
@@ -56,6 +59,7 @@ type TransformerConfig struct {
 	GenerateIpAddress          *GenerateIpAddressConfig         `json:"generateIpAddressConfig,omitempty"`
 	TransformUuid              *TransformUuidConfig             `json:"transformUuid,omitempty"`
 	TransformScrambleIdentity  *TransformScrambleIdentityConfig `json:"transformScrambleIdentity,omitempty"`
+	TransformPiiText           []byte                           `json:"transformPiiText,omitempty"`
 }
 
 type TransformScrambleIdentityConfig struct{}
@@ -400,6 +404,12 @@ func (t *TransformerConfig) FromTransformerConfigDto(tr *mgmtv1alpha1.Transforme
 		t.TransformUuid = &TransformUuidConfig{}
 	case *mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig:
 		t.TransformScrambleIdentity = &TransformScrambleIdentityConfig{}
+	case *mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig:
+		bits, err := json.Marshal(tr.GetTransformPiiTextConfig())
+		if err != nil {
+			return fmt.Errorf("unable to marshal transform pii text config: %w", err)
+		}
+		t.TransformPiiText = bits
 	default:
 		t = &TransformerConfig{}
 	}
@@ -407,16 +417,20 @@ func (t *TransformerConfig) FromTransformerConfigDto(tr *mgmtv1alpha1.Transforme
 	return nil
 }
 
-func (t *JobMappingTransformerModel) ToTransformerDto() *mgmtv1alpha1.JobMappingTransformer {
+func (t *JobMappingTransformerModel) ToTransformerDto() (*mgmtv1alpha1.JobMappingTransformer, error) {
 	if t.Config == nil {
 		t.Config = &TransformerConfig{}
 	}
-	return &mgmtv1alpha1.JobMappingTransformer{
-		Config: t.Config.ToTransformerConfigDto(),
+	cfg, err := t.Config.ToTransformerConfigDto()
+	if err != nil {
+		return nil, fmt.Errorf("unable to convert transformer config to dto: %w", err)
 	}
+	return &mgmtv1alpha1.JobMappingTransformer{
+		Config: cfg,
+	}, nil
 }
 
-func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerConfig {
+func (t *TransformerConfig) ToTransformerConfigDto() (*mgmtv1alpha1.TransformerConfig, error) {
 	switch {
 	case t.GenerateEmail != nil:
 		return &mgmtv1alpha1.TransformerConfig{
@@ -425,7 +439,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					EmailType: (*mgmtv1alpha1.GenerateEmailType)(t.GenerateEmail.EmailType),
 				},
 			},
-		}
+		}, nil
 	case t.TransformEmail != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
@@ -441,13 +455,13 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					),
 				},
 			},
-		}
+		}, nil
 	case t.GenerateBool != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{
 				GenerateBoolConfig: &mgmtv1alpha1.GenerateBool{},
 			},
-		}
+		}, nil
 	case t.GenerateCardNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
@@ -455,17 +469,17 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					ValidLuhn: t.GenerateCardNumber.ValidLuhn,
 				},
 			},
-		}
+		}, nil
 	case t.GenerateCity != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
 				GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
 			},
-		}
+		}, nil
 	case t.GenerateDefault != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{},
-		}
+		}, nil
 	case t.GenerateE164PhoneNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
@@ -474,13 +488,13 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					Max: t.GenerateE164PhoneNumber.Max,
 				},
 			},
-		}
+		}, nil
 	case t.GenerateFirstName != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
 				GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
 			},
-		}
+		}, nil
 	case t.GenerateFloat64 != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
@@ -491,19 +505,19 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					Precision:     t.GenerateFloat64.Precision,
 				},
 			},
-		}
+		}, nil
 	case t.GenerateFullAddress != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig{
 				GenerateFullAddressConfig: &mgmtv1alpha1.GenerateFullAddress{},
 			},
-		}
+		}, nil
 	case t.GenerateFullName != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 				GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
 			},
-		}
+		}, nil
 	case t.GenerateGender != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{
@@ -511,13 +525,13 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					Abbreviate: t.GenerateGender.Abbreviate,
 				},
 			},
-		}
+		}, nil
 	case t.GenerateInt64PhoneNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig{
 				GenerateInt64PhoneNumberConfig: &mgmtv1alpha1.GenerateInt64PhoneNumber{},
 			},
-		}
+		}, nil
 	case t.GenerateInt64 != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
@@ -527,25 +541,25 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					Max:           t.GenerateInt64.Max,
 				},
 			},
-		}
+		}, nil
 	case t.GenerateLastName != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig{
 				GenerateLastNameConfig: &mgmtv1alpha1.GenerateLastName{},
 			},
-		}
+		}, nil
 	case t.GenerateSha256Hash != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig{
 				GenerateSha256HashConfig: &mgmtv1alpha1.GenerateSha256Hash{},
 			},
-		}
+		}, nil
 	case t.GenerateSsn != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
 				GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
 			},
-		}
+		}, nil
 	case t.GenerateState != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
@@ -553,13 +567,13 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					GenerateFullName: t.GenerateState.GenerateFullName,
 				},
 			},
-		}
+		}, nil
 	case t.GenerateStreetAddress != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig{
 				GenerateStreetAddressConfig: &mgmtv1alpha1.GenerateStreetAddress{},
 			},
-		}
+		}, nil
 	case t.GenerateStringPhoneNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
@@ -568,7 +582,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					Max: t.GenerateStringPhoneNumber.Max,
 				},
 			},
-		}
+		}, nil
 	case t.GenerateString != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
@@ -577,25 +591,25 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					Max: t.GenerateString.Max,
 				},
 			},
-		}
+		}, nil
 	case t.GenerateUnixTimestamp != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
 				GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
 			},
-		}
+		}, nil
 	case t.GenerateUsername != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig{
 				GenerateUsernameConfig: &mgmtv1alpha1.GenerateUsername{},
 			},
-		}
+		}, nil
 	case t.GenerateUtcTimestamp != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig{
 				GenerateUtctimestampConfig: &mgmtv1alpha1.GenerateUtcTimestamp{},
 			},
-		}
+		}, nil
 	case t.GenerateUuid != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
@@ -603,13 +617,13 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					IncludeHyphens: t.GenerateUuid.IncludeHyphens,
 				},
 			},
-		}
+		}, nil
 	case t.GenerateZipcode != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig{
 				GenerateZipcodeConfig: &mgmtv1alpha1.GenerateZipcode{},
 			},
-		}
+		}, nil
 	case t.TransformE164PhoneNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig{
@@ -617,7 +631,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					PreserveLength: t.TransformE164PhoneNumber.PreserveLength,
 				},
 			},
-		}
+		}, nil
 	case t.TransformFirstname != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
@@ -625,7 +639,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					PreserveLength: t.TransformFirstname.PreserveLength,
 				},
 			},
-		}
+		}, nil
 	case t.TransformFloat64 != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
@@ -634,7 +648,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					RandomizationRangeMax: t.TransformFloat64.RandomizationRangeMin,
 				},
 			},
-		}
+		}, nil
 	case t.TransformFullName != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
@@ -642,7 +656,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					PreserveLength: t.TransformFullName.PreserveLength,
 				},
 			},
-		}
+		}, nil
 	case t.TransformInt64PhoneNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig{
@@ -650,7 +664,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					PreserveLength: t.TransformInt64PhoneNumber.PreserveLength,
 				},
 			},
-		}
+		}, nil
 	case t.TransformInt64 != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
@@ -659,7 +673,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					RandomizationRangeMax: t.TransformInt64.RandomizationRangeMax,
 				},
 			},
-		}
+		}, nil
 	case t.TransformLastName != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{
@@ -667,7 +681,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					PreserveLength: t.TransformLastName.PreserveLength,
 				},
 			},
-		}
+		}, nil
 	case t.TransformPhoneNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
@@ -675,7 +689,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					PreserveLength: t.TransformPhoneNumber.PreserveLength,
 				},
 			},
-		}
+		}, nil
 	case t.TransformString != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
@@ -683,19 +697,19 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					PreserveLength: t.TransformString.PreserveLength,
 				},
 			},
-		}
+		}, nil
 	case t.Passthrough != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
 				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
 			},
-		}
+		}, nil
 	case t.Null != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
-		}
+		}, nil
 	case t.UserDefinedTransformer != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
@@ -703,7 +717,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					Id: t.UserDefinedTransformer.Id,
 				},
 			},
-		}
+		}, nil
 	case t.TransformJavascript != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
@@ -711,7 +725,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					Code: t.TransformJavascript.Code,
 				},
 			},
-		}
+		}, nil
 	case t.GenerateCategorical != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{
@@ -719,7 +733,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					Categories: t.GenerateCategorical.Categories,
 				},
 			},
-		}
+		}, nil
 	case t.TransformCharacterScramble != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
@@ -727,7 +741,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					UserProvidedRegex: t.TransformCharacterScramble.UserProvidedRegex,
 				},
 			},
-		}
+		}, nil
 	case t.GenerateJavascript != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
@@ -735,7 +749,7 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					Code: t.GenerateJavascript.Code,
 				},
 			},
-		}
+		}, nil
 	case t.GenerateCountry != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateCountryConfig{
@@ -743,13 +757,13 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					GenerateFullName: t.GenerateCountry.GenerateFullName,
 				},
 			},
-		}
+		}, nil
 	case t.GenerateBusinessName != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateBusinessNameConfig{
 				GenerateBusinessNameConfig: &mgmtv1alpha1.GenerateBusinessName{},
 			},
-		}
+		}, nil
 	case t.GenerateIpAddress != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateIpAddressConfig{
@@ -757,20 +771,31 @@ func (t *TransformerConfig) ToTransformerConfigDto() *mgmtv1alpha1.TransformerCo
 					IpType: (*mgmtv1alpha1.GenerateIpAddressType)(t.GenerateIpAddress.IpType),
 				},
 			},
-		}
+		}, nil
 	case t.TransformUuid != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformUuidConfig{
 				TransformUuidConfig: &mgmtv1alpha1.TransformUuid{},
 			},
-		}
+		}, nil
 	case t.TransformScrambleIdentity != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig{
 				TransformScrambleIdentityConfig: &mgmtv1alpha1.TransformScrambleIdentity{},
 			},
+		}, nil
+	case t.TransformPiiText != nil:
+		var v *mgmtv1alpha1.TransformPiiText
+		err := json.Unmarshal(t.TransformPiiText, &v)
+		if err != nil {
+			return nil, fmt.Errorf("unable to unmarshal transform pii text config: %w", err)
 		}
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{
+				TransformPiiTextConfig: v,
+			},
+		}, nil
 	default:
-		return &mgmtv1alpha1.TransformerConfig{}
+		return &mgmtv1alpha1.TransformerConfig{}, nil
 	}
 }
