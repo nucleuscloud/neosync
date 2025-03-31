@@ -134,31 +134,31 @@ func (t *TransformPiiText) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.language = language
 
-	allowedPhrases, ok := opts["allowedPhrases"].(any)
+	allowedPhrases, ok := opts["allowedPhrases"]
 	if !ok {
 		allowedPhrases = []any{}
 	}
 	transformerOpts.allowedPhrases = allowedPhrases
 
-	allowedEntities, ok := opts["allowedEntities"].(any)
+	allowedEntities, ok := opts["allowedEntities"]
 	if !ok {
 		allowedEntities = []any{}
 	}
 	transformerOpts.allowedEntities = allowedEntities
 
 	var defaultAnonymizer any
-	if arg, ok := opts["defaultAnonymizer"].(any); ok {
+	if arg, ok := opts["defaultAnonymizer"]; ok {
 		defaultAnonymizer = arg
 	}
 	transformerOpts.defaultAnonymizer = defaultAnonymizer
 
-	denyRecognizers, ok := opts["denyRecognizers"].(any)
+	denyRecognizers, ok := opts["denyRecognizers"]
 	if !ok {
 		denyRecognizers = []any{}
 	}
 	transformerOpts.denyRecognizers = denyRecognizers
 
-	entityAnonymizers, ok := opts["entityAnonymizers"].(any)
+	entityAnonymizers, ok := opts["entityAnonymizers"]
 	if !ok {
 		entityAnonymizers = map[string]any{}
 	}

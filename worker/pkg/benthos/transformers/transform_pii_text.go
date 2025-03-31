@@ -424,7 +424,7 @@ func convertToPiiAnonymizer(raw any) (*mgmtv1alpha1.PiiAnonymizer, error) {
 		}
 	} else if hash, ok := configMap["hash"].(map[string]any); ok {
 		if algo, ok := hash["algo"].(int64); ok {
-			convertedAlgo := mgmtv1alpha1.PiiAnonymizer_Hash_HashType(algo)
+			convertedAlgo := mgmtv1alpha1.PiiAnonymizer_Hash_HashType(algo) //nolint:gosec
 			if _, ok := mgmtv1alpha1.PiiAnonymizer_Hash_HashType_name[int32(convertedAlgo)]; !ok {
 				return nil, fmt.Errorf("invalid hash algorithm: %d", convertedAlgo)
 			}

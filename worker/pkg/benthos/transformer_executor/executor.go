@@ -112,14 +112,12 @@ func InitializeTransformerByConfigType(
 		}
 
 		valueApi := newAnonValueApi()
-		transformPiiTextApi, err := newFromExecConfig(
+		transformPiiTextApi := newFromExecConfig(
 			execCfg.transformPiiText,
 			execCfg.transformPiiText.neosyncOperatorApi,
 			execCfg.logger,
 		)
-		if err != nil {
-			return nil, err
-		}
+
 		runner, err := javascript.NewDefaultValueRunner(valueApi, transformPiiTextApi, execCfg.logger)
 		if err != nil {
 			return nil, err
@@ -156,14 +154,11 @@ func InitializeTransformerByConfigType(
 		}
 
 		valueApi := newAnonValueApi()
-		transformPiiTextApi, err := newFromExecConfig(
+		transformPiiTextApi := newFromExecConfig(
 			execCfg.transformPiiText,
 			execCfg.transformPiiText.neosyncOperatorApi,
 			execCfg.logger,
 		)
-		if err != nil {
-			return nil, err
-		}
 		runner, err := javascript.NewDefaultValueRunner(valueApi, transformPiiTextApi, execCfg.logger)
 		if err != nil {
 			return nil, err
@@ -747,14 +742,11 @@ func InitializeTransformerByConfigType(
 			config.Language = execCfg.transformPiiText.defaultLanguage
 		}
 
-		transformPiiTextApi, err := newFromExecConfig(
+		transformPiiTextApi := newFromExecConfig(
 			execCfg.transformPiiText,
 			execCfg.transformPiiText.neosyncOperatorApi,
 			execCfg.logger,
 		)
-		if err != nil {
-			return nil, err
-		}
 
 		return &TransformerExecutor{
 			Opts: nil,

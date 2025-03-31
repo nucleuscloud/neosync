@@ -19,12 +19,12 @@ func newFromExecConfig(
 	execConfig *transformPiiTextConfig,
 	neosyncOperatorApi ee_transformer_fns.NeosyncOperatorApi,
 	logger *slog.Logger,
-) (transformers.TransformPiiTextApi, error) {
+) transformers.TransformPiiTextApi {
 	return &piiTextApi{
 		execConfig:         execConfig,
 		neosyncOperatorApi: neosyncOperatorApi,
 		logger:             logger,
-	}, nil
+	}
 }
 
 func (p *piiTextApi) Transform(ctx context.Context, config *mgmtv1alpha1.TransformPiiText, value string) (string, error) {
