@@ -2,6 +2,7 @@ package transformers
 
 import (
 	context "context"
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -12,8 +13,6 @@ import (
 type TransformPiiTextApi interface {
 	Transform(ctx context.Context, config *mgmtv1alpha1.TransformPiiText, value string) (string, error)
 }
-
-// +neosyncTransformerBuilder:transform:transformPiiText
 
 func RegisterTransformPiiText(
 	env *bloblang.Environment,
@@ -154,6 +153,73 @@ func RegisterTransformPiiText(
 		return fmt.Errorf("unable to register transform_pii_text: %w", err)
 	}
 	return nil
+}
+
+func NewTransformPiiTextOptsFromConfig(
+	config *mgmtv1alpha1.TransformPiiText,
+) (*TransformPiiTextOpts, error) {
+	if config == nil {
+		return nil, fmt.Errorf("config is nil")
+	}
+	scoreThreshold := float64(config.ScoreThreshold)
+	return NewTransformPiiTextOpts(
+		&scoreThreshold,
+		config.Language,
+		config.AllowedPhrases,
+		config.AllowedEntities,
+		config.DefaultAnonymizer,
+		config.DenyRecognizers,
+		config.EntityAnonymizers,
+	)
+}
+
+func (t *TransformPiiText) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformPiiTextOpts)
+	if !ok {
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
+	}
+
+	valueStr, ok := value.(string)
+	if !ok {
+		return nil, errors.New("value is not a string")
+	}
+
+	allowedPhrases, err := fromAnyToStringSlice(parsedOpts.allowedPhrases)
+	if err != nil {
+		return nil, fmt.Errorf("invalid allowed_phrases: %w", err)
+	}
+
+	allowedEntities, err := fromAnyToStringSlice(parsedOpts.allowedEntities)
+	if err != nil {
+		return nil, fmt.Errorf("invalid allowed_entities: %w", err)
+	}
+
+	defaultAnonymizer, err := convertToPiiAnonymizer(parsedOpts.defaultAnonymizer)
+	if err != nil {
+		return nil, fmt.Errorf("invalid default_anonymizer: %w", err)
+	}
+
+	denyRecognizers, err := convertToPiiDenyRecognizerArray(parsedOpts.denyRecognizers)
+	if err != nil {
+		return nil, fmt.Errorf("invalid deny_recognizers: %w", err)
+	}
+
+	entityAnonymizers, err := convertToPiiAnonymizerMap(parsedOpts.entityAnonymizers)
+	if err != nil {
+		return nil, fmt.Errorf("invalid entity_anonymizers: %w", err)
+	}
+
+	config := &mgmtv1alpha1.TransformPiiText{
+		ScoreThreshold:    float32(*parsedOpts.scoreThreshold),
+		Language:          parsedOpts.language,
+		AllowedPhrases:    allowedPhrases,
+		AllowedEntities:   allowedEntities,
+		DefaultAnonymizer: defaultAnonymizer,
+		DenyRecognizers:   denyRecognizers,
+		EntityAnonymizers: entityAnonymizers,
+	}
+
+	return transformPiiText(t.api, config, &valueStr)
 }
 
 func transformPiiText(api TransformPiiTextApi, config *mgmtv1alpha1.TransformPiiText, value any) (*string, error) {

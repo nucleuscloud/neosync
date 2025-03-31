@@ -8,14 +8,16 @@ import (
 	benthos_functions "github.com/nucleuscloud/neosync/internal/javascript/functions/benthos"
 	neosync_functions "github.com/nucleuscloud/neosync/internal/javascript/functions/neosync"
 	javascript_vm "github.com/nucleuscloud/neosync/internal/javascript/vm"
+	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 )
 
 // Comes full featured, but expects a value api that the benthos/neosync functions can manipulate
 func NewDefaultValueRunner(
 	valueApi javascript_functions.ValueApi,
+	transformPiiTextApi transformers.TransformPiiTextApi,
 	logger *slog.Logger,
 ) (*javascript_vm.Runner, error) {
-	functions, err := getDefaultFunctions()
+	functions, err := getDefaultFunctions(transformPiiTextApi)
 	if err != nil {
 		return nil, err
 	}
@@ -39,9 +41,11 @@ func NewDefaultRunner(
 	)
 }
 
-func getDefaultFunctions() ([]*javascript_functions.FunctionDefinition, error) {
+func getDefaultFunctions(
+	transformPiiTextApi transformers.TransformPiiTextApi,
+) ([]*javascript_functions.FunctionDefinition, error) {
 	benthosFns := benthos_functions.Get()
-	neosyncFns, err := neosync_functions.Get()
+	neosyncFns, err := neosync_functions.Get(transformPiiTextApi)
 	if err != nil {
 		return nil, err
 	}

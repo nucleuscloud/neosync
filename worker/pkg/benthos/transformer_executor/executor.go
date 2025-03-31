@@ -112,7 +112,15 @@ func InitializeTransformerByConfigType(
 		}
 
 		valueApi := newAnonValueApi()
-		runner, err := javascript.NewDefaultValueRunner(valueApi, execCfg.logger)
+		transformPiiTextApi, err := newFromExecConfig(
+			execCfg.transformPiiText,
+			execCfg.transformPiiText.neosyncOperatorApi,
+			execCfg.logger,
+		)
+		if err != nil {
+			return nil, err
+		}
+		runner, err := javascript.NewDefaultValueRunner(valueApi, transformPiiTextApi, execCfg.logger)
 		if err != nil {
 			return nil, err
 		}
@@ -148,7 +156,15 @@ func InitializeTransformerByConfigType(
 		}
 
 		valueApi := newAnonValueApi()
-		runner, err := javascript.NewDefaultValueRunner(valueApi, execCfg.logger)
+		transformPiiTextApi, err := newFromExecConfig(
+			execCfg.transformPiiText,
+			execCfg.transformPiiText.neosyncOperatorApi,
+			execCfg.logger,
+		)
+		if err != nil {
+			return nil, err
+		}
+		runner, err := javascript.NewDefaultValueRunner(valueApi, transformPiiTextApi, execCfg.logger)
 		if err != nil {
 			return nil, err
 		}
@@ -731,6 +747,15 @@ func InitializeTransformerByConfigType(
 			config.Language = execCfg.transformPiiText.defaultLanguage
 		}
 
+		transformPiiTextApi, err := newFromExecConfig(
+			execCfg.transformPiiText,
+			execCfg.transformPiiText.neosyncOperatorApi,
+			execCfg.logger,
+		)
+		if err != nil {
+			return nil, err
+		}
+
 		return &TransformerExecutor{
 			Opts: nil,
 			Mutate: func(value, opts any) (any, error) {
@@ -738,12 +763,10 @@ func InitializeTransformerByConfigType(
 				if !ok {
 					return nil, fmt.Errorf("expected value to be of type string. %T", value)
 				}
-				return ee_transformer_fns.TransformPiiText(
+				return transformPiiTextApi.Transform(
 					context.Background(),
-					execCfg.transformPiiText.analyze, execCfg.transformPiiText.anonymize, execCfg.transformPiiText.neosyncOperatorApi,
 					config,
 					valueStr,
-					execCfg.logger,
 				)
 			},
 		}, nil

@@ -155,6 +155,29 @@ declare namespace neosync {
 	declare function transformLastName(value: any, options: TransformLastNameOptions): any;
 
 	
+	export interface TransformPiiTextOptions {
+		/**  */
+		scoreThreshold?: number;
+		/** The language of the text to be anonymized. */
+		language?: string;
+		/** A list of phrases that will not be considered PII. */
+		allowedPhrases?: any[];
+		/** A list of entities to be used for PII analysis. If not provided or empty, all entities are considered. If specified, any ad-hoc, or deny_recognizers entity names must also be provided. To see available builtin entities, cal the GetPiiTextEntities() RPC method for your account. */
+		allowedEntities?: any[];
+		/** The default anonymization configuration used for all instances of detected PII. */
+		defaultAnonymizer?: any;
+		/** Configure deny lists where each word is treated as PII. Each entry should contain 'name' and 'deny_words' fields. */
+		denyRecognizers?: any[];
+		/** A map of entity names to anonymizer configurations. The key corresponds to a recognized entity (e.g. PERSON, PHONE_NUMBER) and the value is the anonymizer configuration. */
+		entityAnonymizers?: any;
+	}
+
+  /**
+   * Anonymizes and transforms freeform text.
+   */
+	declare function transformPiiText(value: any, options: TransformPiiTextOptions): any;
+
+	
 	export interface TransformStringOptions {
 		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
 		preserveLength?: boolean;

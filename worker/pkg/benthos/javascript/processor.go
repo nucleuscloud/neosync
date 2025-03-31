@@ -10,6 +10,7 @@ import (
 	"github.com/nucleuscloud/neosync/internal/benthos_slogger"
 	"github.com/nucleuscloud/neosync/internal/javascript"
 	javascript_vm "github.com/nucleuscloud/neosync/internal/javascript/vm"
+	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 
 	"github.com/redpanda-data/benthos/v4/public/service"
 )
@@ -23,11 +24,14 @@ func javascriptProcessorConfig() *service.ConfigSpec {
 		Field(service.NewInterpolatedStringField(codeField))
 }
 
-func RegisterNeosyncJavascriptProcessor(env *service.Environment) error {
+func RegisterNeosyncJavascriptProcessor(
+	env *service.Environment,
+	transformPiiTextApi transformers.TransformPiiTextApi,
+) error {
 	return env.RegisterBatchProcessor(
 		"neosync_javascript", javascriptProcessorConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchProcessor, error) {
-			return newJavascriptProcessorFromConfig(conf, mgr)
+			return newJavascriptProcessorFromConfig(conf, mgr, transformPiiTextApi)
 		})
 }
 
@@ -40,6 +44,7 @@ type javascriptProcessor struct {
 func newJavascriptProcessorFromConfig(
 	conf *service.ParsedConfig,
 	mgr *service.Resources,
+	transformPiiTextApi transformers.TransformPiiTextApi,
 ) (*javascriptProcessor, error) {
 	code, err := conf.FieldString(codeField)
 	if err != nil {
@@ -60,7 +65,7 @@ func newJavascriptProcessorFromConfig(
 		slogger: slogger,
 		vmPool: sync.Pool{
 			New: func() any {
-				val, err := newPoolItem(slogger)
+				val, err := newPoolItem(slogger, transformPiiTextApi)
 				if err != nil {
 					return err
 				}
@@ -133,9 +138,12 @@ func (j *javascriptProcessor) Close(ctx context.Context) error {
 	return nil
 }
 
-func newPoolItem(logger *slog.Logger) (*vmPoolItem, error) {
+func newPoolItem(
+	logger *slog.Logger,
+	transformPiiTextApi transformers.TransformPiiTextApi,
+) (*vmPoolItem, error) {
 	valueApi := newBatchBenthosValueApi()
-	runner, err := javascript.NewDefaultValueRunner(valueApi, logger)
+	runner, err := javascript.NewDefaultValueRunner(valueApi, transformPiiTextApi, logger)
 	if err != nil {
 		return nil, err
 	}
