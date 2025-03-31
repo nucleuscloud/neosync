@@ -59,7 +59,9 @@ func (a *AccountAwareAnonymizationPiiTextApi) Transform(
 			{
 				Expression: ".input",
 				Transformer: &mgmtv1alpha1.TransformerConfig{
-					Config: nil, // TODO: add config
+					Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{
+						TransformPiiTextConfig: config,
+					},
 				},
 			},
 		},
@@ -98,6 +100,7 @@ func RegisterTransformPiiText(
 		).
 		Param(bloblang.NewStringParam("language").
 			Optional().
+			Default("en").
 			Description("The language of the text to be anonymized."),
 		).
 		Param(bloblang.NewAnyParam("allowed_phrases").
@@ -146,6 +149,10 @@ func RegisterTransformPiiText(
 			language, err := args.GetOptionalString("language")
 			if err != nil {
 				return nil, err
+			}
+			if language == nil {
+				defaultLanguage := "en"
+				language = &defaultLanguage
 			}
 
 			allowedPhrasesParam, err := args.Get("allowed_phrases")
@@ -313,6 +320,9 @@ func transformPiiText(api TransformPiiTextApi, config *mgmtv1alpha1.TransformPii
 	if result == "" {
 		return &result, nil
 	}
+
+	bits, _ := json.Marshal(config)
+	fmt.Println("result!!!", string(bits))
 
 	transformedResult, err := api.Transform(context.Background(), config, result)
 	if err != nil {

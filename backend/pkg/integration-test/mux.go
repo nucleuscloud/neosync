@@ -289,6 +289,7 @@ func (s *NeosyncApiTestClient) setupMux(
 		presAnalyzeClient,
 		presAnonClient,
 		neosyncDb,
+		license,
 	)
 
 	connectionDataService := v1alpha1_connectiondataservice.New(

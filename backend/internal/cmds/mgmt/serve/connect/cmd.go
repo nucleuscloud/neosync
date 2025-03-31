@@ -699,7 +699,7 @@ func serve(ctx context.Context) error {
 	var presAnalyzeClient presidioapi.AnalyzeInterface
 	var presAnonClient presidioapi.AnonymizeInterface
 	var presEntityClient presidioapi.EntityInterface
-	if ncloudlicense.IsValid() {
+	if cascadelicense.IsValid() {
 		analyzeClient, ok, err := getPresidioAnalyzeClient()
 		if err != nil {
 			return fmt.Errorf("unable to initialize presidio analyze client: %w", err)
@@ -737,7 +737,7 @@ func serve(ctx context.Context) error {
 		PresidioDefaultLanguage: getPresidioDefaultLanguage(),
 		IsAuthEnabled:           isAuthEnabled,
 		IsNeosyncCloud:          ncloudlicense.IsValid(),
-	}, anonymizerMeter, userdataclient, useraccountService, transformerService, presAnalyzeClient, presAnonClient, db)
+	}, anonymizerMeter, userdataclient, useraccountService, transformerService, presAnalyzeClient, presAnonClient, db, cascadelicense)
 	api.Handle(
 		mgmtv1alpha1connect.NewAnonymizationServiceHandler(
 			anonymizationService,
