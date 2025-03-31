@@ -719,8 +719,10 @@ func serve(ctx context.Context) error {
 		}
 	}
 
+	isPresidioEnabled := cascadelicense.IsValid() && presAnalyzeClient != nil && presAnonClient != nil
+
 	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{
-		IsPresidioEnabled: cascadelicense.IsValid(),
+		IsPresidioEnabled: isPresidioEnabled,
 	}, db, presEntityClient, userdataclient, cascadelicense)
 	api.Handle(
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
@@ -733,7 +735,7 @@ func serve(ctx context.Context) error {
 	)
 
 	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{
-		IsPresidioEnabled:       cascadelicense.IsValid(),
+		IsPresidioEnabled:       isPresidioEnabled,
 		PresidioDefaultLanguage: getPresidioDefaultLanguage(),
 		IsAuthEnabled:           isAuthEnabled,
 		IsNeosyncCloud:          ncloudlicense.IsValid(),
