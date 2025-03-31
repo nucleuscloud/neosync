@@ -235,7 +235,11 @@ func NewTransformPiiTextOptsFromConfig(
 	config *mgmtv1alpha1.TransformPiiText,
 ) (*TransformPiiTextOpts, error) {
 	if config == nil {
-		return nil, fmt.Errorf("config is nil")
+		defaultLanguage := "en"
+		config = &mgmtv1alpha1.TransformPiiText{
+			Language:       &defaultLanguage,
+			ScoreThreshold: 0.5,
+		}
 	}
 	scoreThreshold := float64(config.ScoreThreshold)
 	return NewTransformPiiTextOpts(
