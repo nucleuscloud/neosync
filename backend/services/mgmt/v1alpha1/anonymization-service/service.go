@@ -19,7 +19,6 @@ type Service struct {
 	anonymize          presidioapi.AnonymizeInterface
 	db                 *neosyncdb.NeosyncDb
 	license            license.EEInterface
-	isNeosyncCloud     bool
 }
 
 type Config struct {
