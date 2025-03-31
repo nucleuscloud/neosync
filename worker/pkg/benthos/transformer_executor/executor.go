@@ -112,11 +112,15 @@ func InitializeTransformerByConfigType(
 		}
 
 		valueApi := newAnonValueApi()
-		transformPiiTextApi := newFromExecConfig(
-			execCfg.transformPiiText,
-			execCfg.transformPiiText.neosyncOperatorApi,
-			execCfg.logger,
-		)
+		var transformPiiTextApi transformers.TransformPiiTextApi
+		if execCfg.transformPiiText != nil {
+			execCfg.logger.Debug("configuring using transform pii text api in generate javascript")
+			transformPiiTextApi = newFromExecConfig(
+				execCfg.transformPiiText,
+				execCfg.transformPiiText.neosyncOperatorApi,
+				execCfg.logger,
+			)
+		}
 
 		runner, err := javascript.NewDefaultValueRunner(valueApi, transformPiiTextApi, execCfg.logger)
 		if err != nil {
@@ -154,11 +158,15 @@ func InitializeTransformerByConfigType(
 		}
 
 		valueApi := newAnonValueApi()
-		transformPiiTextApi := newFromExecConfig(
-			execCfg.transformPiiText,
-			execCfg.transformPiiText.neosyncOperatorApi,
-			execCfg.logger,
-		)
+		var transformPiiTextApi transformers.TransformPiiTextApi
+		if execCfg.transformPiiText != nil {
+			execCfg.logger.Debug("configuring using transform pii text api in transform javascript")
+			transformPiiTextApi = newFromExecConfig(
+				execCfg.transformPiiText,
+				execCfg.transformPiiText.neosyncOperatorApi,
+				execCfg.logger,
+			)
+		}
 		runner, err := javascript.NewDefaultValueRunner(valueApi, transformPiiTextApi, execCfg.logger)
 		if err != nil {
 			return nil, err
