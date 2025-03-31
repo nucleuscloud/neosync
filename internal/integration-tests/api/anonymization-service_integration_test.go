@@ -18,10 +18,10 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 	t := s.T()
 
 	t.Run("OSS-fail", func(t *testing.T) {
-		userclient := s.OSSUnauthenticatedLicensedClients.Users()
+		userclient := s.OSSUnauthenticatedUnlicensedClients.Users()
 		s.setUser(s.ctx, userclient)
 		accountId := s.createPersonalAccount(s.ctx, userclient)
-		resp, err := s.OSSUnauthenticatedLicensedClients.Anonymize().AnonymizeMany(
+		resp, err := s.OSSUnauthenticatedUnlicensedClients.Anonymize().AnonymizeMany(
 			s.ctx,
 			connect.NewRequest(&mgmtv1alpha1.AnonymizeManyRequest{
 				AccountId:           accountId,
