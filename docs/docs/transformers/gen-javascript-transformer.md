@@ -358,50 +358,6 @@ const newValue = neosync.transformLastName(value, {
 
 
 <!--
-source: transform_pii_text.go
--->
-
-### transformPiiText
-
-Anonymizes and transforms freeform text.
-
-**Parameters**
-
-**Value**
-Type: Any
-Description: Value that will be transformed
-
-**Config**
-
-| Field    | Type | Default | Required | Description |
-| -------- | ---- | ------- | -------- | ----------- |
-| scoreThreshold | float64 | 0.5 | false | 
-| language | string |  | false | The language of the text to be anonymized.
-| allowedPhrases | any | [] | false | A list of phrases that will not be considered PII.
-| allowedEntities | any | [] | false | A list of entities to be used for PII analysis. If not provided or empty, all entities are considered. If specified, any ad-hoc, or deny_recognizers entity names must also be provided. To see available builtin entities, cal the GetPiiTextEntities() RPC method for your account.
-| defaultAnonymizer | any |  | false | The default anonymization configuration used for all instances of detected PII.
-| denyRecognizers | any | [] | false | Configure deny lists where each word is treated as PII. Each entry should contain 'name' and 'deny_words' fields.
-| entityAnonymizers | any | map[string]any{} | false | A map of entity names to anonymizer configurations. The key corresponds to a recognized entity (e.g. PERSON, PHONE_NUMBER) and the value is the anonymizer configuration.<br/>
-
-**Example**
-
-```javascript
-
-const newValue = neosync.transformPiiText(value, {
-	scoreThreshold: 0.5,
-	language: "", 
-	allowedPhrases: [],
-	allowedEntities: [],
-	defaultAnonymizer: "", 
-	denyRecognizers: [],
-	entityAnonymizers: map[string]any{},
-});
-
-```
-<br/>
-
-
-<!--
 source: transform_string.go
 -->
 
