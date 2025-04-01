@@ -252,7 +252,8 @@ func (m *MysqlManager) GetColumnsByTables(
 			GeneratedExpression: row.GeneratedExpression,
 			Comment:             row.Comment,
 		}
-		col.Fingerprint = sqlmanager_shared.BuildTableColumnFingerprint(col)
+		shouldIncludeOrdinalPosition := false
+		col.Fingerprint = sqlmanager_shared.BuildTableColumnFingerprint(col, shouldIncludeOrdinalPosition)
 		columns = append(columns, col)
 	}
 	return columns, nil

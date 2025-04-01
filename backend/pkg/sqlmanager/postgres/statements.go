@@ -271,7 +271,13 @@ func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) string {
 }
 
 func BuildRenameColumnStatement(column *schemamanager_shared.ColumnDiff) string {
-	return fmt.Sprintf("ALTER TABLE %q.%q RENAME COLUMN %q TO %q;", column.Column.Schema, column.Column.Table, column.RenameColumn.OldName, column.Column.Name)
+	return fmt.Sprintf(
+		"ALTER TABLE %q.%q RENAME COLUMN %q TO %q;",
+		column.Column.Schema,
+		column.Column.Table,
+		column.RenameColumn.OldName,
+		column.Column.Name,
+	)
 }
 
 func BuildAlterColumnStatement(column *schemamanager_shared.ColumnDiff) []string {

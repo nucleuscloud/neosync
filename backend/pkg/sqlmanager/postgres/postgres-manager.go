@@ -153,7 +153,8 @@ func (p *PostgresManager) GetColumnsByTables(
 			SequenceDefinition: sequenceDefinition,
 			Comment:            sqlmanager_shared.Ptr(row.ColumnComment),
 		}
-		col.Fingerprint = sqlmanager_shared.BuildTableColumnFingerprint(col)
+		shouldIncludeOrdinalPosition := true
+		col.Fingerprint = sqlmanager_shared.BuildTableColumnFingerprint(col, shouldIncludeOrdinalPosition)
 		result = append(result, col)
 	}
 	return result, nil

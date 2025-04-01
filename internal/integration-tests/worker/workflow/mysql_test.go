@@ -768,12 +768,26 @@ func test_mysql_schema_reconciliation_compare_schemas(
 	destColumns, err := destManager.GetColumnsByTables(ctx, schematables)
 	require.NoError(t, err, "failed to get destination columns")
 
+	srcColsMap := map[string]*sqlmanager_shared.TableColumn{}
+	for _, column := range srcColumns {
+		srcColsMap[column.Fingerprint] = column
+	}
+	destColsMap := map[string]*sqlmanager_shared.TableColumn{}
+	for _, column := range destColumns {
+		destColsMap[column.Fingerprint] = column
+	}
+
+	jsonF, _ := json.MarshalIndent(srcColsMap["cc5a7981d3e81c7bbe92b290d37c36eaf0e31a200851e4a597932f91c32f8943"], "", " ")
+	fmt.Printf("\n\n source: %s \n\n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(destColumns, "", " ")
+	fmt.Printf("\n\n destination: %s \n\n", string(jsonF))
+
 	require.Len(t, srcColumns, len(destColumns), "source and destination have different number of columns")
 	for _, column := range srcColumns {
-		require.Contains(t, destColumns, column, "destination missing column with fingerprint %s", column.Fingerprint)
+		require.Contains(t, destColsMap, column.Fingerprint, "destination missing column with fingerprint %s", column.Fingerprint)
 	}
 	for _, column := range destColumns {
-		require.Contains(t, srcColumns, column, "source missing column with fingerprint %s", column.Fingerprint)
+		require.Contains(t, srcColsMap, column.Fingerprint, "source missing column with fingerprint %s", column.Fingerprint)
 	}
 }
 

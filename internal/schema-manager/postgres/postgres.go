@@ -93,8 +93,44 @@ func (d *PostgresSchemaManager) CalculateSchemaDiff(
 		return nil, err
 	}
 
-	builder := shared.NewSchemaDifferencesBuilder(tables, sourceData, destData)
+	builder := shared.NewSchemaDifferencesBuilder(tables, sourceData, destData, findMatchingColumn)
 	return builder.Build(), nil
+}
+
+func findMatchingColumn(columns map[string]*sqlmanager_shared.TableColumn, column *sqlmanager_shared.TableColumn) *sqlmanager_shared.TableColumn {
+	// perfect match
+	for _, c := range columns {
+		if c.Schema != column.Schema || c.Table != column.Table {
+			continue
+		}
+		if c.Fingerprint == column.Fingerprint {
+			return c
+		}
+		if c.Name == column.Name && c.OrdinalPosition == column.OrdinalPosition {
+			return c
+		}
+	}
+
+	// name match
+	for _, c := range columns {
+		if c.Schema != column.Schema || c.Table != column.Table {
+			continue
+		}
+		if c.Name == column.Name {
+			return c
+		}
+	}
+
+	// ordinal match
+	for _, c := range columns {
+		if c.Schema != column.Schema || c.Table != column.Table {
+			continue
+		}
+		if c.OrdinalPosition == column.OrdinalPosition {
+			return c
+		}
+	}
+	return nil
 }
 
 func getDatabaseDataForSchemaDiff(

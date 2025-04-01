@@ -119,10 +119,11 @@ type DatabaseData struct {
 }
 
 type SchemaDifferencesBuilder struct {
-	diff             *SchemaDifferences
-	source           *DatabaseData
-	destination      *DatabaseData
-	jobmappingTables []*sqlmanager_shared.SchemaTable
+	diff               *SchemaDifferences
+	source             *DatabaseData
+	destination        *DatabaseData
+	jobmappingTables   []*sqlmanager_shared.SchemaTable
+	findMatchingColumn func(columns map[string]*sqlmanager_shared.TableColumn, column *sqlmanager_shared.TableColumn) *sqlmanager_shared.TableColumn
 }
 
 // NewSchemaDifferencesBuilder initializes a new builder with empty slices.
@@ -130,11 +131,13 @@ func NewSchemaDifferencesBuilder(
 	jobmappingTables []*sqlmanager_shared.SchemaTable,
 	sourceData *DatabaseData,
 	destData *DatabaseData,
+	findMatchingColumn func(columns map[string]*sqlmanager_shared.TableColumn, column *sqlmanager_shared.TableColumn) *sqlmanager_shared.TableColumn,
 ) *SchemaDifferencesBuilder {
 	return &SchemaDifferencesBuilder{
-		jobmappingTables: jobmappingTables,
-		source:           sourceData,
-		destination:      destData,
+		jobmappingTables:   jobmappingTables,
+		source:             sourceData,
+		destination:        destData,
+		findMatchingColumn: findMatchingColumn,
 		diff: &SchemaDifferences{
 			ExistsInSource: &ExistsInSource{
 				Tables:                   []*sqlmanager_shared.SchemaTable{},
@@ -191,7 +194,7 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 
 			// column diff
 			for _, srcColumn := range sourceTableCols {
-				destColumn := findColumn(destTableCols, srcColumn)
+				destColumn := b.findMatchingColumn(destTableCols, srcColumn)
 				if destColumn == nil {
 					b.diff.ExistsInSource.Columns = append(b.diff.ExistsInSource.Columns, srcColumn)
 				} else if srcColumn.Fingerprint != destColumn.Fingerprint {
@@ -211,9 +214,7 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 					switch {
 					case srcColumn.IdentityGeneration == nil && destColumn.IdentityGeneration != nil:
 						actions = append(actions, DropIdentity)
-					case srcColumn.IdentityGeneration != nil && destColumn.IdentityGeneration == nil:
-						actions = append(actions, SetIdentity)
-					case *srcColumn.IdentityGeneration != *destColumn.IdentityGeneration && *srcColumn.IdentityGeneration != "":
+					case isIdentityGenerationDifferent(srcColumn, destColumn):
 						actions = append(actions, SetIdentity)
 					}
 
@@ -243,7 +244,7 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 			}
 
 			for _, column := range destTableCols {
-				sourceColumn := findColumn(sourceTableCols, column)
+				sourceColumn := b.findMatchingColumn(sourceTableCols, column)
 				if sourceColumn == nil {
 					b.diff.ExistsInDestination.Columns = append(b.diff.ExistsInDestination.Columns, column)
 				}
@@ -252,41 +253,16 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 	}
 }
 
-func findColumn(columns map[string]*sqlmanager_shared.TableColumn, column *sqlmanager_shared.TableColumn) *sqlmanager_shared.TableColumn {
-	// perfect match
-	for _, c := range columns {
-		if c.Schema != column.Schema || c.Table != column.Table {
-			continue
-		}
-		if c.Fingerprint == column.Fingerprint {
-			return c
-		}
-		if c.Name == column.Name && c.OrdinalPosition == column.OrdinalPosition {
-			return c
-		}
+func isIdentityGenerationDifferent(srcColumn *sqlmanager_shared.TableColumn, destColumn *sqlmanager_shared.TableColumn) bool {
+	if srcColumn.IdentityGeneration == nil && destColumn.IdentityGeneration == nil {
+		return false
 	}
-
-	// name match
-	for _, c := range columns {
-		if c.Schema != column.Schema || c.Table != column.Table {
-			continue
-		}
-		if c.Name == column.Name {
-			return c
-		}
+	if srcColumn.IdentityGeneration != nil && destColumn.IdentityGeneration == nil {
+		return true
 	}
-
-	// ordinal match
-	for _, c := range columns {
-		if c.Schema != column.Schema || c.Table != column.Table {
-			continue
-		}
-		if c.OrdinalPosition == column.OrdinalPosition {
-			return c
-		}
-	}
-	return nil
+	return srcColumn.IdentityGeneration != nil && destColumn.IdentityGeneration != nil && *srcColumn.IdentityGeneration != *destColumn.IdentityGeneration
 }
+
 func (b *SchemaDifferencesBuilder) buildTableForeignKeyConstraintDifferences() {
 	existsInSource, existsInBoth, existsInDestination := buildDifferencesByFingerprint(
 		b.source.ForeignKeyConstraints,

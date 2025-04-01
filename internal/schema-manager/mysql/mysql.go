@@ -92,8 +92,32 @@ func (d *MysqlSchemaManager) CalculateSchemaDiff(
 		return nil, err
 	}
 
-	builder := shared.NewSchemaDifferencesBuilder(tables, sourceData, destData)
+	builder := shared.NewSchemaDifferencesBuilder(tables, sourceData, destData, findMatchingColumn)
 	return builder.Build(), nil
+}
+
+func findMatchingColumn(columns map[string]*sqlmanager_shared.TableColumn, column *sqlmanager_shared.TableColumn) *sqlmanager_shared.TableColumn {
+	// perfect match
+	for _, c := range columns {
+		if c.Schema != column.Schema || c.Table != column.Table {
+			continue
+		}
+		if c.Fingerprint == column.Fingerprint {
+			return c
+		}
+	}
+
+	// name match
+	for _, c := range columns {
+		if c.Schema != column.Schema || c.Table != column.Table {
+			continue
+		}
+		if c.Name == column.Name {
+			return c
+		}
+	}
+
+	return nil
 }
 
 func getDatabaseDataForSchemaDiff(
@@ -401,6 +425,11 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(
 		)
 		if len(block.Statements) == 0 {
 			continue
+		}
+		for _, stmt := range block.Statements {
+			fmt.Println()
+			fmt.Println(stmt)
+			fmt.Println()
 		}
 		err = d.destdb.Db().
 			BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})

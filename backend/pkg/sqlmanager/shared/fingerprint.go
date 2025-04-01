@@ -89,12 +89,11 @@ func BuildFingerprint(input ...string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func BuildTableColumnFingerprint(column *TableColumn) string {
-	return BuildFingerprint(
+func BuildTableColumnFingerprint(column *TableColumn, shouldIncludeOrdinalPosition bool) string {
+	parts := []string{
 		column.Schema,
 		column.Table,
 		column.Name,
-		strconv.Itoa(column.OrdinalPosition),
 		column.DataType,
 		strconv.FormatBool(column.IsNullable),
 		column.ColumnDefault,
@@ -102,7 +101,12 @@ func BuildTableColumnFingerprint(column *TableColumn) string {
 		ptrOrEmpty(column.IdentityGeneration),
 		ptrOrEmpty(column.GeneratedType),
 		ptrOrEmpty(column.GeneratedExpression),
-		ptrOrEmpty(column.Comment))
+		ptrOrEmpty(column.Comment),
+	}
+	if shouldIncludeOrdinalPosition {
+		parts = append(parts, strconv.Itoa(column.OrdinalPosition))
+	}
+	return BuildFingerprint(parts...)
 }
 
 func BuildCompositeDataTypeFingerprint(composite *CompositeDataType) string {
