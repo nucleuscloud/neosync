@@ -32,7 +32,7 @@ func (s *Service) AnonymizeMany(
 	req *connect.Request[mgmtv1alpha1.AnonymizeManyRequest],
 ) (*connect.Response[mgmtv1alpha1.AnonymizeManyResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	if !s.cfg.IsNeosyncCloud {
+	if !s.license.IsValid() {
 		return nil, nucleuserrors.NewNotImplemented(
 			fmt.Sprintf(
 				"%s is not implemented in the OSS version of Neosync.",
@@ -190,11 +190,11 @@ func (s *Service) AnonymizeSingle(
 	if err != nil {
 		return nil, err
 	}
-	if !s.cfg.IsNeosyncCloud || account.AccountType == int16(neosyncdb.AccountType_Personal) {
+	if !s.license.IsValid() || (s.cfg.IsNeosyncCloud && account.AccountType == int16(neosyncdb.AccountType_Personal)) {
 		for _, mapping := range req.Msg.GetTransformerMappings() {
 			if mapping.GetTransformer().GetTransformPiiTextConfig() != nil {
 				return nil, nucleuserrors.NewForbidden(
-					"TransformPiiText is not available for use. Please contact us to upgrade your account.",
+					"TransformPiiText is not available for use. Please contact us about upgrading your account.",
 				)
 			}
 		}
@@ -203,7 +203,7 @@ func (s *Service) AnonymizeSingle(
 			defaultTransforms.GetN().GetTransformPiiTextConfig() != nil ||
 			defaultTransforms.GetS().GetTransformPiiTextConfig() != nil {
 			return nil, nucleuserrors.NewForbidden(
-				"TransformPiiText is not available for use. Please contact us to upgrade your account.",
+				"TransformPiiText is not available for use. Please contact us about upgrading your account.",
 			)
 		}
 	}

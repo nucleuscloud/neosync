@@ -1006,14 +1006,14 @@ func (s *Service) GetSystemTransformerBySource(
 }
 
 func (s *Service) getSystemTransformerSourceMap() map[mgmtv1alpha1.TransformerSource]*mgmtv1alpha1.SystemTransformer {
-	if s.cfg.IsNeosyncCloud {
+	if s.license.IsValid() {
 		return allSystemTransformersSourceMap
 	}
 	return baseSystemTransformerSourceMap
 }
 
 func (s *Service) getSystemTransformers() []*mgmtv1alpha1.SystemTransformer {
-	if s.cfg.IsNeosyncCloud {
+	if s.license.IsValid() {
 		return allSystemTransformers
 	}
 	return baseSystemTransformers

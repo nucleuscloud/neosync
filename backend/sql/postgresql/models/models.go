@@ -857,13 +857,17 @@ type JobMapping struct {
 	JobMappingTransformer *JobMappingTransformerModel `json:"jobMappingTransformerModel,omitempty"`
 }
 
-func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
+func (jm *JobMapping) ToDto() (*mgmtv1alpha1.JobMapping, error) {
+	transformer, err := jm.JobMappingTransformer.ToTransformerDto()
+	if err != nil {
+		return nil, err
+	}
 	return &mgmtv1alpha1.JobMapping{
 		Schema:      jm.Schema,
 		Table:       jm.Table,
 		Column:      jm.Column,
-		Transformer: jm.JobMappingTransformer.ToTransformerDto(),
-	}
+		Transformer: transformer,
+	}, nil
 }
 
 func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
@@ -1097,13 +1101,29 @@ type DynamoDBSourceUnmappedTransformConfig struct {
 	S       *JobMappingTransformerModel `json:"s"`
 }
 
-func (s *DynamoDBSourceUnmappedTransformConfig) ToDto() *mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig {
-	return &mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig{
-		B:       s.B.ToTransformerDto(),
-		Boolean: s.Boolean.ToTransformerDto(),
-		N:       s.N.ToTransformerDto(),
-		S:       s.S.ToTransformerDto(),
+func (s *DynamoDBSourceUnmappedTransformConfig) ToDto() (*mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig, error) {
+	b, err := s.B.ToTransformerDto()
+	if err != nil {
+		return nil, err
 	}
+	boolean, err := s.Boolean.ToTransformerDto()
+	if err != nil {
+		return nil, err
+	}
+	n, err := s.N.ToTransformerDto()
+	if err != nil {
+		return nil, err
+	}
+	str, err := s.S.ToTransformerDto()
+	if err != nil {
+		return nil, err
+	}
+	return &mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig{
+		B:       b,
+		Boolean: boolean,
+		N:       n,
+		S:       str,
+	}, nil
 }
 
 func (s *DynamoDBSourceUnmappedTransformConfig) FromDto(
@@ -1156,7 +1176,7 @@ func (s *DynamoDBSourceTableOption) FromDto(dto *mgmtv1alpha1.DynamoDBSourceTabl
 	s.WhereClause = dto.WhereClause
 }
 
-func (s *DynamoDBSourceOptions) ToDto() *mgmtv1alpha1.DynamoDBSourceConnectionOptions {
+func (s *DynamoDBSourceOptions) ToDto() (*mgmtv1alpha1.DynamoDBSourceConnectionOptions, error) {
 	tables := make([]*mgmtv1alpha1.DynamoDBSourceTableOption, len(s.Tables))
 	for i, t := range s.Tables {
 		tables[i] = t.ToDto()
@@ -1185,12 +1205,16 @@ func (s *DynamoDBSourceOptions) ToDto() *mgmtv1alpha1.DynamoDBSourceConnectionOp
 			},
 		}
 	}
+	unmappedTransforms, err := s.UnmappedTransforms.ToDto()
+	if err != nil {
+		return nil, err
+	}
 	return &mgmtv1alpha1.DynamoDBSourceConnectionOptions{
 		ConnectionId:         s.ConnectionId,
 		Tables:               tables,
-		UnmappedTransforms:   s.UnmappedTransforms.ToDto(),
+		UnmappedTransforms:   unmappedTransforms,
 		EnableConsistentRead: s.EnableConsistentRead,
-	}
+	}, nil
 }
 
 func (s *DynamoDBSourceOptions) FromDto(dto *mgmtv1alpha1.DynamoDBSourceConnectionOptions) error {
@@ -1731,57 +1755,61 @@ type MysqlSourceTableOption struct {
 	WhereClause *string `json:"whereClause,omitempty"`
 }
 
-func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
+func (j *JobSourceOptions) ToDto() (*mgmtv1alpha1.JobSourceOptions, error) {
 	if j.PostgresOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
 				Postgres: j.PostgresOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
 	if j.MysqlOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
 				Mysql: j.MysqlOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
 	if j.GenerateOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Generate{
 				Generate: j.GenerateOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
 	if j.AiGenerateOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_AiGenerate{
 				AiGenerate: j.AiGenerateOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
 	if j.MongoDbOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Mongodb{
 				Mongodb: j.MongoDbOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
 	if j.DynamoDBOptions != nil {
+		dto, err := j.DynamoDBOptions.ToDto()
+		if err != nil {
+			return nil, err
+		}
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Dynamodb{
-				Dynamodb: j.DynamoDBOptions.ToDto(),
+				Dynamodb: dto,
 			},
-		}
+		}, nil
 	}
 	if j.MssqlOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Mssql{
 				Mssql: j.MssqlOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
-	return nil
+	return nil, fmt.Errorf("invalid job source options config, received type: %T", j)
 }
 
 func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {

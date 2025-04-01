@@ -88,7 +88,7 @@ output:
 	var meter metric.Meter
 	temporalclient := tmprl_mocks.NewClient(t)
 
-	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager, temporalclient)
+	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager, temporalclient, nil)
 
 	env.RegisterActivity(activity.SyncTable)
 
@@ -167,7 +167,7 @@ output:
 	var meter metric.Meter
 	temporalclient := tmprl_mocks.NewClient(t)
 
-	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager, temporalclient)
+	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager, temporalclient, nil)
 	env.RegisterActivity(activity.SyncTable)
 
 	t.Run("valid continuation token", func(t *testing.T) {
@@ -210,7 +210,7 @@ func Test_Sync_Run_No_BenthosConfig(t *testing.T) {
 
 	benthosStreamManager := benthosstream.NewBenthosStreamManager()
 	temporalclient := tmprl_mocks.NewClient(t)
-	activity := New(nil, nil, nil, nil, nil, benthosStreamManager, temporalclient)
+	activity := New(nil, nil, nil, nil, nil, benthosStreamManager, temporalclient, nil)
 
 	env.RegisterActivity(activity.SyncTable)
 
@@ -278,7 +278,7 @@ metrics:
 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(&sqlconnect.SqlOpenConnector{}), connectionmanager.WithCloseOnRelease())
 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
 	temporalclient := tmprl_mocks.NewClient(t)
-	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager, temporalclient)
+	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager, temporalclient, nil)
 
 	env.RegisterActivity(activity.SyncTable)
 
@@ -354,7 +354,7 @@ func Test_Sync_Run_Processor_Error(t *testing.T) {
 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
 	var meter metric.Meter
 	temporalclient := tmprl_mocks.NewClient(t)
-	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager, temporalclient)
+	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, benthosStreamManager, temporalclient, nil)
 
 	env.RegisterActivity(activity.SyncTable)
 
@@ -424,7 +424,7 @@ output:
 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
 	var meter metric.Meter
 	temporalclient := tmprl_mocks.NewClient(t)
-	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, mockBenthosStreamManager, temporalclient)
+	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, mockBenthosStreamManager, temporalclient, nil)
 
 	env.RegisterActivity(activity.SyncTable)
 
@@ -515,7 +515,7 @@ output:
 	mongoconnmanager := connectionmanager.NewConnectionManager(mongoprovider.NewProvider(), connectionmanager.WithCloseOnRelease())
 	var meter metric.Meter
 	temporalclient := tmprl_mocks.NewClient(t)
-	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, mockBenthosStreamManager, temporalclient)
+	activity := New(connclient, jobclient, sqlconnmanager, mongoconnmanager, meter, mockBenthosStreamManager, temporalclient, nil)
 
 	env.RegisterActivity(activity.SyncTable)
 	_, err := env.ExecuteActivity(activity.SyncTable, &SyncTableRequest{

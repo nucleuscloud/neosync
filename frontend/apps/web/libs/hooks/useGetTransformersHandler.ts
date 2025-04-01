@@ -1,6 +1,6 @@
 import { TransformerHandler } from '@/components/jobs/SchemaTable/transformer-handler';
 import { useQuery } from '@connectrpc/connect-query';
-import { TransformerSource, TransformersService } from '@neosync/sdk';
+import { TransformersService } from '@neosync/sdk';
 import { useMemo } from 'react';
 
 export function useGetTransformersHandler(accountId: string): {
@@ -31,12 +31,7 @@ export function useGetTransformersHandler(accountId: string): {
 
   const handler = useMemo(
     (): TransformerHandler =>
-      new TransformerHandler(
-        systemTransformers.filter(
-          (st) => st.source !== TransformerSource.TRANSFORM_PII_TEXT
-        ),
-        userDefinedTransformers
-      ),
+      new TransformerHandler(systemTransformers, userDefinedTransformers),
     [isValidating]
   );
 
