@@ -276,14 +276,26 @@ func BuildAlterColumnStatement(column *schemamanager_shared.ColumnDiff) []string
 	pieces := []string{}
 
 	if column.RenameColumn != nil {
-		statements = append(statements, fmt.Sprintf("ALTER TABLE %q.%q RENAME COLUMN %q TO %q;", column.Column.Schema, column.Column.Table, column.RenameColumn.OldName, column.Column.Name))
+		statements = append(
+			statements,
+			fmt.Sprintf(
+				"ALTER TABLE %q.%q RENAME COLUMN %q TO %q;",
+				column.Column.Schema,
+				column.Column.Table,
+				column.RenameColumn.OldName,
+				column.Column.Name,
+			),
+		)
 	}
 
 	base := fmt.Sprintf("ALTER COLUMN %q", column.Column.Name)
 	for _, action := range column.Actions {
 		switch action {
 		case schemamanager_shared.SetDatatype:
-			pieces = append(pieces, fmt.Sprintf("%s TYPE %s USING %q::%s", base, column.Column.DataType, column.Column.Name, column.Column.DataType))
+			pieces = append(
+				pieces,
+				fmt.Sprintf("%s TYPE %s USING %q::%s", base, column.Column.DataType, column.Column.Name, column.Column.DataType),
+			)
 		case schemamanager_shared.DropNotNull:
 			pieces = append(pieces, fmt.Sprintf("%s DROP NOT NULL", base))
 		case schemamanager_shared.SetNotNull:
@@ -292,10 +304,10 @@ func BuildAlterColumnStatement(column *schemamanager_shared.ColumnDiff) []string
 			pieces = append(pieces, fmt.Sprintf("%s DROP DEFAULT", base))
 		case schemamanager_shared.SetDefault:
 			if column.Column.GeneratedType != nil && *column.Column.GeneratedType == "s" {
-				// pieces = append(pieces, fmt.Sprintf("%s SET GENERATED ALWAYS AS (%s) STORED", base, column.Column.ColumnDefault))
-				// need to drop then recreate
-				statements = append(statements, BuildDropColumnStatement(column.Column.Schema, column.Column.Table, column.Column.Name))
-				statements = append(statements, BuildAddColumnStatement(column.Column))
+				// generated columns can't be updated. need to drop then recreate
+				dropStmt := BuildDropColumnStatement(column.Column.Schema, column.Column.Table, column.Column.Name)
+				createStmt := BuildAddColumnStatement(column.Column)
+				statements = append(statements, dropStmt, createStmt)
 			} else {
 				pieces = append(pieces, fmt.Sprintf("%s SET DEFAULT %s", base, column.Column.ColumnDefault))
 			}
@@ -457,7 +469,14 @@ func (s *SequenceConfiguration) toCycelText() string {
 }
 
 func BuildSequencOwnerStatement(seq *pg_queries.GetSequencesOwnedByTablesRow) string {
-	return fmt.Sprintf("ALTER SEQUENCE %q.%q OWNED BY %q.%q.%q;", seq.SequenceSchema, seq.SequenceName, seq.TableSchema, seq.TableName, seq.ColumnName)
+	return fmt.Sprintf(
+		"ALTER SEQUENCE %q.%q OWNED BY %q.%q.%q;",
+		seq.SequenceSchema,
+		seq.SequenceName,
+		seq.TableSchema,
+		seq.TableName,
+		seq.ColumnName,
+	)
 }
 
 func buildTableCol(record *buildTableColRequest) string {
