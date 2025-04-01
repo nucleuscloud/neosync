@@ -111,9 +111,7 @@ function shouldIncludeSystem(
   if (filters.isGenerated) {
     return transformer.source === TransformerSource.GENERATE_DEFAULT;
   }
-  // if identitytype is 'a', which means always, no value may be provided other than the database default
   if (
-    filters.identityType === 'a' ||
     filters.identityType === 'auto_increment' ||
     filters.identityType?.startsWith('IDENTITY')
   ) {
@@ -121,6 +119,13 @@ function shouldIncludeSystem(
       transformer.source === TransformerSource.GENERATE_DEFAULT ||
       transformer.source === TransformerSource.PASSTHROUGH ||
       transformer.source === TransformerSource.TRANSFORM_SCRAMBLE_IDENTITY
+    );
+  }
+  // if identitytype is 'a' (pg), which means always, no value may be provided other than the database default
+  if (filters.identityType === 'a') {
+    return (
+      transformer.source === TransformerSource.GENERATE_DEFAULT ||
+      transformer.source === TransformerSource.PASSTHROUGH
     );
   }
   if (transformer.source === TransformerSource.GENERATE_DEFAULT) {
