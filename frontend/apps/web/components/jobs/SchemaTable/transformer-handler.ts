@@ -119,7 +119,8 @@ function shouldIncludeSystem(
   ) {
     return (
       transformer.source === TransformerSource.GENERATE_DEFAULT ||
-      transformer.source == TransformerSource.PASSTHROUGH
+      transformer.source === TransformerSource.PASSTHROUGH ||
+      transformer.source === TransformerSource.TRANSFORM_SCRAMBLE_IDENTITY
     );
   }
   if (transformer.source === TransformerSource.GENERATE_DEFAULT) {
