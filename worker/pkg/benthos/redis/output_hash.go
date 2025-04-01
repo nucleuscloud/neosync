@@ -41,21 +41,39 @@ func redisHashOutputConfig() *service.ConfigSpec {
 		)
 }
 
-func init() {
-	err := service.RegisterOutput(
+// func init() {
+// 	err := service.RegisterOutput(
+// 		"redis_hash_output",
+// 		redisHashOutputConfig(),
+// 		func(conf *service.ParsedConfig, mgr *service.Resources) (out service.Output, maxInFlight int, err error) {
+// 			if maxInFlight, err = conf.FieldMaxInFlight(); err != nil {
+// 				return nil, 0, err
+// 			}
+// 			out, err = newRedisHashWriter(conf, mgr)
+// 			return out, maxInFlight, err
+// 		},
+// 	)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// }
+
+type RedisProvider interface {
+	GetClient(ctx context.Context) (redis.UniversalClient, error)
+}
+
+func RegisterRedisHashOutput(env *service.Environment, clientProvider RedisProvider) error {
+	return env.RegisterOutput(
 		"redis_hash_output",
 		redisHashOutputConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (out service.Output, maxInFlight int, err error) {
 			if maxInFlight, err = conf.FieldMaxInFlight(); err != nil {
 				return nil, 0, err
 			}
-			out, err = newRedisHashWriter(conf, mgr)
+			out, err = newRedisHashWriter(conf, mgr, clientProvider)
 			return out, maxInFlight, err
 		},
 	)
-	if err != nil {
-		panic(err)
-	}
 }
 
 type redisHashWriter struct {
@@ -74,10 +92,11 @@ type redisHashWriter struct {
 func newRedisHashWriter(
 	conf *service.ParsedConfig,
 	mgr *service.Resources,
+	clientProvider RedisProvider,
 ) (r *redisHashWriter, err error) {
 	r = &redisHashWriter{
 		clientCtor: func() (redis.UniversalClient, error) {
-			return getClient(conf)
+			return clientProvider.GetClient(context.Background())
 		},
 		log: mgr.Logger(),
 	}
