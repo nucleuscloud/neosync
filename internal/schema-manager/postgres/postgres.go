@@ -323,7 +323,11 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(
 	}
 
 	updateColumnStatements := []string{}
+	renameColumnStatements := []string{}
 	for _, column := range diff.ExistsInBoth.Different.Columns {
+		if column.RenameColumn != nil {
+			renameColumnStatements = append(renameColumnStatements, sqlmanager_postgres.BuildRenameColumnStatement(column))
+		}
 		updateColumnStatements = append(updateColumnStatements, sqlmanager_postgres.BuildAlterColumnStatement(column)...)
 	}
 
@@ -408,6 +412,10 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(
 			Statements: updateDatatypesStatements,
 		},
 		{
+			Label:      sqlmanager_shared.RenameColumnsLabel,
+			Statements: renameColumnStatements,
+		},
+		{
 			Label:      sqlmanager_shared.UpdateColumnsLabel,
 			Statements: updateColumnStatements,
 		},
@@ -455,6 +463,7 @@ func (d *PostgresSchemaManager) ReconcileDestinationSchema(
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropDatatypesLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateDatatypesLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.AddColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.RenameColumnsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateColumnsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateFunctionsLabel]...)
 		}

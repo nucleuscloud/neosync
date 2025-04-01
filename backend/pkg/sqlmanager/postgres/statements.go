@@ -270,22 +270,13 @@ func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) string {
 	return fmt.Sprintf("ALTER TABLE %q.%q ADD COLUMN %s;", column.Schema, column.Table, col)
 }
 
+func BuildRenameColumnStatement(column *schemamanager_shared.ColumnDiff) string {
+	return fmt.Sprintf("ALTER TABLE %q.%q RENAME COLUMN %q TO %q;", column.Column.Schema, column.Column.Table, column.RenameColumn.OldName, column.Column.Name)
+}
+
 func BuildAlterColumnStatement(column *schemamanager_shared.ColumnDiff) []string {
 	statements := []string{}
 	pieces := []string{}
-
-	if column.RenameColumn != nil {
-		statements = append(
-			statements,
-			fmt.Sprintf(
-				"ALTER TABLE %q.%q RENAME COLUMN %q TO %q;",
-				column.Column.Schema,
-				column.Column.Table,
-				column.RenameColumn.OldName,
-				column.Column.Name,
-			),
-		)
-	}
 
 	base := fmt.Sprintf("ALTER COLUMN %q", column.Column.Name)
 	for _, action := range column.Actions {
