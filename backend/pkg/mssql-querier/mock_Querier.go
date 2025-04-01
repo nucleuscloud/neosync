@@ -380,23 +380,23 @@ func (_c *MockQuerier_GetDatabaseSchema_Call) RunAndReturn(run func(context.Cont
 }
 
 // GetDatabaseTableSchemasBySchemasAndTables provides a mock function with given fields: ctx, db, schematables
-func (_m *MockQuerier) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
+func (_m *MockQuerier) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db mysql_queries.DBTX, schematables []string) ([]*GetDatabaseSchemaRow, error) {
 	ret := _m.Called(ctx, db, schematables)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetDatabaseTableSchemasBySchemasAndTables")
 	}
 
-	var r0 []*GetDatabaseTableSchemasBySchemasAndTablesRow
+	var r0 []*GetDatabaseSchemaRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, mysql_queries.DBTX, []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, mysql_queries.DBTX, []string) ([]*GetDatabaseSchemaRow, error)); ok {
 		return rf(ctx, db, schematables)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, mysql_queries.DBTX, []string) []*GetDatabaseTableSchemasBySchemasAndTablesRow); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, mysql_queries.DBTX, []string) []*GetDatabaseSchemaRow); ok {
 		r0 = rf(ctx, db, schematables)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*GetDatabaseTableSchemasBySchemasAndTablesRow)
+			r0 = ret.Get(0).([]*GetDatabaseSchemaRow)
 		}
 	}
 
@@ -429,12 +429,12 @@ func (_c *MockQuerier_GetDatabaseTableSchemasBySchemasAndTables_Call) Run(run fu
 	return _c
 }
 
-func (_c *MockQuerier_GetDatabaseTableSchemasBySchemasAndTables_Call) Return(_a0 []*GetDatabaseTableSchemasBySchemasAndTablesRow, _a1 error) *MockQuerier_GetDatabaseTableSchemasBySchemasAndTables_Call {
+func (_c *MockQuerier_GetDatabaseTableSchemasBySchemasAndTables_Call) Return(_a0 []*GetDatabaseSchemaRow, _a1 error) *MockQuerier_GetDatabaseTableSchemasBySchemasAndTables_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockQuerier_GetDatabaseTableSchemasBySchemasAndTables_Call) RunAndReturn(run func(context.Context, mysql_queries.DBTX, []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error)) *MockQuerier_GetDatabaseTableSchemasBySchemasAndTables_Call {
+func (_c *MockQuerier_GetDatabaseTableSchemasBySchemasAndTables_Call) RunAndReturn(run func(context.Context, mysql_queries.DBTX, []string) ([]*GetDatabaseSchemaRow, error)) *MockQuerier_GetDatabaseTableSchemasBySchemasAndTables_Call {
 	_c.Call.Return(run)
 	return _c
 }

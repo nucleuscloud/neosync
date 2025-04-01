@@ -9,7 +9,7 @@ import (
 
 // Creates idempotent create table statement
 func generateCreateTableStatement(
-	rows []*mssql_queries.GetDatabaseTableSchemasBySchemasAndTablesRow,
+	rows []*mssql_queries.GetDatabaseSchemaRow,
 ) string {
 	if len(rows) == 0 {
 		return ""
