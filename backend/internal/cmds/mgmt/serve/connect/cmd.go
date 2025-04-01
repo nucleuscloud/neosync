@@ -699,7 +699,7 @@ func serve(ctx context.Context) error {
 	var presAnalyzeClient presidioapi.AnalyzeInterface
 	var presAnonClient presidioapi.AnonymizeInterface
 	var presEntityClient presidioapi.EntityInterface
-	if ncloudlicense.IsValid() {
+	if cascadelicense.IsValid() {
 		analyzeClient, ok, err := getPresidioAnalyzeClient()
 		if err != nil {
 			return fmt.Errorf("unable to initialize presidio analyze client: %w", err)
@@ -719,10 +719,11 @@ func serve(ctx context.Context) error {
 		}
 	}
 
+	isPresidioEnabled := cascadelicense.IsValid() && presAnalyzeClient != nil && presAnonClient != nil
+
 	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{
-		IsPresidioEnabled: ncloudlicense.IsValid(),
-		IsNeosyncCloud:    ncloudlicense.IsValid(),
-	}, db, presEntityClient, userdataclient)
+		IsPresidioEnabled: isPresidioEnabled,
+	}, db, presEntityClient, userdataclient, cascadelicense)
 	api.Handle(
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
 			transformerService,
@@ -734,11 +735,11 @@ func serve(ctx context.Context) error {
 	)
 
 	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{
-		IsPresidioEnabled:       ncloudlicense.IsValid(),
+		IsPresidioEnabled:       isPresidioEnabled,
 		PresidioDefaultLanguage: getPresidioDefaultLanguage(),
 		IsAuthEnabled:           isAuthEnabled,
 		IsNeosyncCloud:          ncloudlicense.IsValid(),
-	}, anonymizerMeter, userdataclient, useraccountService, transformerService, presAnalyzeClient, presAnonClient, db)
+	}, anonymizerMeter, userdataclient, useraccountService, transformerService, presAnalyzeClient, presAnonClient, db, cascadelicense)
 	api.Handle(
 		mgmtv1alpha1connect.NewAnonymizationServiceHandler(
 			anonymizationService,

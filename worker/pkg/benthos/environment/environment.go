@@ -17,6 +17,7 @@ import (
 	neosync_benthos_connectiondata "github.com/nucleuscloud/neosync/worker/pkg/benthos/neosync_connection_data"
 	openaigenerate "github.com/nucleuscloud/neosync/worker/pkg/benthos/openai_generate"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/redpanda-data/benthos/v4/public/service"
 	"go.opentelemetry.io/otel/metric"
@@ -34,6 +35,8 @@ type RegisterConfig struct {
 	stopChannel chan<- error
 
 	blobEnv *bloblang.Environment
+
+	transformPiiTextApi transformers.TransformPiiTextApi
 }
 
 type Option func(cfg *RegisterConfig)
@@ -67,6 +70,11 @@ func WithConnectionDataConfig(connectionDataCfg *ConnectionDataConfig) Option {
 func WithBlobEnv(b *bloblang.Environment) Option {
 	return func(cfg *RegisterConfig) {
 		cfg.blobEnv = b
+	}
+}
+func WithTransformPiiTextApi(transformPiiTextApi transformers.TransformPiiTextApi) Option {
+	return func(cfg *RegisterConfig) {
+		cfg.transformPiiTextApi = transformPiiTextApi
 	}
 }
 
@@ -248,7 +256,7 @@ func NewWithEnvironment(
 		)
 	}
 
-	err = javascript_processor.RegisterNeosyncJavascriptProcessor(env)
+	err = javascript_processor.RegisterNeosyncJavascriptProcessor(env, config.transformPiiTextApi)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"unable to register javascript processor to benthos instance: %w",

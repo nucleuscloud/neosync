@@ -948,6 +948,16 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 				},
 			},
 		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{
+					TransformPiiTextConfig: &mgmtv1alpha1.TransformPiiText{
+						Language: gotypeutil.ToPtr("en"),
+					},
+				},
+			},
+		},
 	}
 
 	emailColInfo := &sqlmanager_shared.DatabaseSchemaRow{
@@ -962,6 +972,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 
 	blobenv := bloblang.NewEnvironment()
 	neosync_benthos_transformers.RegisterTransformIdentityScramble(blobenv, nil)
+	neosync_benthos_transformers.RegisterTransformPiiText(blobenv, nil)
 
 	for _, transformer := range transformers {
 		t.Run(fmt.Sprintf("%s_%T_lint", t.Name(), transformer.Config.Config), func(t *testing.T) {
@@ -1103,6 +1114,9 @@ func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testi
 		{
 			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig{}},
 		},
+		{
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{}},
+		},
 	}
 
 	emailColInfo := &sqlmanager_shared.DatabaseSchemaRow{
@@ -1117,6 +1131,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testi
 
 	blobenv := bloblang.NewEnvironment()
 	neosync_benthos_transformers.RegisterTransformIdentityScramble(blobenv, nil)
+	neosync_benthos_transformers.RegisterTransformPiiText(blobenv, nil)
 
 	for _, transformer := range transformers {
 		t.Run(fmt.Sprintf("%s_%T_lint", t.Name(), transformer.Config.Config), func(t *testing.T) {
