@@ -1,9 +1,6 @@
 package schemamanager_shared
 
 import (
-	"encoding/json"
-	"fmt"
-
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
 
@@ -198,10 +195,6 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 				if destColumn == nil {
 					b.diff.ExistsInSource.Columns = append(b.diff.ExistsInSource.Columns, srcColumn)
 				} else if srcColumn.Fingerprint != destColumn.Fingerprint {
-					jsonF, _ := json.MarshalIndent(srcColumn, "", " ")
-					fmt.Printf("\n\n src: %s \n\n", string(jsonF))
-					jsonF, _ = json.MarshalIndent(destColumn, "", " ")
-					fmt.Printf("\n\n dest: %s \n\n", string(jsonF))
 					// column differences
 					actions := []ColumnAction{}
 					if srcColumn.DataType != destColumn.DataType {

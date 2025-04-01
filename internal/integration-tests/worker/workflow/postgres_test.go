@@ -1368,14 +1368,6 @@ func test_postgres_schema_reconciliation(
 	require.NoError(t, err)
 	t.Logf("finished running alter statements")
 
-	// updatedMappings := []*mgmtv1alpha1.JobMapping{}
-	// for _, m := range job.GetMappings() {
-	// 	if m.GetTable() == "users" && m.GetColumn() == "name_upper" {
-	// 		continue
-	// 	}
-	// 	updatedMappings = append(updatedMappings, m)
-	// }
-
 	updatedMappings := job.GetMappings()
 	updatedMappings = append(updatedMappings, pg_schema_init.GetAlteredSyncJobMappings(schema)...)
 	job = updateJobMappings(t, ctx, jobclient, job.GetId(), updatedMappings, job.GetSource())
@@ -1386,12 +1378,6 @@ func test_postgres_schema_reconciliation(
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: postgres-schema-reconciliation-run-2")
 	err = testworkflow.TestEnv.GetWorkflowError()
 	require.NoError(t, err, "Received Temporal Workflow Error: postgres-schema-reconciliation-run-2")
-
-	// fmt.Println()
-	// fmt.Println(postgres.Source.URL)
-	// fmt.Println(postgres.Target.URL)
-	// fmt.Println()
-	// time.Sleep(2 * time.Hour)
 
 	source, err := sql.Open("postgres", postgres.Source.URL)
 	require.NoError(t, err)

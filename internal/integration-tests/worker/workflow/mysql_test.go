@@ -683,8 +683,6 @@ func test_schema_reconciliation_run_context(
 	var context *reconcileschema_activity.ReconcileSchemaRunContext
 	err = json.Unmarshal(runContext.Msg.Value, &context)
 	require.NoError(t, err)
-	jsonF, _ := json.MarshalIndent(context, "", " ")
-	fmt.Printf("\n\n %s \n\n", string(jsonF))
 	assert.Len(t, context.Errors, 0)
 }
 

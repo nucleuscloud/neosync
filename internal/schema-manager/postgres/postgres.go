@@ -2,7 +2,6 @@ package schemamanager_postgres
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -466,11 +465,6 @@ func (d *PostgresSchemaManager) ReconcileDestinationSchema(
 		if len(block.Statements) == 0 {
 			continue
 		}
-		for _, stmt := range block.Statements {
-			fmt.Println()
-			fmt.Println(stmt)
-			fmt.Println()
-		}
 		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 		if err != nil {
 			d.logger.Error(fmt.Sprintf("unable to exec postgres %s statements: %s", block.Label, err.Error()))
@@ -608,8 +602,6 @@ func (d *PostgresSchemaManager) TruncateData(ctx context.Context, uniqueTables m
 			if err != nil {
 				return err
 			}
-			jsonF, _ := json.MarshalIndent(sequences, "", " ")
-			fmt.Printf("\n\n sequences: %s \n\n", string(jsonF))
 			resetSeqStmts := []string{}
 			for _, seq := range sequences {
 				resetSeqStmts = append(resetSeqStmts, sqlmanager_postgres.BuildPgResetSequenceSql(seq.Schema, seq.Name))
