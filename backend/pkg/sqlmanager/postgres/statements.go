@@ -275,6 +275,10 @@ func BuildAlterColumnStatement(column *schemamanager_shared.ColumnDiff) []string
 	statements := []string{}
 	pieces := []string{}
 
+	if column.RenameColumn != nil {
+		statements = append(statements, fmt.Sprintf("ALTER TABLE %q.%q RENAME COLUMN %q TO %q;", column.Column.Schema, column.Column.Table, column.RenameColumn.OldName, column.Column.Name))
+	}
+
 	base := fmt.Sprintf("ALTER COLUMN %q", column.Column.Name)
 	for _, action := range column.Actions {
 		switch action {
@@ -298,10 +302,6 @@ func BuildAlterColumnStatement(column *schemamanager_shared.ColumnDiff) []string
 		case schemamanager_shared.DropIdentity:
 			pieces = append(pieces, fmt.Sprintf("%s DROP IDENTITY IF EXISTS", base))
 		}
-	}
-
-	if column.RenameColumn != nil {
-		statements = append(statements, fmt.Sprintf("ALTER TABLE %q.%q RENAME COLUMN %q TO %q;", column.Column.Schema, column.Column.Table, column.RenameColumn.OldName, column.Column.Name))
 	}
 
 	if len(pieces) > 0 {

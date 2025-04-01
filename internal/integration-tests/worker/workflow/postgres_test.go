@@ -1368,6 +1368,14 @@ func test_postgres_schema_reconciliation(
 	require.NoError(t, err)
 	t.Logf("finished running alter statements")
 
+	// updatedMappings := []*mgmtv1alpha1.JobMapping{}
+	// for _, m := range job.GetMappings() {
+	// 	if m.GetTable() == "users" && m.GetColumn() == "name_upper" {
+	// 		continue
+	// 	}
+	// 	updatedMappings = append(updatedMappings, m)
+	// }
+
 	updatedMappings := job.GetMappings()
 	updatedMappings = append(updatedMappings, pg_schema_init.GetAlteredSyncJobMappings(schema)...)
 	job = updateJobMappings(t, ctx, jobclient, job.GetId(), updatedMappings, job.GetSource())
