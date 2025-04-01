@@ -415,11 +415,15 @@ func (b *LegacySqlJobMappingBuilder) BuildJobMappings() ([]*shared.JobTransforma
 		b.logger.Debug(fmt.Sprintf("adding %d extra mappings due to unmapped columns", len(extraMappings)))
 		filteredExistingSourceMappings = append(filteredExistingSourceMappings, extraMappings...)
 	}
-	jobMappings := make([]*shared.JobTransformationMapping, len(filteredExistingSourceMappings))
-	for i, mapping := range filteredExistingSourceMappings {
+	return jobMappingsFromLegacyMappings(filteredExistingSourceMappings), nil
+}
+
+func jobMappingsFromLegacyMappings(mappings []*mgmtv1alpha1.JobMapping) []*shared.JobTransformationMapping {
+	jobMappings := make([]*shared.JobTransformationMapping, len(mappings))
+	for i, mapping := range mappings {
 		jobMappings[i] = jobMappingFromLegacyMapping(mapping)
 	}
-	return jobMappings, nil
+	return jobMappings
 }
 
 func jobMappingFromLegacyMapping(mapping *mgmtv1alpha1.JobMapping) *shared.JobTransformationMapping {

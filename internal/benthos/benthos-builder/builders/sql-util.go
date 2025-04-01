@@ -118,7 +118,7 @@ func getMapValuesCount[K comparable, V any](m map[K][]V) int {
 	return count
 }
 
-func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
+func buildPlainColumns(mappings []*shared.JobTransformationMapping) []string {
 	columns := make([]string, len(mappings))
 	for idx := range mappings {
 		columns[idx] = mappings[idx].Column

@@ -32,7 +32,7 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(
 ) ([]*bb_internal.BenthosSourceConfig, error) {
 	sourceConnection := params.SourceConnection
 	job := params.Job
-	groupedMappings := groupMappingsByTable(job.GetMappings())
+	groupedMappings := groupMappingsByTable(jobMappingsFromLegacyMappings(job.GetMappings()))
 
 	benthosConfigs := []*bb_internal.BenthosSourceConfig{}
 	for _, tableMapping := range groupedMappings {

@@ -68,7 +68,7 @@ func (b *generateBuilder) BuildSourceConfigs(
 	defer db.Db().Close()
 	b.driver = db.Driver()
 
-	groupedMappings := groupMappingsByTable(job.Mappings)
+	groupedMappings := groupMappingsByTable(jobMappingsFromLegacyMappings(job.GetMappings()))
 	groupedTableMapping := getTableMappingsMap(groupedMappings)
 	colTransformerMap := getColumnTransformerMap(groupedTableMapping)
 	sourceTableOpts := groupGenerateSourceOptionsByTable(sourceOptions.Schemas)

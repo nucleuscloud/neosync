@@ -52,7 +52,7 @@ func (b *dyanmodbSyncBuilder) BuildSourceConfigs(
 	dynamoJobSourceOpts := job.GetSource().GetOptions().GetDynamodb()
 	tableOptsMap := toDynamoDbSourceTableOptionMap(dynamoJobSourceOpts.GetTables())
 
-	groupedMappings := groupMappingsByTable(job.GetMappings())
+	groupedMappings := groupMappingsByTable(jobMappingsFromLegacyMappings(job.GetMappings()))
 
 	benthosConfigs := []*bb_internal.BenthosSourceConfig{}
 	// todo: may need to filter here based on the destination config mappings if there is no source->destination table map
