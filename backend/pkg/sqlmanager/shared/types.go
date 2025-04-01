@@ -80,6 +80,7 @@ type TableColumn struct {
 	IdentityGeneration  *string
 	SequenceDefinition  *string
 	IsSerial            bool
+	OrdinalPosition     int
 	Comment             *string
 }
 

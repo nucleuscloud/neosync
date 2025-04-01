@@ -1,6 +1,9 @@
 package schemamanager_shared
 
 import (
+	"encoding/json"
+	"fmt"
+
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
 
@@ -40,8 +43,38 @@ type DomainDiff struct {
 	RemovedConstraints []string
 }
 
+type ColumnAction string
+
+const (
+	// datatype
+	SetDatatype ColumnAction = "SET_DATATYPE"
+
+	// default
+	SetDefault  ColumnAction = "SET_DEFAULT"
+	DropDefault ColumnAction = "DROP_DEFAULT"
+
+	// not null
+	SetNotNull  ColumnAction = "SET_NOT_NULL"
+	DropNotNull ColumnAction = "DROP_NOT_NULL"
+
+	// identity
+	SetIdentity  ColumnAction = "SET_IDENTITY"
+	DropIdentity ColumnAction = "DROP_IDENTITY"
+)
+
+type ColumnRename struct {
+	OldName string
+}
+
+type ColumnDiff struct {
+	Column       *sqlmanager_shared.TableColumn
+	RenameColumn *ColumnRename
+	// Actions represents what needs to be updated on the column
+	Actions []ColumnAction
+}
+
 type Different struct {
-	Columns                  []*sqlmanager_shared.TableColumn
+	Columns                  []*ColumnDiff
 	NonForeignKeyConstraints []*sqlmanager_shared.NonForeignKeyConstraint
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
 	Triggers                 []*sqlmanager_shared.TableTrigger
@@ -124,7 +157,7 @@ func NewSchemaDifferencesBuilder(
 			ExistsInBoth: &ExistsInBoth{
 				Tables: []*sqlmanager_shared.SchemaTable{},
 				Different: &Different{
-					Columns:                  []*sqlmanager_shared.TableColumn{},
+					Columns:                  []*ColumnDiff{},
 					NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
 					ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
 					Triggers:                 []*sqlmanager_shared.TableTrigger{},
@@ -151,41 +184,113 @@ func (b *SchemaDifferencesBuilder) Build() *SchemaDifferences {
 
 func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 	for _, table := range b.jobmappingTables {
-		sourceTable := b.source.Columns[table.String()]
-		destTable := b.destination.Columns[table.String()]
-		if len(sourceTable) > 0 && len(destTable) == 0 {
+		sourceTableCols := b.source.Columns[table.String()]
+		destTableCols := b.destination.Columns[table.String()]
+		if len(sourceTableCols) > 0 && len(destTableCols) == 0 {
 			b.diff.ExistsInSource.Tables = append(b.diff.ExistsInSource.Tables, table)
-		} else if len(sourceTable) > 0 && len(destTable) > 0 {
+		} else if len(sourceTableCols) > 0 && len(destTableCols) > 0 {
 			// table exists in both source and destination
 			b.diff.ExistsInBoth.Tables = append(b.diff.ExistsInBoth.Tables, table)
 
 			// column diff
-			for _, column := range sourceTable {
-				_, ok := destTable[column.Name]
-				if !ok {
-					b.diff.ExistsInSource.Columns = append(b.diff.ExistsInSource.Columns, column)
-				}
-			}
-			for _, column := range destTable {
-				_, ok := sourceTable[column.Name]
-				if !ok {
-					b.diff.ExistsInDestination.Columns = append(b.diff.ExistsInDestination.Columns, column)
+			for _, srcColumn := range sourceTableCols {
+				destColumn := findColumn(destTableCols, srcColumn)
+				if destColumn == nil {
+					b.diff.ExistsInSource.Columns = append(b.diff.ExistsInSource.Columns, srcColumn)
+				} else if srcColumn.Fingerprint != destColumn.Fingerprint {
+					jsonF, _ := json.MarshalIndent(srcColumn, "", " ")
+					fmt.Printf("\n\n src: %s \n\n", string(jsonF))
+					jsonF, _ = json.MarshalIndent(destColumn, "", " ")
+					fmt.Printf("\n\n dest: %s \n\n", string(jsonF))
+					// column differences
+					actions := []ColumnAction{}
+					if srcColumn.DataType != destColumn.DataType {
+						actions = append(actions, SetDatatype)
+					}
+					if srcColumn.ColumnDefault != destColumn.ColumnDefault {
+						defaultAction := DropDefault
+						if srcColumn.ColumnDefault != "" {
+							defaultAction = SetDefault
+						}
+						actions = append(actions, defaultAction)
+					}
+					if srcColumn.IdentityGeneration != nil && destColumn.IdentityGeneration != nil && *srcColumn.IdentityGeneration != *destColumn.IdentityGeneration {
+						identityAction := DropIdentity
+						if srcColumn.IdentityGeneration != nil && *srcColumn.IdentityGeneration != "" {
+							identityAction = SetIdentity
+						}
+						actions = append(actions, identityAction)
+					}
+					if srcColumn.IsNullable != destColumn.IsNullable {
+						nullableAction := SetNotNull
+						if srcColumn.IsNullable {
+							nullableAction = DropNotNull
+						}
+						actions = append(actions, nullableAction)
+					}
+
+					var renameColumn *ColumnRename
+					if srcColumn.Name != destColumn.Name {
+						renameColumn = &ColumnRename{
+							OldName: destColumn.Name,
+						}
+					}
+
+					if len(actions) > 0 || renameColumn != nil {
+						b.diff.ExistsInBoth.Different.Columns = append(b.diff.ExistsInBoth.Different.Columns, &ColumnDiff{
+							Column:       srcColumn,
+							Actions:      actions,
+							RenameColumn: renameColumn,
+						})
+					}
 				}
 			}
 
-			for _, column := range sourceTable {
-				destColumn, ok := destTable[column.Name]
-				if !ok {
-					continue
-				}
-				if column.Fingerprint != destColumn.Fingerprint {
-					b.diff.ExistsInBoth.Different.Columns = append(b.diff.ExistsInBoth.Different.Columns, column)
+			for _, column := range destTableCols {
+				sourceColumn := findColumn(sourceTableCols, column)
+				if sourceColumn == nil {
+					b.diff.ExistsInDestination.Columns = append(b.diff.ExistsInDestination.Columns, column)
 				}
 			}
 		}
 	}
 }
 
+func findColumn(columns map[string]*sqlmanager_shared.TableColumn, column *sqlmanager_shared.TableColumn) *sqlmanager_shared.TableColumn {
+	// perfect match
+	for _, c := range columns {
+		if c.Schema != column.Schema || c.Table != column.Table {
+			continue
+		}
+		if c.Fingerprint == column.Fingerprint {
+			return c
+		}
+		if c.Name == column.Name && c.OrdinalPosition == column.OrdinalPosition {
+			return c
+		}
+	}
+
+	// name match
+	for _, c := range columns {
+		if c.Schema != column.Schema || c.Table != column.Table {
+			continue
+		}
+		if c.Name == column.Name {
+			return c
+		}
+	}
+
+	// ordinal match
+	for _, c := range columns {
+		if c.Schema != column.Schema || c.Table != column.Table {
+			continue
+		}
+		if c.OrdinalPosition == column.OrdinalPosition {
+			return c
+		}
+	}
+	return nil
+}
 func (b *SchemaDifferencesBuilder) buildTableForeignKeyConstraintDifferences() {
 	existsInSource, existsInBoth, existsInDestination := buildDifferencesByFingerprint(
 		b.source.ForeignKeyConstraints,

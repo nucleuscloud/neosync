@@ -321,6 +321,12 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(
 			updateDatatypesStatements,
 			sqlmanager_postgres.BuildUpdateEnumStatements(enum.Enum.Schema, enum.Enum.Name, enum.NewValues, enum.ChangedValues)...)
 	}
+
+	updateColumnStatements := []string{}
+	for _, column := range diff.ExistsInBoth.Different.Columns {
+		updateColumnStatements = append(updateColumnStatements, sqlmanager_postgres.BuildAlterColumnStatement(column)...)
+	}
+
 	for _, composite := range diff.ExistsInBoth.Different.Composites {
 		updateDatatypesStatements = append(
 			updateDatatypesStatements,
@@ -401,6 +407,10 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(
 			Label:      sqlmanager_shared.UpdateDatatypesLabel,
 			Statements: updateDatatypesStatements,
 		},
+		{
+			Label:      sqlmanager_shared.UpdateColumnsLabel,
+			Statements: updateColumnStatements,
+		},
 	}, nil
 }
 
@@ -445,6 +455,7 @@ func (d *PostgresSchemaManager) ReconcileDestinationSchema(
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropDatatypesLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateDatatypesLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.AddColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateColumnsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateFunctionsLabel]...)
 		}
 	}
@@ -453,6 +464,13 @@ func (d *PostgresSchemaManager) ReconcileDestinationSchema(
 		d.logger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
 		if len(block.Statements) == 0 {
 			continue
+		}
+		if block.Label == sqlmanager_shared.UpdateColumnsLabel {
+			for _, stmt := range block.Statements {
+				fmt.Println()
+				fmt.Println(stmt)
+				fmt.Println()
+			}
 		}
 		err = d.destdb.Db().BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
 		if err != nil {

@@ -90,10 +90,11 @@ func BuildFingerprint(input ...string) string {
 }
 
 func BuildTableColumnFingerprint(column *TableColumn) string {
-	parts := []string{
+	return BuildFingerprint(
 		column.Schema,
 		column.Table,
 		column.Name,
+		strconv.Itoa(column.OrdinalPosition),
 		column.DataType,
 		strconv.FormatBool(column.IsNullable),
 		column.ColumnDefault,
@@ -101,10 +102,7 @@ func BuildTableColumnFingerprint(column *TableColumn) string {
 		ptrOrEmpty(column.IdentityGeneration),
 		ptrOrEmpty(column.GeneratedType),
 		ptrOrEmpty(column.GeneratedExpression),
-		ptrOrEmpty(column.Comment),
-	}
-
-	return BuildFingerprint(parts...)
+		ptrOrEmpty(column.Comment))
 }
 
 func BuildCompositeDataTypeFingerprint(composite *CompositeDataType) string {

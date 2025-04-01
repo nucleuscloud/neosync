@@ -278,7 +278,7 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(
 
 	updateColumnStatements := []string{}
 	for _, column := range diff.ExistsInBoth.Different.Columns {
-		stmt, err := sqlmanager_mysql.BuildUpdateColumnStatement(column)
+		stmt, err := sqlmanager_mysql.BuildUpdateColumnStatement(column.Column)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build update column statement: %w", err)
 		}

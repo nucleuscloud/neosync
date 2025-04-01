@@ -242,6 +242,7 @@ func (m *MysqlManager) GetColumnsByTables(
 			Schema:              row.TableSchema,
 			Table:               row.TableName,
 			Name:                row.ColumnName,
+			OrdinalPosition:     row.OrdinalPosition,
 			DataType:            row.DataType,
 			IsNullable:          row.IsNullable,
 			ColumnDefault:       row.ColumnDefault,
