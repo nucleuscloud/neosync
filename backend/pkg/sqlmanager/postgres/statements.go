@@ -266,7 +266,6 @@ func BuildAddColumnStatement(column *sqlmanager_shared.TableColumn) string {
 		IsNullable:         column.IsNullable,
 		GeneratedType:      *column.GeneratedType,
 		SequenceDefinition: column.SequenceDefinition,
-		// IsSerial:           column.IsSerial,
 	})
 	return fmt.Sprintf("ALTER TABLE %q.%q ADD COLUMN %s;", column.Schema, column.Table, col)
 }
@@ -429,12 +428,11 @@ func BuildUpdateDomainNotNullStatement(schema, domainName string, isNullable boo
 }
 
 type buildTableColRequest struct {
-	ColumnName    string
-	ColumnDefault string
-	DataType      string
-	IsNullable    bool
-	GeneratedType string
-	// IsSerial           bool
+	ColumnName         string
+	ColumnDefault      string
+	DataType           string
+	IsNullable         bool
+	GeneratedType      string
 	SequenceDefinition *string
 	Sequence           *SequenceConfiguration
 }
@@ -486,16 +484,6 @@ func buildTableCol(record *buildTableColRequest) string {
 		buildNullableText(record.IsNullable),
 	}
 
-	// if record.IsSerial {
-	// 	switch record.DataType {
-	// 	case "smallint":
-	// 		pieces[1] = "SMALLSERIAL"
-	// 	case "bigint":
-	// 		pieces[1] = "BIGSERIAL"
-	// 	default:
-	// 		pieces[1] = "SERIAL"
-	// 	}
-	// } else
 	if record.SequenceDefinition != nil && *record.SequenceDefinition != "" {
 		pieces = append(pieces, *record.SequenceDefinition)
 	} else if record.ColumnDefault != "" {

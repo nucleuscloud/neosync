@@ -151,8 +151,7 @@ func (p *PostgresManager) GetColumnsByTables(
 			GeneratedType:      sqlmanager_shared.Ptr(row.GeneratedType),
 			IdentityGeneration: sqlmanager_shared.Ptr(row.IdentityGeneration),
 			SequenceDefinition: sequenceDefinition,
-			// IsSerial:           row.SequenceType == "SERIAL",
-			Comment: sqlmanager_shared.Ptr(row.ColumnComment),
+			Comment:            sqlmanager_shared.Ptr(row.ColumnComment),
 		}
 		col.Fingerprint = sqlmanager_shared.BuildTableColumnFingerprint(col)
 		result = append(result, col)
@@ -966,12 +965,11 @@ func (p *PostgresManager) GetTableInitStatements(
 				seqDefinition = &seqStr
 			}
 			columns = append(columns, buildTableCol(&buildTableColRequest{
-				ColumnName:    record.ColumnName,
-				ColumnDefault: record.ColumnDefault,
-				DataType:      record.DataType,
-				IsNullable:    record.IsNullable == "YES",
-				GeneratedType: record.GeneratedType,
-				// IsSerial:           record.SequenceType == "SERIAL",
+				ColumnName:         record.ColumnName,
+				ColumnDefault:      record.ColumnDefault,
+				DataType:           record.DataType,
+				IsNullable:         record.IsNullable == "YES",
+				GeneratedType:      record.GeneratedType,
 				SequenceDefinition: seqDefinition,
 			}))
 		}
