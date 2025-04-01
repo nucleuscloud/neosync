@@ -2,6 +2,7 @@ package sqlmanager_mssql
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -77,6 +78,8 @@ func (m *Manager) GetDatabaseSchema(
 		var generatedType *string
 		if row.GenerationExpression.Valid {
 			generatedType = &row.GenerationExpression.String
+		} else if row.GeneratedAlwaysType.Valid {
+			generatedType = &row.GeneratedAlwaysType.String
 		}
 
 		var identitySeed *int
@@ -91,13 +94,18 @@ func (m *Manager) GetDatabaseSchema(
 			identityIncrement = &increment
 		}
 
+		var columnDefaultStr string
+		if row.ColumnDefault.Valid {
+			columnDefaultStr = row.ColumnDefault.String
+		}
+
 		output = append(output, &sqlmanager_shared.DatabaseSchemaRow{
 			TableSchema:            row.TableSchema,
 			TableName:              row.TableName,
 			ColumnName:             row.ColumnName,
 			DataType:               row.DataType,
-			ColumnDefault:          row.ColumnDefault, // todo: make sure this is valid for the other funcs
-			IsNullable:             row.IsNullable != "NO",
+			ColumnDefault:          columnDefaultStr, // todo: make sure this is valid for the other funcs
+			IsNullable:             row.IsNullable,
 			GeneratedType:          generatedType,
 			OrdinalPosition:        int(row.OrdinalPosition),
 			CharacterMaximumLength: charMaxLength,
@@ -106,15 +114,15 @@ func (m *Manager) GetDatabaseSchema(
 			IdentityGeneration:     identityGeneration,
 			IdentitySeed:           identitySeed,
 			IdentityIncrement:      identityIncrement,
-			UpdateAllowed:          isColumnUpdateAllowed(row.IsIdentity, row.IsComputed),
+			UpdateAllowed:          isColumnUpdateAllowed(row.IsIdentity, row.IsComputed, row.GeneratedAlwaysType),
 		})
 	}
 
 	return output, nil
 }
 
-func isColumnUpdateAllowed(isIdentity, isComputed bool) bool {
-	if isIdentity || isComputed {
+func isColumnUpdateAllowed(isIdentity, isComputed bool, generatedAlwaysType sql.NullString) bool {
+	if isIdentity || isComputed || generatedAlwaysType.Valid {
 		return false
 	}
 	return true
@@ -163,6 +171,8 @@ func (m *Manager) GetDatabaseTableSchemasBySchemasAndTables(
 		var generatedType *string
 		if row.GenerationExpression.Valid {
 			generatedType = &row.GenerationExpression.String
+		} else if row.GeneratedAlwaysType.Valid {
+			generatedType = &row.GeneratedAlwaysType.String
 		}
 
 		var identitySeed *int
@@ -190,6 +200,7 @@ func (m *Manager) GetDatabaseTableSchemasBySchemasAndTables(
 			ColumnDefault:          columnDefaultStr,
 			IsNullable:             row.IsNullable,
 			GeneratedType:          generatedType,
+			GeneratedExpression:    generatedType,
 			OrdinalPosition:        int(row.OrdinalPosition),
 			CharacterMaximumLength: charMaxLength,
 			NumericPrecision:       numericPrecision,
@@ -197,7 +208,7 @@ func (m *Manager) GetDatabaseTableSchemasBySchemasAndTables(
 			IdentityGeneration:     identityGeneration,
 			IdentitySeed:           identitySeed,
 			IdentityIncrement:      identityIncrement,
-			UpdateAllowed:          isColumnUpdateAllowed(row.IsIdentity, row.IsComputed),
+			UpdateAllowed:          isColumnUpdateAllowed(row.IsIdentity, row.IsComputed, row.GeneratedAlwaysType),
 		})
 	}
 
