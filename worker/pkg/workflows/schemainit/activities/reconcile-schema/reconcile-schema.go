@@ -141,6 +141,16 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 		return nil, fmt.Errorf("unable to calculate schema diff: %w", err)
 	}
 
+	err = b.setSchemaDiffRunCtx(
+		ctx,
+		schemaDiff,
+		job.AccountId,
+		destination.Id,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	err = schemaManager.TruncateTables(ctx, schemaDiff)
 	if err != nil {
 		return nil, fmt.Errorf("unable to truncate data: %w", err)
@@ -161,14 +171,9 @@ func (b *reconcileSchemaBuilder) RunReconcileSchema(
 			return nil, fmt.Errorf("unable to reconcile schema: %w", err)
 		}
 
-		reconcileSchemaRunContext := &ReconcileSchemaRunContext{
-			ConnectionId: destination.GetConnectionId(),
-			Errors:       reconcileSchemaErrors,
-		}
-
 		err = b.setReconcileSchemaRunCtx(
 			ctx,
-			reconcileSchemaRunContext,
+			reconcileSchemaErrors,
 			job.AccountId,
 			destination.Id,
 		)
@@ -189,10 +194,13 @@ type ReconcileSchemaRunContext struct {
 
 func (b *reconcileSchemaBuilder) setReconcileSchemaRunCtx(
 	ctx context.Context,
-	reconcileSchemaRunContext *ReconcileSchemaRunContext,
-	accountId string,
-	destinationId string,
+	reconcileSchemaErrors []*schemamanager_shared.InitSchemaError,
+	accountId, destinationId string,
 ) error {
+	reconcileSchemaRunContext := &ReconcileSchemaRunContext{
+		ConnectionId: destinationId,
+		Errors:       reconcileSchemaErrors,
+	}
 	bits, err := json.Marshal(reconcileSchemaRunContext)
 	if err != nil {
 		return fmt.Errorf("failed to marshal reconcile schema run context: %w", err)
@@ -207,6 +215,38 @@ func (b *reconcileSchemaBuilder) setReconcileSchemaRunCtx(
 	}))
 	if err != nil {
 		return fmt.Errorf("failed to set reconcile schema run context: %w", err)
+	}
+	return nil
+}
+
+type SchemaDiffRunContext struct {
+	ConnectionId string
+	Differences  *schemamanager_shared.SchemaDifferences
+}
+
+func (b *reconcileSchemaBuilder) setSchemaDiffRunCtx(
+	ctx context.Context,
+	schemaDiff *schemamanager_shared.SchemaDifferences,
+	accountId, destinationId string,
+) error {
+	schemaDiffRunContext := &SchemaDiffRunContext{
+		ConnectionId: destinationId,
+		Differences:  schemaDiff,
+	}
+	bits, err := json.Marshal(schemaDiffRunContext)
+	if err != nil {
+		return fmt.Errorf("failed to marshal reconcile schema run context: %w", err)
+	}
+	_, err = b.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
+		Id: &mgmtv1alpha1.RunContextKey{
+			JobRunId:   b.jobRunId,
+			ExternalId: fmt.Sprintf("reconcile-schema-differences-report-%s", destinationId),
+			AccountId:  accountId,
+		},
+		Value: bits,
+	}))
+	if err != nil {
+		return fmt.Errorf("failed to set reconcile schema differences run context: %w", err)
 	}
 	return nil
 }

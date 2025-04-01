@@ -207,13 +207,16 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 						}
 						actions = append(actions, defaultAction)
 					}
-					if srcColumn.IdentityGeneration != nil && destColumn.IdentityGeneration != nil && *srcColumn.IdentityGeneration != *destColumn.IdentityGeneration {
-						identityAction := DropIdentity
-						if srcColumn.IdentityGeneration != nil && *srcColumn.IdentityGeneration != "" {
-							identityAction = SetIdentity
-						}
-						actions = append(actions, identityAction)
+
+					switch {
+					case srcColumn.IdentityGeneration == nil && destColumn.IdentityGeneration != nil:
+						actions = append(actions, DropIdentity)
+					case srcColumn.IdentityGeneration != nil && destColumn.IdentityGeneration == nil:
+						actions = append(actions, SetIdentity)
+					case *srcColumn.IdentityGeneration != *destColumn.IdentityGeneration && *srcColumn.IdentityGeneration != "":
+						actions = append(actions, SetIdentity)
 					}
+
 					if srcColumn.IsNullable != destColumn.IsNullable {
 						nullableAction := SetNotNull
 						if srcColumn.IsNullable {
