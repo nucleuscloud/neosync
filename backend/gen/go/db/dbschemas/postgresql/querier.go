@@ -29,6 +29,7 @@ type Querier interface {
 	GetPartitionHierarchyByTable(ctx context.Context, db DBTX, table string) ([]*GetPartitionHierarchyByTableRow, error)
 	GetPartitionedTablesBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetPartitionedTablesBySchemaRow, error)
 	GetPostgresRolePermissions(ctx context.Context, db DBTX) ([]*GetPostgresRolePermissionsRow, error)
+	GetSequencesOwnedByTables(ctx context.Context, db DBTX, schematables []string) ([]*GetSequencesOwnedByTablesRow, error)
 	GetUniqueIndexesBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetUniqueIndexesBySchemaRow, error)
 }
 

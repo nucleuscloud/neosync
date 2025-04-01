@@ -1832,6 +1832,64 @@ func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX) ([]*G
 	return items, nil
 }
 
+const getSequencesOwnedByTables = `-- name: GetSequencesOwnedByTables :many
+SELECT
+	s.relname AS sequence_name,
+	seq_ns.nspname AS sequence_schema,
+	tbl_ns.nspname AS table_schema,
+	t.relname AS table_name,
+	a.attname AS column_name
+FROM
+	pg_catalog.pg_class s
+	JOIN pg_catalog.pg_namespace seq_ns ON s.relnamespace = seq_ns.oid
+	JOIN pg_catalog.pg_depend d ON d.objid = s.oid
+	JOIN pg_catalog.pg_class t ON d.refobjid = t.oid
+	JOIN pg_catalog.pg_namespace tbl_ns ON t.relnamespace = tbl_ns.oid
+	JOIN pg_catalog.pg_attribute a ON a.attrelid = t.oid
+		AND a.attnum = d.refobjsubid
+WHERE
+	s.relkind = 'S'       -- 'S' means sequence
+	AND d.deptype = 'a'   -- 'a' means "auto" dependency (owned by)
+	AND(tbl_ns.nspname || '.' || t.relname) = ANY ($1::TEXT [])
+`
+
+type GetSequencesOwnedByTablesRow struct {
+	SequenceName   string
+	SequenceSchema string
+	TableSchema    string
+	TableName      string
+	ColumnName     string
+}
+
+func (q *Queries) GetSequencesOwnedByTables(ctx context.Context, db DBTX, schematables []string) ([]*GetSequencesOwnedByTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getSequencesOwnedByTables, pq.Array(schematables))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetSequencesOwnedByTablesRow
+	for rows.Next() {
+		var i GetSequencesOwnedByTablesRow
+		if err := rows.Scan(
+			&i.SequenceName,
+			&i.SequenceSchema,
+			&i.TableSchema,
+			&i.TableName,
+			&i.ColumnName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUniqueIndexesBySchema = `-- name: GetUniqueIndexesBySchema :many
 SELECT
   ns.nspname AS table_schema,                      -- Schema name for the table

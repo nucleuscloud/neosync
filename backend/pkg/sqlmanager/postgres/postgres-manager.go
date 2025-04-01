@@ -151,8 +151,8 @@ func (p *PostgresManager) GetColumnsByTables(
 			GeneratedType:      sqlmanager_shared.Ptr(row.GeneratedType),
 			IdentityGeneration: sqlmanager_shared.Ptr(row.IdentityGeneration),
 			SequenceDefinition: sequenceDefinition,
-			IsSerial:           row.SequenceType == "SERIAL",
-			Comment:            sqlmanager_shared.Ptr(row.ColumnComment),
+			// IsSerial:           row.SequenceType == "SERIAL",
+			Comment: sqlmanager_shared.Ptr(row.ColumnComment),
 		}
 		col.Fingerprint = sqlmanager_shared.BuildTableColumnFingerprint(col)
 		result = append(result, col)
@@ -966,12 +966,12 @@ func (p *PostgresManager) GetTableInitStatements(
 				seqDefinition = &seqStr
 			}
 			columns = append(columns, buildTableCol(&buildTableColRequest{
-				ColumnName:         record.ColumnName,
-				ColumnDefault:      record.ColumnDefault,
-				DataType:           record.DataType,
-				IsNullable:         record.IsNullable == "YES",
-				GeneratedType:      record.GeneratedType,
-				IsSerial:           record.SequenceType == "SERIAL",
+				ColumnName:    record.ColumnName,
+				ColumnDefault: record.ColumnDefault,
+				DataType:      record.DataType,
+				IsNullable:    record.IsNullable == "YES",
+				GeneratedType: record.GeneratedType,
+				// IsSerial:           record.SequenceType == "SERIAL",
 				SequenceDefinition: seqDefinition,
 			}))
 		}
@@ -1149,6 +1149,23 @@ func (p *PostgresManager) GetSchemaInitStatements(
 		}
 		return nil
 	})
+
+	schematables := []string{}
+	for _, table := range tables {
+		schematables = append(schematables, table.String())
+	}
+	sequenceOwnerStmts := []string{}
+	errgrp.Go(func() error {
+		sequences, err := p.querier.GetSequencesOwnedByTables(errctx, p.db, schematables)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve postgres schema table sequences: %w", err)
+		}
+		for _, seq := range sequences {
+			sequenceOwnerStmts = append(sequenceOwnerStmts, BuildSequencOwnerStatement(seq))
+		}
+		return nil
+	})
+
 	err := errgrp.Wait()
 	if err != nil {
 		return nil, err
@@ -1166,6 +1183,7 @@ func (p *PostgresManager) GetSchemaInitStatements(
 		{Label: "table index", Statements: idxStmts},
 		{Label: "fk alter table", Statements: fkAlterStmts},
 		{Label: "table triggers", Statements: tableTriggerStmts},
+		{Label: "sequence owner", Statements: sequenceOwnerStmts},
 	}, nil
 }
 

@@ -1379,6 +1379,12 @@ func test_postgres_schema_reconciliation(
 	err = testworkflow.TestEnv.GetWorkflowError()
 	require.NoError(t, err, "Received Temporal Workflow Error: postgres-schema-reconciliation-run-2")
 
+	// fmt.Println()
+	// fmt.Println(postgres.Source.URL)
+	// fmt.Println(postgres.Target.URL)
+	// fmt.Println()
+	// time.Sleep(2 * time.Hour)
+
 	source, err := sql.Open("postgres", postgres.Source.URL)
 	require.NoError(t, err)
 	defer source.Close()
@@ -1547,11 +1553,11 @@ func verify_postgres_column_spec(
 	assert.Equal(t, source.IdentityGeneration, target.IdentityGeneration, fmt.Sprintf("column identity generation does not match for column %s", columnName))
 	assert.Equal(t, source.GeneratedType, target.GeneratedType, fmt.Sprintf("column generated types do not match for column %s", columnName))
 	assert.Equal(t, source.GeneratedExpression, target.GeneratedExpression, fmt.Sprintf("column generated expressions do not match for column %s", columnName))
-	assert.Equal(t, source.IsSerial, target.IsSerial, fmt.Sprintf("column serial properties do not match for column %s", columnName))
+	// assert.Equal(t, source.IsSerial, target.IsSerial, fmt.Sprintf("column serial properties do not match for column %s", columnName))
 	assert.Equal(t, source.ColumnDefaultType, target.ColumnDefaultType, fmt.Sprintf("column default types do not match for column %s", columnName))
 	assert.Equal(t, source.SequenceDefinition, target.SequenceDefinition, fmt.Sprintf("column sequence definitions do not match for column %s", columnName))
-	if !source.IsSerial {
-		// sequence names are not the same. known issue.
-		assert.Equal(t, source.ColumnDefault, target.ColumnDefault, fmt.Sprintf("column default values do not match for column %s", columnName))
-	}
+	// if !source.IsSerial {
+	// sequence names are not the same. known issue.
+	assert.Equal(t, source.ColumnDefault, target.ColumnDefault, fmt.Sprintf("column default values do not match for column %s", columnName))
+	// }
 }

@@ -79,9 +79,9 @@ type TableColumn struct {
 	GeneratedExpression *string
 	IdentityGeneration  *string
 	SequenceDefinition  *string
-	IsSerial            bool
-	OrdinalPosition     int
-	Comment             *string
+	// IsSerial            bool
+	OrdinalPosition int
+	Comment         *string
 }
 
 func (c *TableColumn) GetFingerprint() string {
