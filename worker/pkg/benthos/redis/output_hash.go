@@ -25,7 +25,7 @@ func redisHashOutputConfig() *service.ConfigSpec {
 		Stable().
 		Summary(`Sets Redis hash objects using the HMSET command.`).
 		Categories("Services").
-		Fields(clientFields()...).
+		// Fields(clientFields()...).
 		Fields(
 			service.NewInterpolatedStringField(hoFieldKey).
 				Description("The key for each message, function interpolations should be used to create a unique key per message.").
@@ -59,7 +59,7 @@ func redisHashOutputConfig() *service.ConfigSpec {
 // }
 
 type RedisProvider interface {
-	GetClient(ctx context.Context) (redis.UniversalClient, error)
+	GetClient() (redis.UniversalClient, error)
 }
 
 func RegisterRedisHashOutput(env *service.Environment, clientProvider RedisProvider) error {
@@ -95,10 +95,8 @@ func newRedisHashWriter(
 	clientProvider RedisProvider,
 ) (r *redisHashWriter, err error) {
 	r = &redisHashWriter{
-		clientCtor: func() (redis.UniversalClient, error) {
-			return clientProvider.GetClient(context.Background())
-		},
-		log: mgr.Logger(),
+		clientCtor: clientProvider.GetClient,
+		log:        mgr.Logger(),
 	}
 	if _, err = getClient(conf); err != nil {
 		return nil, err

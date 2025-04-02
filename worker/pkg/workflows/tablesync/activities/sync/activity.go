@@ -18,6 +18,7 @@ import (
 	pool_mongo_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/mongo"
 	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/sql"
 	continuation_token "github.com/nucleuscloud/neosync/internal/continuation-token"
+	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
@@ -410,6 +411,7 @@ func (a *Activity) getBenthosEnvironment(
 	continuationToken *continuation_token.ContinuationToken,
 	identityAllocator tablesync_shared.IdentityAllocator,
 	anonymizationClient mgmtv1alpha1connect.AnonymizationServiceClient,
+	redisConfig *neosync_redis.RedisConfig,
 ) (*service.Environment, error) {
 	blobEnv := bloblang.NewEnvironment()
 	err := transformers.RegisterTransformIdentityScramble(blobEnv, identityAllocator)
@@ -445,6 +447,9 @@ func (a *Activity) getBenthosEnvironment(
 				session,
 				logger,
 			),
+		}),
+		benthos_environment.WithRedisConfig(&benthos_environment.RedisConfig{
+			Provider: neosync_redis.GetRedisClient(redisConfig),
 		}),
 		benthos_environment.WithStopChannel(stopActivityChan),
 		benthos_environment.WithBlobEnv(blobEnv),

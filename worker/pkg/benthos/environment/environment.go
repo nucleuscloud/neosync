@@ -16,6 +16,7 @@ import (
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_connectiondata "github.com/nucleuscloud/neosync/worker/pkg/benthos/neosync_connection_data"
 	openaigenerate "github.com/nucleuscloud/neosync/worker/pkg/benthos/openai_generate"
+	benthos_redis "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
@@ -37,6 +38,8 @@ type RegisterConfig struct {
 	blobEnv *bloblang.Environment
 
 	transformPiiTextApi transformers.TransformPiiTextApi
+
+	redisConfig *RedisConfig // nil to disable
 }
 
 type Option func(cfg *RegisterConfig)
@@ -60,6 +63,11 @@ func WithStopChannel(c chan<- error) Option {
 func WithMongoConfig(mongocfg *MongoConfig) Option {
 	return func(cfg *RegisterConfig) {
 		cfg.mongoConfig = mongocfg
+	}
+}
+func WithRedisConfig(redisCfg *RedisConfig) Option {
+	return func(cfg *RegisterConfig) {
+		cfg.redisConfig = redisCfg
 	}
 }
 func WithConnectionDataConfig(connectionDataCfg *ConnectionDataConfig) Option {
@@ -87,6 +95,10 @@ type SqlConfig struct {
 
 type MongoConfig struct {
 	Provider neosync_benthos_mongodb.MongoPoolProvider
+}
+
+type RedisConfig struct {
+	Provider benthos_redis.RedisProvider
 }
 
 type ConnectionDataConfig struct {
@@ -172,6 +184,16 @@ func NewWithEnvironment(
 		if err != nil {
 			return nil, fmt.Errorf(
 				"unable to register pooled_mongodb output to benthos instance: %w",
+				err,
+			)
+		}
+	}
+
+	if config.redisConfig != nil {
+		err := benthos_redis.RegisterRedisHashOutput(env, config.redisConfig.Provider)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to register redis_hash output to benthos instance: %w",
 				err,
 			)
 		}
