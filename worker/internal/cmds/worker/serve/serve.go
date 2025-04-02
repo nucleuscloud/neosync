@@ -395,6 +395,7 @@ func serve(ctx context.Context) error {
 		temporalClient,
 		maxIterations,
 		anonymizationclient,
+		redisclient,
 	)
 
 	schemainit_workflow_register.Register(
@@ -409,7 +410,7 @@ func serve(ctx context.Context) error {
 	datasync_workflow_register.Register(
 		w,
 		userclient, jobclient, connclient, transformerclient,
-		sqlmanager, redisconfig, cascadelicense, redisclient,
+		sqlmanager, cascadelicense, redisclient,
 		otelconfig.IsEnabled,
 		pageLimit,
 		postgresSchemaDrift,

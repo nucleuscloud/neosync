@@ -7,8 +7,6 @@ import (
 
 	_ "github.com/redpanda-data/connect/v4/public/components/aws"
 	_ "github.com/redpanda-data/connect/v4/public/components/gcp"
-	_ "github.com/redpanda-data/connect/v4/public/components/redis"
 
-	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 )

@@ -25,6 +25,7 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
+	"github.com/redis/go-redis/v9"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/redpanda-data/benthos/v4/public/service"
 	"go.opentelemetry.io/otel/metric"
@@ -46,6 +47,7 @@ type Activity struct {
 	benthosStreamManager benthosstream.BenthosStreamManagerClient
 	temporalclient       temporalclient.Client
 	anonymizationClient  mgmtv1alpha1connect.AnonymizationServiceClient
+	redisclient          redis.UniversalClient
 }
 
 func New(
@@ -57,6 +59,7 @@ func New(
 	benthosStreamManager benthosstream.BenthosStreamManagerClient,
 	temporalclient temporalclient.Client,
 	anonymizationClient mgmtv1alpha1connect.AnonymizationServiceClient,
+	redisclient redis.UniversalClient,
 ) *Activity {
 	return &Activity{
 		connclient:           connclient,
@@ -67,6 +70,7 @@ func New(
 		benthosStreamManager: benthosStreamManager,
 		temporalclient:       temporalclient,
 		anonymizationClient:  anonymizationClient,
+		redisclient:          redisclient,
 	}
 }
 
@@ -365,6 +369,7 @@ func (a *Activity) getBenthosStream(
 		continuationToken,
 		identityAllocator,
 		anonymizationClient,
+		a.redisclient,
 	)
 	if err != nil {
 		return nil, err
@@ -410,6 +415,7 @@ func (a *Activity) getBenthosEnvironment(
 	continuationToken *continuation_token.ContinuationToken,
 	identityAllocator tablesync_shared.IdentityAllocator,
 	anonymizationClient mgmtv1alpha1connect.AnonymizationServiceClient,
+	redisclient redis.UniversalClient,
 ) (*service.Environment, error) {
 	blobEnv := bloblang.NewEnvironment()
 	err := transformers.RegisterTransformIdentityScramble(blobEnv, identityAllocator)
@@ -446,6 +452,7 @@ func (a *Activity) getBenthosEnvironment(
 				logger,
 			),
 		}),
+		benthos_environment.WithRedisConfig(&benthos_environment.RedisConfig{Client: redisclient}),
 		benthos_environment.WithStopChannel(stopActivityChan),
 		benthos_environment.WithBlobEnv(blobEnv),
 		benthos_environment.WithTransformPiiTextApi(transformPiiTextApiForAccount),

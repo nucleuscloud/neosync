@@ -168,20 +168,8 @@ type ErrorProcessorConfig struct {
 }
 
 type RedisProcessorConfig struct {
-	Url         string          `json:"url"              yaml:"url"`
-	Command     string          `json:"command"          yaml:"command"`
-	ArgsMapping string          `json:"args_mapping"     yaml:"args_mapping"`
-	Kind        *string         `json:"kind,omitempty"   yaml:"kind,omitempty"`
-	Master      *string         `json:"master,omitempty" yaml:"master,omitempty"`
-	Tls         *RedisTlsConfig `json:"tls,omitempty"    yaml:"tls,omitempty"`
-}
-
-type RedisTlsConfig struct {
-	Enabled             bool    `json:"enabled"                 yaml:"enabled"`
-	SkipCertVerify      bool    `json:"skip_cert_verify"        yaml:"skip_cert_verify"`
-	EnableRenegotiation bool    `json:"enable_renegotiation"    yaml:"enable_renegotiation"`
-	RootCas             *string `json:"root_cas,omitempty"      yaml:"root_cas,omitempty"`
-	RootCasFile         *string `json:"root_cas_file,omitempty" yaml:"root_cas_file,omitempty"`
+	Command     string `json:"command"      yaml:"command"`
+	ArgsMapping string `json:"args_mapping" yaml:"args_mapping"`
 }
 
 type BranchConfig struct {
@@ -216,15 +204,11 @@ type ErrorOutputConfig struct {
 }
 
 type RedisHashOutputConfig struct {
-	Url            string          `json:"url"                     yaml:"url"`
-	Key            string          `json:"key"                     yaml:"key"`
-	WalkMetadata   bool            `json:"walk_metadata"           yaml:"walk_metadata"`
-	WalkJsonObject bool            `json:"walk_json_object"        yaml:"walk_json_object"`
-	FieldsMapping  string          `json:"fields_mapping"          yaml:"fields_mapping"`
-	MaxInFlight    *int            `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
-	Kind           *string         `json:"kind,omitempty"          yaml:"kind,omitempty"`
-	Master         *string         `json:"master,omitempty"        yaml:"master,omitempty"`
-	Tls            *RedisTlsConfig `json:"tls,omitempty"           yaml:"tls,omitempty"`
+	Key            string `json:"key"                     yaml:"key"`
+	WalkMetadata   bool   `json:"walk_metadata"           yaml:"walk_metadata"`
+	WalkJsonObject bool   `json:"walk_json_object"        yaml:"walk_json_object"`
+	FieldsMapping  string `json:"fields_mapping"          yaml:"fields_mapping"`
+	MaxInFlight    *int   `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
 }
 
 type RetryConfig struct {

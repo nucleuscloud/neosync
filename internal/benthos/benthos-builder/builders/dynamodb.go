@@ -12,7 +12,6 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
@@ -131,7 +130,6 @@ func (b *dyanmodbSyncBuilder) BuildSourceConfigs(
 			map[string][]*bb_internal.ReferenceKey{},
 			params.Job.Id,
 			params.JobRunId,
-			&neosync_redis.RedisConfig{},
 			tableMapping.Mappings,
 			map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 			job.GetSource().GetOptions(),
