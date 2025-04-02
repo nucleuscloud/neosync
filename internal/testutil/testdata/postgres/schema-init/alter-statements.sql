@@ -169,6 +169,8 @@ ALTER TABLE users
 ALTER TABLE users
     ALTER COLUMN age TYPE text USING age::text;
 
+COMMENT ON COLUMN users.age IS 'age of user';
+
 ALTER TABLE users ALTER COLUMN id SET NOT NULL;   
 
 ALTER TABLE users

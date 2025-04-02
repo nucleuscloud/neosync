@@ -96,12 +96,12 @@ func (d *MysqlSchemaManager) CalculateSchemaDiff(
 	return builder.Build(), nil
 }
 
-func findMatchingColumn(columns map[string]*sqlmanager_shared.TableColumn, column *sqlmanager_shared.TableColumn) *sqlmanager_shared.TableColumn {
+func findMatchingColumn(
+	columns map[string]*sqlmanager_shared.TableColumn,
+	column *sqlmanager_shared.TableColumn,
+) *sqlmanager_shared.TableColumn {
 	// perfect match
 	for _, c := range columns {
-		if c.Schema != column.Schema || c.Table != column.Table {
-			continue
-		}
 		if c.Fingerprint == column.Fingerprint {
 			return c
 		}
@@ -109,10 +109,7 @@ func findMatchingColumn(columns map[string]*sqlmanager_shared.TableColumn, colum
 
 	// name match
 	for _, c := range columns {
-		if c.Schema != column.Schema || c.Table != column.Table {
-			continue
-		}
-		if c.Name == column.Name {
+		if c.Schema == column.Schema && c.Table == column.Table && c.Name == column.Name {
 			return c
 		}
 	}
@@ -425,11 +422,6 @@ func (d *MysqlSchemaManager) ReconcileDestinationSchema(
 		)
 		if len(block.Statements) == 0 {
 			continue
-		}
-		for _, stmt := range block.Statements {
-			fmt.Println()
-			fmt.Println(stmt)
-			fmt.Println()
 		}
 		err = d.destdb.Db().
 			BatchExec(ctx, shared.BatchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})

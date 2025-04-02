@@ -777,11 +777,6 @@ func test_mysql_schema_reconciliation_compare_schemas(
 		destColsMap[column.Fingerprint] = column
 	}
 
-	jsonF, _ := json.MarshalIndent(srcColsMap["cc5a7981d3e81c7bbe92b290d37c36eaf0e31a200851e4a597932f91c32f8943"], "", " ")
-	fmt.Printf("\n\n source: %s \n\n", string(jsonF))
-	jsonF, _ = json.MarshalIndent(destColumns, "", " ")
-	fmt.Printf("\n\n destination: %s \n\n", string(jsonF))
-
 	require.Len(t, srcColumns, len(destColumns), "source and destination have different number of columns")
 	for _, column := range srcColumns {
 		require.Contains(t, destColsMap, column.Fingerprint, "destination missing column with fingerprint %s", column.Fingerprint)

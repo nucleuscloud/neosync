@@ -97,7 +97,10 @@ func (d *PostgresSchemaManager) CalculateSchemaDiff(
 	return builder.Build(), nil
 }
 
-func findMatchingColumn(columns map[string]*sqlmanager_shared.TableColumn, column *sqlmanager_shared.TableColumn) *sqlmanager_shared.TableColumn {
+func findMatchingColumn(
+	columns map[string]*sqlmanager_shared.TableColumn,
+	column *sqlmanager_shared.TableColumn,
+) *sqlmanager_shared.TableColumn {
 	// perfect match
 	for _, c := range columns {
 		if c.Schema != column.Schema || c.Table != column.Table {

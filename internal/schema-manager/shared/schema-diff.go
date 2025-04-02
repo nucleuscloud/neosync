@@ -57,6 +57,8 @@ const (
 	// identity
 	SetIdentity  ColumnAction = "SET_IDENTITY"
 	DropIdentity ColumnAction = "DROP_IDENTITY"
+
+	SetComment ColumnAction = "SET_COMMENT"
 )
 
 type ColumnRename struct {
@@ -199,46 +201,9 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 					b.diff.ExistsInSource.Columns = append(b.diff.ExistsInSource.Columns, srcColumn)
 				} else if srcColumn.Fingerprint != destColumn.Fingerprint {
 					// column differences
-					actions := []ColumnAction{}
-					if srcColumn.DataType != destColumn.DataType {
-						actions = append(actions, SetDatatype)
-					}
-					if srcColumn.ColumnDefault != destColumn.ColumnDefault {
-						defaultAction := DropDefault
-						if srcColumn.ColumnDefault != "" {
-							defaultAction = SetDefault
-						}
-						actions = append(actions, defaultAction)
-					}
-
-					switch {
-					case srcColumn.IdentityGeneration == nil && destColumn.IdentityGeneration != nil:
-						actions = append(actions, DropIdentity)
-					case isIdentityGenerationDifferent(srcColumn, destColumn):
-						actions = append(actions, SetIdentity)
-					}
-
-					if srcColumn.IsNullable != destColumn.IsNullable {
-						nullableAction := SetNotNull
-						if srcColumn.IsNullable {
-							nullableAction = DropNotNull
-						}
-						actions = append(actions, nullableAction)
-					}
-
-					var renameColumn *ColumnRename
-					if srcColumn.Name != destColumn.Name {
-						renameColumn = &ColumnRename{
-							OldName: destColumn.Name,
-						}
-					}
-
-					if len(actions) > 0 || renameColumn != nil {
-						b.diff.ExistsInBoth.Different.Columns = append(b.diff.ExistsInBoth.Different.Columns, &ColumnDiff{
-							Column:       srcColumn,
-							Actions:      actions,
-							RenameColumn: renameColumn,
-						})
+					columnDiff := buildColumnDiff(srcColumn, destColumn)
+					if columnDiff != nil {
+						b.diff.ExistsInBoth.Different.Columns = append(b.diff.ExistsInBoth.Different.Columns, columnDiff)
 					}
 				}
 			}
@@ -253,14 +218,68 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 	}
 }
 
-func isIdentityGenerationDifferent(srcColumn *sqlmanager_shared.TableColumn, destColumn *sqlmanager_shared.TableColumn) bool {
+func buildColumnDiff(srcColumn, destColumn *sqlmanager_shared.TableColumn) *ColumnDiff {
+	// column differences
+	actions := []ColumnAction{}
+
+	if srcColumn.DataType != destColumn.DataType {
+		actions = append(actions, SetDatatype)
+	}
+
+	if srcColumn.ColumnDefault != destColumn.ColumnDefault {
+		defaultAction := DropDefault
+		if srcColumn.ColumnDefault != "" {
+			defaultAction = SetDefault
+		}
+		actions = append(actions, defaultAction)
+	}
+
+	switch {
+	case srcColumn.IdentityGeneration == nil && destColumn.IdentityGeneration != nil:
+		actions = append(actions, DropIdentity)
+	case isIdentityGenerationDifferent(srcColumn, destColumn):
+		actions = append(actions, SetIdentity)
+	}
+
+	if srcColumn.IsNullable != destColumn.IsNullable {
+		nullableAction := SetNotNull
+		if srcColumn.IsNullable {
+			nullableAction = DropNotNull
+		}
+		actions = append(actions, nullableAction)
+	}
+
+	if srcColumn.Comment != destColumn.Comment {
+		actions = append(actions, SetComment)
+	}
+
+	var renameColumn *ColumnRename
+	if srcColumn.Name != destColumn.Name {
+		renameColumn = &ColumnRename{
+			OldName: destColumn.Name,
+		}
+	}
+
+	if len(actions) == 0 && renameColumn == nil {
+		return nil
+	}
+
+	return &ColumnDiff{
+		Column:       srcColumn,
+		Actions:      actions,
+		RenameColumn: renameColumn,
+	}
+}
+
+func isIdentityGenerationDifferent(srcColumn, destColumn *sqlmanager_shared.TableColumn) bool {
 	if srcColumn.IdentityGeneration == nil && destColumn.IdentityGeneration == nil {
 		return false
 	}
 	if srcColumn.IdentityGeneration != nil && destColumn.IdentityGeneration == nil {
 		return true
 	}
-	return srcColumn.IdentityGeneration != nil && destColumn.IdentityGeneration != nil && *srcColumn.IdentityGeneration != *destColumn.IdentityGeneration
+	return srcColumn.IdentityGeneration != nil && destColumn.IdentityGeneration != nil &&
+		*srcColumn.IdentityGeneration != *destColumn.IdentityGeneration
 }
 
 func (b *SchemaDifferencesBuilder) buildTableForeignKeyConstraintDifferences() {

@@ -309,6 +309,11 @@ func BuildAlterColumnStatement(column *schemamanager_shared.ColumnDiff) []string
 			}
 		case schemamanager_shared.DropIdentity:
 			pieces = append(pieces, fmt.Sprintf("%s DROP IDENTITY IF EXISTS", base))
+		case schemamanager_shared.SetComment:
+			statements = append(
+				statements,
+				BuildUpdateCommentStatement(column.Column.Schema, column.Column.Table, column.Column.Name, column.Column.Comment),
+			)
 		}
 	}
 
