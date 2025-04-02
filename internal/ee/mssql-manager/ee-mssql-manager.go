@@ -57,7 +57,7 @@ func (m *Manager) GetTableInitStatements(
 
 	errgrp, errctx := errgroup.WithContext(ctx)
 
-	colDefMap := map[string][]*mssql_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{}
+	colDefMap := map[string][]*mssql_queries.GetDatabaseSchemaRow{}
 	errgrp.Go(func() error {
 		columnDefs, err := m.querier.GetDatabaseTableSchemasBySchemasAndTables(
 			errctx,

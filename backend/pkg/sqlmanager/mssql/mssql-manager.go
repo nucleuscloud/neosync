@@ -2,6 +2,7 @@ package sqlmanager_mssql
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -56,65 +57,75 @@ func (m *Manager) GetDatabaseSchema(
 
 	output := []*sqlmanager_shared.DatabaseSchemaRow{}
 	for _, row := range dbSchemas {
-		charMaxLength := -1
-		if row.CharacterMaximumLength.Valid {
-			charMaxLength = int(row.CharacterMaximumLength.Int32)
-		}
-		numericPrecision := -1
-		if row.NumericPrecision.Valid {
-			numericPrecision = int(row.NumericPrecision.Int16)
-		}
-		numericScale := -1
-		if row.NumericScale.Valid {
-			numericScale = int(row.NumericScale.Int16)
-		}
-
-		var identityGeneration *string
-		if row.IsIdentity {
-			syntax := defaultIdentity
-			identityGeneration = &syntax
-		}
-		var generatedType *string
-		if row.GenerationExpression.Valid {
-			generatedType = &row.GenerationExpression.String
-		}
-
-		var identitySeed *int
-		if row.IdentitySeed.Valid {
-			seed := int(row.IdentitySeed.Int32)
-			identitySeed = &seed
-		}
-
-		var identityIncrement *int
-		if row.IdentityIncrement.Valid {
-			increment := int(row.IdentityIncrement.Int32)
-			identityIncrement = &increment
-		}
-
-		output = append(output, &sqlmanager_shared.DatabaseSchemaRow{
-			TableSchema:            row.TableSchema,
-			TableName:              row.TableName,
-			ColumnName:             row.ColumnName,
-			DataType:               row.DataType,
-			ColumnDefault:          row.ColumnDefault, // todo: make sure this is valid for the other funcs
-			IsNullable:             row.IsNullable != "NO",
-			GeneratedType:          generatedType,
-			OrdinalPosition:        int(row.OrdinalPosition),
-			CharacterMaximumLength: charMaxLength,
-			NumericPrecision:       numericPrecision,
-			NumericScale:           numericScale,
-			IdentityGeneration:     identityGeneration,
-			IdentitySeed:           identitySeed,
-			IdentityIncrement:      identityIncrement,
-			UpdateAllowed:          isColumnUpdateAllowed(row.IsIdentity, row.IsComputed),
-		})
+		output = append(output, toDatabaseSchemaRow(row))
 	}
 
 	return output, nil
 }
 
-func isColumnUpdateAllowed(isIdentity, isComputed bool) bool {
-	if isIdentity || isComputed {
+func toDatabaseSchemaRow(row *mssql_queries.GetDatabaseSchemaRow) *sqlmanager_shared.DatabaseSchemaRow {
+	charMaxLength := -1
+	if row.CharacterMaximumLength.Valid {
+		charMaxLength = int(row.CharacterMaximumLength.Int32)
+	}
+	numericPrecision := -1
+	if row.NumericPrecision.Valid {
+		numericPrecision = int(row.NumericPrecision.Int16)
+	}
+	numericScale := -1
+	if row.NumericScale.Valid {
+		numericScale = int(row.NumericScale.Int16)
+	}
+
+	var identityGeneration *string
+	if row.IsIdentity {
+		syntax := defaultIdentity
+		identityGeneration = &syntax
+	}
+	var generatedType *string
+	if row.GenerationExpression.Valid {
+		generatedType = &row.GenerationExpression.String
+	} else if row.GeneratedAlwaysType.Valid {
+		generatedType = &row.GeneratedAlwaysType.String
+	}
+
+	var identitySeed *int
+	if row.IdentitySeed.Valid {
+		seed := int(row.IdentitySeed.Int32)
+		identitySeed = &seed
+	}
+
+	var identityIncrement *int
+	if row.IdentityIncrement.Valid {
+		increment := int(row.IdentityIncrement.Int32)
+		identityIncrement = &increment
+	}
+
+	var columnDefaultStr string
+	if row.ColumnDefault.Valid {
+		columnDefaultStr = row.ColumnDefault.String
+	}
+	return &sqlmanager_shared.DatabaseSchemaRow{
+		TableSchema:            row.TableSchema,
+		TableName:              row.TableName,
+		ColumnName:             row.ColumnName,
+		DataType:               row.DataType,
+		ColumnDefault:          columnDefaultStr, // todo: make sure this is valid for the other funcs
+		IsNullable:             row.IsNullable,
+		GeneratedType:          generatedType,
+		OrdinalPosition:        int(row.OrdinalPosition),
+		CharacterMaximumLength: charMaxLength,
+		NumericPrecision:       numericPrecision,
+		NumericScale:           numericScale,
+		IdentityGeneration:     identityGeneration,
+		IdentitySeed:           identitySeed,
+		IdentityIncrement:      identityIncrement,
+		UpdateAllowed:          isColumnUpdateAllowed(row.IsIdentity, row.IsComputed, row.GeneratedAlwaysType),
+	}
+}
+
+func isColumnUpdateAllowed(isIdentity, isComputed bool, generatedAlwaysType sql.NullString) bool {
+	if isIdentity || isComputed || generatedAlwaysType.Valid {
 		return false
 	}
 	return true
@@ -142,63 +153,7 @@ func (m *Manager) GetDatabaseTableSchemasBySchemasAndTables(
 
 	output := []*sqlmanager_shared.DatabaseSchemaRow{}
 	for _, row := range dbSchemas {
-		charMaxLength := -1
-		if row.CharacterMaximumLength.Valid {
-			charMaxLength = int(row.CharacterMaximumLength.Int32)
-		}
-		numericPrecision := -1
-		if row.NumericPrecision.Valid {
-			numericPrecision = int(row.NumericPrecision.Int16)
-		}
-		numericScale := -1
-		if row.NumericScale.Valid {
-			numericScale = int(row.NumericScale.Int16)
-		}
-
-		var identityGeneration *string
-		if row.IsIdentity {
-			syntax := defaultIdentity
-			identityGeneration = &syntax
-		}
-		var generatedType *string
-		if row.GenerationExpression.Valid {
-			generatedType = &row.GenerationExpression.String
-		}
-
-		var identitySeed *int
-		if row.IdentitySeed.Valid {
-			seed := int(row.IdentitySeed.Int32)
-			identitySeed = &seed
-		}
-
-		var identityIncrement *int
-		if row.IdentityIncrement.Valid {
-			increment := int(row.IdentityIncrement.Int32)
-			identityIncrement = &increment
-		}
-
-		var columnDefaultStr string
-		if row.ColumnDefault.Valid {
-			columnDefaultStr = row.ColumnDefault.String
-		}
-
-		output = append(output, &sqlmanager_shared.DatabaseSchemaRow{
-			TableSchema:            row.TableSchema,
-			TableName:              row.TableName,
-			ColumnName:             row.ColumnName,
-			DataType:               row.DataType,
-			ColumnDefault:          columnDefaultStr,
-			IsNullable:             row.IsNullable,
-			GeneratedType:          generatedType,
-			OrdinalPosition:        int(row.OrdinalPosition),
-			CharacterMaximumLength: charMaxLength,
-			NumericPrecision:       numericPrecision,
-			NumericScale:           numericScale,
-			IdentityGeneration:     identityGeneration,
-			IdentitySeed:           identitySeed,
-			IdentityIncrement:      identityIncrement,
-			UpdateAllowed:          isColumnUpdateAllowed(row.IsIdentity, row.IsComputed),
-		})
+		output = append(output, toDatabaseSchemaRow(row))
 	}
 
 	return output, nil

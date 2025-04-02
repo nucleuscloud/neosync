@@ -120,6 +120,11 @@ func test_mssql_types(
 	neosyncApi.MockTemporalForCreateJob("test-mssql-sync")
 
 	alltypesMappings := mssql_alltypes.GetDefaultSyncJobMappings(schema)
+	for _, mapping := range alltypesMappings {
+		if mapping.Table == "temporal_table" && (mapping.Column == "valid_from" || mapping.Column == "valid_to") {
+			mapping.Transformer = getDefaultTransformerConfig()
+		}
+	}
 
 	job := createMssqlSyncJob(t, ctx, jobclient, &createJobConfig{
 		AccountId:   accountId,
