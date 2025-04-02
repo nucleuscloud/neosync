@@ -626,8 +626,7 @@ func getAdditionalPassthroughJobMappings(
 					return nil, err
 				}
 				// we found a column that is not present in the mappings, let's create a mapping for it
-				if info.ColumnDefault != "" || info.IdentityGeneration != nil ||
-					info.GeneratedType != nil {
+				if info.GeneratedType != nil {
 					output = append(output, &mgmtv1alpha1.JobMapping{
 						Schema: schema,
 						Table:  table,
