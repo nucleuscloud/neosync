@@ -168,11 +168,15 @@ message PostgresSourceConnectionOptions {
       // If this doesn't exist, will fall back to configuring generators for supported datatypes.
       // If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
       AutoMap auto_map = 2;
+      // pass the new column through as is.
+      Passthrough passthrough = 3;
     }
     // Configuration for the HaltJob strategy
     message HaltJob {}
     // Configuration for the AutoMap strategy
     message AutoMap {}
+    // Configuration for the Passthrough strategy
+    message Passthrough {}
   }
 
   message ColumnRemovalStrategy {
@@ -245,11 +249,15 @@ message MysqlSourceConnectionOptions {
       // If this doesn't exist, will fall back to configuring generators for supported datatypes.
       // If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
       AutoMap auto_map = 2;
+      // pass the new column through as is.
+      Passthrough passthrough = 3;
     }
     // Configuration for the HaltJob strategy
     message HaltJob {}
     // Configuration for the AutoMap strategy
     message AutoMap {}
+    // Configuration for the Passthrough strategy
+    message Passthrough {}
   }
 }
 

@@ -232,18 +232,23 @@ class DynamoDBSourceTableOption(_message.Message):
 class PostgresSourceConnectionOptions(_message.Message):
     __slots__ = ("schemas", "connection_id", "subset_by_foreign_key_constraints", "new_column_addition_strategy", "column_removal_strategy")
     class NewColumnAdditionStrategy(_message.Message):
-        __slots__ = ("halt_job", "auto_map")
+        __slots__ = ("halt_job", "auto_map", "passthrough")
         class HaltJob(_message.Message):
             __slots__ = ()
             def __init__(self) -> None: ...
         class AutoMap(_message.Message):
             __slots__ = ()
             def __init__(self) -> None: ...
+        class Passthrough(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
         HALT_JOB_FIELD_NUMBER: _ClassVar[int]
         AUTO_MAP_FIELD_NUMBER: _ClassVar[int]
+        PASSTHROUGH_FIELD_NUMBER: _ClassVar[int]
         halt_job: PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
         auto_map: PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
-        def __init__(self, halt_job: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob, _Mapping]] = ..., auto_map: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap, _Mapping]] = ...) -> None: ...
+        passthrough: PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough
+        def __init__(self, halt_job: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob, _Mapping]] = ..., auto_map: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap, _Mapping]] = ..., passthrough: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough, _Mapping]] = ...) -> None: ...
     class ColumnRemovalStrategy(_message.Message):
         __slots__ = ("halt_job", "continue_job")
         class HaltJob(_message.Message):
@@ -301,18 +306,23 @@ class MysqlSourceConnectionOptions(_message.Message):
         continue_job: MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob
         def __init__(self, halt_job: _Optional[_Union[MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob, _Mapping]] = ..., continue_job: _Optional[_Union[MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob, _Mapping]] = ...) -> None: ...
     class NewColumnAdditionStrategy(_message.Message):
-        __slots__ = ("halt_job", "auto_map")
+        __slots__ = ("halt_job", "auto_map", "passthrough")
         class HaltJob(_message.Message):
             __slots__ = ()
             def __init__(self) -> None: ...
         class AutoMap(_message.Message):
             __slots__ = ()
             def __init__(self) -> None: ...
+        class Passthrough(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
         HALT_JOB_FIELD_NUMBER: _ClassVar[int]
         AUTO_MAP_FIELD_NUMBER: _ClassVar[int]
+        PASSTHROUGH_FIELD_NUMBER: _ClassVar[int]
         halt_job: MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
         auto_map: MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
-        def __init__(self, halt_job: _Optional[_Union[MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob, _Mapping]] = ..., auto_map: _Optional[_Union[MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap, _Mapping]] = ...) -> None: ...
+        passthrough: MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough
+        def __init__(self, halt_job: _Optional[_Union[MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob, _Mapping]] = ..., auto_map: _Optional[_Union[MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap, _Mapping]] = ..., passthrough: _Optional[_Union[MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough, _Mapping]] = ...) -> None: ...
     HALT_ON_NEW_COLUMN_ADDITION_FIELD_NUMBER: _ClassVar[int]
     SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]

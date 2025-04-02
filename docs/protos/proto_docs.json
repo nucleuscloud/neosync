@@ -15733,6 +15733,18 @@
               "isoneof": true,
               "oneofdecl": "strategy",
               "defaultValue": ""
+            },
+            {
+              "name": "passthrough",
+              "description": "pass the new column through as is.",
+              "label": "",
+              "type": "Passthrough",
+              "longType": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
             }
           ]
         },
@@ -15752,6 +15764,17 @@
           "longName": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
           "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
           "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Passthrough",
+          "longName": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "description": "Configuration for the Passthrough strategy",
           "hasExtensions": false,
           "hasFields": false,
           "hasOneofs": false,
@@ -16570,6 +16593,18 @@
               "isoneof": true,
               "oneofdecl": "strategy",
               "defaultValue": ""
+            },
+            {
+              "name": "passthrough",
+              "description": "pass the new column through as is.",
+              "label": "",
+              "type": "Passthrough",
+              "longType": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "fullType": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
             }
           ]
         },
@@ -16589,6 +16624,17 @@
           "longName": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
           "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
           "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Passthrough",
+          "longName": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "description": "Configuration for the Passthrough strategy",
           "hasExtensions": false,
           "hasFields": false,
           "hasOneofs": false,

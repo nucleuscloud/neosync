@@ -3590,23 +3590,31 @@ components:
                 - autoMap
             - required:
                 - haltJob
+            - required:
+                - passthrough
             - not:
                 anyOf:
                   - required:
                       - autoMap
                   - required:
                       - haltJob
+                  - required:
+                      - passthrough
       anyOf:
         - required:
             - autoMap
         - required:
             - haltJob
+        - required:
+            - passthrough
         - not:
             anyOf:
               - required:
                   - autoMap
               - required:
                   - haltJob
+              - required:
+                  - passthrough
       properties:
         haltJob:
           allOf:
@@ -3621,6 +3629,11 @@ components:
             automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
              If this doesn't exist, will fall back to configuring generators for supported datatypes.
              If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+        passthrough:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough'
+          title: passthrough
+          description: pass the new column through as is.
       title: NewColumnAdditionStrategy
       additionalProperties: false
     mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap:
@@ -3633,6 +3646,11 @@ components:
       title: HaltJob
       additionalProperties: false
       description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough:
+      type: object
+      title: Passthrough
+      additionalProperties: false
+      description: Configuration for the Passthrough strategy
     mgmt.v1alpha1.MysqlSourceSchemaOption:
       type: object
       properties:
@@ -4294,23 +4312,31 @@ components:
                 - autoMap
             - required:
                 - haltJob
+            - required:
+                - passthrough
             - not:
                 anyOf:
                   - required:
                       - autoMap
                   - required:
                       - haltJob
+                  - required:
+                      - passthrough
       anyOf:
         - required:
             - autoMap
         - required:
             - haltJob
+        - required:
+            - passthrough
         - not:
             anyOf:
               - required:
                   - autoMap
               - required:
                   - haltJob
+              - required:
+                  - passthrough
       properties:
         haltJob:
           allOf:
@@ -4325,6 +4351,11 @@ components:
             automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
              If this doesn't exist, will fall back to configuring generators for supported datatypes.
              If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+        passthrough:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough'
+          title: passthrough
+          description: pass the new column through as is.
       title: NewColumnAdditionStrategy
       additionalProperties: false
     mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap:
@@ -4337,6 +4368,11 @@ components:
       title: HaltJob
       additionalProperties: false
       description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough:
+      type: object
+      title: Passthrough
+      additionalProperties: false
+      description: Configuration for the Passthrough strategy
     mgmt.v1alpha1.PostgresSourceSchemaOption:
       type: object
       properties:

@@ -1260,13 +1260,14 @@ type MysqlSourceOptions struct {
 }
 
 type MysqlNewColumnAdditionStrategy struct {
-	HaltJob *MysqlHaltJobNewColumnAdditionStrategy `json:"haltJob,omitempty"`
-	AutoMap *MysqlAutoMapNewColumnAdditionStrategy `json:"autoMap,omitempty"`
+	HaltJob     *MysqlHaltJobNewColumnAdditionStrategy     `json:"haltJob,omitempty"`
+	AutoMap     *MysqlAutoMapNewColumnAdditionStrategy     `json:"autoMap,omitempty"`
+	Passthrough *MysqlPassthroughNewColumnAdditionStrategy `json:"passthrough,omitempty"`
 }
 
 type MysqlHaltJobNewColumnAdditionStrategy struct{}
 type MysqlAutoMapNewColumnAdditionStrategy struct{}
-
+type MysqlPassthroughNewColumnAdditionStrategy struct{}
 type MysqlColumnRemovalStrategy struct {
 	HaltJob     *MysqlHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
 	ContinueJob *MysqlContinueJobColumnRemovalStrategy `json:"continueJob,omitempty"`
@@ -1317,8 +1318,9 @@ type PostgresSourceOptions struct {
 }
 
 type PostgresNewColumnAdditionStrategy struct {
-	HaltJob *PostgresHaltJobStrategy `json:"haltJob,omitempty"`
-	AutoMap *PostgresAutoMapStrategy `json:"autoMap,omitempty"`
+	HaltJob     *PostgresHaltJobStrategy     `json:"haltJob,omitempty"`
+	AutoMap     *PostgresAutoMapStrategy     `json:"autoMap,omitempty"`
+	Passthrough *PostgresPassthroughStrategy `json:"passthrough,omitempty"`
 }
 
 func (p *PostgresNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy {
@@ -1332,6 +1334,12 @@ func (p *PostgresNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.PostgresSource
 		return &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{
 			Strategy: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_{
 				AutoMap: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap{},
+			},
+		}
+	} else if p.Passthrough != nil {
+		return &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_{
+				Passthrough: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough{},
 			},
 		}
 	}
@@ -1349,11 +1357,14 @@ func (p *PostgresNewColumnAdditionStrategy) FromDto(
 		p.AutoMap = &PostgresAutoMapStrategy{}
 	case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
 		p.HaltJob = &PostgresHaltJobStrategy{}
+	case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_:
+		p.Passthrough = &PostgresPassthroughStrategy{}
 	}
 }
 
 type PostgresHaltJobStrategy struct{}
 type PostgresAutoMapStrategy struct{}
+type PostgresPassthroughStrategy struct{}
 
 type PostgresColumnRemovalStrategy struct {
 	HaltJob     *PostgresHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
@@ -1557,6 +1568,13 @@ func (s *MysqlNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.MysqlSourceConnec
 			},
 		}
 	}
+	if s.Passthrough != nil {
+		return &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_{
+				Passthrough: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough{},
+			},
+		}
+	}
 	return nil
 }
 
@@ -1569,6 +1587,8 @@ func (s *MysqlNewColumnAdditionStrategy) FromDto(
 			s.HaltJob = &MysqlHaltJobNewColumnAdditionStrategy{}
 		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_:
 			s.AutoMap = &MysqlAutoMapNewColumnAdditionStrategy{}
+		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_:
+			s.Passthrough = &MysqlPassthroughNewColumnAdditionStrategy{}
 		}
 	}
 }
