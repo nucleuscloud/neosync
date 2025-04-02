@@ -277,7 +277,8 @@ message MysqlSourceTableOption {
 
 message MssqlSourceConnectionOptions {
   // Whether to halt the job if a new column is added
-  bool halt_on_new_column_addition = 1;
+  // Deprecated: Use new_column_addition_strategy instead
+  bool halt_on_new_column_addition = 1 [deprecated = true];
   // The list of schemas (and their tables) along with any configuration options that will be used.
   repeated MssqlSourceSchemaOption schemas = 2;
   // The unique connection id to a mssql connection configuration
