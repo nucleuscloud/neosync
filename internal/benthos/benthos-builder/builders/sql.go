@@ -2,6 +2,7 @@ package benthosbuilder_builders
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -13,6 +14,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	cascade_settings "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders/jobmapping-builder/settings"
+	jobmapping_builder_sql "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders/jobmapping-builder/sql"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
@@ -71,7 +74,7 @@ func (b *sqlSyncBuilder) hydrateJobMappings(
 	logger *slog.Logger,
 ) ([]*shared.JobTransformationMapping, error) {
 	if isLegacyJob(job) {
-		jmBuilder := NewLegacySqlJobMappingBuilder(job, groupedColumnInfo, b.driver, logger)
+		jmBuilder := jobmapping_builder_sql.NewLegacySqlJobMappingBuilder(job, groupedColumnInfo, b.driver, logger)
 		jobMappings, err := jmBuilder.BuildJobMappings()
 		if err != nil {
 			return nil, fmt.Errorf("unable to build legacy job mappings: %w", err)
@@ -86,8 +89,8 @@ func (b *sqlSyncBuilder) hydrateJobMappings(
 
 	schemaTableColumnDbInfo := getSchemaTableColumnDbInfo(groupedColumnInfo)
 
-	jmBuilder := NewSqlJobMappingBuilder(
-		NewCascadeSchemaSettings(syncConfig),
+	jmBuilder := jobmapping_builder_sql.NewSqlJobMappingBuilder(
+		cascade_settings.NewCascadeSchemaSettings(syncConfig),
 		schemaTableColumnDbInfo,
 		schemaTableColumnDbInfo,
 	) // todo: add dest db info
@@ -153,6 +156,10 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(
 	if err != nil {
 		return nil, fmt.Errorf("unable to hydrate job mappings: %w", err)
 	}
+
+	bits, _ := json.Marshal(jobMappings)
+	fmt.Println("jobMappings", string(bits))
+
 	b.sqlSourceSchemaColumnInfoMap = groupedColumnInfo
 	b.jobMappings = jobMappings // needed when building destination config
 
