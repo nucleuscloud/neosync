@@ -395,6 +395,7 @@ func serve(ctx context.Context) error {
 		temporalClient,
 		maxIterations,
 		anonymizationclient,
+		redisclient,
 	)
 
 	schemainit_workflow_register.Register(

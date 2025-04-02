@@ -157,6 +157,7 @@ func NewTestDataSyncWorkflowEnv(
 		neosyncApi.Mocks.TemporalClient,
 		workflowEnv.maxIterations,
 		anonymizationclient,
+		redisclient,
 	)
 
 	if workflowEnv.fakeEELicense.IsValid() {

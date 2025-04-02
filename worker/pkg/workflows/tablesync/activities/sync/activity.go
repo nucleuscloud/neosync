@@ -18,7 +18,6 @@ import (
 	pool_mongo_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/mongo"
 	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-manager/pool/providers/sql"
 	continuation_token "github.com/nucleuscloud/neosync/internal/continuation-token"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
@@ -26,6 +25,7 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
+	"github.com/redis/go-redis/v9"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/redpanda-data/benthos/v4/public/service"
 	"go.opentelemetry.io/otel/metric"
@@ -47,6 +47,7 @@ type Activity struct {
 	benthosStreamManager benthosstream.BenthosStreamManagerClient
 	temporalclient       temporalclient.Client
 	anonymizationClient  mgmtv1alpha1connect.AnonymizationServiceClient
+	redisclient          redis.UniversalClient
 }
 
 func New(
@@ -58,6 +59,7 @@ func New(
 	benthosStreamManager benthosstream.BenthosStreamManagerClient,
 	temporalclient temporalclient.Client,
 	anonymizationClient mgmtv1alpha1connect.AnonymizationServiceClient,
+	redisclient redis.UniversalClient,
 ) *Activity {
 	return &Activity{
 		connclient:           connclient,
@@ -68,6 +70,7 @@ func New(
 		benthosStreamManager: benthosStreamManager,
 		temporalclient:       temporalclient,
 		anonymizationClient:  anonymizationClient,
+		redisclient:          redisclient,
 	}
 }
 
@@ -366,6 +369,7 @@ func (a *Activity) getBenthosStream(
 		continuationToken,
 		identityAllocator,
 		anonymizationClient,
+		a.redisclient,
 	)
 	if err != nil {
 		return nil, err
@@ -411,7 +415,7 @@ func (a *Activity) getBenthosEnvironment(
 	continuationToken *continuation_token.ContinuationToken,
 	identityAllocator tablesync_shared.IdentityAllocator,
 	anonymizationClient mgmtv1alpha1connect.AnonymizationServiceClient,
-	redisConfig *neosync_redis.RedisConfig,
+	redisclient redis.UniversalClient,
 ) (*service.Environment, error) {
 	blobEnv := bloblang.NewEnvironment()
 	err := transformers.RegisterTransformIdentityScramble(blobEnv, identityAllocator)
@@ -448,9 +452,7 @@ func (a *Activity) getBenthosEnvironment(
 				logger,
 			),
 		}),
-		benthos_environment.WithRedisConfig(&benthos_environment.RedisConfig{
-			Provider: neosync_redis.GetRedisClient(redisConfig),
-		}),
+		benthos_environment.WithRedisConfig(&benthos_environment.RedisConfig{Client: redisclient}),
 		benthos_environment.WithStopChannel(stopActivityChan),
 		benthos_environment.WithBlobEnv(blobEnv),
 		benthos_environment.WithTransformPiiTextApi(transformPiiTextApiForAccount),

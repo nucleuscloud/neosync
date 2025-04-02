@@ -502,14 +502,14 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(
 				hashedKey := neosync_benthos.HashBenthosCacheKey(params.Job.GetId(), params.JobRunId, tableKey, col)
 				config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 					RedisHashOutput: &neosync_benthos.RedisHashOutputConfig{
-						Url:            b.redisConfig.Url,
+						// Url:            b.redisConfig.Url,
 						Key:            hashedKey,
 						FieldsMapping:  fmt.Sprintf(`root = {meta(%q): json(%q)}`, hashPrimaryKeyMetaKey(benthosConfig.TableSchema, benthosConfig.TableName, col), col), // map of original value to transformed value
 						WalkMetadata:   false,
 						WalkJsonObject: false,
-						Kind:           &b.redisConfig.Kind,
-						Master:         b.redisConfig.Master,
-						Tls:            shared.BuildBenthosRedisTlsConfig(b.redisConfig),
+						// Kind:           &b.redisConfig.Kind,
+						// Master:         b.redisConfig.Master,
+						// Tls:            shared.BuildBenthosRedisTlsConfig(b.redisConfig),
 					},
 				})
 				benthosConfig.RedisConfig = append(benthosConfig.RedisConfig, &bb_shared.BenthosRedisConfig{

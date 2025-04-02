@@ -19,6 +19,7 @@ import (
 	benthos_redis "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
+	"github.com/redis/go-redis/v9"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/redpanda-data/benthos/v4/public/service"
 	"go.opentelemetry.io/otel/metric"
@@ -65,9 +66,9 @@ func WithMongoConfig(mongocfg *MongoConfig) Option {
 		cfg.mongoConfig = mongocfg
 	}
 }
-func WithRedisConfig(redisCfg *RedisConfig) Option {
+func WithRedisConfig(redisConfig *RedisConfig) Option {
 	return func(cfg *RegisterConfig) {
-		cfg.redisConfig = redisCfg
+		cfg.redisConfig = redisConfig
 	}
 }
 func WithConnectionDataConfig(connectionDataCfg *ConnectionDataConfig) Option {
@@ -98,7 +99,7 @@ type MongoConfig struct {
 }
 
 type RedisConfig struct {
-	Provider benthos_redis.RedisProvider
+	Client redis.UniversalClient
 }
 
 type ConnectionDataConfig struct {
@@ -190,7 +191,7 @@ func NewWithEnvironment(
 	}
 
 	if config.redisConfig != nil {
-		err := benthos_redis.RegisterRedisHashOutput(env, config.redisConfig.Provider)
+		err := benthos_redis.RegisterRedisHashOutput(env, config.redisConfig.Client)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"unable to register redis_hash output to benthos instance: %w",
