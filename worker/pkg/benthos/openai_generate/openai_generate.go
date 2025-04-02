@@ -341,19 +341,19 @@ func toStructuredRecordValueType(value, dataType string) (any, error) {
 	case "character varying", "varchar", "character", "char", "text":
 		return value, nil
 	case "date", "timestamp", "timestamp without time zone":
-
+		//nolint:gocritic
 		// return time.Parse("2006-01-02 15:04:05", value) // adjust format as needed
 		return strings.TrimSpace(value), nil
 	case "timestamp with time zone":
-
+		//nolint:gocritic
 		// return time.Parse(time.RFC3339, value)
 		return strings.TrimSpace(value), nil
 	case "time", "time without time zone":
-
+		//nolint:gocritic
 		// return time.Parse("15:04:05", value)
 		return strings.TrimSpace(value), nil
 	case "time with time zone":
-
+		//nolint:gocritic
 		// return time.Parse("15:04:05Z07:00", value)
 		return strings.TrimSpace(value), nil
 	case "interval":

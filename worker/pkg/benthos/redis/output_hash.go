@@ -40,10 +40,6 @@ func redisHashOutputConfig() *service.ConfigSpec {
 		)
 }
 
-type RedisProvider interface {
-	GetClient() (redis.UniversalClient, error)
-}
-
 func RegisterRedisHashOutput(env *service.Environment, client redis.UniversalClient) error {
 	return env.RegisterOutput(
 		"redis_hash_output",
@@ -102,8 +98,6 @@ func newRedisHashWriter(
 func (r *redisHashWriter) Connect(ctx context.Context) error {
 	return nil
 }
-
-//------------------------------------------------------------------------------
 
 func walkForHashFields(msg *service.Message, fields map[string]any) error {
 	jVal, err := msg.AsStructured()
@@ -177,7 +171,6 @@ func (r *redisHashWriter) Write(ctx context.Context, msg *service.Message) error
 	pipe.Expire(ctx, key, 24*time.Hour)
 
 	if _, err := pipe.Exec(ctx); err != nil {
-		// _ = r.dsconnect()
 		r.log.Errorf("Error executing redis pipeline: %v\n", err)
 		return service.ErrNotConnected
 	}
