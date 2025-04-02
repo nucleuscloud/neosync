@@ -198,6 +198,14 @@ func NewWithEnvironment(
 				err,
 			)
 		}
+
+		err = benthos_redis.RegisterRedisProcessor(env, config.redisConfig.Client)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to register redis processor to benthos instance: %w",
+				err,
+			)
+		}
 	}
 
 	if config.connectionDataConfig != nil {

@@ -130,7 +130,6 @@ func NewTestDataSyncWorkflowEnv(
 		connclient,
 		transformerclient,
 		dbManagers.SqlManager,
-		workflowEnv.redisconfig,
 		workflowEnv.fakeEELicense,
 		workflowEnv.Redisclient,
 		false,
@@ -157,7 +156,7 @@ func NewTestDataSyncWorkflowEnv(
 		neosyncApi.Mocks.TemporalClient,
 		workflowEnv.maxIterations,
 		anonymizationclient,
-		redisclient,
+		workflowEnv.Redisclient,
 	)
 
 	if workflowEnv.fakeEELicense.IsValid() {

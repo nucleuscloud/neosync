@@ -7,7 +7,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	temporallogger "github.com/nucleuscloud/neosync/worker/internal/temporal-logger"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
@@ -29,8 +28,6 @@ type Activity struct {
 
 	sqlmanager sql_manager.SqlManagerClient
 
-	redisConfig *neosync_redis.RedisConfig
-
 	metricsEnabled bool
 
 	pageLimit int
@@ -41,7 +38,6 @@ func New(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	sqlmanager sql_manager.SqlManagerClient,
-	redisConfig *neosync_redis.RedisConfig,
 	metricsEnabled bool,
 	pageLimit int,
 ) *Activity {
@@ -50,7 +46,6 @@ func New(
 		connclient:        connclient,
 		transformerclient: transformerclient,
 		sqlmanager:        sqlmanager,
-		redisConfig:       redisConfig,
 		metricsEnabled:    metricsEnabled,
 		pageLimit:         pageLimit,
 	}
@@ -89,7 +84,6 @@ func (a *Activity) GenerateBenthosConfigs(
 		req.JobId,
 		req.JobRunId,
 		info.WorkflowExecution.RunID,
-		a.redisConfig,
 		a.metricsEnabled,
 		a.pageLimit,
 	)

@@ -4,7 +4,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	jobhooks_by_timing_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/jobhooks-by-timing"
@@ -27,7 +26,6 @@ func Register(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	sqlmanager *sql_manager.SqlManager,
-	redisconfig *neosync_redis.RedisConfig,
 	eelicense license.EEInterface,
 	redisclient redis.UniversalClient,
 	isOtelEnabled bool,
@@ -39,7 +37,6 @@ func Register(
 		connclient,
 		transformerclient,
 		sqlmanager,
-		redisconfig,
 		isOtelEnabled,
 		pageLimit,
 	)

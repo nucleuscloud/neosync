@@ -15,7 +15,6 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	javascript_userland "github.com/nucleuscloud/neosync/internal/javascript/userland"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
@@ -32,7 +31,6 @@ func buildProcessorConfigsByRunType(
 	columnForeignKeysMap map[string][]*bb_internal.ReferenceKey,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	jobId, runId string,
-	redisConfig *neosync_redis.RedisConfig,
 	mappings []*mgmtv1alpha1.JobMapping,
 	columnInfoMap map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
@@ -42,7 +40,6 @@ func buildProcessorConfigsByRunType(
 		// sql update processor configs
 		processorConfigs, err := buildSqlUpdateProcessorConfigs(
 			config,
-			redisConfig,
 			jobId,
 			runId,
 			transformedFktoPkMap,
@@ -66,7 +63,6 @@ func buildProcessorConfigsByRunType(
 			fkSourceCols,
 			jobId,
 			runId,
-			redisConfig,
 			config,
 			jobSourceOptions,
 			mappedKeys,
@@ -80,7 +76,6 @@ func buildProcessorConfigsByRunType(
 
 func buildSqlUpdateProcessorConfigs(
 	config *runconfigs.RunConfig,
-	redisConfig *neosync_redis.RedisConfig,
 	jobId, runId string,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
@@ -103,7 +98,6 @@ func buildSqlUpdateProcessorConfigs(
 				resultMap,
 				argsMapping,
 				&requestMap,
-				redisConfig,
 			)
 			if err != nil {
 				return nil, err
@@ -126,7 +120,6 @@ func buildSqlUpdateProcessorConfigs(
 				pkResultMap,
 				pkArgsMapping,
 				&pkRequestMap,
-				redisConfig,
 			)
 			if err != nil {
 				return nil, err
@@ -157,7 +150,6 @@ func buildProcessorConfigs(
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	fkSourceCols []string,
 	jobId, runId string,
-	redisConfig *neosync_redis.RedisConfig,
 	runconfig *runconfigs.RunConfig,
 	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
 	mappedKeys []string,
@@ -190,7 +182,6 @@ func buildProcessorConfigs(
 		transformedFktoPkMap,
 		jobId,
 		runId,
-		redisConfig,
 	)
 	if err != nil {
 		return nil, err
@@ -452,7 +443,6 @@ func buildBranchCacheConfigs(
 	cols []*mgmtv1alpha1.JobMapping,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	jobId, runId string,
-	redisConfig *neosync_redis.RedisConfig,
 ) ([]*neosync_benthos.BranchConfig, error) {
 	branchConfigs := []*neosync_benthos.BranchConfig{}
 	for _, col := range cols {
@@ -475,7 +465,6 @@ func buildBranchCacheConfigs(
 					resultMap,
 					argsMapping,
 					&requestMap,
-					redisConfig,
 				)
 				if err != nil {
 					return nil, err
@@ -490,22 +479,14 @@ func buildBranchCacheConfigs(
 func buildRedisGetBranchConfig(
 	resultMap, argsMapping string,
 	requestMap *string,
-	redisConfig *neosync_redis.RedisConfig,
 ) (*neosync_benthos.BranchConfig, error) {
-	if redisConfig == nil {
-		return nil, fmt.Errorf("missing redis config. this operation requires redis")
-	}
 	return &neosync_benthos.BranchConfig{
 		RequestMap: requestMap,
 		Processors: []neosync_benthos.ProcessorConfig{
 			{
 				Redis: &neosync_benthos.RedisProcessorConfig{
-					Url:         redisConfig.Url,
 					Command:     "hget",
 					ArgsMapping: argsMapping,
-					Kind:        &redisConfig.Kind,
-					Master:      redisConfig.Master,
-					Tls:         shared.BuildBenthosRedisTlsConfig(redisConfig),
 				},
 			},
 		},

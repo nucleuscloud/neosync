@@ -12,7 +12,6 @@ import (
 	bb_conns "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
@@ -119,7 +118,6 @@ func (b *BuilderProvider) registerStandardBuilders(
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
-	redisConfig *neosync_redis.RedisConfig,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
 	pageLimit *int,
 ) error {
@@ -148,7 +146,6 @@ func (b *BuilderProvider) registerStandardBuilders(
 				sqlbuilder := bb_conns.NewSqlSyncBuilder(
 					transformerclient,
 					sqlmanagerclient,
-					redisConfig,
 					sqlmanager_shared.PostgresDriver,
 					selectQueryBuilder,
 					defaultPageLimit,
@@ -158,7 +155,6 @@ func (b *BuilderProvider) registerStandardBuilders(
 				sqlbuilder := bb_conns.NewSqlSyncBuilder(
 					transformerclient,
 					sqlmanagerclient,
-					redisConfig,
 					sqlmanager_shared.MysqlDriver,
 					selectQueryBuilder,
 					defaultPageLimit,
@@ -168,7 +164,6 @@ func (b *BuilderProvider) registerStandardBuilders(
 				sqlbuilder := bb_conns.NewSqlSyncBuilder(
 					transformerclient,
 					sqlmanagerclient,
-					redisConfig,
 					sqlmanager_shared.MssqlDriver,
 					selectQueryBuilder,
 					defaultPageLimit,
@@ -288,7 +283,6 @@ type WorkerBenthosConfig struct {
 	Sqlmanagerclient       sqlmanager.SqlManagerClient
 	Transformerclient      mgmtv1alpha1connect.TransformersServiceClient
 	Connectionclient       mgmtv1alpha1connect.ConnectionServiceClient
-	RedisConfig            *neosync_redis.RedisConfig
 	MetricsEnabled         bool
 	SelectQueryBuilder     bb_shared.SelectQueryMapBuilder
 	PageLimit              *int
@@ -314,7 +308,6 @@ func NewWorkerBenthosConfigManager(
 		config.Sqlmanagerclient,
 		config.Transformerclient,
 		config.Connectionclient,
-		config.RedisConfig,
 		config.SelectQueryBuilder,
 		config.PageLimit,
 	)
@@ -370,7 +363,6 @@ type CliBenthosConfig struct {
 	Sqlmanagerclient      sqlmanager.SqlManagerClient
 	Transformerclient     mgmtv1alpha1connect.TransformersServiceClient
 	Connectiondataclient  mgmtv1alpha1connect.ConnectionDataServiceClient
-	RedisConfig           *neosync_redis.RedisConfig
 	MetricsEnabled        bool
 	PageLimit             *int
 }
@@ -395,7 +387,6 @@ func NewCliBenthosConfigManager(
 		config.Sqlmanagerclient,
 		config.Transformerclient,
 		nil,
-		config.RedisConfig,
 		nil,
 		config.PageLimit,
 	)
