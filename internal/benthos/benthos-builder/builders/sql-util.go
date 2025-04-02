@@ -594,6 +594,73 @@ func getParsedBatchingConfig(destOpt batchDestinationOption) (batchingConfig, er
 	return output, nil
 }
 
+// Based on the source schema and the provided mappings, we find the missing columns (if any) and generate passthrough job mappings for them automatically
+func getAdditionalPassthroughJobMappings(
+	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+	mappings []*mgmtv1alpha1.JobMapping,
+	getTableFromKey func(key string) (schema, table string, err error),
+	logger *slog.Logger,
+) ([]*mgmtv1alpha1.JobMapping, error) {
+	output := []*mgmtv1alpha1.JobMapping{}
+
+	tableColMappings := getUniqueColMappingsMap(mappings)
+
+	for schematable, cols := range groupedSchemas {
+		mappedCols, ok := tableColMappings[schematable]
+		if !ok {
+			// todo: we may want to generate mappings for this entire table? However this may be dead code as we get the grouped schemas based on the mappings
+			logger.Warn(
+				"table found in schema data that is not present in job mappings",
+				"table",
+				schematable,
+			)
+			continue
+		}
+		if len(cols) == len(mappedCols) {
+			continue
+		}
+		for col, info := range cols {
+			if _, ok := mappedCols[col]; !ok {
+				schema, table, err := getTableFromKey(schematable)
+				if err != nil {
+					return nil, err
+				}
+				// we found a column that is not present in the mappings, let's create a mapping for it
+				if info.ColumnDefault != "" || info.IdentityGeneration != nil ||
+					info.GeneratedType != nil {
+					output = append(output, &mgmtv1alpha1.JobMapping{
+						Schema: schema,
+						Table:  table,
+						Column: col,
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
+									GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
+								},
+							},
+						},
+					})
+				} else {
+					output = append(output, &mgmtv1alpha1.JobMapping{
+						Schema: schema,
+						Table:  table,
+						Column: col,
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+									PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+								},
+							},
+						},
+					})
+				}
+			}
+		}
+	}
+
+	return output, nil
+}
+
 // Based on the source schema and the provided mappings, we find the missing columns (if any) and generate job mappings for them automatically
 func getAdditionalJobMappings(
 	driver string,
