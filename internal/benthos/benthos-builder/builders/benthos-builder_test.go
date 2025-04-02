@@ -1247,8 +1247,7 @@ func Test_buildBranchCacheConfigs_null(t *testing.T) {
 		},
 	}
 
-	resp, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId)
-	require.NoError(t, err)
+	resp := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId)
 	require.Len(t, resp, 0)
 }
 
@@ -1274,9 +1273,8 @@ func Test_buildBranchCacheConfigs_success(t *testing.T) {
 			},
 		},
 	}
-	resp, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId)
+	resp := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId)
 
-	require.NoError(t, err)
 	require.Len(t, resp, 1)
 	require.Equal(t, *resp[0].RequestMap, `root = if this."user_id" == null { deleted() } else { this }`)
 	require.Equal(t, *resp[0].ResultMap, `root."user_id" = this`)
@@ -1300,8 +1298,7 @@ func Test_buildBranchCacheConfigs_self_referencing(t *testing.T) {
 		},
 	}
 
-	resp, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId)
-	require.NoError(t, err)
+	resp := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId)
 	require.Len(t, resp, 0)
 }
 

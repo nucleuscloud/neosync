@@ -38,15 +38,12 @@ func buildProcessorConfigsByRunType(
 ) ([]*neosync_benthos.ProcessorConfig, error) {
 	if config.RunType() == runconfigs.RunTypeUpdate {
 		// sql update processor configs
-		processorConfigs, err := buildSqlUpdateProcessorConfigs(
+		processorConfigs := buildSqlUpdateProcessorConfigs(
 			config,
 			jobId,
 			runId,
 			transformedFktoPkMap,
 		)
-		if err != nil {
-			return nil, err
-		}
 		return processorConfigs, nil
 	} else {
 		// sql insert processor configs
@@ -78,7 +75,7 @@ func buildSqlUpdateProcessorConfigs(
 	config *runconfigs.RunConfig,
 	jobId, runId string,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
-) ([]*neosync_benthos.ProcessorConfig, error) {
+) []*neosync_benthos.ProcessorConfig {
 	processorConfigs := []*neosync_benthos.ProcessorConfig{}
 	for fkCol, pks := range transformedFktoPkMap {
 		for _, pk := range pks {
@@ -94,14 +91,11 @@ func buildSqlUpdateProcessorConfigs(
 			)
 			argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, fkCol)
 			resultMap := fmt.Sprintf("root.%q = this", fkCol)
-			fkBranch, err := buildRedisGetBranchConfig(
+			fkBranch := buildRedisGetBranchConfig(
 				resultMap,
 				argsMapping,
 				&requestMap,
 			)
-			if err != nil {
-				return nil, err
-			}
 			processorConfigs = append(
 				processorConfigs,
 				&neosync_benthos.ProcessorConfig{Branch: fkBranch},
@@ -116,14 +110,11 @@ func buildSqlUpdateProcessorConfigs(
 			pkRequestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, pk)
 			pkArgsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, pk)
 			pkResultMap := fmt.Sprintf("root.%q = this", pk)
-			pkBranch, err := buildRedisGetBranchConfig(
+			pkBranch := buildRedisGetBranchConfig(
 				pkResultMap,
 				pkArgsMapping,
 				&pkRequestMap,
 			)
-			if err != nil {
-				return nil, err
-			}
 			processorConfigs = append(
 				processorConfigs,
 				&neosync_benthos.ProcessorConfig{Branch: pkBranch},
@@ -139,7 +130,7 @@ func buildSqlUpdateProcessorConfigs(
 			}},
 		)
 	}
-	return processorConfigs, nil
+	return processorConfigs
 }
 
 func buildProcessorConfigs(
@@ -177,15 +168,12 @@ func buildProcessorConfigs(
 		return nil, err
 	}
 
-	cacheBranches, err := buildBranchCacheConfigs(
+	cacheBranches := buildBranchCacheConfigs(
 		filteredCols,
 		transformedFktoPkMap,
 		jobId,
 		runId,
 	)
-	if err != nil {
-		return nil, err
-	}
 
 	pkMapping := buildPrimaryKeyMappingConfigs(filteredCols, fkSourceCols)
 
@@ -443,7 +431,7 @@ func buildBranchCacheConfigs(
 	cols []*mgmtv1alpha1.JobMapping,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	jobId, runId string,
-) ([]*neosync_benthos.BranchConfig, error) {
+) []*neosync_benthos.BranchConfig {
 	branchConfigs := []*neosync_benthos.BranchConfig{}
 	for _, col := range cols {
 		fks, ok := transformedFktoPkMap[col.Column]
@@ -461,25 +449,22 @@ func buildBranchCacheConfigs(
 				)
 				argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, col.Column)
 				resultMap := fmt.Sprintf("root.%q = this", col.Column)
-				br, err := buildRedisGetBranchConfig(
+				br := buildRedisGetBranchConfig(
 					resultMap,
 					argsMapping,
 					&requestMap,
 				)
-				if err != nil {
-					return nil, err
-				}
 				branchConfigs = append(branchConfigs, br)
 			}
 		}
 	}
-	return branchConfigs, nil
+	return branchConfigs
 }
 
 func buildRedisGetBranchConfig(
 	resultMap, argsMapping string,
 	requestMap *string,
-) (*neosync_benthos.BranchConfig, error) {
+) *neosync_benthos.BranchConfig {
 	return &neosync_benthos.BranchConfig{
 		RequestMap: requestMap,
 		Processors: []neosync_benthos.ProcessorConfig{
@@ -491,7 +476,7 @@ func buildRedisGetBranchConfig(
 			},
 		},
 		ResultMap: &resultMap,
-	}, nil
+	}
 }
 
 func constructJsFunction(jsCode, col string, source mgmtv1alpha1.TransformerSource) string {

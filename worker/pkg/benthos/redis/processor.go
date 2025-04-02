@@ -242,7 +242,7 @@ func getRedisOperator(opStr string) (redisOperator, error) {
 	case "incrby":
 		return newRedisIncrByOperator(), nil
 	}
-	return nil, fmt.Errorf("operator not recognised: %v", opStr)
+	return nil, fmt.Errorf("operator not recognized: %v", opStr)
 }
 
 func (r *redisProc) execRaw(

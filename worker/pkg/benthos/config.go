@@ -168,8 +168,8 @@ type ErrorProcessorConfig struct {
 }
 
 type RedisProcessorConfig struct {
-	Command     string `json:"command"          yaml:"command"`
-	ArgsMapping string `json:"args_mapping"     yaml:"args_mapping"`
+	Command     string `json:"command"      yaml:"command"`
+	ArgsMapping string `json:"args_mapping" yaml:"args_mapping"`
 }
 
 type BranchConfig struct {
