@@ -120,10 +120,7 @@ export type NewColumnAdditionStrategy =
   | 'automap'
   | 'passthrough';
 
-export type MssqlNewColumnAdditionStrategy =
-  | 'continue'
-  | 'halt'
-  | 'passthrough';
+type MssqlNewColumnAdditionStrategy = 'continue' | 'halt' | 'passthrough';
 
 export type ColumnRemovalStrategy = 'halt' | 'continue';
 
