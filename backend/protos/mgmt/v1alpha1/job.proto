@@ -286,6 +286,8 @@ message MssqlSourceConnectionOptions {
   bool subset_by_foreign_key_constraints = 4;
   // Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
   ColumnRemovalStrategy column_removal_strategy = 5;
+  // Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.
+  NewColumnAdditionStrategy new_column_addition_strategy = 6;
 
   message ColumnRemovalStrategy {
     oneof strategy {
@@ -300,6 +302,19 @@ message MssqlSourceConnectionOptions {
 
     // Configuration for the ContinueJob strategy
     message ContinueJob {}
+  }
+
+  message NewColumnAdditionStrategy {
+    oneof strategy {
+      // halt job if a new column is detected.
+      HaltJob halt_job = 1;
+      // pass the new column through as is.
+      Passthrough passthrough = 2;
+    }
+    // Configuration for the HaltJob strategy
+    message HaltJob {}
+    // Configuration for the Passthrough strategy
+    message Passthrough {}
   }
 }
 

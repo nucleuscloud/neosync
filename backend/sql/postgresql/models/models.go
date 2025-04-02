@@ -945,12 +945,22 @@ type JobSourceOptions struct {
 }
 
 type MssqlSourceOptions struct {
-	HaltOnNewColumnAddition       bool                        `json:"haltOnNewColumnAddition"`
-	SubsetByForeignKeyConstraints bool                        `json:"subsetByForeignKeyConstraints"`
-	Schemas                       []*MssqlSourceSchemaOption  `json:"schemas"`
-	ConnectionId                  string                      `json:"connectionId"`
-	ColumnRemovalStrategy         *MssqlColumnRemovalStrategy `json:"columnRemovalStrategy,omitempty"`
+	// @deprecated
+	HaltOnNewColumnAddition       bool                            `json:"haltOnNewColumnAddition"`
+	SubsetByForeignKeyConstraints bool                            `json:"subsetByForeignKeyConstraints"`
+	Schemas                       []*MssqlSourceSchemaOption      `json:"schemas"`
+	ConnectionId                  string                          `json:"connectionId"`
+	ColumnRemovalStrategy         *MssqlColumnRemovalStrategy     `json:"columnRemovalStrategy,omitempty"`
+	NewColumnAdditionStrategy     *MssqlNewColumnAdditionStrategy `json:"newColumnAdditionStrategy,omitempty"`
 }
+
+type MssqlNewColumnAdditionStrategy struct {
+	HaltJob     *MssqlHaltJobNewColumnAdditionStrategy     `json:"haltJob,omitempty"`
+	Passthrough *MssqlPassthroughNewColumnAdditionStrategy `json:"passthrough,omitempty"`
+}
+
+type MssqlHaltJobNewColumnAdditionStrategy struct{}
+type MssqlPassthroughNewColumnAdditionStrategy struct{}
 
 type MssqlColumnRemovalStrategy struct {
 	HaltJob     *MssqlHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
@@ -1009,8 +1019,20 @@ func (m *MssqlSourceOptions) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions 
 		dto.ColumnRemovalStrategy = m.ColumnRemovalStrategy.ToDto()
 	}
 
+	if m.NewColumnAdditionStrategy != nil {
+		dto.NewColumnAdditionStrategy = m.NewColumnAdditionStrategy.ToDto()
+	} else if m.HaltOnNewColumnAddition {
+		dto.NewColumnAdditionStrategy = &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
+			},
+		}
+		dto.HaltOnNewColumnAddition = true
+	}
+
 	return dto
 }
+
 func (m *MssqlSourceOptions) FromDto(dto *mgmtv1alpha1.MssqlSourceConnectionOptions) {
 	if dto == nil {
 		dto = &mgmtv1alpha1.MssqlSourceConnectionOptions{}
@@ -1023,6 +1045,47 @@ func (m *MssqlSourceOptions) FromDto(dto *mgmtv1alpha1.MssqlSourceConnectionOpti
 	if dto.GetColumnRemovalStrategy().GetStrategy() != nil {
 		m.ColumnRemovalStrategy = &MssqlColumnRemovalStrategy{}
 		m.ColumnRemovalStrategy.FromDto(dto.GetColumnRemovalStrategy())
+	}
+
+	if dto.GetNewColumnAdditionStrategy().GetStrategy() != nil {
+		m.NewColumnAdditionStrategy = &MssqlNewColumnAdditionStrategy{}
+		m.NewColumnAdditionStrategy.FromDto(dto.GetNewColumnAdditionStrategy())
+	} else if m.HaltOnNewColumnAddition {
+		m.NewColumnAdditionStrategy = &MssqlNewColumnAdditionStrategy{
+			HaltJob: &MssqlHaltJobNewColumnAdditionStrategy{},
+		}
+		m.HaltOnNewColumnAddition = true
+	}
+}
+
+func (s *MssqlNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy {
+	if s.HaltJob != nil {
+		return &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
+			},
+		}
+	}
+	if s.Passthrough != nil {
+		return &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_{
+				Passthrough: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough{},
+			},
+		}
+	}
+	return nil
+}
+
+func (s *MssqlNewColumnAdditionStrategy) FromDto(
+	dto *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy,
+) {
+	if dto.GetStrategy() != nil {
+		switch dto.GetStrategy().(type) {
+		case *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
+			s.HaltJob = &MssqlHaltJobNewColumnAdditionStrategy{}
+		case *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_:
+			s.Passthrough = &MssqlPassthroughNewColumnAdditionStrategy{}
+		}
 	}
 }
 

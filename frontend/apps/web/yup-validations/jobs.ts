@@ -14,6 +14,7 @@ import {
   MysqlSourceConnectionOptions_NewColumnAdditionStrategy,
   MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMapSchema,
   MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
+  MysqlSourceConnectionOptions_NewColumnAdditionStrategy_PassthroughSchema,
   MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
   PostgresSourceConnectionOptions_ColumnRemovalStrategy,
   PostgresSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema,
@@ -22,6 +23,7 @@ import {
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMapSchema,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
+  PostgresSourceConnectionOptions_NewColumnAdditionStrategy_PassthroughSchema,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategySchema,
   TransformerConfig,
   TransformerConfigSchema,
@@ -108,12 +110,16 @@ export type VirtualForeignConstraintFormValues = Yup.InferType<
   typeof VirtualForeignConstraintFormValues
 >;
 
-export type NewColumnAdditionStrategy = 'continue' | 'halt' | 'automap';
+export type NewColumnAdditionStrategy =
+  | 'continue'
+  | 'halt'
+  | 'automap'
+  | 'passthrough';
 export type ColumnRemovalStrategy = 'halt' | 'continue';
 
 export const PostgresSourceOptionsFormValues = Yup.object({
   newColumnAdditionStrategy: Yup.string<NewColumnAdditionStrategy>()
-    .oneOf(['continue', 'halt', 'automap'])
+    .oneOf(['continue', 'halt', 'automap', 'passthrough'])
     .optional()
     .default('continue'),
   columnRemovalStrategy: Yup.string<ColumnRemovalStrategy>()
@@ -127,7 +133,7 @@ export type PostgresSourceOptionsFormValues = Yup.InferType<
 
 const MysqlSourceOptionsFormValues = Yup.object({
   newColumnAdditionStrategy: Yup.string<NewColumnAdditionStrategy>()
-    .oneOf(['continue', 'halt', 'automap'])
+    .oneOf(['continue', 'halt', 'automap', 'passthrough'])
     .optional()
     .default('continue'),
   columnRemovalStrategy: Yup.string<ColumnRemovalStrategy>()
@@ -432,6 +438,19 @@ export function toJobSourcePostgresNewColumnAdditionStrategy(
         }
       );
     }
+    case 'passthrough': {
+      return create(
+        PostgresSourceConnectionOptions_NewColumnAdditionStrategySchema,
+        {
+          strategy: {
+            case: 'passthrough',
+            value: create(
+              PostgresSourceConnectionOptions_NewColumnAdditionStrategy_PassthroughSchema
+            ),
+          },
+        }
+      );
+    }
     default: {
       return undefined;
     }
@@ -449,6 +468,9 @@ export function toNewColumnAdditionStrategy(
     }
     case 'autoMap': {
       return 'automap';
+    }
+    case 'passthrough': {
+      return 'passthrough';
     }
     default: {
       return 'continue';
@@ -520,6 +542,19 @@ export function toJobSourceMysqlNewColumnAdditionStrategy(
             case: 'haltJob',
             value: create(
               MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema
+            ),
+          },
+        }
+      );
+    }
+    case 'passthrough': {
+      return create(
+        MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
+        {
+          strategy: {
+            case: 'passthrough',
+            value: create(
+              MysqlSourceConnectionOptions_NewColumnAdditionStrategy_PassthroughSchema
             ),
           },
         }

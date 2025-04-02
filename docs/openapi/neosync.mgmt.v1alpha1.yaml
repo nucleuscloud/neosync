@@ -13062,6 +13062,14 @@ components:
           description: >-
             Provide a strategy of what to do in the event Neosync encounters a
             column that is removed from the source table.
+        newColumnAdditionStrategy:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy
+          title: new_column_addition_strategy
+          description: >-
+            Provide a strategy of what to do in the event Neosync encounters an
+            unmapped column for the job's mapped tables.
       title: MssqlSourceConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy:
@@ -13114,6 +13122,56 @@ components:
       title: HaltJob
       additionalProperties: false
       description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - haltJob
+            - required:
+                - passthrough
+            - not:
+                anyOf:
+                  - required:
+                      - haltJob
+                  - required:
+                      - passthrough
+      anyOf:
+        - required:
+            - haltJob
+        - required:
+            - passthrough
+        - not:
+            anyOf:
+              - required:
+                  - haltJob
+              - required:
+                  - passthrough
+      properties:
+        haltJob:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
+          title: halt_job
+          description: halt job if a new column is detected.
+        passthrough:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough
+          title: passthrough
+          description: pass the new column through as is.
+      title: NewColumnAdditionStrategy
+      additionalProperties: false
+    mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob:
+      type: object
+      title: HaltJob
+      additionalProperties: false
+      description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough:
+      type: object
+      title: Passthrough
+      additionalProperties: false
+      description: Configuration for the Passthrough strategy
     mgmt.v1alpha1.MssqlSourceSchemaOption:
       type: object
       properties:

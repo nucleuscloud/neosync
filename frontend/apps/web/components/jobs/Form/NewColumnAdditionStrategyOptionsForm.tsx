@@ -52,6 +52,11 @@ export default function NewColumnAdditionStrategyOptionsForm(
           />
         )}
         <StrategyRadioItem
+          value="passthrough"
+          label="Passthrough - Pass the new column through to the destination"
+          idPrefix="new-column-addition-strategy"
+        />
+        <StrategyRadioItem
           value="continue"
           label="Continue - Ignores new columns; may fail if column doesn't have default"
           idPrefix="new-column-addition-strategy"
