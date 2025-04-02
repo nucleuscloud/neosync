@@ -90,7 +90,7 @@ func (b *sqlSyncBuilder) hydrateJobMappings(
 	schemaTableColumnDbInfo := getSchemaTableColumnDbInfo(groupedColumnInfo)
 
 	jmBuilder := jobmapping_builder_sql.NewSqlJobMappingBuilder(
-		cascade_settings.NewCascadeSchemaSettings(syncConfig),
+		cascade_settings.NewCascadeSchemaSettings(syncConfig, logger),
 		schemaTableColumnDbInfo,
 		schemaTableColumnDbInfo,
 	) // todo: add dest db info
