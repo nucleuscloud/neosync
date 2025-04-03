@@ -12,6 +12,7 @@ import (
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	cascade_settings "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders/jobmapping-builder/settings"
+	jobmapping_builder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders/jobmapping-builder/shared"
 	jobmapping_builder_sql "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders/jobmapping-builder/sql"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
@@ -362,6 +363,15 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(
 	params *bb_internal.DestinationParams,
 ) (*bb_internal.BenthosDestinationConfig, error) {
 	logger := params.Logger
+	// need to do this due to the CLI not actually calling BuildSource
+	// So we need to conditionally use the job mappings from the builder for the CLI to work properly
+	var jobMappings []*shared.JobTransformationMapping
+	if len(b.jobMappings) > 0 {
+		jobMappings = b.jobMappings
+	} else {
+		jobMappings = jobmapping_builder_shared.JobMappingsFromLegacyMappings(params.Job.GetMappings())
+	}
+
 	benthosConfig := params.SourceConfig
 	tableKey := neosync_benthos.BuildBenthosTable(
 		benthosConfig.TableSchema,
@@ -406,7 +416,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(
 	colTransformerMap := b.colTransformerMap
 	// lazy load
 	if len(colTransformerMap) == 0 {
-		groupedMappings := groupMappingsByTable(b.jobMappings)
+		groupedMappings := groupMappingsByTable(jobMappings)
 		groupedTableMapping := getTableMappingsMap(groupedMappings)
 		colTMap := getColumnTransformerMap(
 			groupedTableMapping,
