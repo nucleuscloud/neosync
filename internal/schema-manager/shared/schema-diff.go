@@ -40,8 +40,40 @@ type DomainDiff struct {
 	RemovedConstraints []string
 }
 
+type ColumnAction string
+
+const (
+	// datatype
+	SetDatatype ColumnAction = "SET_DATATYPE"
+
+	// default
+	SetDefault  ColumnAction = "SET_DEFAULT"
+	DropDefault ColumnAction = "DROP_DEFAULT"
+
+	// not null
+	SetNotNull  ColumnAction = "SET_NOT_NULL"
+	DropNotNull ColumnAction = "DROP_NOT_NULL"
+
+	// identity
+	SetIdentity  ColumnAction = "SET_IDENTITY"
+	DropIdentity ColumnAction = "DROP_IDENTITY"
+
+	SetComment ColumnAction = "SET_COMMENT"
+)
+
+type ColumnRename struct {
+	OldName string
+}
+
+type ColumnDiff struct {
+	Column       *sqlmanager_shared.TableColumn
+	RenameColumn *ColumnRename
+	// Actions represents what needs to be updated on the column
+	Actions []ColumnAction
+}
+
 type Different struct {
-	Columns                  []*sqlmanager_shared.TableColumn
+	Columns                  []*ColumnDiff
 	NonForeignKeyConstraints []*sqlmanager_shared.NonForeignKeyConstraint
 	ForeignKeyConstraints    []*sqlmanager_shared.ForeignKeyConstraint
 	Triggers                 []*sqlmanager_shared.TableTrigger
@@ -89,10 +121,11 @@ type DatabaseData struct {
 }
 
 type SchemaDifferencesBuilder struct {
-	diff             *SchemaDifferences
-	source           *DatabaseData
-	destination      *DatabaseData
-	jobmappingTables []*sqlmanager_shared.SchemaTable
+	diff               *SchemaDifferences
+	source             *DatabaseData
+	destination        *DatabaseData
+	jobmappingTables   []*sqlmanager_shared.SchemaTable
+	findMatchingColumn func(columns map[string]*sqlmanager_shared.TableColumn, column *sqlmanager_shared.TableColumn) *sqlmanager_shared.TableColumn
 }
 
 // NewSchemaDifferencesBuilder initializes a new builder with empty slices.
@@ -100,11 +133,13 @@ func NewSchemaDifferencesBuilder(
 	jobmappingTables []*sqlmanager_shared.SchemaTable,
 	sourceData *DatabaseData,
 	destData *DatabaseData,
+	findMatchingColumn func(columns map[string]*sqlmanager_shared.TableColumn, column *sqlmanager_shared.TableColumn) *sqlmanager_shared.TableColumn,
 ) *SchemaDifferencesBuilder {
 	return &SchemaDifferencesBuilder{
-		jobmappingTables: jobmappingTables,
-		source:           sourceData,
-		destination:      destData,
+		jobmappingTables:   jobmappingTables,
+		source:             sourceData,
+		destination:        destData,
+		findMatchingColumn: findMatchingColumn,
 		diff: &SchemaDifferences{
 			ExistsInSource: &ExistsInSource{
 				Tables:                   []*sqlmanager_shared.SchemaTable{},
@@ -124,7 +159,7 @@ func NewSchemaDifferencesBuilder(
 			ExistsInBoth: &ExistsInBoth{
 				Tables: []*sqlmanager_shared.SchemaTable{},
 				Different: &Different{
-					Columns:                  []*sqlmanager_shared.TableColumn{},
+					Columns:                  []*ColumnDiff{},
 					NonForeignKeyConstraints: []*sqlmanager_shared.NonForeignKeyConstraint{},
 					ForeignKeyConstraints:    []*sqlmanager_shared.ForeignKeyConstraint{},
 					Triggers:                 []*sqlmanager_shared.TableTrigger{},
@@ -151,39 +186,100 @@ func (b *SchemaDifferencesBuilder) Build() *SchemaDifferences {
 
 func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 	for _, table := range b.jobmappingTables {
-		sourceTable := b.source.Columns[table.String()]
-		destTable := b.destination.Columns[table.String()]
-		if len(sourceTable) > 0 && len(destTable) == 0 {
+		sourceTableCols := b.source.Columns[table.String()]
+		destTableCols := b.destination.Columns[table.String()]
+		if len(sourceTableCols) > 0 && len(destTableCols) == 0 {
 			b.diff.ExistsInSource.Tables = append(b.diff.ExistsInSource.Tables, table)
-		} else if len(sourceTable) > 0 && len(destTable) > 0 {
+		} else if len(sourceTableCols) > 0 && len(destTableCols) > 0 {
 			// table exists in both source and destination
 			b.diff.ExistsInBoth.Tables = append(b.diff.ExistsInBoth.Tables, table)
 
 			// column diff
-			for _, column := range sourceTable {
-				_, ok := destTable[column.Name]
-				if !ok {
-					b.diff.ExistsInSource.Columns = append(b.diff.ExistsInSource.Columns, column)
-				}
-			}
-			for _, column := range destTable {
-				_, ok := sourceTable[column.Name]
-				if !ok {
-					b.diff.ExistsInDestination.Columns = append(b.diff.ExistsInDestination.Columns, column)
+			for _, srcColumn := range sourceTableCols {
+				destColumn := b.findMatchingColumn(destTableCols, srcColumn)
+				if destColumn == nil {
+					b.diff.ExistsInSource.Columns = append(b.diff.ExistsInSource.Columns, srcColumn)
+				} else if srcColumn.Fingerprint != destColumn.Fingerprint {
+					// column differences
+					columnDiff := buildColumnDiff(srcColumn, destColumn)
+					if columnDiff != nil {
+						b.diff.ExistsInBoth.Different.Columns = append(b.diff.ExistsInBoth.Different.Columns, columnDiff)
+					}
 				}
 			}
 
-			for _, column := range sourceTable {
-				destColumn, ok := destTable[column.Name]
-				if !ok {
-					continue
-				}
-				if column.Fingerprint != destColumn.Fingerprint {
-					b.diff.ExistsInBoth.Different.Columns = append(b.diff.ExistsInBoth.Different.Columns, column)
+			for _, column := range destTableCols {
+				sourceColumn := b.findMatchingColumn(sourceTableCols, column)
+				if sourceColumn == nil {
+					b.diff.ExistsInDestination.Columns = append(b.diff.ExistsInDestination.Columns, column)
 				}
 			}
 		}
 	}
+}
+
+func buildColumnDiff(srcColumn, destColumn *sqlmanager_shared.TableColumn) *ColumnDiff {
+	// column differences
+	actions := []ColumnAction{}
+
+	if srcColumn.DataType != destColumn.DataType {
+		actions = append(actions, SetDatatype)
+	}
+
+	if srcColumn.ColumnDefault != destColumn.ColumnDefault {
+		defaultAction := DropDefault
+		if srcColumn.ColumnDefault != "" {
+			defaultAction = SetDefault
+		}
+		actions = append(actions, defaultAction)
+	}
+
+	switch {
+	case srcColumn.IdentityGeneration == nil && destColumn.IdentityGeneration != nil:
+		actions = append(actions, DropIdentity)
+	case isIdentityGenerationDifferent(srcColumn, destColumn):
+		actions = append(actions, SetIdentity)
+	}
+
+	if srcColumn.IsNullable != destColumn.IsNullable {
+		nullableAction := SetNotNull
+		if srcColumn.IsNullable {
+			nullableAction = DropNotNull
+		}
+		actions = append(actions, nullableAction)
+	}
+
+	if srcColumn.Comment != destColumn.Comment {
+		actions = append(actions, SetComment)
+	}
+
+	var renameColumn *ColumnRename
+	if srcColumn.Name != destColumn.Name {
+		renameColumn = &ColumnRename{
+			OldName: destColumn.Name,
+		}
+	}
+
+	if len(actions) == 0 && renameColumn == nil {
+		return nil
+	}
+
+	return &ColumnDiff{
+		Column:       srcColumn,
+		Actions:      actions,
+		RenameColumn: renameColumn,
+	}
+}
+
+func isIdentityGenerationDifferent(srcColumn, destColumn *sqlmanager_shared.TableColumn) bool {
+	if srcColumn.IdentityGeneration == nil && destColumn.IdentityGeneration == nil {
+		return false
+	}
+	if srcColumn.IdentityGeneration != nil && destColumn.IdentityGeneration == nil {
+		return true
+	}
+	return srcColumn.IdentityGeneration != nil && destColumn.IdentityGeneration != nil &&
+		*srcColumn.IdentityGeneration != *destColumn.IdentityGeneration
 }
 
 func (b *SchemaDifferencesBuilder) buildTableForeignKeyConstraintDifferences() {

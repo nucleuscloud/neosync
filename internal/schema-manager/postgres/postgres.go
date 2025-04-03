@@ -93,8 +93,47 @@ func (d *PostgresSchemaManager) CalculateSchemaDiff(
 		return nil, err
 	}
 
-	builder := shared.NewSchemaDifferencesBuilder(tables, sourceData, destData)
+	builder := shared.NewSchemaDifferencesBuilder(tables, sourceData, destData, findMatchingColumn)
 	return builder.Build(), nil
+}
+
+func findMatchingColumn(
+	columns map[string]*sqlmanager_shared.TableColumn,
+	column *sqlmanager_shared.TableColumn,
+) *sqlmanager_shared.TableColumn {
+	// perfect match
+	for _, c := range columns {
+		if c.Schema != column.Schema || c.Table != column.Table {
+			continue
+		}
+		if c.Fingerprint == column.Fingerprint {
+			return c
+		}
+		if c.Name == column.Name && c.OrdinalPosition == column.OrdinalPosition {
+			return c
+		}
+	}
+
+	// name match
+	for _, c := range columns {
+		if c.Schema != column.Schema || c.Table != column.Table {
+			continue
+		}
+		if c.Name == column.Name {
+			return c
+		}
+	}
+
+	// ordinal match
+	for _, c := range columns {
+		if c.Schema != column.Schema || c.Table != column.Table {
+			continue
+		}
+		if c.OrdinalPosition == column.OrdinalPosition {
+			return c
+		}
+	}
+	return nil
 }
 
 func getDatabaseDataForSchemaDiff(
@@ -321,6 +360,7 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(
 			updateDatatypesStatements,
 			sqlmanager_postgres.BuildUpdateEnumStatements(enum.Enum.Schema, enum.Enum.Name, enum.NewValues, enum.ChangedValues)...)
 	}
+
 	for _, composite := range diff.ExistsInBoth.Different.Composites {
 		updateDatatypesStatements = append(
 			updateDatatypesStatements,
@@ -364,6 +404,15 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(
 		}
 	}
 
+	updateColumnStatements := []string{}
+	renameColumnStatements := []string{}
+	for _, column := range diff.ExistsInBoth.Different.Columns {
+		if column.RenameColumn != nil {
+			renameColumnStatements = append(renameColumnStatements, sqlmanager_postgres.BuildRenameColumnStatement(column))
+		}
+		updateColumnStatements = append(updateColumnStatements, sqlmanager_postgres.BuildAlterColumnStatement(column)...)
+	}
+
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{
 			Label:      sqlmanager_shared.AddColumnsLabel,
@@ -400,6 +449,14 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(
 		{
 			Label:      sqlmanager_shared.UpdateDatatypesLabel,
 			Statements: updateDatatypesStatements,
+		},
+		{
+			Label:      sqlmanager_shared.RenameColumnsLabel,
+			Statements: renameColumnStatements,
+		},
+		{
+			Label:      sqlmanager_shared.UpdateColumnsLabel,
+			Statements: updateColumnStatements,
 		},
 	}, nil
 }
@@ -445,6 +502,8 @@ func (d *PostgresSchemaManager) ReconcileDestinationSchema(
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropDatatypesLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateDatatypesLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.AddColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.RenameColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateColumnsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateFunctionsLabel]...)
 		}
 	}

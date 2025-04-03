@@ -92,8 +92,29 @@ func (d *MysqlSchemaManager) CalculateSchemaDiff(
 		return nil, err
 	}
 
-	builder := shared.NewSchemaDifferencesBuilder(tables, sourceData, destData)
+	builder := shared.NewSchemaDifferencesBuilder(tables, sourceData, destData, findMatchingColumn)
 	return builder.Build(), nil
+}
+
+func findMatchingColumn(
+	columns map[string]*sqlmanager_shared.TableColumn,
+	column *sqlmanager_shared.TableColumn,
+) *sqlmanager_shared.TableColumn {
+	// perfect match
+	for _, c := range columns {
+		if c.Fingerprint == column.Fingerprint {
+			return c
+		}
+	}
+
+	// name match
+	for _, c := range columns {
+		if c.Schema == column.Schema && c.Table == column.Table && c.Name == column.Name {
+			return c
+		}
+	}
+
+	return nil
 }
 
 func getDatabaseDataForSchemaDiff(
@@ -278,7 +299,7 @@ func (d *MysqlSchemaManager) BuildSchemaDiffStatements(
 
 	updateColumnStatements := []string{}
 	for _, column := range diff.ExistsInBoth.Different.Columns {
-		stmt, err := sqlmanager_mysql.BuildUpdateColumnStatement(column)
+		stmt, err := sqlmanager_mysql.BuildUpdateColumnStatement(column.Column)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build update column statement: %w", err)
 		}

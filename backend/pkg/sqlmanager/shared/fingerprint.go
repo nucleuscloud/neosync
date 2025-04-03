@@ -89,7 +89,7 @@ func BuildFingerprint(input ...string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func BuildTableColumnFingerprint(column *TableColumn) string {
+func BuildTableColumnFingerprint(column *TableColumn, shouldIncludeOrdinalPosition bool) string {
 	parts := []string{
 		column.Schema,
 		column.Table,
@@ -103,7 +103,9 @@ func BuildTableColumnFingerprint(column *TableColumn) string {
 		ptrOrEmpty(column.GeneratedExpression),
 		ptrOrEmpty(column.Comment),
 	}
-
+	if shouldIncludeOrdinalPosition {
+		parts = append(parts, strconv.Itoa(column.OrdinalPosition))
+	}
 	return BuildFingerprint(parts...)
 }
 

@@ -16,6 +16,7 @@ const (
 	DropNonForeignKeyConstraintsLabel = "drop non-foreign key constraints"
 	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
 	UpdateColumnsLabel                = "update columns"
+	RenameColumnsLabel                = "rename columns"
 	UpdateFunctionsLabel              = "update functions"
 	DropDatatypesLabel                = "drop datatypes"
 	UpdateDatatypesLabel              = "update datatypes"
@@ -79,7 +80,7 @@ type TableColumn struct {
 	GeneratedExpression *string
 	IdentityGeneration  *string
 	SequenceDefinition  *string
-	IsSerial            bool
+	OrdinalPosition     int
 	Comment             *string
 }
 

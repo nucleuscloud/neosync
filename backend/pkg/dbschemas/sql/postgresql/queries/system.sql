@@ -603,6 +603,27 @@ ORDER BY
     rst.table_name,
     cws.column_name;
 
+-- name: GetSequencesOwnedByTables :many
+SELECT
+	s.relname AS sequence_name,
+	seq_ns.nspname AS sequence_schema,
+	tbl_ns.nspname AS table_schema,
+	t.relname AS table_name,
+	a.attname AS column_name
+FROM
+	pg_catalog.pg_class s
+	JOIN pg_catalog.pg_namespace seq_ns ON s.relnamespace = seq_ns.oid
+	JOIN pg_catalog.pg_depend d ON d.objid = s.oid
+	JOIN pg_catalog.pg_class t ON d.refobjid = t.oid
+	JOIN pg_catalog.pg_namespace tbl_ns ON t.relnamespace = tbl_ns.oid
+	JOIN pg_catalog.pg_attribute a ON a.attrelid = t.oid
+		AND a.attnum = d.refobjsubid
+WHERE
+	s.relkind = 'S'       -- 'S' means sequence
+	AND d.deptype = 'a'   -- 'a' means "auto" dependency (owned by)
+	AND(tbl_ns.nspname || '.' || t.relname) = ANY (sqlc.arg ('schematables')::TEXT []);
+
+
 -- name: GetNonForeignKeyTableConstraintsBySchema :many
 SELECT
 	pn.nspname AS schema_name,

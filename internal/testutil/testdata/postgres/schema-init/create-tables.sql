@@ -151,6 +151,22 @@ CREATE TABLE test_table_single_col (
  	name TEXT PRIMARY KEY
 );
 
+
+CREATE TABLE users (
+    id         integer NOT NULL,
+    username   text,                 -- will rename later
+    age        integer DEFAULT 99,   -- has a default
+    active     boolean NOT NULL DEFAULT false,
+		name_upper TEXT GENERATED ALWAYS AS (UPPER(username)) STORED
+);
+
+INSERT INTO users (id, username, age, active)
+VALUES
+    (1, 'alice', 30, true),
+    (2, 'bob',   25, false),
+    (3, 'carol', 35, true);
+
+
 INSERT INTO test_table_single_col (name) VALUES ('TEST_VAL');
 
 
