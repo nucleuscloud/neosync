@@ -7,6 +7,10 @@ import {
   MssqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema,
   MssqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema,
   MssqlSourceConnectionOptions_ColumnRemovalStrategySchema,
+  MssqlSourceConnectionOptions_NewColumnAdditionStrategy,
+  MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
+  MssqlSourceConnectionOptions_NewColumnAdditionStrategy_PassthroughSchema,
+  MssqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
   MysqlSourceConnectionOptions_ColumnRemovalStrategy,
   MysqlSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema,
   MysqlSourceConnectionOptions_ColumnRemovalStrategy_HaltJobSchema,
@@ -14,6 +18,7 @@ import {
   MysqlSourceConnectionOptions_NewColumnAdditionStrategy,
   MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMapSchema,
   MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
+  MysqlSourceConnectionOptions_NewColumnAdditionStrategy_PassthroughSchema,
   MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
   PostgresSourceConnectionOptions_ColumnRemovalStrategy,
   PostgresSourceConnectionOptions_ColumnRemovalStrategy_ContinueJobSchema,
@@ -22,6 +27,7 @@ import {
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMapSchema,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
+  PostgresSourceConnectionOptions_NewColumnAdditionStrategy_PassthroughSchema,
   PostgresSourceConnectionOptions_NewColumnAdditionStrategySchema,
   TransformerConfig,
   TransformerConfigSchema,
@@ -108,12 +114,19 @@ export type VirtualForeignConstraintFormValues = Yup.InferType<
   typeof VirtualForeignConstraintFormValues
 >;
 
-export type NewColumnAdditionStrategy = 'continue' | 'halt' | 'automap';
+export type NewColumnAdditionStrategy =
+  | 'continue'
+  | 'halt'
+  | 'automap'
+  | 'passthrough';
+
+type MssqlNewColumnAdditionStrategy = 'continue' | 'halt' | 'passthrough';
+
 export type ColumnRemovalStrategy = 'halt' | 'continue';
 
 export const PostgresSourceOptionsFormValues = Yup.object({
   newColumnAdditionStrategy: Yup.string<NewColumnAdditionStrategy>()
-    .oneOf(['continue', 'halt', 'automap'])
+    .oneOf(['continue', 'halt', 'automap', 'passthrough'])
     .optional()
     .default('continue'),
   columnRemovalStrategy: Yup.string<ColumnRemovalStrategy>()
@@ -127,7 +140,7 @@ export type PostgresSourceOptionsFormValues = Yup.InferType<
 
 const MysqlSourceOptionsFormValues = Yup.object({
   newColumnAdditionStrategy: Yup.string<NewColumnAdditionStrategy>()
-    .oneOf(['continue', 'halt', 'automap'])
+    .oneOf(['continue', 'halt', 'automap', 'passthrough'])
     .optional()
     .default('continue'),
   columnRemovalStrategy: Yup.string<ColumnRemovalStrategy>()
@@ -140,9 +153,12 @@ export type MysqlSourceOptionsFormValues = Yup.InferType<
 >;
 
 const MssqlSourceOptionsFormValues = Yup.object({
-  haltOnNewColumnAddition: Yup.boolean().optional().default(false),
   columnRemovalStrategy: Yup.string<ColumnRemovalStrategy>()
     .oneOf(['halt', 'continue'])
+    .optional()
+    .default('continue'),
+  newColumnAdditionStrategy: Yup.string<MssqlNewColumnAdditionStrategy>()
+    .oneOf(['continue', 'halt', 'passthrough'])
     .optional()
     .default('continue'),
 });
@@ -432,6 +448,19 @@ export function toJobSourcePostgresNewColumnAdditionStrategy(
         }
       );
     }
+    case 'passthrough': {
+      return create(
+        PostgresSourceConnectionOptions_NewColumnAdditionStrategySchema,
+        {
+          strategy: {
+            case: 'passthrough',
+            value: create(
+              PostgresSourceConnectionOptions_NewColumnAdditionStrategy_PassthroughSchema
+            ),
+          },
+        }
+      );
+    }
     default: {
       return undefined;
     }
@@ -441,6 +470,7 @@ export function toNewColumnAdditionStrategy(
   input:
     | PostgresSourceConnectionOptions_NewColumnAdditionStrategy
     | MysqlSourceConnectionOptions_NewColumnAdditionStrategy
+    | MssqlSourceConnectionOptions_NewColumnAdditionStrategy
     | undefined
 ): NewColumnAdditionStrategy {
   switch (input?.strategy.case) {
@@ -449,6 +479,25 @@ export function toNewColumnAdditionStrategy(
     }
     case 'autoMap': {
       return 'automap';
+    }
+    case 'passthrough': {
+      return 'passthrough';
+    }
+    default: {
+      return 'continue';
+    }
+  }
+}
+
+export function toMssqlNewColumnAdditionStrategy(
+  input: MssqlSourceConnectionOptions_NewColumnAdditionStrategy | undefined
+): MssqlNewColumnAdditionStrategy {
+  switch (input?.strategy.case) {
+    case 'haltJob': {
+      return 'halt';
+    }
+    case 'passthrough': {
+      return 'passthrough';
     }
     default: {
       return 'continue';
@@ -525,6 +574,19 @@ export function toJobSourceMysqlNewColumnAdditionStrategy(
         }
       );
     }
+    case 'passthrough': {
+      return create(
+        MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
+        {
+          strategy: {
+            case: 'passthrough',
+            value: create(
+              MysqlSourceConnectionOptions_NewColumnAdditionStrategy_PassthroughSchema
+            ),
+          },
+        }
+      );
+    }
     default: {
       return undefined;
     }
@@ -584,6 +646,45 @@ export function toJobSourceMssqlColumnRemovalStrategy(
           ),
         },
       });
+    }
+    default: {
+      return undefined;
+    }
+  }
+}
+
+export function toJobSourceMssqlNewColumnAdditionStrategy(
+  strategy?: NewColumnAdditionStrategy
+): MssqlSourceConnectionOptions_NewColumnAdditionStrategy | undefined {
+  switch (strategy) {
+    case 'continue': {
+      return undefined;
+    }
+    case 'halt': {
+      return create(
+        MssqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
+        {
+          strategy: {
+            case: 'haltJob',
+            value: create(
+              MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema
+            ),
+          },
+        }
+      );
+    }
+    case 'passthrough': {
+      return create(
+        MssqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
+        {
+          strategy: {
+            case: 'passthrough',
+            value: create(
+              MssqlSourceConnectionOptions_NewColumnAdditionStrategy_PassthroughSchema
+            ),
+          },
+        }
+      );
     }
     default: {
       return undefined;

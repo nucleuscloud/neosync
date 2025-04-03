@@ -10,14 +10,15 @@ type DefaultTransformers struct {
 }
 
 type TestJobOptions struct {
-	SubsetByForeignKeyConstraints bool
-	InitSchema                    bool
-	Truncate                      bool
-	TruncateCascade               bool
-	DefaultTransformers           *DefaultTransformers
-	SkipForeignKeyViolations      bool
-	OnConflictDoNothing           bool
-	OnConflictDoUpdate            bool
-	BatchSize                     *uint32
-	MaxInFlight                   *uint32
+	SubsetByForeignKeyConstraints  bool
+	InitSchema                     bool
+	Truncate                       bool
+	TruncateCascade                bool
+	DefaultTransformers            *DefaultTransformers
+	SkipForeignKeyViolations       bool
+	OnConflictDoNothing            bool
+	OnConflictDoUpdate             bool
+	PassthroughOnNewColumnAddition bool
+	BatchSize                      *uint32
+	MaxInFlight                    *uint32
 }

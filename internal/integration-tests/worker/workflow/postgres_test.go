@@ -115,6 +115,10 @@ func createPostgresSyncJob(
 		}
 	}
 
+	newColumnAdditionStrategy := &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{}
+	if config.JobOptions.PassthroughOnNewColumnAddition {
+		newColumnAdditionStrategy.Strategy = &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_{}
+	}
 	job, err := jobclient.CreateJob(ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobRequest{
 		AccountId: config.AccountId,
 		JobName:   config.JobName,
@@ -125,6 +129,7 @@ func createPostgresSyncJob(
 						ConnectionId:                  config.SourceConn.Id,
 						Schemas:                       schemas,
 						SubsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
+						NewColumnAdditionStrategy:     newColumnAdditionStrategy,
 					},
 				},
 			},
@@ -196,6 +201,99 @@ func test_postgres_types(
 		{schema: alltypesSchema, table: "json_data", rowCount: 12},
 		{schema: alltypesSchema, table: "generated_table", rowCount: 4},
 	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: all_types Table: %s", expected.table))
+	}
+
+	source, err := sql.Open("postgres", postgres.Source.URL)
+	require.NoError(t, err)
+	defer source.Close()
+
+	target, err := sql.Open("postgres", postgres.Target.URL)
+	require.NoError(t, err)
+	defer target.Close()
+
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "all_data_types", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "json_data", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "array_types", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "generated_table", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "time_time", "postgres", []string{"id"})
+
+	// tear down
+	err = cleanupPostgresSchemas(ctx, postgres, []string{alltypesSchema})
+	require.NoError(t, err)
+}
+
+func test_postgres_passthrough_on_new_column_addition(
+	t *testing.T,
+	ctx context.Context,
+	postgres *tcpostgres.PostgresTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	alltypesSchema := "alltypes_passthrough"
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
+	})
+	errgrp.Go(func() error { return postgres.Target.CreateSchemas(errctx, []string{alltypesSchema}) })
+	err := errgrp.Wait()
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: alltypesSchema, table: "all_data_types", rowCount: 2},
+		{schema: alltypesSchema, table: "array_types", rowCount: 1},
+		{schema: alltypesSchema, table: "time_time", rowCount: 3},
+		{schema: alltypesSchema, table: "json_data", rowCount: 12},
+		{schema: alltypesSchema, table: "generated_table", rowCount: 4},
+	}
+	mappings := []*mgmtv1alpha1.JobMapping{}
+	for _, expected := range expectedResults {
+		mappings = append(mappings, &mgmtv1alpha1.JobMapping{
+			Schema: expected.schema,
+			Table:  expected.table,
+			Column: "id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
+			},
+		})
+	}
+
+	job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     "all_types_passthrough",
+		JobMappings: mappings,
+		JobOptions: &TestJobOptions{
+			Truncate:                       true,
+			TruncateCascade:                true,
+			InitSchema:                     true,
+			PassthroughOnNewColumnAddition: true,
+		},
+	})
+
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: all_types")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: all_types")
 
 	for _, expected := range expectedResults {
 		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)

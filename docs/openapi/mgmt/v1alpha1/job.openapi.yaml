@@ -3257,7 +3257,9 @@ components:
         haltOnNewColumnAddition:
           type: boolean
           title: halt_on_new_column_addition
-          description: Whether to halt the job if a new column is added
+          description: |-
+            Whether to halt the job if a new column is added
+             Deprecated: Use new_column_addition_strategy instead
         schemas:
           type: array
           items:
@@ -3278,6 +3280,11 @@ components:
             - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy'
           title: column_removal_strategy
           description: Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
+        newColumnAdditionStrategy:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy'
+          title: new_column_addition_strategy
+          description: Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.
       title: MssqlSourceConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy:
@@ -3328,6 +3335,54 @@ components:
       title: HaltJob
       additionalProperties: false
       description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - haltJob
+            - required:
+                - passthrough
+            - not:
+                anyOf:
+                  - required:
+                      - haltJob
+                  - required:
+                      - passthrough
+      anyOf:
+        - required:
+            - haltJob
+        - required:
+            - passthrough
+        - not:
+            anyOf:
+              - required:
+                  - haltJob
+              - required:
+                  - passthrough
+      properties:
+        haltJob:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob'
+          title: halt_job
+          description: halt job if a new column is detected.
+        passthrough:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough'
+          title: passthrough
+          description: pass the new column through as is.
+      title: NewColumnAdditionStrategy
+      additionalProperties: false
+    mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob:
+      type: object
+      title: HaltJob
+      additionalProperties: false
+      description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough:
+      type: object
+      title: Passthrough
+      additionalProperties: false
+      description: Configuration for the Passthrough strategy
     mgmt.v1alpha1.MssqlSourceSchemaOption:
       type: object
       properties:
@@ -3590,23 +3645,31 @@ components:
                 - autoMap
             - required:
                 - haltJob
+            - required:
+                - passthrough
             - not:
                 anyOf:
                   - required:
                       - autoMap
                   - required:
                       - haltJob
+                  - required:
+                      - passthrough
       anyOf:
         - required:
             - autoMap
         - required:
             - haltJob
+        - required:
+            - passthrough
         - not:
             anyOf:
               - required:
                   - autoMap
               - required:
                   - haltJob
+              - required:
+                  - passthrough
       properties:
         haltJob:
           allOf:
@@ -3621,6 +3684,11 @@ components:
             automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
              If this doesn't exist, will fall back to configuring generators for supported datatypes.
              If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+        passthrough:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough'
+          title: passthrough
+          description: pass the new column through as is.
       title: NewColumnAdditionStrategy
       additionalProperties: false
     mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap:
@@ -3633,6 +3701,11 @@ components:
       title: HaltJob
       additionalProperties: false
       description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough:
+      type: object
+      title: Passthrough
+      additionalProperties: false
+      description: Configuration for the Passthrough strategy
     mgmt.v1alpha1.MysqlSourceSchemaOption:
       type: object
       properties:
@@ -4294,23 +4367,31 @@ components:
                 - autoMap
             - required:
                 - haltJob
+            - required:
+                - passthrough
             - not:
                 anyOf:
                   - required:
                       - autoMap
                   - required:
                       - haltJob
+                  - required:
+                      - passthrough
       anyOf:
         - required:
             - autoMap
         - required:
             - haltJob
+        - required:
+            - passthrough
         - not:
             anyOf:
               - required:
                   - autoMap
               - required:
                   - haltJob
+              - required:
+                  - passthrough
       properties:
         haltJob:
           allOf:
@@ -4325,6 +4406,11 @@ components:
             automatically handle unmapped columns. It handles this by using the DBs default/nullable values.
              If this doesn't exist, will fall back to configuring generators for supported datatypes.
              If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+        passthrough:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough'
+          title: passthrough
+          description: pass the new column through as is.
       title: NewColumnAdditionStrategy
       additionalProperties: false
     mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap:
@@ -4337,6 +4423,11 @@ components:
       title: HaltJob
       additionalProperties: false
       description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough:
+      type: object
+      title: Passthrough
+      additionalProperties: false
+      description: Configuration for the Passthrough strategy
     mgmt.v1alpha1.PostgresSourceSchemaOption:
       type: object
       properties:

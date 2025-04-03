@@ -168,11 +168,15 @@ message PostgresSourceConnectionOptions {
       // If this doesn't exist, will fall back to configuring generators for supported datatypes.
       // If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
       AutoMap auto_map = 2;
+      // pass the new column through as is.
+      Passthrough passthrough = 3;
     }
     // Configuration for the HaltJob strategy
     message HaltJob {}
     // Configuration for the AutoMap strategy
     message AutoMap {}
+    // Configuration for the Passthrough strategy
+    message Passthrough {}
   }
 
   message ColumnRemovalStrategy {
@@ -245,11 +249,15 @@ message MysqlSourceConnectionOptions {
       // If this doesn't exist, will fall back to configuring generators for supported datatypes.
       // If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
       AutoMap auto_map = 2;
+      // pass the new column through as is.
+      Passthrough passthrough = 3;
     }
     // Configuration for the HaltJob strategy
     message HaltJob {}
     // Configuration for the AutoMap strategy
     message AutoMap {}
+    // Configuration for the Passthrough strategy
+    message Passthrough {}
   }
 }
 
@@ -269,7 +277,8 @@ message MysqlSourceTableOption {
 
 message MssqlSourceConnectionOptions {
   // Whether to halt the job if a new column is added
-  bool halt_on_new_column_addition = 1;
+  // Deprecated: Use new_column_addition_strategy instead
+  bool halt_on_new_column_addition = 1 [deprecated = true];
   // The list of schemas (and their tables) along with any configuration options that will be used.
   repeated MssqlSourceSchemaOption schemas = 2;
   // The unique connection id to a mssql connection configuration
@@ -278,6 +287,8 @@ message MssqlSourceConnectionOptions {
   bool subset_by_foreign_key_constraints = 4;
   // Provide a strategy of what to do in the event Neosync encounters a column that is removed from the source table.
   ColumnRemovalStrategy column_removal_strategy = 5;
+  // Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.
+  NewColumnAdditionStrategy new_column_addition_strategy = 6;
 
   message ColumnRemovalStrategy {
     oneof strategy {
@@ -292,6 +303,19 @@ message MssqlSourceConnectionOptions {
 
     // Configuration for the ContinueJob strategy
     message ContinueJob {}
+  }
+
+  message NewColumnAdditionStrategy {
+    oneof strategy {
+      // halt job if a new column is detected.
+      HaltJob halt_job = 1;
+      // pass the new column through as is.
+      Passthrough passthrough = 2;
+    }
+    // Configuration for the HaltJob strategy
+    message HaltJob {}
+    // Configuration for the Passthrough strategy
+    message Passthrough {}
   }
 }
 

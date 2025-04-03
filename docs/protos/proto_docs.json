@@ -15163,7 +15163,7 @@
           "fields": [
             {
               "name": "halt_on_new_column_addition",
-              "description": "Whether to halt the job if a new column is added",
+              "description": "Whether to halt the job if a new column is added\nDeprecated: Use new_column_addition_strategy instead",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -15171,7 +15171,10 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "schemas",
@@ -15216,6 +15219,18 @@
               "type": "ColumnRemovalStrategy",
               "longType": "MssqlSourceConnectionOptions.ColumnRemovalStrategy",
               "fullType": "mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "new_column_addition_strategy",
+              "description": "Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.",
+              "label": "",
+              "type": "NewColumnAdditionStrategy",
+              "longType": "MssqlSourceConnectionOptions.NewColumnAdditionStrategy",
+              "fullType": "mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -15275,6 +15290,64 @@
           "longName": "MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob",
           "fullName": "mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob",
           "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "NewColumnAdditionStrategy",
+          "longName": "MssqlSourceConnectionOptions.NewColumnAdditionStrategy",
+          "fullName": "mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "halt_job",
+              "description": "halt job if a new column is detected.",
+              "label": "",
+              "type": "HaltJob",
+              "longType": "MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+              "fullType": "mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "passthrough",
+              "description": "pass the new column through as is.",
+              "label": "",
+              "type": "Passthrough",
+              "longType": "MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "fullType": "mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "HaltJob",
+          "longName": "MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+          "fullName": "mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+          "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Passthrough",
+          "longName": "MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "fullName": "mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "description": "Configuration for the Passthrough strategy",
           "hasExtensions": false,
           "hasFields": false,
           "hasOneofs": false,
@@ -15733,6 +15806,18 @@
               "isoneof": true,
               "oneofdecl": "strategy",
               "defaultValue": ""
+            },
+            {
+              "name": "passthrough",
+              "description": "pass the new column through as is.",
+              "label": "",
+              "type": "Passthrough",
+              "longType": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
             }
           ]
         },
@@ -15752,6 +15837,17 @@
           "longName": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
           "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
           "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Passthrough",
+          "longName": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "description": "Configuration for the Passthrough strategy",
           "hasExtensions": false,
           "hasFields": false,
           "hasOneofs": false,
@@ -16570,6 +16666,18 @@
               "isoneof": true,
               "oneofdecl": "strategy",
               "defaultValue": ""
+            },
+            {
+              "name": "passthrough",
+              "description": "pass the new column through as is.",
+              "label": "",
+              "type": "Passthrough",
+              "longType": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "fullType": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
             }
           ]
         },
@@ -16589,6 +16697,17 @@
           "longName": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
           "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
           "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Passthrough",
+          "longName": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "description": "Configuration for the Passthrough strategy",
           "hasExtensions": false,
           "hasFields": false,
           "hasOneofs": false,

@@ -43,10 +43,12 @@ import {
   convertJobMappingTransformerToForm,
   toColumnRemovalStrategy,
   toJobSourceMssqlColumnRemovalStrategy,
+  toJobSourceMssqlNewColumnAdditionStrategy,
   toJobSourceMysqlColumnRemovalStrategy,
   toJobSourceMysqlNewColumnAdditionStrategy,
   toJobSourcePostgresColumnRemovalStrategy,
   toJobSourcePostgresNewColumnAdditionStrategy,
+  toMssqlNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
 } from '@/yup-validations/jobs';
 import { create } from '@bufbuild/protobuf';
@@ -1074,11 +1076,13 @@ function toJobSourceOptions(
           value: create(MssqlSourceConnectionOptionsSchema, {
             ...getExistingMssqlSourceConnectionOptions(job),
             connectionId: newSourceId,
-            haltOnNewColumnAddition:
-              values.sourceOptions.mssql?.haltOnNewColumnAddition ?? false,
             columnRemovalStrategy: toJobSourceMssqlColumnRemovalStrategy(
               values.sourceOptions.mssql?.columnRemovalStrategy
             ),
+            newColumnAdditionStrategy:
+              toJobSourceMssqlNewColumnAdditionStrategy(
+                values.sourceOptions.mssql?.newColumnAdditionStrategy
+              ),
           }),
         },
       });
@@ -1301,10 +1305,11 @@ function getJobSource(
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
           mssql: {
-            haltOnNewColumnAddition:
-              job?.source?.options?.config.value.haltOnNewColumnAddition,
             columnRemovalStrategy: toColumnRemovalStrategy(
               job.source.options.config.value.columnRemovalStrategy
+            ),
+            newColumnAdditionStrategy: toMssqlNewColumnAdditionStrategy(
+              job.source.options.config.value.newColumnAdditionStrategy
             ),
           },
         },
@@ -1391,7 +1396,7 @@ async function getUpdatedValues(
         ...values,
         sourceOptions: {
           mssql: {
-            haltOnNewColumnAddition: false,
+            newColumnAdditionStrategy: 'halt',
             columnRemovalStrategy: 'continue',
           },
         },

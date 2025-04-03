@@ -18,10 +18,12 @@ import {
   SchemaFormValuesDestinationOptions,
   toColumnRemovalStrategy,
   toJobSourceMssqlColumnRemovalStrategy,
+  toJobSourceMssqlNewColumnAdditionStrategy,
   toJobSourceMysqlColumnRemovalStrategy,
   toJobSourceMysqlNewColumnAdditionStrategy,
   toJobSourcePostgresColumnRemovalStrategy,
   toJobSourcePostgresNewColumnAdditionStrategy,
+  toMssqlNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
   VirtualForeignConstraintFormValues,
 } from '@/yup-validations/jobs';
@@ -849,9 +851,10 @@ function toJobSourceOptions(
           case: 'mssql',
           value: create(MssqlSourceConnectionOptionsSchema, {
             connectionId: values.connect.sourceId,
-            haltOnNewColumnAddition:
-              values.connect.sourceOptions.mssql?.haltOnNewColumnAddition ??
-              false,
+            newColumnAdditionStrategy:
+              toJobSourceMssqlNewColumnAdditionStrategy(
+                values.connect.sourceOptions.mssql?.newColumnAdditionStrategy
+              ),
             columnRemovalStrategy: toJobSourceMssqlColumnRemovalStrategy(
               values.connect.sourceOptions.mssql?.columnRemovalStrategy
             ),
@@ -1375,8 +1378,9 @@ function setDefaultConnectFormValues(
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {
           mssql: {
-            haltOnNewColumnAddition:
-              job.source.options.config.value.haltOnNewColumnAddition,
+            newColumnAdditionStrategy: toMssqlNewColumnAdditionStrategy(
+              job.source.options.config.value.newColumnAdditionStrategy
+            ),
             columnRemovalStrategy: toColumnRemovalStrategy(
               job.source.options.config.value.columnRemovalStrategy
             ),

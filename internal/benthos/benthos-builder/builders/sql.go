@@ -117,6 +117,22 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(
 	// remove mappings that are not found in the source
 	existingSourceMappings := removeMappingsNotFoundInSource(job.Mappings, groupedColumnInfo)
 
+	if sqlSourceOpts != nil && sqlSourceOpts.PassthroughOnNewColumnAddition {
+		extraMappings, err := getAdditionalPassthroughJobMappings(
+			groupedColumnInfo,
+			existingSourceMappings,
+			splitKeyToTablePieces,
+			logger,
+		)
+		if err != nil {
+			return nil, err
+		}
+		logger.Debug(
+			fmt.Sprintf("adding %d extra passthrough mappings due to unmapped columns", len(extraMappings)),
+		)
+		existingSourceMappings = append(existingSourceMappings, extraMappings...)
+	}
+
 	if sqlSourceOpts != nil && sqlSourceOpts.GenerateNewColumnTransformers {
 		extraMappings, err := getAdditionalJobMappings(
 			b.driver,
