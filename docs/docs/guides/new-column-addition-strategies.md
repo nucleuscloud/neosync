@@ -55,7 +55,6 @@ The algorithm works as follows:
 3. Based on the data type, generate a proper value that will fit within that column.
 4. If an unsupported data type is detected, halt the run.
 
-
 ## Passthrough
 
 Passthrough mode is a strategy that allows Neosync to handle new columns found in source tables by setting them to passthrough. This means that any new columns detected in the source database will be included in the table sync and their values will be directly copied from the source to the destination without any transformation.
