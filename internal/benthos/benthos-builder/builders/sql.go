@@ -2,11 +2,8 @@ package benthosbuilder_builders
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -98,7 +95,9 @@ func (b *sqlSyncBuilder) hydrateJobMappings(
 }
 
 // outputs schema -> table -> []column info
-func getSchemaTableColumnDbInfo(groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow) map[string]map[string][]*sqlmanager_shared.DatabaseSchemaRow {
+func getSchemaTableColumnDbInfo(
+	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+) map[string]map[string][]*sqlmanager_shared.DatabaseSchemaRow {
 	output := map[string]map[string][]*sqlmanager_shared.DatabaseSchemaRow{}
 
 	for _, columnMap := range groupedColumnInfo {
@@ -152,9 +151,6 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(
 	if err != nil {
 		return nil, fmt.Errorf("unable to hydrate job mappings: %w", err)
 	}
-
-	bits, _ := json.Marshal(jobMappings)
-	fmt.Println("jobMappings", string(bits))
 
 	b.sqlSourceSchemaColumnInfoMap = groupedColumnInfo
 	b.jobMappings = jobMappings // needed when building destination config
@@ -245,14 +241,6 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(
 	}
 
 	return configs, nil
-}
-
-func splitKeyToTablePieces(key string) (schema, table string, err error) {
-	pieces := strings.SplitN(key, ".", 2)
-	if len(pieces) != 2 {
-		return "", "", errors.New("unable to split key to get schema and table, not 2 pieces")
-	}
-	return pieces[0], pieces[1], nil
 }
 
 // TODO: remove tableDependencies and use runconfig's foreign keys

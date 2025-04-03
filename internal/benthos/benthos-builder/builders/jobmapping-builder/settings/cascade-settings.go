@@ -170,27 +170,27 @@ func getColumnStrategyOrDefault(
 		if mapAll.ColumnInSourceNotMapped == nil {
 			mapAll.ColumnInSourceNotMapped = defaultStrat.ColumnInSourceNotMapped
 		} else {
-			switch strat := mapAll.GetColumnInSourceNotMapped().GetStrategy().(type) {
+			switch start := mapAll.GetColumnInSourceNotMapped().GetStrategy().(type) {
 			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_AutoMap_:
-				if strat.AutoMap == nil {
-					strat.AutoMap = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_AutoMap{}
+				if start.AutoMap == nil {
+					start.AutoMap = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_AutoMap{}
 				}
-				mapAll.ColumnInSourceNotMapped.Strategy = strat
+				mapAll.ColumnInSourceNotMapped.Strategy = start
 			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Drop_:
-				if strat.Drop == nil {
-					strat.Drop = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Drop{}
+				if start.Drop == nil {
+					start.Drop = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Drop{}
 				}
-				mapAll.ColumnInSourceNotMapped.Strategy = strat
+				mapAll.ColumnInSourceNotMapped.Strategy = start
 			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Passthrough_:
-				if strat.Passthrough == nil {
-					strat.Passthrough = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Passthrough{}
+				if start.Passthrough == nil {
+					start.Passthrough = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Passthrough{}
 				}
-				mapAll.ColumnInSourceNotMapped.Strategy = strat
+				mapAll.ColumnInSourceNotMapped.Strategy = start
 			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Halt_:
-				if strat.Halt == nil {
-					strat.Halt = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Halt{}
+				if start.Halt == nil {
+					start.Halt = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Halt{}
 				}
-				mapAll.ColumnInSourceNotMapped.Strategy = strat
+				mapAll.ColumnInSourceNotMapped.Strategy = start
 			default:
 				mapAll.ColumnInSourceNotMapped = defaultStrat.ColumnInSourceNotMapped
 			}
@@ -199,17 +199,17 @@ func getColumnStrategyOrDefault(
 		if mapAll.ColumnMappedNotInSource == nil {
 			mapAll.ColumnMappedNotInSource = defaultStrat.ColumnMappedNotInSource
 		} else {
-			switch strat := mapAll.GetColumnMappedNotInSource().GetStrategy().(type) {
+			switch start := mapAll.GetColumnMappedNotInSource().GetStrategy().(type) {
 			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy_Continue_:
-				if strat.Continue == nil {
-					strat.Continue = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy_Continue{}
+				if start.Continue == nil {
+					start.Continue = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy_Continue{}
 				}
-				mapAll.ColumnMappedNotInSource.Strategy = strat
+				mapAll.ColumnMappedNotInSource.Strategy = start
 			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy_Halt_:
-				if strat.Halt == nil {
-					strat.Halt = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy_Halt{}
+				if start.Halt == nil {
+					start.Halt = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnMappedNotInSourceStrategy_Halt{}
 				}
-				mapAll.ColumnMappedNotInSource.Strategy = strat
+				mapAll.ColumnMappedNotInSource.Strategy = start
 			default:
 				mapAll.ColumnMappedNotInSource = defaultStrat.ColumnMappedNotInSource
 			}
@@ -218,17 +218,17 @@ func getColumnStrategyOrDefault(
 		if mapAll.ColumnInSourceMappedNotInDestination == nil {
 			mapAll.ColumnInSourceMappedNotInDestination = defaultStrat.ColumnInSourceMappedNotInDestination
 		} else {
-			switch strat := mapAll.GetColumnInSourceMappedNotInDestination().GetStrategy().(type) {
+			switch start := mapAll.GetColumnInSourceMappedNotInDestination().GetStrategy().(type) {
 			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Drop_:
-				if strat.Drop == nil {
-					strat.Drop = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Drop{}
+				if start.Drop == nil {
+					start.Drop = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Drop{}
 				}
-				mapAll.ColumnInSourceMappedNotInDestination.Strategy = strat
+				mapAll.ColumnInSourceMappedNotInDestination.Strategy = start
 			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Halt_:
-				if strat.Halt == nil {
-					strat.Halt = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Halt{}
+				if start.Halt == nil {
+					start.Halt = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceMappedNotInDestinationStrategy_Halt{}
 				}
-				mapAll.ColumnInSourceMappedNotInDestination.Strategy = strat
+				mapAll.ColumnInSourceMappedNotInDestination.Strategy = start
 			default:
 				mapAll.ColumnInSourceMappedNotInDestination = defaultStrat.ColumnInSourceMappedNotInDestination
 			}
@@ -237,17 +237,17 @@ func getColumnStrategyOrDefault(
 		if mapAll.ColumnInDestinationNoLongerInSource == nil {
 			mapAll.ColumnInDestinationNoLongerInSource = defaultStrat.ColumnInDestinationNoLongerInSource
 		} else {
-			switch strat := mapAll.GetColumnInDestinationNoLongerInSource().GetStrategy().(type) {
+			switch start := mapAll.GetColumnInDestinationNoLongerInSource().GetStrategy().(type) {
 			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_AutoMap_:
-				if strat.AutoMap == nil {
-					strat.AutoMap = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_AutoMap{}
+				if start.AutoMap == nil {
+					start.AutoMap = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_AutoMap{}
 				}
-				mapAll.ColumnInDestinationNoLongerInSource.Strategy = strat
+				mapAll.ColumnInDestinationNoLongerInSource.Strategy = start
 			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_Continue_:
-				if strat.Continue == nil {
-					strat.Continue = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_Continue{}
+				if start.Continue == nil {
+					start.Continue = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_Continue{}
 				}
-				mapAll.ColumnInDestinationNoLongerInSource.Strategy = strat
+				mapAll.ColumnInDestinationNoLongerInSource.Strategy = start
 			default:
 				mapAll.ColumnInDestinationNoLongerInSource = defaultStrat.ColumnInDestinationNoLongerInSource
 			}
@@ -263,7 +263,9 @@ func getColumnStrategyOrDefault(
 	}
 }
 
-func (c *CascadeSchemaSettings) getTablelevelColumnStrategy(schemaName, tableName string) *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy {
+func (c *CascadeSchemaSettings) getTablelevelColumnStrategy(
+	schemaName, tableName string,
+) *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy {
 	for _, schemaMapping := range c.config.GetSchemaMappings() {
 		if schemaMapping.GetSchema() == schemaName {
 			for _, tableMapping := range schemaMapping.GetTableMappings() {
@@ -319,7 +321,9 @@ func getDefaultMapAllColumnsStrategy() *mgmtv1alpha1.JobTypeConfig_JobTypeSync_C
 	}
 }
 
-func (c *CascadeSchemaSettings) GetColumnTransformerConfigByTable(schemaName, tableName string) iter.Seq2[string, *mgmtv1alpha1.TransformerConfig] {
+func (c *CascadeSchemaSettings) GetColumnTransformerConfigByTable(
+	schemaName, tableName string,
+) iter.Seq2[string, *mgmtv1alpha1.TransformerConfig] {
 	return func(yield func(string, *mgmtv1alpha1.TransformerConfig) bool) {
 		for _, schemaMapping := range c.config.GetSchemaMappings() {
 			if schemaMapping.GetSchema() == schemaName {

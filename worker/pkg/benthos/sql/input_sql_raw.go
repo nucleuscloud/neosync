@@ -199,7 +199,6 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 		}
 	}
 
-	fmt.Println("query", query, "args", args)
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		if neosync_benthos.IsCriticalError(err.Error()) {
