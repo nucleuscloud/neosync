@@ -1,6 +1,8 @@
 package schemamanager_shared
 
 import (
+	"sort"
+
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
 
@@ -216,6 +218,19 @@ func (b *SchemaDifferencesBuilder) buildTableColumnDifferences() {
 			}
 		}
 	}
+	// important to order columns by ordinal position to ensure columns are created in the correct order in destination
+	b.diff.OrderColumnsByOrdinalPosition()
+}
+
+// OrderColumnsByOrdinalPosition orders the columns in ExistsInSource by their ordinal position in ascending order
+func (d *SchemaDifferences) OrderColumnsByOrdinalPosition() {
+	if d.ExistsInSource == nil || len(d.ExistsInSource.Columns) == 0 {
+		return
+	}
+
+	sort.SliceStable(d.ExistsInSource.Columns, func(i, j int) bool {
+		return d.ExistsInSource.Columns[i].OrdinalPosition < d.ExistsInSource.Columns[j].OrdinalPosition
+	})
 }
 
 func buildColumnDiff(srcColumn, destColumn *sqlmanager_shared.TableColumn) *ColumnDiff {
