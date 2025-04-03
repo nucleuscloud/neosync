@@ -195,7 +195,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 				},
 			},
 		},
-		map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil,
+		map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId,
 		runconfigs.NewRunConfig("id", sqlmanager_shared.SchemaTable{}, runconfigs.RunTypeInsert, nil, nil, nil, []string{nameCol, ageCol}, nil, false),
 		nil,
 		[]string{},
