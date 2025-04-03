@@ -38,27 +38,6 @@ func main() {
 		tf.Category = p.Category
 	}
 
-	for _, tf := range transformerFuncs {
-		codeStr, err := generateCode(packageName, tf)
-		if err != nil {
-			fmt.Println("Error writing to output file:", err)
-			return
-		}
-		output := fmt.Sprintf("gen_%s", tf.SourceFile)
-		outputFile, err := os.Create(output)
-		if err != nil {
-			fmt.Println("Error creating output file:", err)
-			return
-		}
-
-		_, err = outputFile.WriteString(codeStr)
-		if err != nil {
-			fmt.Println("Error writing to output file:", err)
-			return
-		}
-		outputFile.Close()
-	}
-
 	// generate transformer benchmarks
 	benchmarkCode, err := generateBenchmarkCode(packageName, transformerFuncs)
 	if err != nil {
@@ -303,6 +282,7 @@ var testValues = map[string]any{
 	"float64": 123.45,
 	"boolean": true,
 	"email":   `"test@test.com"`,
+	"any":     `"test"`,
 }
 
 const benchmarkTemplate = `

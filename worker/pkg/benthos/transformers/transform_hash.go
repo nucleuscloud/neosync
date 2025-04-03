@@ -11,7 +11,7 @@ import (
 	"hash"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/warpstreamlabs/bento/public/bloblang"
+	"github.com/redpanda-data/benthos/v4/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:transform:transformHash
@@ -103,10 +103,12 @@ func init() {
 }
 
 func NewTransformHashOptsFromConfig(config *mgmtv1alpha1.TransformHash) (*TransformHashOpts, error) {
+	defaultAlgo := TransformHashAlgo_Md5.String()
 	if config == nil {
-		return NewTransformHashOpts("md5")
+		return NewTransformHashOpts(&defaultAlgo)
 	}
-	return NewTransformHashOpts(config.GetAlgo().String())
+	algo := config.GetAlgo().String()
+	return NewTransformHashOpts(&algo)
 }
 
 func (t *TransformHash) Transform(value, opts any) (any, error) {
@@ -114,16 +116,13 @@ func (t *TransformHash) Transform(value, opts any) (any, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
-	_ = parsedOpts
 
 	valueStr, ok := value.(string)
 	if !ok {
 		return nil, errors.New("value is not a string")
 	}
-	_ = valueStr
-
-	// todo: implement this
-	return nil, nil
+	hashFunc := hashToFunction(TransformHashAlgo(parsedOpts.algo))
+	return hashFunc(valueStr)
 }
 
 func hashToFunction(algo TransformHashAlgo) func(any) (string, error) {

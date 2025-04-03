@@ -20,8 +20,13 @@ func NewTransformHash() *TransformHash {
 }
 
 func NewTransformHashOpts(
-	algo string,
+	algoArg *string,
 ) (*TransformHashOpts, error) {
+	algo := string(TransformHashAlgo_Md5.String())
+	if algoArg != nil {
+		algo = *algoArg
+	}
+	
 	return &TransformHashOpts{
 		algo: algo,
 	}, nil
@@ -57,10 +62,10 @@ func (t *TransformHash) GetJsTemplateData() (*TemplateData, error) {
 func (t *TransformHash) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &TransformHashOpts{}
 
-	if _, ok := opts["algo"].(string); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformHash", "algo")
+	algo, ok := opts["algo"].(string)
+	if !ok {
+		algo = TransformHashAlgo_Md5.String()
 	}
-	algo := opts["algo"].(string)
 	transformerOpts.algo = algo
 
 	return transformerOpts, nil

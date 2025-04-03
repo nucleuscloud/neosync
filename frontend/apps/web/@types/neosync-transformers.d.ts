@@ -114,7 +114,7 @@ declare namespace neosync {
 	
 	export interface TransformHashOptions {
 		/** The hashing algorithm to use. Oneof: md5, sha1, sha256, sha512. Defaults to md5. */
-		algo: string;
+		algo?: string;
 	}
 
   /**

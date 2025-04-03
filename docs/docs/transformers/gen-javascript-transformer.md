@@ -269,14 +269,14 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| algo | string |  | true | The hashing algorithm to use. Oneof: md5, sha1, sha256, sha512. Defaults to md5.<br/>
+| algo | string | TransformHashAlgo_Md5.String() | false | The hashing algorithm to use. Oneof: md5, sha1, sha256, sha512. Defaults to md5.<br/>
 
 **Example**
 
 ```javascript
 
 const newValue = neosync.transformHash(value, {
-	algo: "", 
+	algo: TransformHashAlgo_Md5.String(),
 });
 
 ```
