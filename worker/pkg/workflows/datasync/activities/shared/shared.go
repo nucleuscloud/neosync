@@ -9,7 +9,6 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
@@ -181,22 +180,6 @@ func GetRedisConfig() *neosync_redis.RedisConfig {
 			RootCertAuthorityFile: &rootCertAuthorityFile,
 		},
 	}
-}
-
-func BuildBenthosRedisTlsConfig(
-	redisConfig *neosync_redis.RedisConfig,
-) *neosync_benthos.RedisTlsConfig {
-	var tls *neosync_benthos.RedisTlsConfig
-	if redisConfig.Tls != nil && redisConfig.Tls.Enabled {
-		tls = &neosync_benthos.RedisTlsConfig{
-			Enabled:             redisConfig.Tls.Enabled,
-			SkipCertVerify:      redisConfig.Tls.SkipCertVerify,
-			EnableRenegotiation: redisConfig.Tls.EnableRenegotiation,
-			RootCas:             redisConfig.Tls.RootCertAuthority,
-			RootCasFile:         redisConfig.Tls.RootCertAuthorityFile,
-		}
-	}
-	return tls
 }
 
 func GetJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (string, error) {

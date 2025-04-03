@@ -360,16 +360,6 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(
 			updateDatatypesStatements,
 			sqlmanager_postgres.BuildUpdateEnumStatements(enum.Enum.Schema, enum.Enum.Name, enum.NewValues, enum.ChangedValues)...)
 	}
-
-	updateColumnStatements := []string{}
-	renameColumnStatements := []string{}
-	for _, column := range diff.ExistsInBoth.Different.Columns {
-		if column.RenameColumn != nil {
-			renameColumnStatements = append(renameColumnStatements, sqlmanager_postgres.BuildRenameColumnStatement(column))
-		}
-		updateColumnStatements = append(updateColumnStatements, sqlmanager_postgres.BuildAlterColumnStatement(column)...)
-	}
-
 	for _, composite := range diff.ExistsInBoth.Different.Composites {
 		updateDatatypesStatements = append(
 			updateDatatypesStatements,
@@ -449,14 +439,6 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(
 		{
 			Label:      sqlmanager_shared.UpdateDatatypesLabel,
 			Statements: updateDatatypesStatements,
-		},
-		{
-			Label:      sqlmanager_shared.RenameColumnsLabel,
-			Statements: renameColumnStatements,
-		},
-		{
-			Label:      sqlmanager_shared.UpdateColumnsLabel,
-			Statements: updateColumnStatements,
 		},
 	}, nil
 }

@@ -16,7 +16,10 @@ import (
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_connectiondata "github.com/nucleuscloud/neosync/worker/pkg/benthos/neosync_connection_data"
 	openaigenerate "github.com/nucleuscloud/neosync/worker/pkg/benthos/openai_generate"
+	benthos_redis "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
+	"github.com/redis/go-redis/v9"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/redpanda-data/benthos/v4/public/service"
 	"go.opentelemetry.io/otel/metric"
@@ -34,6 +37,10 @@ type RegisterConfig struct {
 	stopChannel chan<- error
 
 	blobEnv *bloblang.Environment
+
+	transformPiiTextApi transformers.TransformPiiTextApi
+
+	redisConfig *RedisConfig // nil to disable
 }
 
 type Option func(cfg *RegisterConfig)
@@ -59,6 +66,11 @@ func WithMongoConfig(mongocfg *MongoConfig) Option {
 		cfg.mongoConfig = mongocfg
 	}
 }
+func WithRedisConfig(redisConfig *RedisConfig) Option {
+	return func(cfg *RegisterConfig) {
+		cfg.redisConfig = redisConfig
+	}
+}
 func WithConnectionDataConfig(connectionDataCfg *ConnectionDataConfig) Option {
 	return func(cfg *RegisterConfig) {
 		cfg.connectionDataConfig = connectionDataCfg
@@ -67,6 +79,11 @@ func WithConnectionDataConfig(connectionDataCfg *ConnectionDataConfig) Option {
 func WithBlobEnv(b *bloblang.Environment) Option {
 	return func(cfg *RegisterConfig) {
 		cfg.blobEnv = b
+	}
+}
+func WithTransformPiiTextApi(transformPiiTextApi transformers.TransformPiiTextApi) Option {
+	return func(cfg *RegisterConfig) {
+		cfg.transformPiiTextApi = transformPiiTextApi
 	}
 }
 
@@ -79,6 +96,10 @@ type SqlConfig struct {
 
 type MongoConfig struct {
 	Provider neosync_benthos_mongodb.MongoPoolProvider
+}
+
+type RedisConfig struct {
+	Client redis.UniversalClient
 }
 
 type ConnectionDataConfig struct {
@@ -169,6 +190,24 @@ func NewWithEnvironment(
 		}
 	}
 
+	if config.redisConfig != nil {
+		err := benthos_redis.RegisterRedisHashOutput(env, config.redisConfig.Client)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to register redis_hash output to benthos instance: %w",
+				err,
+			)
+		}
+
+		err = benthos_redis.RegisterRedisProcessor(env, config.redisConfig.Client)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to register redis processor to benthos instance: %w",
+				err,
+			)
+		}
+	}
+
 	if config.connectionDataConfig != nil {
 		err := neosync_benthos_connectiondata.RegisterNeosyncConnectionDataInput(
 			env,
@@ -248,7 +287,7 @@ func NewWithEnvironment(
 		)
 	}
 
-	err = javascript_processor.RegisterNeosyncJavascriptProcessor(env)
+	err = javascript_processor.RegisterNeosyncJavascriptProcessor(env, config.transformPiiTextApi)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"unable to register javascript processor to benthos instance: %w",

@@ -209,11 +209,11 @@ func (s *NeosyncApiTestClient) setupMux(
 	transformerService := v1alpha1_transformersservice.New(
 		&v1alpha1_transformersservice.Config{
 			IsPresidioEnabled: isPresidioEnabled,
-			IsNeosyncCloud:    isNeosyncCloud,
 		},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		s.Mocks.Presidio.Entities,
 		userclient,
+		license,
 	)
 
 	sqlmanagerclient := NewTestSqlManagerClient()
@@ -289,6 +289,7 @@ func (s *NeosyncApiTestClient) setupMux(
 		presAnalyzeClient,
 		presAnonClient,
 		neosyncDb,
+		license,
 	)
 
 	connectionDataService := v1alpha1_connectiondataservice.New(

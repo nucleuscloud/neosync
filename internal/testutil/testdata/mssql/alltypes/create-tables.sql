@@ -48,6 +48,19 @@ CREATE TABLE neo_schema.alldatatypes (
     -- col_sql_variant SQL_VARIANT
 );
 
+-- Temporal Table
+CREATE TABLE neo_schema.temporal_table (
+    id INT NOT NULL PRIMARY KEY CLUSTERED,
+    valid_from DATETIME2 GENERATED ALWAYS AS ROW START,
+    valid_to DATETIME2 GENERATED ALWAYS AS ROW END,
+    PERIOD FOR SYSTEM_TIME(valid_from, valid_to)
+)
+
+INSERT INTO neo_schema.temporal_table (id)
+VALUES (2),
+       (3),
+       (4);
+
 
 INSERT INTO neo_schema.alldatatypes (
     -- Exact numerics

@@ -144,9 +144,9 @@ func generateE164FormatPhoneNumberPreserveLength(
 	randomizer rng.Rand,
 	number string,
 ) (string, error) {
-	val := strings.Split(number, "+")
+	numberWithoutPlus := strings.TrimPrefix(number, "+")
 
-	length := int64(len(val[1]))
+	length := int64(len(numberWithoutPlus))
 
 	vals, err := transformer_utils.GenerateRandomInt64FixedLength(randomizer, length)
 	if err != nil {

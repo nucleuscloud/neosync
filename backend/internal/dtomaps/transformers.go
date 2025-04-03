@@ -24,6 +24,10 @@ func ToUserDefinedTransformerDto(
 			input.Source,
 		)
 	}
+	dto, err := input.TransformerConfig.ToTransformerConfigDto()
+	if err != nil {
+		return nil, err
+	}
 	return &mgmtv1alpha1.UserDefinedTransformer{
 		Id:          neosyncdb.UUIDString(input.ID),
 		Name:        input.Name,
@@ -31,7 +35,7 @@ func ToUserDefinedTransformerDto(
 		Source:      source,
 		DataType:    transformer.DataType, //nolint:staticcheck
 		DataTypes:   transformer.DataTypes,
-		Config:      input.TransformerConfig.ToTransformerConfigDto(),
+		Config:      dto,
 		CreatedAt:   timestamppb.New(input.CreatedAt.Time),
 		UpdatedAt:   timestamppb.New(input.UpdatedAt.Time),
 		AccountId:   neosyncdb.UUIDString(input.AccountID),

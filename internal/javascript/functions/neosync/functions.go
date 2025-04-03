@@ -16,12 +16,14 @@ const (
 	namespace = "neosync"
 )
 
-func Get() ([]*javascript_functions.FunctionDefinition, error) {
+func Get(
+	transformPiiTextApi transformers.TransformPiiTextApi,
+) ([]*javascript_functions.FunctionDefinition, error) {
 	generatorFns, err := getNeosyncGenerators()
 	if err != nil {
 		return nil, err
 	}
-	transformerFns, err := getNeosyncTransformers()
+	transformerFns, err := getNeosyncTransformers(transformPiiTextApi)
 	if err != nil {
 		return nil, err
 	}
@@ -151,8 +153,13 @@ func getNeosyncGenerators() ([]*javascript_functions.FunctionDefinition, error) 
 	return fns, nil
 }
 
-func getNeosyncTransformers() ([]*javascript_functions.FunctionDefinition, error) {
+func getNeosyncTransformers(
+	transformPiiTextApi transformers.TransformPiiTextApi,
+) ([]*javascript_functions.FunctionDefinition, error) {
 	neosyncTransformers := transformers.GetNeosyncTransformers()
+	if transformPiiTextApi != nil {
+		neosyncTransformers = append(neosyncTransformers, transformers.NewTransformPiiText(transformPiiTextApi))
+	}
 	fns := make([]*javascript_functions.FunctionDefinition, 0, len(neosyncTransformers))
 	for _, f := range neosyncTransformers {
 		templateData, err := f.GetJsTemplateData()

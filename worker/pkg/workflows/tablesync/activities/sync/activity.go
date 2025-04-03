@@ -25,6 +25,7 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
+	"github.com/redis/go-redis/v9"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/redpanda-data/benthos/v4/public/service"
 	"go.opentelemetry.io/otel/metric"
@@ -45,6 +46,8 @@ type Activity struct {
 	meter                metric.Meter // optional
 	benthosStreamManager benthosstream.BenthosStreamManagerClient
 	temporalclient       temporalclient.Client
+	anonymizationClient  mgmtv1alpha1connect.AnonymizationServiceClient
+	redisclient          redis.UniversalClient
 }
 
 func New(
@@ -55,6 +58,8 @@ func New(
 	meter metric.Meter,
 	benthosStreamManager benthosstream.BenthosStreamManagerClient,
 	temporalclient temporalclient.Client,
+	anonymizationClient mgmtv1alpha1connect.AnonymizationServiceClient,
+	redisclient redis.UniversalClient,
 ) *Activity {
 	return &Activity{
 		connclient:           connclient,
@@ -64,6 +69,8 @@ func New(
 		meter:                meter,
 		benthosStreamManager: benthosStreamManager,
 		temporalclient:       temporalclient,
+		anonymizationClient:  anonymizationClient,
+		redisclient:          redisclient,
 	}
 }
 
@@ -200,6 +207,7 @@ func (a *Activity) SyncTable(
 
 	bstream, err := a.getBenthosStream(
 		&info,
+		req.AccountId,
 		benthosConfig,
 		session,
 		stopActivityChan,
@@ -207,6 +215,7 @@ func (a *Activity) SyncTable(
 		hasMorePages,
 		continuationToken,
 		identityAllocator,
+		a.anonymizationClient,
 		logger,
 	)
 	if err != nil {
@@ -338,6 +347,7 @@ func runStream(
 
 func (a *Activity) getBenthosStream(
 	info *activity.Info,
+	accountId string,
 	benthosConfig string,
 	session connectionmanager.SessionInterface,
 	stopActivityChan chan error,
@@ -345,17 +355,21 @@ func (a *Activity) getBenthosStream(
 	hasMorePages neosync_benthos_sql.OnHasMorePagesFn,
 	continuationToken *continuation_token.ContinuationToken,
 	identityAllocator tablesync_shared.IdentityAllocator,
+	anonymizationClient mgmtv1alpha1connect.AnonymizationServiceClient,
 	logger *slog.Logger,
 ) (benthosstream.BenthosStreamClient, error) {
 	benenv, err := a.getBenthosEnvironment(
 		logger,
 		info.Attempt > 1,
+		accountId,
 		getConnectionById,
 		session,
 		stopActivityChan,
 		hasMorePages,
 		continuationToken,
 		identityAllocator,
+		anonymizationClient,
+		a.redisclient,
 	)
 	if err != nil {
 		return nil, err
@@ -393,17 +407,28 @@ func (a *Activity) getBenthosStream(
 func (a *Activity) getBenthosEnvironment(
 	logger *slog.Logger,
 	isRetry bool,
+	accountId string,
 	getConnectionById func(connectionId string) (connectionmanager.ConnectionInput, error),
 	session connectionmanager.SessionInterface,
 	stopActivityChan chan error,
 	hasMorePages neosync_benthos_sql.OnHasMorePagesFn,
 	continuationToken *continuation_token.ContinuationToken,
 	identityAllocator tablesync_shared.IdentityAllocator,
+	anonymizationClient mgmtv1alpha1connect.AnonymizationServiceClient,
+	redisclient redis.UniversalClient,
 ) (*service.Environment, error) {
 	blobEnv := bloblang.NewEnvironment()
 	err := transformers.RegisterTransformIdentityScramble(blobEnv, identityAllocator)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register identity scramble transformer: %w", err)
+	}
+	transformPiiTextApiForAccount := transformers.NewAccountAwareAnonymizationPiiTextApi(
+		anonymizationClient,
+		accountId,
+	)
+	err = transformers.RegisterTransformPiiText(blobEnv, transformPiiTextApiForAccount)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register pii text transformer: %w", err)
 	}
 	benenv, err := benthos_environment.NewEnvironment(
 		logger,
@@ -427,8 +452,10 @@ func (a *Activity) getBenthosEnvironment(
 				logger,
 			),
 		}),
+		benthos_environment.WithRedisConfig(&benthos_environment.RedisConfig{Client: redisclient}),
 		benthos_environment.WithStopChannel(stopActivityChan),
 		benthos_environment.WithBlobEnv(blobEnv),
+		benthos_environment.WithTransformPiiTextApi(transformPiiTextApiForAccount),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to instantiate benthos environment: %w", err)

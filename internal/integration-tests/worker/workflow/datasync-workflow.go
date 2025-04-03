@@ -116,6 +116,7 @@ func NewTestDataSyncWorkflowEnv(
 	transformerclient := neosyncApi.OSSUnauthenticatedLicensedClients.Transformers()
 	userclient := neosyncApi.OSSUnauthenticatedLicensedClients.Users()
 	accounthookclient := neosyncApi.OSSUnauthenticatedLicensedClients.AccountHooks()
+	anonymizationclient := neosyncApi.OSSUnauthenticatedLicensedClients.Anonymize()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	testSuite.SetLogger(log.NewStructuredLogger(testutil.GetConcurrentTestLogger(t)))
 	env := testSuite.NewTestWorkflowEnvironment()
@@ -129,7 +130,6 @@ func NewTestDataSyncWorkflowEnv(
 		connclient,
 		transformerclient,
 		dbManagers.SqlManager,
-		workflowEnv.redisconfig,
 		workflowEnv.fakeEELicense,
 		workflowEnv.Redisclient,
 		false,
@@ -155,6 +155,8 @@ func NewTestDataSyncWorkflowEnv(
 		benthosstream.NewBenthosStreamManager(),
 		neosyncApi.Mocks.TemporalClient,
 		workflowEnv.maxIterations,
+		anonymizationclient,
+		workflowEnv.Redisclient,
 	)
 
 	if workflowEnv.fakeEELicense.IsValid() {

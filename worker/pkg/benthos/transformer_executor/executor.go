@@ -112,7 +112,17 @@ func InitializeTransformerByConfigType(
 		}
 
 		valueApi := newAnonValueApi()
-		runner, err := javascript.NewDefaultValueRunner(valueApi, execCfg.logger)
+		var transformPiiTextApi transformers.TransformPiiTextApi
+		if execCfg.transformPiiText != nil {
+			execCfg.logger.Debug("configuring using transform pii text api in generate javascript")
+			transformPiiTextApi = newFromExecConfig(
+				execCfg.transformPiiText,
+				execCfg.transformPiiText.neosyncOperatorApi,
+				execCfg.logger,
+			)
+		}
+
+		runner, err := javascript.NewDefaultValueRunner(valueApi, transformPiiTextApi, execCfg.logger)
 		if err != nil {
 			return nil, err
 		}
@@ -148,7 +158,16 @@ func InitializeTransformerByConfigType(
 		}
 
 		valueApi := newAnonValueApi()
-		runner, err := javascript.NewDefaultValueRunner(valueApi, execCfg.logger)
+		var transformPiiTextApi transformers.TransformPiiTextApi
+		if execCfg.transformPiiText != nil {
+			execCfg.logger.Debug("configuring using transform pii text api in transform javascript")
+			transformPiiTextApi = newFromExecConfig(
+				execCfg.transformPiiText,
+				execCfg.transformPiiText.neosyncOperatorApi,
+				execCfg.logger,
+			)
+		}
+		runner, err := javascript.NewDefaultValueRunner(valueApi, transformPiiTextApi, execCfg.logger)
 		if err != nil {
 			return nil, err
 		}
@@ -731,6 +750,12 @@ func InitializeTransformerByConfigType(
 			config.Language = execCfg.transformPiiText.defaultLanguage
 		}
 
+		transformPiiTextApi := newFromExecConfig(
+			execCfg.transformPiiText,
+			execCfg.transformPiiText.neosyncOperatorApi,
+			execCfg.logger,
+		)
+
 		return &TransformerExecutor{
 			Opts: nil,
 			Mutate: func(value, opts any) (any, error) {
@@ -738,12 +763,10 @@ func InitializeTransformerByConfigType(
 				if !ok {
 					return nil, fmt.Errorf("expected value to be of type string. %T", value)
 				}
-				return ee_transformer_fns.TransformPiiText(
+				return transformPiiTextApi.Transform(
 					context.Background(),
-					execCfg.transformPiiText.analyze, execCfg.transformPiiText.anonymize, execCfg.transformPiiText.neosyncOperatorApi,
 					config,
 					valueStr,
-					execCfg.logger,
 				)
 			},
 		}, nil

@@ -358,6 +358,11 @@ func serve(ctx context.Context) error {
 		neosyncurl,
 		connectInterceptorOption,
 	)
+	anonymizationclient := mgmtv1alpha1connect.NewAnonymizationServiceClient(
+		httpclient,
+		neosyncurl,
+		connectInterceptorOption,
+	)
 
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
 	sqlconnmanager := connectionmanager.NewConnectionManager(sqlprovider.NewProvider(sqlConnector))
@@ -389,6 +394,8 @@ func serve(ctx context.Context) error {
 		streamManager,
 		temporalClient,
 		maxIterations,
+		anonymizationclient,
+		redisclient,
 	)
 
 	schemainit_workflow_register.Register(
@@ -403,7 +410,7 @@ func serve(ctx context.Context) error {
 	datasync_workflow_register.Register(
 		w,
 		userclient, jobclient, connclient, transformerclient,
-		sqlmanager, redisconfig, cascadelicense, redisclient,
+		sqlmanager, cascadelicense, redisclient,
 		otelconfig.IsEnabled,
 		pageLimit,
 		postgresSchemaDrift,
