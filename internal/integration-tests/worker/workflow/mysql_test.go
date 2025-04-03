@@ -706,17 +706,7 @@ func test_mysql_schema_reconciliation_compare_schemas(
 	require.NoError(t, err, "failed to get source triggers")
 	destTriggers, err := destManager.GetSchemaTableTriggers(ctx, schematables)
 	require.NoError(t, err, "failed to get destination triggers")
-
-	require.Len(t, srcTriggers, len(destTriggers), "source and destination have different number of triggers")
-	destTriggersMap := make(map[string]*sqlmanager_shared.TableTrigger)
-	for _, trigger := range destTriggers {
-		destTriggersMap[trigger.Fingerprint] = trigger
-	}
-	for _, trigger := range srcTriggers {
-		destTrigger, ok := destTriggersMap[trigger.Fingerprint]
-		require.True(t, ok, "destination missing trigger with fingerprint %s", trigger.Fingerprint)
-		require.Equal(t, trigger.Definition, destTrigger.Definition, "trigger definitions do not match for fingerprint %s", trigger.Fingerprint)
-	}
+	assert_fingerprints_match_in_source_and_target(t, srcTriggers, destTriggers, "triggers")
 
 	t.Logf("checking table constraints are the same in source and destination")
 	srcConstraints, err := srcManager.GetTableConstraintsByTables(ctx, schema, tables)
@@ -733,57 +723,23 @@ func test_mysql_schema_reconciliation_compare_schemas(
 		require.Equal(t, srcfk, destfk, "foreign key constraints do not match for table %s", table)
 		require.Equal(t, srcNonFk, destNonFk, "non-foreign key constraints do not match for table %s", table)
 
-		for _, fk := range srcfk {
-			require.Contains(t, destfk, fk, "destination missing foreign key constraint in table %s", table)
-		}
-		for _, fk := range destfk {
-			require.Contains(t, srcfk, fk, "source missing foreign key constraint in table %s", table)
-		}
-
-		for _, nonFk := range srcNonFk {
-			require.Contains(t, destNonFk, nonFk, "destination missing non-foreign key constraint in table %s", table)
-		}
-		for _, nonFk := range destNonFk {
-			require.Contains(t, srcNonFk, nonFk, "source missing non-foreign key constraint in table %s", table)
-		}
+		assert_fingerprints_match_in_source_and_target(t, srcfk, destfk, "foreign key constraints")
+		assert_fingerprints_match_in_source_and_target(t, srcNonFk, destNonFk, "non-foreign key constraints")
 	}
 
 	t.Logf("checking functions are the same in source and destination")
-	srcFunctions, err := srcManager.GetSchemaTableDataTypes(ctx, schematables)
+	srcDatatypes, err := srcManager.GetSchemaTableDataTypes(ctx, schematables)
 	require.NoError(t, err, "failed to get source functions")
-	destFunctions, err := destManager.GetSchemaTableDataTypes(ctx, schematables)
+	destDatatypes, err := destManager.GetSchemaTableDataTypes(ctx, schematables)
 	require.NoError(t, err, "failed to get destination functions")
-
-	require.Len(t, srcFunctions.Functions, len(destFunctions.Functions), "source and destination have different number of functions")
-	for _, function := range srcFunctions.Functions {
-		require.Contains(t, destFunctions.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
-	}
-	for _, function := range destFunctions.Functions {
-		require.Contains(t, srcFunctions.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
-	}
+	assert_fingerprints_match_in_source_and_target(t, srcDatatypes.Functions, destDatatypes.Functions, "functions")
 
 	t.Logf("checking columns are the same in source and destination")
 	srcColumns, err := srcManager.GetColumnsByTables(ctx, schematables)
 	require.NoError(t, err, "failed to get source columns")
 	destColumns, err := destManager.GetColumnsByTables(ctx, schematables)
 	require.NoError(t, err, "failed to get destination columns")
-
-	srcColsMap := map[string]*sqlmanager_shared.TableColumn{}
-	for _, column := range srcColumns {
-		srcColsMap[column.Fingerprint] = column
-	}
-	destColsMap := map[string]*sqlmanager_shared.TableColumn{}
-	for _, column := range destColumns {
-		destColsMap[column.Fingerprint] = column
-	}
-
-	require.Len(t, srcColumns, len(destColumns), "source and destination have different number of columns")
-	for _, column := range srcColumns {
-		require.Contains(t, destColsMap, column.Fingerprint, "destination missing column with fingerprint %s", column.Fingerprint)
-	}
-	for _, column := range destColumns {
-		require.Contains(t, srcColsMap, column.Fingerprint, "source missing column with fingerprint %s", column.Fingerprint)
-	}
+	assert_fingerprints_match_in_source_and_target(t, srcColumns, destColumns, "columns")
 }
 
 func test_mysql_schema_reconciliation_column_values(
