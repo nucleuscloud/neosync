@@ -12,7 +12,6 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	rc "github.com/nucleuscloud/neosync/internal/runconfigs"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -124,7 +123,6 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		mockJobId,
 		mockRunId,
 		nil,
-		nil,
 	)
 	require.Nil(t, err)
 	require.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
@@ -227,7 +225,6 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		mockJobId,
 		mockRunId,
 		nil,
-		nil,
 	)
 	require.NoError(t, err)
 	require.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
@@ -304,24 +301,24 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	schemaTable := sqlmanager_shared.SchemaTable{Schema: "public", Table: "users"}
 	runconfig := rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{}, nil, []string{}, []string{}, []*rc.DependsOn{}, false)
-	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
-	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	runconfig = rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{}, nil, []string{}, []string{"id"}, []*rc.DependsOn{}, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{
 		{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "id"}},
-	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{
 		{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}}},
-	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
@@ -329,7 +326,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 		{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
 		}}}},
-	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
@@ -345,7 +342,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}}},
-	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 
 	require.Nil(t, err)
 
@@ -381,7 +378,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	runconfig = rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{"id"}, nil, []string{"email"}, []string{"email"}, []*rc.DependsOn{}, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{
 		{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}},
-	}, groupedSchemas, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+	}, groupedSchemas, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 
 	require.Nil(t, err)
 	require.Equal(t, `root."email" = transform_email(value:this."email",preserve_length:false,preserve_domain:true,excluded_domains:[],max_length:40,email_type:"uuidv4",invalid_email_action:"reject")`, *output[0].Mutation)
@@ -431,7 +428,7 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	runconfig := rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{"id"}, nil, []string{"id"}, []string{"id"}, []*rc.DependsOn{}, false)
 	resp, err := buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{
 		{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}},
-	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
+	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 
 	require.NoError(t, err)
 	require.Empty(t, resp)
@@ -1293,8 +1290,7 @@ func Test_buildBranchCacheConfigs_null(t *testing.T) {
 		},
 	}
 
-	resp, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId, nil)
-	require.NoError(t, err)
+	resp := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId)
 	require.Len(t, resp, 0)
 }
 
@@ -1320,8 +1316,8 @@ func Test_buildBranchCacheConfigs_missing_redis(t *testing.T) {
 		},
 	}
 
-	_, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId, nil)
-	require.Error(t, err)
+	resp := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId)
+	require.Len(t, resp, 0)
 }
 
 func Test_buildBranchCacheConfigs_success(t *testing.T) {
@@ -1354,14 +1350,8 @@ func Test_buildBranchCacheConfigs_success(t *testing.T) {
 			},
 		},
 	}
-	redisConfig := &neosync_redis.RedisConfig{
-		Url:  "redis://localhost:6379",
-		Kind: "simple",
-	}
+	resp := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId)
 
-	resp, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId, redisConfig)
-
-	require.NoError(t, err)
 	require.Len(t, resp, 1)
 	require.Equal(t, *resp[0].RequestMap, `root = if this."user_id" == null { deleted() } else { this }`)
 	require.Equal(t, *resp[0].ResultMap, `root."user_id" = this`)
@@ -1388,13 +1378,8 @@ func Test_buildBranchCacheConfigs_self_referencing(t *testing.T) {
 			},
 		},
 	}
-	redisConfig := &neosync_redis.RedisConfig{
-		Url:  "redis://localhost:6379",
-		Kind: "simple",
-	}
 
-	resp, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId, redisConfig)
-	require.NoError(t, err)
+	resp := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId)
 	require.Len(t, resp, 0)
 }
 

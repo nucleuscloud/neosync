@@ -106,6 +106,11 @@ func Test_Workflow(t *testing.T) {
 			test_postgres_complex(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
 
+		t.Run("passthrough_on_new_column_addition", func(t *testing.T) {
+			t.Parallel()
+			test_postgres_passthrough_on_new_column_addition(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
 		t.Run("schema_reconciliation", func(t *testing.T) {
 			t.Parallel()
 			t.Run("truncate", func(t *testing.T) {

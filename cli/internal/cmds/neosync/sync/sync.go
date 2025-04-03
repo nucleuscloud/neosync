@@ -426,7 +426,6 @@ func (c *clisync) configureSync() ([][]*benthosbuilder.BenthosConfigResponse, er
 		Sqlmanagerclient:      c.sqlmanagerclient,
 		Transformerclient:     c.transformerclient,
 		Connectiondataclient:  c.connectiondataclient,
-		RedisConfig:           nil,
 		MetricsEnabled:        false,
 	}
 	bm, err := benthosbuilder.NewCliBenthosConfigManager(benthosManagerConfig)

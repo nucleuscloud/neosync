@@ -5,39 +5,69 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"text/template"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 )
 
-const getDatabaseSchema = `-- name: GetDatabaseSchema :many
+var getDatabaseSchemaTmpl = `-- name: GetDatabaseSchema :many
 SELECT
     s.name AS table_schema,
     t.name AS table_name,
     c.name AS column_name,
     c.column_id AS ordinal_position,
-    ISNULL(dc.definition, '') AS column_default,
-    CASE WHEN c.is_nullable = 1 THEN 'YES' ELSE 'NO' END AS is_nullable,
+    dc.definition as column_default,
+    c.is_nullable,
     tp.name AS data_type,
     CASE WHEN tp.name IN ('nchar', 'nvarchar') AND c.max_length != -1 THEN c.max_length / 2
          WHEN tp.name IN ('char', 'varchar') AND c.max_length != -1 THEN c.max_length
+         WHEN tp.name IN ('binary', 'varbinary') AND c.max_length != -1 THEN c.max_length
          ELSE NULL
     END AS character_maximum_length,
     c.precision AS numeric_precision,
     c.scale AS numeric_scale,
     c.is_identity,
-    c.is_computed,
     CASE
-        WHEN c.is_computed = 1 THEN cc.definition
-        ELSE NULL
-    END AS generation_expression,
-     CASE
         WHEN c.is_identity = 1 THEN CAST(IDENT_SEED(s.name + '.' + t.name) AS VARCHAR(50))
         ELSE NULL
     END AS identity_seed,
     CASE
         WHEN c.is_identity = 1 THEN CAST(IDENT_INCR(s.name + '.' + t.name) AS VARCHAR(50))
         ELSE NULL
-    END AS identity_increment
+    END AS identity_increment,
+    c.is_computed,
+    CASE
+        WHEN cc.is_persisted = 1 THEN 1
+        ELSE 0
+    END as is_persisted,
+    cc.definition as generation_expression,
+    CASE
+        WHEN c.generated_always_type = 1 THEN 'GENERATED ALWAYS AS ROW START'
+        WHEN c.generated_always_type = 2 THEN 'GENERATED ALWAYS AS ROW END'
+        WHEN c.generated_always_type = 5 THEN 'GENERATED ALWAYS AS TRANSACTION_ID_START'
+        WHEN c.generated_always_type = 6 THEN 'GENERATED ALWAYS AS TRANSACTION_ID_END'
+        WHEN c.generated_always_type = 7 THEN 'GENERATED ALWAYS AS SEQUENCE_NUMBER_START'
+        WHEN c.generated_always_type = 8 THEN 'GENERATED ALWAYS AS SEQUENCE_NUMBER_END'
+        ELSE NULL
+    END AS generated_always_type,
+    CASE WHEN c.generated_always_type != 0 THEN
+       (SELECT
+            CONCAT('PERIOD FOR SYSTEM_TIME (',
+                  start_column.name, ', ',
+                  end_column.name, ')')
+         FROM sys.periods p
+         JOIN sys.columns start_column ON p.start_column_id = start_column.column_id
+            AND p.object_id = start_column.object_id
+         JOIN sys.columns end_column ON p.end_column_id = end_column.column_id
+            AND p.object_id = end_column.object_id
+         WHERE p.object_id = t.object_id)
+        ELSE NULL
+    END AS period_definition,
+    CASE WHEN c.generated_always_type != 0 AND t.temporal_type = 2
+        THEN 'SYSTEM_VERSIONING = ON'
+        ELSE NULL
+    END AS temporal_definition,
+    CASE WHEN pk.column_id IS NOT NULL THEN 1 ELSE 0 END as is_primary
 FROM
     sys.schemas s
     INNER JOIN sys.tables t ON s.schema_id = t.schema_id
@@ -45,27 +75,57 @@ FROM
     INNER JOIN sys.types tp ON c.user_type_id = tp.user_type_id
     LEFT JOIN sys.default_constraints dc ON c.default_object_id = dc.object_id
     LEFT JOIN sys.computed_columns cc ON c.object_id = cc.object_id AND c.column_id = cc.column_id
-WHERE
-    s.name NOT IN ('sys', 'INFORMATION_SCHEMA', 'db_owner', 'db_accessadmin', 'db_securityadmin', 'db_ddladmin', 'db_backupoperator', 'db_datareader', 'db_datawriter', 'db_denydatareader', 'db_denydatawriter')
-    AND t.type = 'U' AND t.temporal_type != 1
+    LEFT JOIN sys.periods p ON t.object_id = p.object_id
+    LEFT JOIN (
+        SELECT
+            ic.object_id,
+            ic.column_id
+        FROM sys.index_columns ic
+        INNER JOIN sys.indexes i
+            ON ic.object_id = i.object_id
+            AND ic.index_id = i.index_id
+        WHERE i.is_primary_key = 1
+    ) pk ON c.object_id = pk.object_id
+        AND c.column_id = pk.column_id
+{{ if .WhereClause }} WHERE {{ .WhereClause }} {{ end }}
 ORDER BY
-    s.name, t.name, c.column_id;
+    s.name,
+    t.name,
+    c.column_id;
 `
+
+type DatabaseSchemaTemplate struct {
+	WhereClause string
+}
+
+func generateDatabaseSchemaQuery(whereClause string) (string, error) {
+	tmpl := template.Must(template.New("databaseSchema").Parse(getDatabaseSchemaTmpl))
+	var out strings.Builder
+	if err := tmpl.Execute(&out, DatabaseSchemaTemplate{WhereClause: whereClause}); err != nil {
+		return "", err
+	}
+	return out.String(), nil
+}
 
 type GetDatabaseSchemaRow struct {
 	TableSchema            string
 	TableName              string
 	ColumnName             string
 	OrdinalPosition        int32
-	ColumnDefault          string
-	IsNullable             string
+	ColumnDefault          sql.NullString
+	IsNullable             bool
 	DataType               string
 	CharacterMaximumLength sql.NullInt32
 	NumericPrecision       sql.NullInt16
 	NumericScale           sql.NullInt16
 	IsIdentity             bool
 	IsComputed             bool
+	IsPersisted            bool
+	IsPrimary              bool
 	GenerationExpression   sql.NullString
+	GeneratedAlwaysType    sql.NullString
+	PeriodDefinition       sql.NullString
+	TemporalDefinition     sql.NullString
 	IdentitySeed           sql.NullInt32
 	IdentityIncrement      sql.NullInt32
 }
@@ -74,7 +134,15 @@ func (q *Queries) GetDatabaseSchema(
 	ctx context.Context,
 	db mysql_queries.DBTX,
 ) ([]*GetDatabaseSchemaRow, error) {
-	rows, err := db.QueryContext(ctx, getDatabaseSchema)
+	whereClause := `
+        s.name NOT IN ('sys', 'INFORMATION_SCHEMA', 'db_owner', 'db_accessadmin', 'db_securityadmin', 'db_ddladmin', 'db_backupoperator', 'db_datareader', 'db_datawriter', 'db_denydatareader', 'db_denydatawriter')
+        AND t.type = 'U' AND t.temporal_type != 1
+    `
+	getDatabaseSchemaSql, err := generateDatabaseSchemaQuery(whereClause)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := db.QueryContext(ctx, getDatabaseSchemaSql)
 	if err != nil {
 		return nil, err
 	}
@@ -94,10 +162,71 @@ func (q *Queries) GetDatabaseSchema(
 			&i.NumericPrecision,
 			&i.NumericScale,
 			&i.IsIdentity,
-			&i.IsComputed,
-			&i.GenerationExpression,
 			&i.IdentitySeed,
 			&i.IdentityIncrement,
+			&i.IsComputed,
+			&i.IsPersisted,
+			&i.GenerationExpression,
+			&i.GeneratedAlwaysType,
+			&i.PeriodDefinition,
+			&i.TemporalDefinition,
+			&i.IsPrimary,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(
+	ctx context.Context,
+	db mysql_queries.DBTX,
+	schematables []string,
+) ([]*GetDatabaseSchemaRow, error) {
+	placeholders, args := createSchemaTableParams(schematables)
+	whereClause := "t.type = 'U' AND t.temporal_type != 1 AND CONCAT(s.name, '.', t.name) IN (%s)"
+	whereSql := fmt.Sprintf(whereClause, placeholders)
+	getDatabaseSchemaSql, err := generateDatabaseSchemaQuery(whereSql)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := db.QueryContext(ctx, getDatabaseSchemaSql, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetDatabaseSchemaRow
+	for rows.Next() {
+		var i GetDatabaseSchemaRow
+		if err := rows.Scan(
+			&i.TableSchema,
+			&i.TableName,
+			&i.ColumnName,
+			&i.OrdinalPosition,
+			&i.ColumnDefault,
+			&i.IsNullable,
+			&i.DataType,
+			&i.CharacterMaximumLength,
+			&i.NumericPrecision,
+			&i.NumericScale,
+			&i.IsIdentity,
+			&i.IdentitySeed,
+			&i.IdentityIncrement,
+			&i.IsComputed,
+			&i.IsPersisted,
+			&i.GenerationExpression,
+			&i.GeneratedAlwaysType,
+			&i.PeriodDefinition,
+			&i.TemporalDefinition,
+			&i.IsPrimary,
 		); err != nil {
 			return nil, err
 		}
@@ -179,162 +308,6 @@ func (q *Queries) GetAllTables(
 	for rows.Next() {
 		var i GetAllTablesRow
 		if err := rows.Scan(&i.TableSchema, &i.TableName); err != nil {
-			return nil, err
-		}
-		items = append(items, &i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getDatabaseTableSchemasBySchemasAndTables = `-- name: getDatabaseTableSchemasBySchemasAndTables :many
-SELECT
-    s.name AS table_schema,
-    t.name AS table_name,
-    c.name AS column_name,
-    c.column_id AS ordinal_position,
-	dc.definition as column_default,
-    c.is_nullable,
-    tp.name AS data_type,
-    CASE WHEN tp.name IN ('nchar', 'nvarchar') AND c.max_length != -1 THEN c.max_length / 2
-         WHEN tp.name IN ('char', 'varchar') AND c.max_length != -1 THEN c.max_length
-         WHEN tp.name IN ('binary', 'varbinary') AND c.max_length != -1 THEN c.max_length
-         ELSE NULL
-    END AS character_maximum_length,
-    c.precision AS numeric_precision,
-    c.scale AS numeric_scale,
-    c.is_identity,
-    CASE
-        WHEN c.is_identity = 1 THEN CAST(IDENT_SEED(s.name + '.' + t.name) AS VARCHAR(50))
-        ELSE NULL
-    END AS identity_seed,
-    CASE
-        WHEN c.is_identity = 1 THEN CAST(IDENT_INCR(s.name + '.' + t.name) AS VARCHAR(50))
-        ELSE NULL
-    END AS identity_increment,
-    c.is_computed,
-    CASE
-    	WHEN cc.is_persisted = 1 THEN 1
-    	ELSE 0
-    END as is_persisted,
-    cc.definition as generation_expression,
-    CASE
-        WHEN c.generated_always_type = 1 THEN 'GENERATED ALWAYS AS ROW START'
-        WHEN c.generated_always_type = 2 THEN 'GENERATED ALWAYS AS ROW END'
-        WHEN c.generated_always_type = 5 THEN 'GENERATED ALWAYS AS TRANSACTION_ID_START'
-        WHEN c.generated_always_type = 6 THEN 'GENERATED ALWAYS AS TRANSACTION_ID_END'
-        WHEN c.generated_always_type = 7 THEN 'GENERATED ALWAYS AS SEQUENCE_NUMBER_START'
-        WHEN c.generated_always_type = 8 THEN 'GENERATED ALWAYS AS SEQUENCE_NUMBER_END'
-        ELSE NULL
-    END AS generated_always_type,
-    CASE WHEN c.generated_always_type != 0 THEN
-       (SELECT
-            CONCAT('PERIOD FOR SYSTEM_TIME (',
-                  start_column.name, ', ',
-                  end_column.name, ')')
-         FROM sys.periods p
-         JOIN sys.columns start_column ON p.start_column_id = start_column.column_id
-            AND p.object_id = start_column.object_id
-         JOIN sys.columns end_column ON p.end_column_id = end_column.column_id
-            AND p.object_id = end_column.object_id
-         WHERE p.object_id = t.object_id)
-   		ELSE NULL
-    END AS period_definition,
-    CASE WHEN c.generated_always_type != 0 AND t.temporal_type = 2
-		THEN 'SYSTEM_VERSIONING = ON'
-   		ELSE NULL
-    END AS temporal_definition,
-    CASE WHEN pk.column_id IS NOT NULL THEN 1 ELSE 0 END as is_primary
-FROM
-    sys.schemas s
-    INNER JOIN sys.tables t ON s.schema_id = t.schema_id
-    INNER JOIN sys.columns c ON t.object_id = c.object_id
-    INNER JOIN sys.types tp ON c.user_type_id = tp.user_type_id
-    LEFT JOIN sys.default_constraints dc ON c.default_object_id = dc.object_id
-    LEFT JOIN sys.computed_columns cc ON c.object_id = cc.object_id AND c.column_id = cc.column_id
-    LEFT JOIN sys.periods p ON t.object_id = p.object_id
-    LEFT JOIN (
-        SELECT
-            ic.object_id,
-            ic.column_id
-        FROM sys.index_columns ic
-        INNER JOIN sys.indexes i
-            ON ic.object_id = i.object_id
-            AND ic.index_id = i.index_id
-        WHERE i.is_primary_key = 1
-    ) pk ON c.object_id = pk.object_id
-        AND c.column_id = pk.column_id
-WHERE t.type = 'U' AND t.temporal_type != 1 AND CONCAT(s.name, '.', t.name) IN (%s)
-ORDER BY
-    s.name, t.name, c.column_id;
-`
-
-type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
-	TableSchema            string
-	TableName              string
-	ColumnName             string
-	OrdinalPosition        int32
-	ColumnDefault          sql.NullString
-	IsNullable             bool
-	DataType               string
-	CharacterMaximumLength sql.NullInt32
-	NumericPrecision       sql.NullInt16
-	NumericScale           sql.NullInt16
-	IsIdentity             bool
-	IsComputed             bool
-	IsPersisted            bool
-	IsPrimary              bool
-	GenerationExpression   sql.NullString
-	GeneratedAlwaysType    sql.NullString
-	PeriodDefinition       sql.NullString
-	TemporalDefinition     sql.NullString
-	IdentitySeed           sql.NullInt32
-	IdentityIncrement      sql.NullInt32
-}
-
-func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(
-	ctx context.Context,
-	db mysql_queries.DBTX,
-	schematables []string,
-) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
-	placeholders, args := createSchemaTableParams(schematables)
-	query := fmt.Sprintf(getDatabaseTableSchemasBySchemasAndTables, placeholders)
-
-	rows, err := db.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []*GetDatabaseTableSchemasBySchemasAndTablesRow
-	for rows.Next() {
-		var i GetDatabaseTableSchemasBySchemasAndTablesRow
-		if err := rows.Scan(
-			&i.TableSchema,
-			&i.TableName,
-			&i.ColumnName,
-			&i.OrdinalPosition,
-			&i.ColumnDefault,
-			&i.IsNullable,
-			&i.DataType,
-			&i.CharacterMaximumLength,
-			&i.NumericPrecision,
-			&i.NumericScale,
-			&i.IsIdentity,
-			&i.IdentitySeed,
-			&i.IdentityIncrement,
-			&i.IsComputed,
-			&i.IsPersisted,
-			&i.GenerationExpression,
-			&i.GeneratedAlwaysType,
-			&i.PeriodDefinition,
-			&i.TemporalDefinition,
-			&i.IsPrimary,
-		); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)

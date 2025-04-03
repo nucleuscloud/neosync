@@ -301,7 +301,7 @@ export default function Page(props: PageProps): ReactElement {
                                   'sourceOptions',
                                   {
                                     mssql: {
-                                      haltOnNewColumnAddition: false,
+                                      newColumnAdditionStrategy: 'halt',
                                       columnRemovalStrategy: 'continue',
                                     },
                                   },

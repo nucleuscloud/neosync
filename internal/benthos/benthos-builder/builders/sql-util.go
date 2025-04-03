@@ -594,6 +594,72 @@ func getParsedBatchingConfig(destOpt batchDestinationOption) (batchingConfig, er
 	return output, nil
 }
 
+// Based on the source schema and the provided mappings, we find the missing columns (if any) and generate passthrough job mappings for them automatically
+func getAdditionalPassthroughJobMappings(
+	groupedSchemas map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+	mappings []*mgmtv1alpha1.JobMapping,
+	getTableFromKey func(key string) (schema, table string, err error),
+	logger *slog.Logger,
+) ([]*mgmtv1alpha1.JobMapping, error) {
+	output := []*mgmtv1alpha1.JobMapping{}
+
+	tableColMappings := getUniqueColMappingsMap(mappings)
+
+	for schematable, cols := range groupedSchemas {
+		mappedCols, ok := tableColMappings[schematable]
+		if !ok {
+			// todo: we may want to generate mappings for this entire table? However this may be dead code as we get the grouped schemas based on the mappings
+			logger.Warn(
+				"table found in schema data that is not present in job mappings",
+				"table",
+				schematable,
+			)
+			continue
+		}
+		if len(cols) == len(mappedCols) {
+			continue
+		}
+		for col, info := range cols {
+			if _, ok := mappedCols[col]; !ok {
+				schema, table, err := getTableFromKey(schematable)
+				if err != nil {
+					return nil, err
+				}
+				// we found a column that is not present in the mappings, let's create a mapping for it
+				if info.GeneratedType != nil {
+					output = append(output, &mgmtv1alpha1.JobMapping{
+						Schema: schema,
+						Table:  table,
+						Column: col,
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
+									GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
+								},
+							},
+						},
+					})
+				} else {
+					output = append(output, &mgmtv1alpha1.JobMapping{
+						Schema: schema,
+						Table:  table,
+						Column: col,
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+									PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+								},
+							},
+						},
+					})
+				}
+			}
+		}
+	}
+
+	return output, nil
+}
+
 // Based on the source schema and the provided mappings, we find the missing columns (if any) and generate job mappings for them automatically
 func getAdditionalJobMappings(
 	driver string,
@@ -799,24 +865,118 @@ func getJmTransformerByPostgresDataType(
 			},
 		}, nil
 	// case "bytea": // todo https://www.postgresql.org/docs/current/datatype-binary.html
-	// case "date":
-	// 	return &mgmtv1alpha1.JobMappingTransformer{}
-
-	// case "time without time zone":
-	// 	return &mgmtv1alpha1.JobMappingTransformer{}
-
-	// case "time with time zone":
-	// 	return &mgmtv1alpha1.JobMappingTransformer{}
-
-	// case "interval":
-	// 	return &mgmtv1alpha1.JobMappingTransformer{}
-
-	// case "timestamp without time zone":
-	// 	return &mgmtv1alpha1.JobMappingTransformer{}
-
-	// case "timestamp with time zone":
-	// 	return &mgmtv1alpha1.JobMappingTransformer{}
-
+	case "date":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: `
+								const date = new Date();
+								const year = date.getFullYear();
+								const month = String(date.getMonth() + 1).padStart(2, '0');
+								const day = String(date.getDate()).padStart(2, '0');
+								return year + "-" + month + "-" + day;
+							`,
+					},
+				},
+			},
+		}, nil
+	case "time without time zone":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: `
+								const date = new Date();
+								const hours = String(date.getHours()).padStart(2, '0');
+								const minutes = String(date.getMinutes()).padStart(2, '0');
+								const seconds = String(date.getSeconds()).padStart(2, '0');
+								return hours + ":" + minutes + ":" + seconds;
+							`,
+					},
+				},
+			},
+		}, nil
+	case "time with time zone":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: `
+								const date = new Date();
+								const hours = String(date.getUTCHours()).padStart(2, '0');
+								const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+								const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+								const timezoneOffset = -date.getTimezoneOffset();
+								const absOffset = Math.abs(timezoneOffset);
+								const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, '0');
+								const offsetMinutes = String(absOffset % 60).padStart(2, '0');
+								const offsetSign = timezoneOffset >= 0 ? '+' : '-';
+								return hours + ":" + minutes + ":" + seconds + offsetSign + offsetHours + ":" + offsetMinutes;
+							`,
+					},
+				},
+			},
+		}, nil
+	case "interval":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: `
+								const date = new Date();
+								const hours = String(date.getUTCHours()).padStart(2, '0');
+								const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+								const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+								return hours + ":" + minutes + ":" + seconds;
+							`,
+					},
+				},
+			},
+		}, nil
+	case "timestamp without time zone":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: `
+								const date = new Date();
+								const year = date.getFullYear();
+								const month = String(date.getMonth() + 1).padStart(2, '0');
+								const day = String(date.getDate()).padStart(2, '0');
+								const hours = String(date.getHours()).padStart(2, '0');
+								const minutes = String(date.getMinutes()).padStart(2, '0');
+								const seconds = String(date.getSeconds()).padStart(2, '0');
+								return year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
+							`,
+					},
+				},
+			},
+		}, nil
+	case "timestamp with time zone":
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+						Code: `
+								const date = new Date();
+								const year = date.getUTCFullYear();
+								const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+								const day = String(date.getUTCDate()).padStart(2, '0');
+								const hours = String(date.getUTCHours()).padStart(2, '0');
+								const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+								const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+								const timezoneOffset = -date.getTimezoneOffset();
+								const absOffset = Math.abs(timezoneOffset);
+								const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, '0');
+								const offsetMinutes = String(absOffset % 60).padStart(2, '0');
+								const offsetSign = timezoneOffset >= 0 ? '+' : '-';
+								return year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds + offsetSign + offsetHours + ":" + offsetMinutes;
+							`,
+					},
+				},
+			},
+		}, nil
 	case "boolean":
 		return &mgmtv1alpha1.JobMappingTransformer{
 			Config: &mgmtv1alpha1.TransformerConfig{

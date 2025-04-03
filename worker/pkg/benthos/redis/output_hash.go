@@ -25,7 +25,6 @@ func redisHashOutputConfig() *service.ConfigSpec {
 		Stable().
 		Summary(`Sets Redis hash objects using the HMSET command.`).
 		Categories("Services").
-		Fields(clientFields()...).
 		Fields(
 			service.NewInterpolatedStringField(hoFieldKey).
 				Description("The key for each message, function interpolations should be used to create a unique key per message.").
@@ -41,21 +40,18 @@ func redisHashOutputConfig() *service.ConfigSpec {
 		)
 }
 
-func init() {
-	err := service.RegisterOutput(
+func RegisterRedisHashOutput(env *service.Environment, client redis.UniversalClient) error {
+	return env.RegisterOutput(
 		"redis_hash_output",
 		redisHashOutputConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (out service.Output, maxInFlight int, err error) {
 			if maxInFlight, err = conf.FieldMaxInFlight(); err != nil {
 				return nil, 0, err
 			}
-			out, err = newRedisHashWriter(conf, mgr)
+			out, err = newRedisHashWriter(conf, mgr, client)
 			return out, maxInFlight, err
 		},
 	)
-	if err != nil {
-		panic(err)
-	}
 }
 
 type redisHashWriter struct {
@@ -66,23 +62,18 @@ type redisHashWriter struct {
 	walkJSON      bool
 	fieldsMapping *bloblang.Executor
 
-	clientCtor func() (redis.UniversalClient, error)
-	client     redis.UniversalClient
-	connMut    sync.RWMutex
+	client  redis.UniversalClient
+	connMut sync.RWMutex
 }
 
 func newRedisHashWriter(
 	conf *service.ParsedConfig,
 	mgr *service.Resources,
+	client redis.UniversalClient,
 ) (r *redisHashWriter, err error) {
 	r = &redisHashWriter{
-		clientCtor: func() (redis.UniversalClient, error) {
-			return getClient(conf)
-		},
-		log: mgr.Logger(),
-	}
-	if _, err = getClient(conf); err != nil {
-		return nil, err
+		client: client,
+		log:    mgr.Logger(),
 	}
 
 	if r.key, err = conf.FieldInterpolatedString(hoFieldKey); err != nil {
@@ -105,23 +96,8 @@ func newRedisHashWriter(
 }
 
 func (r *redisHashWriter) Connect(ctx context.Context) error {
-	r.connMut.Lock()
-	defer r.connMut.Unlock()
-
-	client, err := r.clientCtor()
-	if err != nil {
-		return err
-	}
-	if _, err = client.Ping(ctx).Result(); err != nil {
-		return err
-	}
-
-	r.log.Info("Setting messages as hash objects to Redis")
-	r.client = client
 	return nil
 }
-
-//------------------------------------------------------------------------------
 
 func walkForHashFields(msg *service.Message, fields map[string]any) error {
 	jVal, err := msg.AsStructured()
@@ -144,7 +120,7 @@ func (r *redisHashWriter) Write(ctx context.Context, msg *service.Message) error
 	r.connMut.RUnlock()
 
 	if client == nil {
-		return service.ErrNotConnected
+		return errors.New("missing redis client. this operation requires redis")
 	}
 
 	key, err := r.key.TryString(msg)
@@ -195,7 +171,6 @@ func (r *redisHashWriter) Write(ctx context.Context, msg *service.Message) error
 	pipe.Expire(ctx, key, 24*time.Hour)
 
 	if _, err := pipe.Exec(ctx); err != nil {
-		_ = r.disconnect()
 		r.log.Errorf("Error executing redis pipeline: %v\n", err)
 		return service.ErrNotConnected
 	}
@@ -203,17 +178,6 @@ func (r *redisHashWriter) Write(ctx context.Context, msg *service.Message) error
 	return nil
 }
 
-func (r *redisHashWriter) disconnect() error {
-	r.connMut.Lock()
-	defer r.connMut.Unlock()
-	if r.client != nil {
-		err := r.client.Close()
-		r.client = nil
-		return err
-	}
-	return nil
-}
-
 func (r *redisHashWriter) Close(context.Context) error {
-	return r.disconnect()
+	return nil
 }

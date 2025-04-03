@@ -16,7 +16,10 @@ const (
 	DropNonForeignKeyConstraintsLabel = "drop non-foreign key constraints"
 	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
 	UpdateColumnsLabel                = "update columns"
+	RenameColumnsLabel                = "rename columns"
 	UpdateFunctionsLabel              = "update functions"
+	DropDatatypesLabel                = "drop datatypes"
+	UpdateDatatypesLabel              = "update datatypes"
 )
 
 type DatabaseSchemaRow struct {
@@ -77,7 +80,7 @@ type TableColumn struct {
 	GeneratedExpression *string
 	IdentityGeneration  *string
 	SequenceDefinition  *string
-	IsSerial            bool
+	OrdinalPosition     int
 	Comment             *string
 }
 
@@ -122,6 +125,59 @@ type TableTrigger struct {
 
 func (t *TableTrigger) GetFingerprint() string {
 	return t.Fingerprint
+}
+
+type DomainConstraint struct {
+	Name       string `json:"name"`
+	Definition string `json:"definition"`
+}
+
+type DomainDataType struct {
+	Fingerprint string
+	Schema      string
+	Name        string
+	IsNullable  bool
+	Default     string
+	Constraints []*DomainConstraint
+}
+
+func (d *DomainDataType) GetFingerprint() string {
+	return d.Fingerprint
+}
+
+type EnumDataType struct {
+	Fingerprint string
+	Schema      string
+	Name        string
+	Values      []string
+}
+
+func (e *EnumDataType) GetFingerprint() string {
+	return e.Fingerprint
+}
+
+type CompositeDataType struct {
+	Fingerprint string
+	Schema      string
+	Name        string
+	Attributes  []*CompositeAttribute
+}
+
+type CompositeAttribute struct {
+	Name     string `json:"name"`
+	Datatype string `json:"datatype"`
+	Id       int    `json:"id"` // helps track when attributes are added or removed
+}
+
+func (c *CompositeDataType) GetFingerprint() string {
+	return c.Fingerprint
+}
+
+type AllTableDataTypes struct {
+	Functions  []*DataType
+	Domains    []*DomainDataType
+	Enums      []*EnumDataType
+	Composites []*CompositeDataType
 }
 
 type TableInitStatement struct {

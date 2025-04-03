@@ -93,8 +93,47 @@ func (d *PostgresSchemaManager) CalculateSchemaDiff(
 		return nil, err
 	}
 
-	builder := shared.NewSchemaDifferencesBuilder(tables, sourceData, destData)
+	builder := shared.NewSchemaDifferencesBuilder(tables, sourceData, destData, findMatchingColumn)
 	return builder.Build(), nil
+}
+
+func findMatchingColumn(
+	columns map[string]*sqlmanager_shared.TableColumn,
+	column *sqlmanager_shared.TableColumn,
+) *sqlmanager_shared.TableColumn {
+	// perfect match
+	for _, c := range columns {
+		if c.Schema != column.Schema || c.Table != column.Table {
+			continue
+		}
+		if c.Fingerprint == column.Fingerprint {
+			return c
+		}
+		if c.Name == column.Name && c.OrdinalPosition == column.OrdinalPosition {
+			return c
+		}
+	}
+
+	// name match
+	for _, c := range columns {
+		if c.Schema != column.Schema || c.Table != column.Table {
+			continue
+		}
+		if c.Name == column.Name {
+			return c
+		}
+	}
+
+	// ordinal match
+	for _, c := range columns {
+		if c.Schema != column.Schema || c.Table != column.Table {
+			continue
+		}
+		if c.OrdinalPosition == column.OrdinalPosition {
+			return c
+		}
+	}
+	return nil
 }
 
 func getDatabaseDataForSchemaDiff(
@@ -166,14 +205,29 @@ func getDatabaseDataForSchemaDiff(
 	})
 
 	functions := map[string]*sqlmanager_shared.DataType{}
+	domains := map[string]*sqlmanager_shared.DomainDataType{}
+	enums := map[string]*sqlmanager_shared.EnumDataType{}
+	composites := map[string]*sqlmanager_shared.CompositeDataType{}
 	errgrp.Go(func() error {
-		datatypes, err := db.Db().GetSchemaTableDataTypes(ctx, tables)
+		rows, err := db.Db().GetDataTypesByTables(ctx, tables)
 		if err != nil {
 			return fmt.Errorf("failed to retrieve database table functions: %w", err)
 		}
-		for _, tablefunction := range datatypes.Functions {
+		for _, tablefunction := range rows.Functions {
 			key := fmt.Sprintf("%s.%s", tablefunction.Schema, tablefunction.Name)
 			functions[key] = tablefunction
+		}
+		for _, dt := range rows.Domains {
+			key := fmt.Sprintf("%s.%s", dt.Schema, dt.Name)
+			domains[key] = dt
+		}
+		for _, dt := range rows.Enums {
+			key := fmt.Sprintf("%s.%s", dt.Schema, dt.Name)
+			enums[key] = dt
+		}
+		for _, dt := range rows.Composites {
+			key := fmt.Sprintf("%s.%s", dt.Schema, dt.Name)
+			composites[key] = dt
 		}
 		return nil
 	})
@@ -189,6 +243,9 @@ func getDatabaseDataForSchemaDiff(
 		ForeignKeyConstraints:    fkConstraints,
 		Triggers:                 triggers,
 		Functions:                functions,
+		Domains:                  domains,
+		Enums:                    enums,
+		Composites:               composites,
 	}, nil
 }
 
@@ -286,6 +343,76 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(
 		)
 	}
 
+	dropDatatypesStatements := []string{}
+	for _, enum := range diff.ExistsInDestination.Enums {
+		dropDatatypesStatements = append(dropDatatypesStatements, sqlmanager_postgres.BuildDropDatatypesStatement(enum.Schema, enum.Name))
+	}
+	for _, composite := range diff.ExistsInDestination.Composites {
+		dropDatatypesStatements = append(
+			dropDatatypesStatements,
+			sqlmanager_postgres.BuildDropDatatypesStatement(composite.Schema, composite.Name),
+		)
+	}
+
+	updateDatatypesStatements := []string{}
+	for _, enum := range diff.ExistsInBoth.Different.Enums {
+		updateDatatypesStatements = append(
+			updateDatatypesStatements,
+			sqlmanager_postgres.BuildUpdateEnumStatements(enum.Enum.Schema, enum.Enum.Name, enum.NewValues, enum.ChangedValues)...)
+	}
+
+	for _, composite := range diff.ExistsInBoth.Different.Composites {
+		updateDatatypesStatements = append(
+			updateDatatypesStatements,
+			sqlmanager_postgres.BuildUpdateCompositeStatements(
+				composite.Composite.Schema,
+				composite.Composite.Name,
+				composite.ChangedAttributeDatatype,
+				composite.ChangedAttributeName,
+				composite.NewAttributes,
+				composite.RemovedAttributes,
+			)...)
+	}
+
+	for _, domain := range diff.ExistsInDestination.Domains {
+		dropDatatypesStatements = append(dropDatatypesStatements, sqlmanager_postgres.BuildDropDomainStatement(domain.Schema, domain.Name))
+	}
+
+	for _, domain := range diff.ExistsInBoth.Different.Domains {
+		statements := sqlmanager_postgres.BuildDomainConstraintStatements(
+			domain.Domain.Schema,
+			domain.Domain.Name,
+			domain.NewConstraints,
+			domain.RemovedConstraints,
+		)
+		updateDatatypesStatements = append(updateDatatypesStatements, statements...)
+		if domain.IsDefaultDifferent {
+			if domain.Domain.Default != "" {
+				updateDatatypesStatements = append(
+					updateDatatypesStatements,
+					sqlmanager_postgres.BuildUpdateDomainDefaultStatement(domain.Domain.Schema, domain.Domain.Name, domain.Domain.Default),
+				)
+			} else {
+				updateDatatypesStatements = append(updateDatatypesStatements, sqlmanager_postgres.BuildDropDomainDefaultStatement(domain.Domain.Schema, domain.Domain.Name))
+			}
+		}
+		if domain.IsNullDifferent {
+			updateDatatypesStatements = append(
+				updateDatatypesStatements,
+				sqlmanager_postgres.BuildUpdateDomainNotNullStatement(domain.Domain.Schema, domain.Domain.Name, domain.Domain.IsNullable),
+			)
+		}
+	}
+
+	updateColumnStatements := []string{}
+	renameColumnStatements := []string{}
+	for _, column := range diff.ExistsInBoth.Different.Columns {
+		if column.RenameColumn != nil {
+			renameColumnStatements = append(renameColumnStatements, sqlmanager_postgres.BuildRenameColumnStatement(column))
+		}
+		updateColumnStatements = append(updateColumnStatements, sqlmanager_postgres.BuildAlterColumnStatement(column)...)
+	}
+
 	return []*sqlmanager_shared.InitSchemaStatements{
 		{
 			Label:      sqlmanager_shared.AddColumnsLabel,
@@ -314,6 +441,22 @@ func (d *PostgresSchemaManager) BuildSchemaDiffStatements(
 		{
 			Label:      sqlmanager_shared.DropFunctionsLabel,
 			Statements: dropFunctionStatements,
+		},
+		{
+			Label:      sqlmanager_shared.DropDatatypesLabel,
+			Statements: dropDatatypesStatements,
+		},
+		{
+			Label:      sqlmanager_shared.UpdateDatatypesLabel,
+			Statements: updateDatatypesStatements,
+		},
+		{
+			Label:      sqlmanager_shared.RenameColumnsLabel,
+			Statements: renameColumnStatements,
+		},
+		{
+			Label:      sqlmanager_shared.UpdateColumnsLabel,
+			Statements: updateColumnStatements,
 		},
 	}, nil
 }
@@ -356,7 +499,11 @@ func (d *PostgresSchemaManager) ReconcileDestinationSchema(
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropForeignKeyConstraintsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropNonForeignKeyConstraintsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.DropDatatypesLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateDatatypesLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.AddColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.RenameColumnsLabel]...)
+			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateColumnsLabel]...)
 			statementBlocks = append(statementBlocks, schemaStatementsByLabel[sqlmanager_shared.UpdateFunctionsLabel]...)
 		}
 	}

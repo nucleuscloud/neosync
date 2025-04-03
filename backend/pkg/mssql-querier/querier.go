@@ -29,7 +29,7 @@ type Querier interface {
 		ctx context.Context,
 		db mysql_queries.DBTX,
 		schematables []string,
-	) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error)
+	) ([]*GetDatabaseSchemaRow, error)
 	GetIndicesBySchemasAndTables(
 		ctx context.Context,
 		db mysql_queries.DBTX,

@@ -3,6 +3,7 @@ package sqlmanager_shared
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -88,7 +89,7 @@ func BuildFingerprint(input ...string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func BuildTableColumnFingerprint(column *TableColumn) string {
+func BuildTableColumnFingerprint(column *TableColumn, shouldIncludeOrdinalPosition bool) string {
 	parts := []string{
 		column.Schema,
 		column.Table,
@@ -102,8 +103,43 @@ func BuildTableColumnFingerprint(column *TableColumn) string {
 		ptrOrEmpty(column.GeneratedExpression),
 		ptrOrEmpty(column.Comment),
 	}
-
+	if shouldIncludeOrdinalPosition {
+		parts = append(parts, strconv.Itoa(column.OrdinalPosition))
+	}
 	return BuildFingerprint(parts...)
+}
+
+func BuildCompositeDataTypeFingerprint(composite *CompositeDataType) string {
+	attributeStrings := []string{}
+	for _, attr := range composite.Attributes {
+		attributeStrings = append(attributeStrings, fmt.Sprintf("%s.%s.%d", attr.Name, attr.Datatype, attr.Id))
+	}
+	return BuildFingerprint(
+		composite.Schema,
+		composite.Name,
+		strings.Join(attributeStrings, ","),
+	)
+}
+
+func BuildEnumDataTypeFingerprint(enum *EnumDataType) string {
+	return BuildFingerprint(
+		enum.Schema,
+		enum.Name,
+		strings.Join(enum.Values, ","),
+	)
+}
+
+func BuildDomainDataTypeFingerprint(domain *DomainDataType) string {
+	constraintStrings := []string{}
+	for _, constraint := range domain.Constraints {
+		constraintStrings = append(constraintStrings, fmt.Sprintf("%s.%s", constraint.Name, constraint.Definition))
+	}
+	sort.Strings(constraintStrings)
+	return BuildFingerprint(
+		domain.Schema,
+		domain.Name,
+		strings.Join(constraintStrings, ","),
+	)
 }
 
 // ptrOrEmpty returns the pointer's value if not nil, otherwise "".

@@ -242,6 +242,7 @@ func (m *MysqlManager) GetColumnsByTables(
 			Schema:              row.TableSchema,
 			Table:               row.TableName,
 			Name:                row.ColumnName,
+			OrdinalPosition:     row.OrdinalPosition,
 			DataType:            row.DataType,
 			IsNullable:          row.IsNullable,
 			ColumnDefault:       row.ColumnDefault,
@@ -251,7 +252,8 @@ func (m *MysqlManager) GetColumnsByTables(
 			GeneratedExpression: row.GeneratedExpression,
 			Comment:             row.Comment,
 		}
-		col.Fingerprint = sqlmanager_shared.BuildTableColumnFingerprint(col)
+		shouldIncludeOrdinalPosition := false
+		col.Fingerprint = sqlmanager_shared.BuildTableColumnFingerprint(col, shouldIncludeOrdinalPosition)
 		columns = append(columns, col)
 	}
 	return columns, nil
@@ -1028,6 +1030,13 @@ func (m *MysqlManager) GetSchemaTableDataTypes(
 	output.Functions = append(output.Functions, funcs...)
 
 	return output, nil
+}
+
+func (m *MysqlManager) GetDataTypesByTables(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) (*sqlmanager_shared.AllTableDataTypes, error) {
+	return nil, errors.ErrUnsupported
 }
 
 func (m *MysqlManager) GetSchemaTableTriggers(

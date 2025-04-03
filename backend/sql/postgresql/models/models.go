@@ -945,12 +945,22 @@ type JobSourceOptions struct {
 }
 
 type MssqlSourceOptions struct {
-	HaltOnNewColumnAddition       bool                        `json:"haltOnNewColumnAddition"`
-	SubsetByForeignKeyConstraints bool                        `json:"subsetByForeignKeyConstraints"`
-	Schemas                       []*MssqlSourceSchemaOption  `json:"schemas"`
-	ConnectionId                  string                      `json:"connectionId"`
-	ColumnRemovalStrategy         *MssqlColumnRemovalStrategy `json:"columnRemovalStrategy,omitempty"`
+	// @deprecated
+	HaltOnNewColumnAddition       bool                            `json:"haltOnNewColumnAddition"`
+	SubsetByForeignKeyConstraints bool                            `json:"subsetByForeignKeyConstraints"`
+	Schemas                       []*MssqlSourceSchemaOption      `json:"schemas"`
+	ConnectionId                  string                          `json:"connectionId"`
+	ColumnRemovalStrategy         *MssqlColumnRemovalStrategy     `json:"columnRemovalStrategy,omitempty"`
+	NewColumnAdditionStrategy     *MssqlNewColumnAdditionStrategy `json:"newColumnAdditionStrategy,omitempty"`
 }
+
+type MssqlNewColumnAdditionStrategy struct {
+	HaltJob     *MssqlHaltJobNewColumnAdditionStrategy     `json:"haltJob,omitempty"`
+	Passthrough *MssqlPassthroughNewColumnAdditionStrategy `json:"passthrough,omitempty"`
+}
+
+type MssqlHaltJobNewColumnAdditionStrategy struct{}
+type MssqlPassthroughNewColumnAdditionStrategy struct{}
 
 type MssqlColumnRemovalStrategy struct {
 	HaltJob     *MssqlHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
@@ -993,8 +1003,7 @@ type MssqlContinueJobColumnRemovalStrategy struct{}
 
 func (m *MssqlSourceOptions) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions {
 	dto := &mgmtv1alpha1.MssqlSourceConnectionOptions{
-		HaltOnNewColumnAddition: m.HaltOnNewColumnAddition,
-		ConnectionId:            m.ConnectionId,
+		ConnectionId: m.ConnectionId,
 		Schemas: make(
 			[]*mgmtv1alpha1.MssqlSourceSchemaOption,
 			len(m.Schemas),
@@ -1009,13 +1018,23 @@ func (m *MssqlSourceOptions) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions 
 		dto.ColumnRemovalStrategy = m.ColumnRemovalStrategy.ToDto()
 	}
 
+	if m.NewColumnAdditionStrategy != nil {
+		dto.NewColumnAdditionStrategy = m.NewColumnAdditionStrategy.ToDto()
+	} else if m.HaltOnNewColumnAddition {
+		dto.NewColumnAdditionStrategy = &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
+			},
+		}
+	}
+
 	return dto
 }
+
 func (m *MssqlSourceOptions) FromDto(dto *mgmtv1alpha1.MssqlSourceConnectionOptions) {
 	if dto == nil {
 		dto = &mgmtv1alpha1.MssqlSourceConnectionOptions{}
 	}
-	m.HaltOnNewColumnAddition = dto.GetHaltOnNewColumnAddition()
 	m.ConnectionId = dto.GetConnectionId()
 	m.SubsetByForeignKeyConstraints = dto.GetSubsetByForeignKeyConstraints()
 	m.Schemas = FromDtoMssqlSourceSchemaOptions(dto.GetSchemas())
@@ -1023,6 +1042,46 @@ func (m *MssqlSourceOptions) FromDto(dto *mgmtv1alpha1.MssqlSourceConnectionOpti
 	if dto.GetColumnRemovalStrategy().GetStrategy() != nil {
 		m.ColumnRemovalStrategy = &MssqlColumnRemovalStrategy{}
 		m.ColumnRemovalStrategy.FromDto(dto.GetColumnRemovalStrategy())
+	}
+
+	if dto.GetNewColumnAdditionStrategy().GetStrategy() != nil {
+		m.NewColumnAdditionStrategy = &MssqlNewColumnAdditionStrategy{}
+		m.NewColumnAdditionStrategy.FromDto(dto.GetNewColumnAdditionStrategy())
+	} else if m.HaltOnNewColumnAddition {
+		m.NewColumnAdditionStrategy = &MssqlNewColumnAdditionStrategy{
+			HaltJob: &MssqlHaltJobNewColumnAdditionStrategy{},
+		}
+	}
+}
+
+func (s *MssqlNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy {
+	if s.HaltJob != nil {
+		return &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
+			},
+		}
+	}
+	if s.Passthrough != nil {
+		return &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_{
+				Passthrough: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough{},
+			},
+		}
+	}
+	return nil
+}
+
+func (s *MssqlNewColumnAdditionStrategy) FromDto(
+	dto *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy,
+) {
+	if dto.GetStrategy() != nil {
+		switch dto.GetStrategy().(type) {
+		case *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
+			s.HaltJob = &MssqlHaltJobNewColumnAdditionStrategy{}
+		case *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_:
+			s.Passthrough = &MssqlPassthroughNewColumnAdditionStrategy{}
+		}
 	}
 }
 
@@ -1260,13 +1319,14 @@ type MysqlSourceOptions struct {
 }
 
 type MysqlNewColumnAdditionStrategy struct {
-	HaltJob *MysqlHaltJobNewColumnAdditionStrategy `json:"haltJob,omitempty"`
-	AutoMap *MysqlAutoMapNewColumnAdditionStrategy `json:"autoMap,omitempty"`
+	HaltJob     *MysqlHaltJobNewColumnAdditionStrategy     `json:"haltJob,omitempty"`
+	AutoMap     *MysqlAutoMapNewColumnAdditionStrategy     `json:"autoMap,omitempty"`
+	Passthrough *MysqlPassthroughNewColumnAdditionStrategy `json:"passthrough,omitempty"`
 }
 
 type MysqlHaltJobNewColumnAdditionStrategy struct{}
 type MysqlAutoMapNewColumnAdditionStrategy struct{}
-
+type MysqlPassthroughNewColumnAdditionStrategy struct{}
 type MysqlColumnRemovalStrategy struct {
 	HaltJob     *MysqlHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
 	ContinueJob *MysqlContinueJobColumnRemovalStrategy `json:"continueJob,omitempty"`
@@ -1317,8 +1377,9 @@ type PostgresSourceOptions struct {
 }
 
 type PostgresNewColumnAdditionStrategy struct {
-	HaltJob *PostgresHaltJobStrategy `json:"haltJob,omitempty"`
-	AutoMap *PostgresAutoMapStrategy `json:"autoMap,omitempty"`
+	HaltJob     *PostgresHaltJobStrategy     `json:"haltJob,omitempty"`
+	AutoMap     *PostgresAutoMapStrategy     `json:"autoMap,omitempty"`
+	Passthrough *PostgresPassthroughStrategy `json:"passthrough,omitempty"`
 }
 
 func (p *PostgresNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy {
@@ -1332,6 +1393,12 @@ func (p *PostgresNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.PostgresSource
 		return &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{
 			Strategy: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_{
 				AutoMap: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap{},
+			},
+		}
+	} else if p.Passthrough != nil {
+		return &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_{
+				Passthrough: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough{},
 			},
 		}
 	}
@@ -1349,11 +1416,14 @@ func (p *PostgresNewColumnAdditionStrategy) FromDto(
 		p.AutoMap = &PostgresAutoMapStrategy{}
 	case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
 		p.HaltJob = &PostgresHaltJobStrategy{}
+	case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_:
+		p.Passthrough = &PostgresPassthroughStrategy{}
 	}
 }
 
 type PostgresHaltJobStrategy struct{}
 type PostgresAutoMapStrategy struct{}
+type PostgresPassthroughStrategy struct{}
 
 type PostgresColumnRemovalStrategy struct {
 	HaltJob     *PostgresHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
@@ -1504,7 +1574,6 @@ func FromDtoPostgresSourceSchemaOptions(
 
 func (s *MysqlSourceOptions) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions {
 	dto := &mgmtv1alpha1.MysqlSourceConnectionOptions{
-		HaltOnNewColumnAddition:       s.HaltOnNewColumnAddition,
 		SubsetByForeignKeyConstraints: s.SubsetByForeignKeyConstraints,
 		ConnectionId:                  s.ConnectionId,
 	}
@@ -1536,7 +1605,6 @@ func (s *MysqlSourceOptions) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions 
 				HaltJob: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
 			},
 		}
-		dto.HaltOnNewColumnAddition = true //nolint:staticcheck
 	}
 
 	return dto
@@ -1557,6 +1625,13 @@ func (s *MysqlNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.MysqlSourceConnec
 			},
 		}
 	}
+	if s.Passthrough != nil {
+		return &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_{
+				Passthrough: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough{},
+			},
+		}
+	}
 	return nil
 }
 
@@ -1569,12 +1644,13 @@ func (s *MysqlNewColumnAdditionStrategy) FromDto(
 			s.HaltJob = &MysqlHaltJobNewColumnAdditionStrategy{}
 		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_:
 			s.AutoMap = &MysqlAutoMapNewColumnAdditionStrategy{}
+		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_:
+			s.Passthrough = &MysqlPassthroughNewColumnAdditionStrategy{}
 		}
 	}
 }
 
 func (s *MysqlSourceOptions) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOptions) {
-	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition //nolint:staticcheck
 	if dto.GetNewColumnAdditionStrategy().GetStrategy() != nil {
 		s.NewColumnAdditionStrategy = &MysqlNewColumnAdditionStrategy{}
 		s.NewColumnAdditionStrategy.FromDto(dto.GetNewColumnAdditionStrategy())
@@ -1582,7 +1658,6 @@ func (s *MysqlSourceOptions) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOpti
 		s.NewColumnAdditionStrategy = &MysqlNewColumnAdditionStrategy{
 			HaltJob: &MysqlHaltJobNewColumnAdditionStrategy{},
 		}
-		s.HaltOnNewColumnAddition = true
 	}
 	s.SubsetByForeignKeyConstraints = dto.SubsetByForeignKeyConstraints
 	s.Schemas = FromDtoMysqlSourceSchemaOptions(dto.Schemas)

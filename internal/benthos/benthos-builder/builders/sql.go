@@ -20,7 +20,6 @@ import (
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	job_util "github.com/nucleuscloud/neosync/internal/job"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	rc "github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -29,7 +28,6 @@ import (
 type sqlSyncBuilder struct {
 	transformerclient  mgmtv1alpha1connect.TransformersServiceClient
 	sqlmanagerclient   sqlmanager.SqlManagerClient
-	redisConfig        *neosync_redis.RedisConfig
 	driver             string
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder
 	pageLimit          int // default page limit for queries
@@ -49,7 +47,6 @@ type sqlSyncBuilder struct {
 func NewSqlSyncBuilder(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
-	redisConfig *neosync_redis.RedisConfig,
 	databaseDriver string,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
 	pageLimit int,
@@ -57,7 +54,6 @@ func NewSqlSyncBuilder(
 	return &sqlSyncBuilder{
 		transformerclient:  transformerclient,
 		sqlmanagerclient:   sqlmanagerclient,
-		redisConfig:        redisConfig,
 		driver:             databaseDriver,
 		selectQueryBuilder: selectQueryBuilder,
 		pageLimit:          pageLimit,
@@ -242,7 +238,6 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(
 		colTransformerMap,
 		job.Id,
 		params.JobRunId,
-		b.redisConfig,
 		primaryKeyToForeignKeysMap,
 	)
 	if err != nil {
@@ -273,7 +268,6 @@ func buildBenthosSqlSourceConfigResponses(
 	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
 	jobId, runId string,
-	redisConfig *neosync_redis.RedisConfig,
 	primaryKeyToForeignKeysMap map[string]map[string][]*bb_internal.ReferenceKey,
 ) ([]*bb_internal.BenthosSourceConfig, error) {
 	configs := []*bb_internal.BenthosSourceConfig{}
@@ -333,7 +327,6 @@ func buildBenthosSqlSourceConfigResponses(
 			transformedFktoPkMap,
 			jobId,
 			runId,
-			redisConfig,
 			tableMapping.Mappings,
 			colInfoMap,
 			nil,
@@ -522,20 +515,21 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(
 		for col := range constraints {
 			transformer := b.colTransformerMap[tableKey][col]
 			if shouldProcessStrict(transformer) {
-				if b.redisConfig == nil {
-					return nil, fmt.Errorf("missing redis config. this operation requires redis")
-				}
 				hashedKey := neosync_benthos.HashBenthosCacheKey(params.Job.GetId(), params.JobRunId, tableKey, col)
 				config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
-					RedisHashOutput: &neosync_benthos.RedisHashOutputConfig{
-						Url:            b.redisConfig.Url,
-						Key:            hashedKey,
-						FieldsMapping:  fmt.Sprintf(`root = {meta(%q): json(%q)}`, hashPrimaryKeyMetaKey(benthosConfig.TableSchema, benthosConfig.TableName, col), col), // map of original value to transformed value
-						WalkMetadata:   false,
-						WalkJsonObject: false,
-						Kind:           &b.redisConfig.Kind,
-						Master:         b.redisConfig.Master,
-						Tls:            shared.BuildBenthosRedisTlsConfig(b.redisConfig),
+					Fallback: []neosync_benthos.Outputs{
+						{
+							RedisHashOutput: &neosync_benthos.RedisHashOutputConfig{
+								Key:            hashedKey,
+								FieldsMapping:  fmt.Sprintf(`root = {meta(%q): json(%q)}`, hashPrimaryKeyMetaKey(benthosConfig.TableSchema, benthosConfig.TableName, col), col), // map of original value to transformed value
+								WalkMetadata:   false,
+								WalkJsonObject: false,
+							},
+						},
+						// kills activity depending on error
+						{Error: &neosync_benthos.ErrorOutputConfig{
+							ErrorMsg: `${! meta("fallback_error")}`,
+						}},
 					},
 				})
 				benthosConfig.RedisConfig = append(benthosConfig.RedisConfig, &bb_shared.BenthosRedisConfig{

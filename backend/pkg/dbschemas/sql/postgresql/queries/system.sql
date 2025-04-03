@@ -603,6 +603,27 @@ ORDER BY
     rst.table_name,
     cws.column_name;
 
+-- name: GetSequencesOwnedByTables :many
+SELECT
+	s.relname AS sequence_name,
+	seq_ns.nspname AS sequence_schema,
+	tbl_ns.nspname AS table_schema,
+	t.relname AS table_name,
+	a.attname AS column_name
+FROM
+	pg_catalog.pg_class s
+	JOIN pg_catalog.pg_namespace seq_ns ON s.relnamespace = seq_ns.oid
+	JOIN pg_catalog.pg_depend d ON d.objid = s.oid
+	JOIN pg_catalog.pg_class t ON d.refobjid = t.oid
+	JOIN pg_catalog.pg_namespace tbl_ns ON t.relnamespace = tbl_ns.oid
+	JOIN pg_catalog.pg_attribute a ON a.attrelid = t.oid
+		AND a.attnum = d.refobjsubid
+WHERE
+	s.relkind = 'S'       -- 'S' means sequence
+	AND d.deptype = 'a'   -- 'a' means "auto" dependency (owned by)
+	AND(tbl_ns.nspname || '.' || t.relname) = ANY (sqlc.arg ('schematables')::TEXT []);
+
+
 -- name: GetNonForeignKeyTableConstraintsBySchema :many
 SELECT
 	pn.nspname AS schema_name,
@@ -854,3 +875,189 @@ LEFT JOIN pg_catalog.pg_class parent_cls
 LEFT JOIN pg_catalog.pg_namespace parent_ns
     ON parent_ns.oid = parent_cls.relnamespace;
 
+
+-- name: GetCompositeTypesByTables :many
+WITH custom_types AS (
+    SELECT
+        n.nspname AS schema_name,
+        t.typname AS type_name,
+        t.oid AS type_oid
+    FROM
+        pg_catalog.pg_type t
+    JOIN
+        pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+    WHERE
+        n.nspname NOT IN('pg_catalog', 'pg_toast', 'information_schema')
+        AND t.typtype = 'c'
+),
+table_columns AS (
+    SELECT
+        c.oid AS table_oid,
+       CASE
+            WHEN t.typtype = 'b' THEN t.typelem  -- If it's an array, use the element type
+            ELSE a.atttypid                      -- Otherwise use the type directly
+        END AS type_oid
+    FROM
+        pg_catalog.pg_class c
+    JOIN
+        pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    JOIN
+        pg_catalog.pg_attribute a ON a.attrelid = c.oid
+    JOIN
+        pg_catalog.pg_type t ON t.oid = a.atttypid
+    WHERE
+        (n.nspname || '.' || c.relname) = ANY(sqlc.arg('schematables')::TEXT[])
+        AND a.attnum > 0
+        AND NOT a.attisdropped
+),
+relevant_custom_types AS (
+    SELECT DISTINCT
+        ct.schema_name,
+        ct.type_name,
+        ct.type_oid
+    FROM
+        custom_types ct
+    JOIN
+        table_columns tc ON ct.type_oid = tc.type_oid
+)
+SELECT
+    rct.schema_name as schema,
+    rct.type_name as name,
+    JSON_AGG(
+        JSON_BUILD_OBJECT(
+            'name', a.attname,
+            'datatype', pg_catalog.format_type(a.atttypid, a.atttypmod),
+            'id', a.attnum
+        ) ORDER BY a.attnum
+    )::JSONB AS attributes
+FROM relevant_custom_types rct
+JOIN pg_catalog.pg_type t ON rct.type_oid = t.oid
+JOIN pg_catalog.pg_class c ON c.oid = t.typrelid
+JOIN pg_catalog.pg_attribute a ON a.attrelid = c.oid
+WHERE
+     a.attnum > 0
+    AND NOT a.attisdropped
+GROUP BY
+    rct.schema_name, rct.type_name;
+
+
+-- name: GetEnumTypesByTables :many
+WITH custom_types AS (
+    SELECT
+        n.nspname AS schema_name,
+        t.typname AS type_name,
+        t.oid AS type_oid
+    FROM
+        pg_catalog.pg_type t
+    JOIN
+        pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+    WHERE
+        n.nspname NOT IN('pg_catalog', 'pg_toast', 'information_schema')
+        AND t.typtype = 'e'
+),
+table_columns AS (
+    SELECT
+        c.oid AS table_oid,
+       CASE
+            WHEN t.typtype = 'b' THEN t.typelem  -- If it's an array, use the element type
+            ELSE a.atttypid                      -- Otherwise use the type directly
+        END AS type_oid
+    FROM
+        pg_catalog.pg_class c
+    JOIN
+        pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    JOIN
+        pg_catalog.pg_attribute a ON a.attrelid = c.oid
+    JOIN
+        pg_catalog.pg_type t ON t.oid = a.atttypid
+    WHERE
+        (n.nspname || '.' || c.relname) = ANY(sqlc.arg('schematables')::TEXT[])
+        AND a.attnum > 0
+        AND NOT a.attisdropped
+),
+relevant_custom_types AS (
+    SELECT DISTINCT
+        ct.schema_name,
+        ct.type_name,
+        ct.type_oid
+    FROM
+        custom_types ct
+    JOIN
+        table_columns tc ON ct.type_oid = tc.type_oid
+)
+  SELECT
+        rct.schema_name as schema,
+        rct.type_name as name,
+        ARRAY_AGG(e.enumlabel ORDER BY e.enumsortorder)::TEXT [] as values
+    FROM
+        relevant_custom_types rct
+    JOIN
+        pg_catalog.pg_type t ON rct.type_oid = t.oid
+    JOIN
+        pg_catalog.pg_enum e ON t.oid = e.enumtypid
+    GROUP BY
+        rct.schema_name, rct.type_name;
+
+
+-- name: GetDomainsByTables :many
+WITH custom_types AS (
+	SELECT
+		n.nspname AS schema_name,
+		t.typname AS type_name,
+		t.oid AS type_oid
+	FROM
+		pg_catalog.pg_type t
+		JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+	WHERE
+		n.nspname NOT IN('pg_catalog',
+			'pg_toast',
+			'information_schema')
+		AND t.typtype = 'd'
+),
+table_columns AS (
+	SELECT
+		c.oid AS table_oid,
+		CASE WHEN t.typtype = 'b' THEN
+			t.typelem -- If it's an array, use the element type
+		ELSE
+			a.atttypid -- Otherwise use the type directly
+		END AS type_oid
+	FROM
+		pg_catalog.pg_class c
+		JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+		JOIN pg_catalog.pg_attribute a ON a.attrelid = c.oid
+		JOIN pg_catalog.pg_type t ON t.oid = a.atttypid
+	WHERE
+        (n.nspname || '.' || c.relname) = ANY(sqlc.arg('schematables')::TEXT[])
+		AND a.attnum > 0
+		AND NOT a.attisdropped
+),
+relevant_custom_types AS (
+	SELECT DISTINCT
+		ct.schema_name,
+		ct.type_name,
+		ct.type_oid
+	FROM
+		custom_types ct
+		JOIN table_columns tc ON ct.type_oid = tc.type_oid
+)
+SELECT
+	rct.schema_name as schema,
+	rct.type_name as name,
+	pg_catalog.format_type(t.typbasetype, t.typtypmod) AS type,
+	t.typnotnull AS is_nullable,
+	COALESCE(pg_get_expr(t.typdefaultbin, t.typnamespace), t.typdefault) AS default,
+	CASE 
+        WHEN COUNT(c.oid) = 0 THEN NULL
+        ELSE JSON_AGG(
+            JSON_BUILD_OBJECT(
+                'name',       conname,
+                'definition', pg_catalog.pg_get_constraintdef(c.oid)
+            )
+        )
+    END::JSONB AS constraints
+FROM
+	relevant_custom_types rct
+	JOIN pg_catalog.pg_type t ON rct.type_oid = t.oid
+	LEFT JOIN pg_catalog.pg_constraint c ON t.oid = c.contypid
+GROUP BY rct.schema_name, rct.type_name, t.typbasetype, t.typtypmod, t.typnotnull, t.typdefaultbin, t.typnamespace, t.typdefault;

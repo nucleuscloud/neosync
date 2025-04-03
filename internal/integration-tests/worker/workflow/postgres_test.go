@@ -115,6 +115,10 @@ func createPostgresSyncJob(
 		}
 	}
 
+	newColumnAdditionStrategy := &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{}
+	if config.JobOptions.PassthroughOnNewColumnAddition {
+		newColumnAdditionStrategy.Strategy = &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_{}
+	}
 	job, err := jobclient.CreateJob(ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobRequest{
 		AccountId: config.AccountId,
 		JobName:   config.JobName,
@@ -125,6 +129,7 @@ func createPostgresSyncJob(
 						ConnectionId:                  config.SourceConn.Id,
 						Schemas:                       schemas,
 						SubsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
+						NewColumnAdditionStrategy:     newColumnAdditionStrategy,
 					},
 				},
 			},
@@ -196,6 +201,99 @@ func test_postgres_types(
 		{schema: alltypesSchema, table: "json_data", rowCount: 12},
 		{schema: alltypesSchema, table: "generated_table", rowCount: 4},
 	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: all_types Table: %s", expected.table))
+	}
+
+	source, err := sql.Open("postgres", postgres.Source.URL)
+	require.NoError(t, err)
+	defer source.Close()
+
+	target, err := sql.Open("postgres", postgres.Target.URL)
+	require.NoError(t, err)
+	defer target.Close()
+
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "all_data_types", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "json_data", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "array_types", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "generated_table", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "time_time", "postgres", []string{"id"})
+
+	// tear down
+	err = cleanupPostgresSchemas(ctx, postgres, []string{alltypesSchema})
+	require.NoError(t, err)
+}
+
+func test_postgres_passthrough_on_new_column_addition(
+	t *testing.T,
+	ctx context.Context,
+	postgres *tcpostgres.PostgresTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	alltypesSchema := "alltypes_passthrough"
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
+	})
+	errgrp.Go(func() error { return postgres.Target.CreateSchemas(errctx, []string{alltypesSchema}) })
+	err := errgrp.Wait()
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: alltypesSchema, table: "all_data_types", rowCount: 2},
+		{schema: alltypesSchema, table: "array_types", rowCount: 1},
+		{schema: alltypesSchema, table: "time_time", rowCount: 3},
+		{schema: alltypesSchema, table: "json_data", rowCount: 12},
+		{schema: alltypesSchema, table: "generated_table", rowCount: 4},
+	}
+	mappings := []*mgmtv1alpha1.JobMapping{}
+	for _, expected := range expectedResults {
+		mappings = append(mappings, &mgmtv1alpha1.JobMapping{
+			Schema: expected.schema,
+			Table:  expected.table,
+			Column: "id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
+			},
+		})
+	}
+
+	job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     "all_types_passthrough",
+		JobMappings: mappings,
+		JobOptions: &TestJobOptions{
+			Truncate:                       true,
+			TruncateCascade:                true,
+			InitSchema:                     true,
+			PassthroughOnNewColumnAddition: true,
+		},
+	})
+
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: all_types")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: all_types")
 
 	for _, expected := range expectedResults {
 		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
@@ -1323,6 +1421,7 @@ func test_postgres_schema_reconciliation(
 			OnConflictDoUpdate: !shouldTruncate,
 		},
 	})
+	destinationId := job.GetDestinations()[0].GetId()
 
 	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithPostgresSchemaDrift(), WithMaxIterations(100), WithPageLimit(10000))
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
@@ -1344,6 +1443,9 @@ func test_postgres_schema_reconciliation(
 		{schema: schema, table: "employees", rowCount: 40},
 		{schema: schema, table: "dependents", rowCount: 30},
 		{schema: schema, table: "dummy_table", rowCount: 4},
+		{schema: schema, table: "office_locations", rowCount: 0},
+		{schema: schema, table: "dummy_comp_table", rowCount: 0},
+		{schema: schema, table: "example_table", rowCount: 0},
 		{schema: schema, table: "test_table_single_col", rowCount: 1},
 	}
 
@@ -1357,6 +1459,7 @@ func test_postgres_schema_reconciliation(
 		require.NoError(t, err)
 		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: schema_drift Table: %s Truncated: %t", expected.table, shouldTruncate))
 	}
+	test_schema_reconciliation_run_context(t, ctx, jobclient, job.GetId(), destinationId, accountId)
 
 	t.Logf("running alter statements")
 	err = postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"schema-init/alter-statements.sql"}, schema)
@@ -1394,6 +1497,8 @@ func test_postgres_schema_reconciliation(
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "dummy_table", sqlmanager_shared.PostgresDriver, []string{"id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "test_table_single_col", sqlmanager_shared.PostgresDriver, []string{"name"})
 
+	test_schema_reconciliation_run_context(t, ctx, jobclient, job.GetId(), destinationId, accountId)
+
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
 	require.NoError(t, err)
@@ -1409,10 +1514,15 @@ func verify_postgres_schemas(
 	srcManager := sqlmanager_postgres.NewManager(pg_queries.New(), source, func() {})
 	destManager := sqlmanager_postgres.NewManager(pg_queries.New(), target, func() {})
 
+	schematables := []*sqlmanager_shared.SchemaTable{}
+	for _, table := range tables {
+		schematables = append(schematables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
+	}
+
 	t.Logf("checking columns are the same in source and destination")
-	srcColumns, err := srcManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	srcColumns, err := srcManager.GetColumnsByTables(ctx, schematables)
 	require.NoError(t, err, "failed to get source columns")
-	destColumns, err := destManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	destColumns, err := destManager.GetColumnsByTables(ctx, schematables)
 	require.NoError(t, err, "failed to get destination columns")
 
 	srcColumnsMap := make(map[string]*sqlmanager_shared.TableColumn)
@@ -1470,9 +1580,9 @@ func verify_postgres_schemas(
 	}
 
 	t.Logf("checking triggers are the same in source and destination")
-	srcTriggers, err := srcManager.GetSchemaTableTriggers(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "astronaut"}})
+	srcTriggers, err := srcManager.GetSchemaTableTriggers(ctx, schematables)
 	require.NoError(t, err, "failed to get source triggers")
-	destTriggers, err := destManager.GetSchemaTableTriggers(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "astronaut"}})
+	destTriggers, err := destManager.GetSchemaTableTriggers(ctx, schematables)
 	require.NoError(t, err, "failed to get destination triggers")
 
 	destTriggersMap := make(map[string]*sqlmanager_shared.TableTrigger)
@@ -1485,17 +1595,41 @@ func verify_postgres_schemas(
 		require.Equal(t, trigger.Definition, destTrigger.Definition, "trigger definitions do not match for fingerprint %s", trigger.Fingerprint)
 	}
 
-	t.Logf("checking functions are the same in source and destination")
-	srcFunctions, err := srcManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
-	require.NoError(t, err, "failed to get source functions")
-	destFunctions, err := destManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
-	require.NoError(t, err, "failed to get destination functions")
+	srcDatatypes, err := srcManager.GetDataTypesByTables(ctx, schematables)
+	require.NoError(t, err, "failed to get source datatypes")
+	destDatatypes, err := destManager.GetDataTypesByTables(ctx, schematables)
+	require.NoError(t, err, "failed to get destination datatypes")
 
-	for _, function := range srcFunctions.Functions {
-		require.Contains(t, destFunctions.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
+	t.Logf("checking functions are the same in source and destination")
+	for _, function := range srcDatatypes.Functions {
+		assert.Contains(t, destDatatypes.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
 	}
-	for _, function := range destFunctions.Functions {
-		require.Contains(t, srcFunctions.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
+	for _, function := range destDatatypes.Functions {
+		assert.Contains(t, srcDatatypes.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
+	}
+
+	t.Logf("checking enum are the same in source and destination")
+	for _, enum := range srcDatatypes.Enums {
+		assert.Contains(t, destDatatypes.Enums, enum, "destination missing enum with fingerprint %s", enum.Fingerprint)
+	}
+	for _, enum := range destDatatypes.Enums {
+		assert.Contains(t, srcDatatypes.Enums, enum, "source missing enum with fingerprint %s", enum.Fingerprint)
+	}
+
+	t.Logf("checking composite types are the same in source and destination")
+	for _, composite := range srcDatatypes.Composites {
+		assert.Contains(t, destDatatypes.Composites, composite, "destination missing composite with fingerprint %s", composite.Fingerprint)
+	}
+	for _, composite := range destDatatypes.Composites {
+		assert.Contains(t, srcDatatypes.Composites, composite, "source missing composite with fingerprint %s", composite.Fingerprint)
+	}
+
+	t.Logf("checking domains are the same in source and destination")
+	for _, domain := range srcDatatypes.Domains {
+		assert.Contains(t, destDatatypes.Domains, domain, "destination missing domain with fingerprint %s", domain.Fingerprint)
+	}
+	for _, domain := range destDatatypes.Domains {
+		assert.Contains(t, srcDatatypes.Domains, domain, "source missing domain with fingerprint %s", domain.Fingerprint)
 	}
 }
 
@@ -1511,11 +1645,7 @@ func verify_postgres_column_spec(
 	assert.Equal(t, source.IdentityGeneration, target.IdentityGeneration, fmt.Sprintf("column identity generation does not match for column %s", columnName))
 	assert.Equal(t, source.GeneratedType, target.GeneratedType, fmt.Sprintf("column generated types do not match for column %s", columnName))
 	assert.Equal(t, source.GeneratedExpression, target.GeneratedExpression, fmt.Sprintf("column generated expressions do not match for column %s", columnName))
-	assert.Equal(t, source.IsSerial, target.IsSerial, fmt.Sprintf("column serial properties do not match for column %s", columnName))
 	assert.Equal(t, source.ColumnDefaultType, target.ColumnDefaultType, fmt.Sprintf("column default types do not match for column %s", columnName))
 	assert.Equal(t, source.SequenceDefinition, target.SequenceDefinition, fmt.Sprintf("column sequence definitions do not match for column %s", columnName))
-	if !source.IsSerial {
-		// sequence names are not the same. known issue.
-		assert.Equal(t, source.ColumnDefault, target.ColumnDefault, fmt.Sprintf("column default values do not match for column %s", columnName))
-	}
+	assert.Equal(t, source.ColumnDefault, target.ColumnDefault, fmt.Sprintf("column default values do not match for column %s", columnName))
 }

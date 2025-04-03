@@ -57,7 +57,7 @@ func (m *Manager) GetTableInitStatements(
 
 	errgrp, errctx := errgroup.WithContext(ctx)
 
-	colDefMap := map[string][]*mssql_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{}
+	colDefMap := map[string][]*mssql_queries.GetDatabaseSchemaRow{}
 	errgrp.Go(func() error {
 		columnDefs, err := m.querier.GetDatabaseTableSchemasBySchemasAndTables(
 			errctx,
@@ -319,6 +319,13 @@ func (m *Manager) GetSchemaTableDataTypes(
 		return nil, err
 	}
 	return output, nil
+}
+
+func (m *Manager) GetDataTypesByTables(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) (*sqlmanager_shared.AllTableDataTypes, error) {
+	return nil, errors.ErrUnsupported
 }
 
 func (m *Manager) GetSchemaTableTriggers(

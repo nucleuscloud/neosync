@@ -8,6 +8,7 @@ import (
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/activities/sync"
 	tablesync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/workflow"
+	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/otel/metric"
 	"go.temporal.io/sdk/client"
 )
@@ -28,6 +29,7 @@ func Register(
 	temporalclient client.Client,
 	maxIterations int,
 	anonymizationClient mgmtv1alpha1connect.AnonymizationServiceClient,
+	redisclient redis.UniversalClient,
 ) {
 	tsWf := tablesync_workflow.New(maxIterations)
 	w.RegisterWorkflow(tsWf.TableSync)
@@ -41,6 +43,7 @@ func Register(
 		benthosStreamManager,
 		temporalclient,
 		anonymizationClient,
+		redisclient,
 	)
 
 	w.RegisterActivity(syncActivity.Sync)

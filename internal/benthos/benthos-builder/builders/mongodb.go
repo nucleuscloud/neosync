@@ -10,7 +10,6 @@ import (
 	jobmapping_builder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders/jobmapping-builder/shared"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
@@ -94,7 +93,6 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(
 			map[string][]*bb_internal.ReferenceKey{},
 			params.Job.Id,
 			params.JobRunId,
-			&neosync_redis.RedisConfig{},
 			tableMapping.Mappings,
 			map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 			job.GetSource().GetOptions(),

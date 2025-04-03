@@ -31,13 +31,16 @@ CREATE TABLE departments (
 	FOREIGN KEY (location_id) REFERENCES locations (location_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+CREATE TYPE job_category AS ENUM ('FULL_TIME', 'PART_TIME');
 CREATE TABLE jobs (
 	job_id SERIAL PRIMARY KEY,
 	job_title CHARACTER VARYING (35) NOT NULL,
 	min_salary NUMERIC (8, 2),
-	max_salary NUMERIC (8, 2)
+	max_salary NUMERIC (8, 2),
+	job_category job_category NOT NULL DEFAULT 'FULL_TIME'
 );
 
+CREATE TYPE employment_status AS ENUM ('FULL_TIME', 'PART_TIME');
 CREATE TABLE employees (
 	employee_id SERIAL PRIMARY KEY,
 	first_name CHARACTER VARYING (20),
@@ -48,6 +51,7 @@ CREATE TABLE employees (
 	job_id INTEGER NOT NULL,
 	salary NUMERIC (8, 2) NOT NULL,
 	manager_id INTEGER,
+	employment_type   employment_status NOT NULL DEFAULT 'FULL_TIME',
 	department_id INTEGER,
 	-- Added for testing column drops:
 	temp_col INT,
@@ -68,6 +72,44 @@ CREATE TABLE dependents (
 	FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE TYPE comp_address AS (
+    street   text,
+    city     text,
+    state    text,
+    zip_code text,
+		apt_number integer
+);
+
+CREATE TABLE office_locations (
+    location_id  serial PRIMARY KEY,
+    address      comp_address
+);
+
+CREATE TYPE comp_dummy AS (
+    street   text,
+    city     text,
+    state    text,
+    zip_code text,
+		apt_number integer
+);
+
+CREATE TABLE dummy_comp_table (
+    id  serial PRIMARY KEY,
+    comp      comp_dummy
+);
+
+CREATE DOMAIN positive_integer AS integer
+    CHECK (VALUE > 0);
+
+CREATE DOMAIN over_hundred AS integer
+    CHECK (VALUE > 100);
+
+CREATE TABLE example_table (
+    id serial PRIMARY KEY,
+    quantity positive_integer,
+		amount over_hundred,
+    description text
+);
 
 CREATE OR REPLACE FUNCTION other_trigger_function()
 RETURNS trigger
@@ -108,6 +150,22 @@ EXECUTE FUNCTION other_trigger_function();
 CREATE TABLE test_table_single_col (
  	name TEXT PRIMARY KEY
 );
+
+
+CREATE TABLE users (
+    id         integer NOT NULL,
+    username   text,                 -- will rename later
+    age        integer DEFAULT 99,   -- has a default
+    active     boolean NOT NULL DEFAULT false,
+		name_upper TEXT GENERATED ALWAYS AS (UPPER(username)) STORED
+);
+
+INSERT INTO users (id, username, age, active)
+VALUES
+    (1, 'alice', 30, true),
+    (2, 'bob',   25, false),
+    (3, 'carol', 35, true);
+
 
 INSERT INTO test_table_single_col (name) VALUES ('TEST_VAL');
 

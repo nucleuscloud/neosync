@@ -15,7 +15,6 @@ import (
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
 	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	selectquerybuilder "github.com/nucleuscloud/neosync/worker/pkg/select-query-builder"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -34,8 +33,6 @@ type benthosBuilder struct {
 	jobRunId string
 	runId    string
 
-	redisConfig *neosync_redis.RedisConfig
-
 	metricsEnabled bool
 
 	pageLimit int
@@ -50,8 +47,6 @@ func newBenthosBuilder(
 
 	jobId, jobRunId string, runId string,
 
-	redisConfig *neosync_redis.RedisConfig,
-
 	metricsEnabled bool,
 
 	pageLimit int,
@@ -64,7 +59,6 @@ func newBenthosBuilder(
 		jobId:             jobId,
 		jobRunId:          jobRunId,
 		runId:             runId,
-		redisConfig:       redisConfig,
 		metricsEnabled:    metricsEnabled,
 		pageLimit:         pageLimit,
 	}
@@ -116,7 +110,6 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		Sqlmanagerclient:       b.sqlmanagerclient,
 		Transformerclient:      b.transformerclient,
 		Connectionclient:       b.connclient,
-		RedisConfig:            b.redisConfig,
 		SelectQueryBuilder:     &selectquerybuilder.QueryMapBuilderWrapper{},
 		MetricsEnabled:         b.metricsEnabled,
 		MetricLabelKeyVals: map[string]string{
