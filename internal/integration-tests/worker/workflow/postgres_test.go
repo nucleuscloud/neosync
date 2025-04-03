@@ -278,7 +278,7 @@ func test_postgres_passthrough_on_new_column_addition(
 		AccountId:   accountId,
 		SourceConn:  sourceConn,
 		DestConn:    destConn,
-		JobName:     "all_types",
+		JobName:     "all_types_passthrough",
 		JobMappings: mappings,
 		JobOptions: &TestJobOptions{
 			Truncate:                       true,
