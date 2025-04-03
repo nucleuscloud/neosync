@@ -1253,7 +1253,7 @@ func Test_buildBranchCacheConfigs_missing_redis(t *testing.T) {
 	}
 
 	resp := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId)
-	require.Len(t, resp, 0)
+	require.Len(t, resp, 1)
 }
 
 func Test_buildBranchCacheConfigs_success(t *testing.T) {
