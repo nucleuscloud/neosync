@@ -1323,6 +1323,7 @@ func test_postgres_schema_reconciliation(
 			OnConflictDoUpdate: !shouldTruncate,
 		},
 	})
+	destinationId := job.GetDestinations()[0].GetId()
 
 	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithPostgresSchemaDrift(), WithMaxIterations(100), WithPageLimit(10000))
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
@@ -1344,6 +1345,9 @@ func test_postgres_schema_reconciliation(
 		{schema: schema, table: "employees", rowCount: 40},
 		{schema: schema, table: "dependents", rowCount: 30},
 		{schema: schema, table: "dummy_table", rowCount: 4},
+		{schema: schema, table: "office_locations", rowCount: 0},
+		{schema: schema, table: "dummy_comp_table", rowCount: 0},
+		{schema: schema, table: "example_table", rowCount: 0},
 		{schema: schema, table: "test_table_single_col", rowCount: 1},
 	}
 
@@ -1357,6 +1361,7 @@ func test_postgres_schema_reconciliation(
 		require.NoError(t, err)
 		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: schema_drift Table: %s Truncated: %t", expected.table, shouldTruncate))
 	}
+	test_schema_reconciliation_run_context(t, ctx, jobclient, job.GetId(), destinationId, accountId)
 
 	t.Logf("running alter statements")
 	err = postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"schema-init/alter-statements.sql"}, schema)
@@ -1394,6 +1399,8 @@ func test_postgres_schema_reconciliation(
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "dummy_table", sqlmanager_shared.PostgresDriver, []string{"id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "test_table_single_col", sqlmanager_shared.PostgresDriver, []string{"name"})
 
+	test_schema_reconciliation_run_context(t, ctx, jobclient, job.GetId(), destinationId, accountId)
+
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
 	require.NoError(t, err)
@@ -1409,10 +1416,15 @@ func verify_postgres_schemas(
 	srcManager := sqlmanager_postgres.NewManager(pg_queries.New(), source, func() {})
 	destManager := sqlmanager_postgres.NewManager(pg_queries.New(), target, func() {})
 
+	schematables := []*sqlmanager_shared.SchemaTable{}
+	for _, table := range tables {
+		schematables = append(schematables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
+	}
+
 	t.Logf("checking columns are the same in source and destination")
-	srcColumns, err := srcManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	srcColumns, err := srcManager.GetColumnsByTables(ctx, schematables)
 	require.NoError(t, err, "failed to get source columns")
-	destColumns, err := destManager.GetColumnsByTables(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
+	destColumns, err := destManager.GetColumnsByTables(ctx, schematables)
 	require.NoError(t, err, "failed to get destination columns")
 
 	srcColumnsMap := make(map[string]*sqlmanager_shared.TableColumn)
@@ -1470,9 +1482,9 @@ func verify_postgres_schemas(
 	}
 
 	t.Logf("checking triggers are the same in source and destination")
-	srcTriggers, err := srcManager.GetSchemaTableTriggers(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "astronaut"}})
+	srcTriggers, err := srcManager.GetSchemaTableTriggers(ctx, schematables)
 	require.NoError(t, err, "failed to get source triggers")
-	destTriggers, err := destManager.GetSchemaTableTriggers(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "astronaut"}})
+	destTriggers, err := destManager.GetSchemaTableTriggers(ctx, schematables)
 	require.NoError(t, err, "failed to get destination triggers")
 
 	destTriggersMap := make(map[string]*sqlmanager_shared.TableTrigger)
@@ -1485,17 +1497,41 @@ func verify_postgres_schemas(
 		require.Equal(t, trigger.Definition, destTrigger.Definition, "trigger definitions do not match for fingerprint %s", trigger.Fingerprint)
 	}
 
-	t.Logf("checking functions are the same in source and destination")
-	srcFunctions, err := srcManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
-	require.NoError(t, err, "failed to get source functions")
-	destFunctions, err := destManager.GetSchemaTableDataTypes(ctx, []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employees"}})
-	require.NoError(t, err, "failed to get destination functions")
+	srcDatatypes, err := srcManager.GetDataTypesByTables(ctx, schematables)
+	require.NoError(t, err, "failed to get source datatypes")
+	destDatatypes, err := destManager.GetDataTypesByTables(ctx, schematables)
+	require.NoError(t, err, "failed to get destination datatypes")
 
-	for _, function := range srcFunctions.Functions {
-		require.Contains(t, destFunctions.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
+	t.Logf("checking functions are the same in source and destination")
+	for _, function := range srcDatatypes.Functions {
+		assert.Contains(t, destDatatypes.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
 	}
-	for _, function := range destFunctions.Functions {
-		require.Contains(t, srcFunctions.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
+	for _, function := range destDatatypes.Functions {
+		assert.Contains(t, srcDatatypes.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
+	}
+
+	t.Logf("checking enum are the same in source and destination")
+	for _, enum := range srcDatatypes.Enums {
+		assert.Contains(t, destDatatypes.Enums, enum, "destination missing enum with fingerprint %s", enum.Fingerprint)
+	}
+	for _, enum := range destDatatypes.Enums {
+		assert.Contains(t, srcDatatypes.Enums, enum, "source missing enum with fingerprint %s", enum.Fingerprint)
+	}
+
+	t.Logf("checking composite types are the same in source and destination")
+	for _, composite := range srcDatatypes.Composites {
+		assert.Contains(t, destDatatypes.Composites, composite, "destination missing composite with fingerprint %s", composite.Fingerprint)
+	}
+	for _, composite := range destDatatypes.Composites {
+		assert.Contains(t, srcDatatypes.Composites, composite, "source missing composite with fingerprint %s", composite.Fingerprint)
+	}
+
+	t.Logf("checking domains are the same in source and destination")
+	for _, domain := range srcDatatypes.Domains {
+		assert.Contains(t, destDatatypes.Domains, domain, "destination missing domain with fingerprint %s", domain.Fingerprint)
+	}
+	for _, domain := range destDatatypes.Domains {
+		assert.Contains(t, srcDatatypes.Domains, domain, "source missing domain with fingerprint %s", domain.Fingerprint)
 	}
 }
 
