@@ -1,6 +1,1283 @@
 {
   "files": [
     {
+      "name": "mgmt/v1alpha1/account_hook.proto",
+      "description": "",
+      "package": "mgmt.v1alpha1",
+      "hasEnums": true,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": true,
+      "enums": [
+        {
+          "name": "AccountHookEvent",
+          "longName": "AccountHookEvent",
+          "fullName": "mgmt.v1alpha1.AccountHookEvent",
+          "description": "Enum of all possible events that can trigger an account hook.",
+          "values": [
+            {
+              "name": "ACCOUNT_HOOK_EVENT_UNSPECIFIED",
+              "number": "0",
+              "description": "If unspecified, hook will be triggered for all events."
+            },
+            {
+              "name": "ACCOUNT_HOOK_EVENT_JOB_RUN_CREATED",
+              "number": "1",
+              "description": "Triggered when a job run is created."
+            },
+            {
+              "name": "ACCOUNT_HOOK_EVENT_JOB_RUN_FAILED",
+              "number": "2",
+              "description": "Triggered when a job run fails."
+            },
+            {
+              "name": "ACCOUNT_HOOK_EVENT_JOB_RUN_SUCCEEDED",
+              "number": "3",
+              "description": "Triggered when a job run succeeds."
+            }
+          ]
+        }
+      ],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "AccountHook",
+          "longName": "AccountHook",
+          "fullName": "mgmt.v1alpha1.AccountHook",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The unique identifier of this hook.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "name",
+              "description": "Name of the hook for display/reference.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "description",
+              "description": "Description of what this hook does.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "account_id",
+              "description": "The unique identifier of the account this hook belongs to.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "events",
+              "description": "The events that will trigger this hook.",
+              "label": "repeated",
+              "type": "AccountHookEvent",
+              "longType": "AccountHookEvent",
+              "fullType": "mgmt.v1alpha1.AccountHookEvent",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "config",
+              "description": "Hook-type specific configuration.",
+              "label": "",
+              "type": "AccountHookConfig",
+              "longType": "AccountHookConfig",
+              "fullType": "mgmt.v1alpha1.AccountHookConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "created_by_user_id",
+              "description": "The user that created this hook.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "created_at",
+              "description": "The time this hook was created.",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "updated_by_user_id",
+              "description": "The user that last updated this hook.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "updated_at",
+              "description": "The last time this hook was updated.",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "enabled",
+              "description": "Whether or not the hook is enabled.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "AccountHookConfig",
+          "longName": "AccountHookConfig",
+          "fullName": "mgmt.v1alpha1.AccountHookConfig",
+          "description": "Hook-specific configuration",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "webhook",
+              "description": "Webhook-based hooks",
+              "label": "",
+              "type": "WebHook",
+              "longType": "AccountHookConfig.WebHook",
+              "fullType": "mgmt.v1alpha1.AccountHookConfig.WebHook",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "slack",
+              "description": "Slack-based hooks\n\nFuture: Discord, Teams, etc.",
+              "label": "",
+              "type": "SlackHook",
+              "longType": "AccountHookConfig.SlackHook",
+              "fullType": "mgmt.v1alpha1.AccountHookConfig.SlackHook",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SlackHook",
+          "longName": "AccountHookConfig.SlackHook",
+          "fullName": "mgmt.v1alpha1.AccountHookConfig.SlackHook",
+          "description": "Slack hook configuration",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "channel_id",
+              "description": "The Slack channel id to post messages to.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "WebHook",
+          "longName": "AccountHookConfig.WebHook",
+          "fullName": "mgmt.v1alpha1.AccountHookConfig.WebHook",
+          "description": "Webhook-specific configuration",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "url",
+              "description": "The webhook URL to send the event to.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "secret",
+              "description": "The secret to use for the webhook.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "disable_ssl_verification",
+              "description": "Whether to disable SSL verification for the webhook.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CreateAccountHookRequest",
+          "longName": "CreateAccountHookRequest",
+          "fullName": "mgmt.v1alpha1.CreateAccountHookRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account ID to create the hook for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "hook",
+              "description": "The new account hook configuration.",
+              "label": "",
+              "type": "NewAccountHook",
+              "longType": "NewAccountHook",
+              "fullType": "mgmt.v1alpha1.NewAccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CreateAccountHookResponse",
+          "longName": "CreateAccountHookResponse",
+          "fullName": "mgmt.v1alpha1.CreateAccountHookResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The newly created account hook.",
+              "label": "",
+              "type": "AccountHook",
+              "longType": "AccountHook",
+              "fullType": "mgmt.v1alpha1.AccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "DeleteAccountHookRequest",
+          "longName": "DeleteAccountHookRequest",
+          "fullName": "mgmt.v1alpha1.DeleteAccountHookRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The ID of the hook to delete.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "DeleteAccountHookResponse",
+          "longName": "DeleteAccountHookResponse",
+          "fullName": "mgmt.v1alpha1.DeleteAccountHookResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The deleted account hook.",
+              "label": "",
+              "type": "AccountHook",
+              "longType": "AccountHook",
+              "fullType": "mgmt.v1alpha1.AccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountHookRequest",
+          "longName": "GetAccountHookRequest",
+          "fullName": "mgmt.v1alpha1.GetAccountHookRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The ID of the hook to retrieve.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountHookResponse",
+          "longName": "GetAccountHookResponse",
+          "fullName": "mgmt.v1alpha1.GetAccountHookResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The account hook.",
+              "label": "",
+              "type": "AccountHook",
+              "longType": "AccountHook",
+              "fullType": "mgmt.v1alpha1.AccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountHooksRequest",
+          "longName": "GetAccountHooksRequest",
+          "fullName": "mgmt.v1alpha1.GetAccountHooksRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account ID to retrieve hooks for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountHooksResponse",
+          "longName": "GetAccountHooksResponse",
+          "fullName": "mgmt.v1alpha1.GetAccountHooksResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hooks",
+              "description": "The list of account hooks.",
+              "label": "repeated",
+              "type": "AccountHook",
+              "longType": "AccountHook",
+              "fullType": "mgmt.v1alpha1.AccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetActiveAccountHooksByEventRequest",
+          "longName": "GetActiveAccountHooksByEventRequest",
+          "fullName": "mgmt.v1alpha1.GetActiveAccountHooksByEventRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account ID to retrieve hooks for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "event",
+              "description": "The event to retrieve hooks for.\nA specific event will return hooks that are listening to that specific event as well as wildcard hooks.\nIf you want to retrieve only wildcard hooks, use ACCOUNT_HOOK_EVENT_UNSPECIFIED.",
+              "label": "",
+              "type": "AccountHookEvent",
+              "longType": "AccountHookEvent",
+              "fullType": "mgmt.v1alpha1.AccountHookEvent",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetActiveAccountHooksByEventResponse",
+          "longName": "GetActiveAccountHooksByEventResponse",
+          "fullName": "mgmt.v1alpha1.GetActiveAccountHooksByEventResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hooks",
+              "description": "The list of active account hooks.",
+              "label": "repeated",
+              "type": "AccountHook",
+              "longType": "AccountHook",
+              "fullType": "mgmt.v1alpha1.AccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetSlackConnectionUrlRequest",
+          "longName": "GetSlackConnectionUrlRequest",
+          "fullName": "mgmt.v1alpha1.GetSlackConnectionUrlRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account ID to retrieve the Slack connection URL for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetSlackConnectionUrlResponse",
+          "longName": "GetSlackConnectionUrlResponse",
+          "fullName": "mgmt.v1alpha1.GetSlackConnectionUrlResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "url",
+              "description": "The Slack connection URL.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "HandleSlackOAuthCallbackRequest",
+          "longName": "HandleSlackOAuthCallbackRequest",
+          "fullName": "mgmt.v1alpha1.HandleSlackOAuthCallbackRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "state",
+              "description": "The Slack state.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "code",
+              "description": "The Slack code.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "HandleSlackOAuthCallbackResponse",
+          "longName": "HandleSlackOAuthCallbackResponse",
+          "fullName": "mgmt.v1alpha1.HandleSlackOAuthCallbackResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "IsAccountHookNameAvailableRequest",
+          "longName": "IsAccountHookNameAvailableRequest",
+          "fullName": "mgmt.v1alpha1.IsAccountHookNameAvailableRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account ID to check the name for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "name",
+              "description": "The name to check.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "IsAccountHookNameAvailableResponse",
+          "longName": "IsAccountHookNameAvailableResponse",
+          "fullName": "mgmt.v1alpha1.IsAccountHookNameAvailableResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_available",
+              "description": "Whether the name is available.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "NewAccountHook",
+          "longName": "NewAccountHook",
+          "fullName": "mgmt.v1alpha1.NewAccountHook",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "name",
+              "description": "Name of the hook for display/reference.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "description",
+              "description": "Description of what this hook does.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "events",
+              "description": "The events that will trigger this hook.",
+              "label": "repeated",
+              "type": "AccountHookEvent",
+              "longType": "AccountHookEvent",
+              "fullType": "mgmt.v1alpha1.AccountHookEvent",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "config",
+              "description": "Hook-type specific configuration.",
+              "label": "",
+              "type": "AccountHookConfig",
+              "longType": "AccountHookConfig",
+              "fullType": "mgmt.v1alpha1.AccountHookConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "enabled",
+              "description": "Whether or not the hook is enabled.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SendSlackMessageRequest",
+          "longName": "SendSlackMessageRequest",
+          "fullName": "mgmt.v1alpha1.SendSlackMessageRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_hook_id",
+              "description": "The account hook ID to send the Slack message to.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "event",
+              "description": "The marshaled event that was emitted by the worker.",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SendSlackMessageResponse",
+          "longName": "SendSlackMessageResponse",
+          "fullName": "mgmt.v1alpha1.SendSlackMessageResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "SetAccountHookEnabledRequest",
+          "longName": "SetAccountHookEnabledRequest",
+          "fullName": "mgmt.v1alpha1.SetAccountHookEnabledRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The ID of the hook to enable/disable.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "enabled",
+              "description": "Whether to enable or disable the hook.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetAccountHookEnabledResponse",
+          "longName": "SetAccountHookEnabledResponse",
+          "fullName": "mgmt.v1alpha1.SetAccountHookEnabledResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The updated account hook.",
+              "label": "",
+              "type": "AccountHook",
+              "longType": "AccountHook",
+              "fullType": "mgmt.v1alpha1.AccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TestSlackConnectionRequest",
+          "longName": "TestSlackConnectionRequest",
+          "fullName": "mgmt.v1alpha1.TestSlackConnectionRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account ID to test the Slack connection for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TestSlackConnectionResponse",
+          "longName": "TestSlackConnectionResponse",
+          "fullName": "mgmt.v1alpha1.TestSlackConnectionResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "has_configuration",
+              "description": "Whether there is an existing Slack configuration.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "test_response",
+              "description": "The response from the Slack API.",
+              "label": "optional",
+              "type": "Response",
+              "longType": "TestSlackConnectionResponse.Response",
+              "fullType": "mgmt.v1alpha1.TestSlackConnectionResponse.Response",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_test_response",
+              "defaultValue": ""
+            },
+            {
+              "name": "error",
+              "description": "The error message if the connection failed.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_error",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Response",
+          "longName": "TestSlackConnectionResponse.Response",
+          "fullName": "mgmt.v1alpha1.TestSlackConnectionResponse.Response",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "url",
+              "description": "The URL of the Slack that is connected.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "team",
+              "description": "The team name of the Slack that is connected.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UpdateAccountHookRequest",
+          "longName": "UpdateAccountHookRequest",
+          "fullName": "mgmt.v1alpha1.UpdateAccountHookRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The ID of the hook to update.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "name",
+              "description": "Name of the hook for display/reference.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "description",
+              "description": "Description of what this hook does.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "events",
+              "description": "The events that will trigger this hook.",
+              "label": "repeated",
+              "type": "AccountHookEvent",
+              "longType": "AccountHookEvent",
+              "fullType": "mgmt.v1alpha1.AccountHookEvent",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "config",
+              "description": "Hook-type specific configuration.",
+              "label": "",
+              "type": "AccountHookConfig",
+              "longType": "AccountHookConfig",
+              "fullType": "mgmt.v1alpha1.AccountHookConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "enabled",
+              "description": "Whether or not the hook is enabled.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UpdateAccountHookResponse",
+          "longName": "UpdateAccountHookResponse",
+          "fullName": "mgmt.v1alpha1.UpdateAccountHookResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "hook",
+              "description": "The updated account hook.",
+              "label": "",
+              "type": "AccountHook",
+              "longType": "AccountHook",
+              "fullType": "mgmt.v1alpha1.AccountHook",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        }
+      ],
+      "services": [
+        {
+          "name": "AccountHookService",
+          "longName": "AccountHookService",
+          "fullName": "mgmt.v1alpha1.AccountHookService",
+          "description": "",
+          "methods": [
+            {
+              "name": "GetAccountHooks",
+              "description": "Retrieves all account hooks.",
+              "requestType": "GetAccountHooksRequest",
+              "requestLongType": "GetAccountHooksRequest",
+              "requestFullType": "mgmt.v1alpha1.GetAccountHooksRequest",
+              "requestStreaming": false,
+              "responseType": "GetAccountHooksResponse",
+              "responseLongType": "GetAccountHooksResponse",
+              "responseFullType": "mgmt.v1alpha1.GetAccountHooksResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            },
+            {
+              "name": "GetAccountHook",
+              "description": "Retrieves a specific account hook.",
+              "requestType": "GetAccountHookRequest",
+              "requestLongType": "GetAccountHookRequest",
+              "requestFullType": "mgmt.v1alpha1.GetAccountHookRequest",
+              "requestStreaming": false,
+              "responseType": "GetAccountHookResponse",
+              "responseLongType": "GetAccountHookResponse",
+              "responseFullType": "mgmt.v1alpha1.GetAccountHookResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            },
+            {
+              "name": "CreateAccountHook",
+              "description": "Creates a new account hook.",
+              "requestType": "CreateAccountHookRequest",
+              "requestLongType": "CreateAccountHookRequest",
+              "requestFullType": "mgmt.v1alpha1.CreateAccountHookRequest",
+              "requestStreaming": false,
+              "responseType": "CreateAccountHookResponse",
+              "responseLongType": "CreateAccountHookResponse",
+              "responseFullType": "mgmt.v1alpha1.CreateAccountHookResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "UpdateAccountHook",
+              "description": "Updates an existing account hook.",
+              "requestType": "UpdateAccountHookRequest",
+              "requestLongType": "UpdateAccountHookRequest",
+              "requestFullType": "mgmt.v1alpha1.UpdateAccountHookRequest",
+              "requestStreaming": false,
+              "responseType": "UpdateAccountHookResponse",
+              "responseLongType": "UpdateAccountHookResponse",
+              "responseFullType": "mgmt.v1alpha1.UpdateAccountHookResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "DeleteAccountHook",
+              "description": "Deletes an account hook.",
+              "requestType": "DeleteAccountHookRequest",
+              "requestLongType": "DeleteAccountHookRequest",
+              "requestFullType": "mgmt.v1alpha1.DeleteAccountHookRequest",
+              "requestStreaming": false,
+              "responseType": "DeleteAccountHookResponse",
+              "responseLongType": "DeleteAccountHookResponse",
+              "responseFullType": "mgmt.v1alpha1.DeleteAccountHookResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "IsAccountHookNameAvailable",
+              "description": "Checks if an account hook name is available.",
+              "requestType": "IsAccountHookNameAvailableRequest",
+              "requestLongType": "IsAccountHookNameAvailableRequest",
+              "requestFullType": "mgmt.v1alpha1.IsAccountHookNameAvailableRequest",
+              "requestStreaming": false,
+              "responseType": "IsAccountHookNameAvailableResponse",
+              "responseLongType": "IsAccountHookNameAvailableResponse",
+              "responseFullType": "mgmt.v1alpha1.IsAccountHookNameAvailableResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "SetAccountHookEnabled",
+              "description": "Enables or disables an account hook.",
+              "requestType": "SetAccountHookEnabledRequest",
+              "requestLongType": "SetAccountHookEnabledRequest",
+              "requestFullType": "mgmt.v1alpha1.SetAccountHookEnabledRequest",
+              "requestStreaming": false,
+              "responseType": "SetAccountHookEnabledResponse",
+              "responseLongType": "SetAccountHookEnabledResponse",
+              "responseFullType": "mgmt.v1alpha1.SetAccountHookEnabledResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetActiveAccountHooksByEvent",
+              "description": "Retrieves all active account hooks for a specific event.",
+              "requestType": "GetActiveAccountHooksByEventRequest",
+              "requestLongType": "GetActiveAccountHooksByEventRequest",
+              "requestFullType": "mgmt.v1alpha1.GetActiveAccountHooksByEventRequest",
+              "requestStreaming": false,
+              "responseType": "GetActiveAccountHooksByEventResponse",
+              "responseLongType": "GetActiveAccountHooksByEventResponse",
+              "responseFullType": "mgmt.v1alpha1.GetActiveAccountHooksByEventResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            },
+            {
+              "name": "GetSlackConnectionUrl",
+              "description": "Retrieves the Slack connection url that allows a user to connect their Slack workspace to Neosync.",
+              "requestType": "GetSlackConnectionUrlRequest",
+              "requestLongType": "GetSlackConnectionUrlRequest",
+              "requestFullType": "mgmt.v1alpha1.GetSlackConnectionUrlRequest",
+              "requestStreaming": false,
+              "responseType": "GetSlackConnectionUrlResponse",
+              "responseLongType": "GetSlackConnectionUrlResponse",
+              "responseFullType": "mgmt.v1alpha1.GetSlackConnectionUrlResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            },
+            {
+              "name": "HandleSlackOAuthCallback",
+              "description": "Handles the Slack OAuth callback.",
+              "requestType": "HandleSlackOAuthCallbackRequest",
+              "requestLongType": "HandleSlackOAuthCallbackRequest",
+              "requestFullType": "mgmt.v1alpha1.HandleSlackOAuthCallbackRequest",
+              "requestStreaming": false,
+              "responseType": "HandleSlackOAuthCallbackResponse",
+              "responseLongType": "HandleSlackOAuthCallbackResponse",
+              "responseFullType": "mgmt.v1alpha1.HandleSlackOAuthCallbackResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "TestSlackConnection",
+              "description": "Tests the Slack connection by using the stored access token to initiate an auth test api call to slack.",
+              "requestType": "TestSlackConnectionRequest",
+              "requestLongType": "TestSlackConnectionRequest",
+              "requestFullType": "mgmt.v1alpha1.TestSlackConnectionRequest",
+              "requestStreaming": false,
+              "responseType": "TestSlackConnectionResponse",
+              "responseLongType": "TestSlackConnectionResponse",
+              "responseFullType": "mgmt.v1alpha1.TestSlackConnectionResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            },
+            {
+              "name": "SendSlackMessage",
+              "description": "For sending slack messages from the worker.",
+              "requestType": "SendSlackMessageRequest",
+              "requestLongType": "SendSlackMessageRequest",
+              "requestFullType": "mgmt.v1alpha1.SendSlackMessageRequest",
+              "requestStreaming": false,
+              "responseType": "SendSlackMessageResponse",
+              "responseLongType": "SendSlackMessageResponse",
+              "responseFullType": "mgmt.v1alpha1.SendSlackMessageResponse",
+              "responseStreaming": false
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "mgmt/v1alpha1/transformer.proto",
       "description": "",
       "package": "mgmt.v1alpha1",
@@ -512,8 +1789,13 @@
               "description": ""
             },
             {
-              "name": "TRANSFORMER_SOURCE_TRANSFORM_HASH",
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_SCRAMBLE_IDENTITY",
               "number": "51",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_HASH",
+              "number": "52",
               "description": "TransformHash is a transformer that hashes the input string using the specified hashing algorithm."
             }
           ]
@@ -2400,6 +3682,17 @@
           ]
         },
         {
+          "name": "TransformScrambleIdentity",
+          "longName": "TransformScrambleIdentity",
+          "fullName": "mgmt.v1alpha1.TransformScrambleIdentity",
+          "description": "Takes an input integer and scrambles it, effectively outputing another integer that is not the same as the input.\nThis is effectively a random integer generator that has unique properties.",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "TransformString",
           "longName": "TransformString",
           "fullName": "mgmt.v1alpha1.TransformString",
@@ -3003,6 +4296,18 @@
               "type": "TransformUuid",
               "longType": "TransformUuid",
               "fullType": "mgmt.v1alpha1.TransformUuid",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "transform_scramble_identity_config",
+              "description": "Scrambles an integer while keeping it unique.",
+              "label": "",
+              "type": "TransformScrambleIdentity",
+              "longType": "TransformScrambleIdentity",
+              "fullType": "mgmt.v1alpha1.TransformScrambleIdentity",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -5097,6 +6402,138 @@
           ]
         },
         {
+          "name": "CheckSSHConnectionByIdRequest",
+          "longName": "CheckSSHConnectionByIdRequest",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionByIdRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The connection id that the SSH connection will be checked against",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CheckSSHConnectionByIdResponse",
+          "longName": "CheckSSHConnectionByIdResponse",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionByIdResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "result",
+              "description": "The result of the SSH connection check",
+              "label": "",
+              "type": "CheckSSHConnectionResult",
+              "longType": "CheckSSHConnectionResult",
+              "fullType": "mgmt.v1alpha1.CheckSSHConnectionResult",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CheckSSHConnectionRequest",
+          "longName": "CheckSSHConnectionRequest",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "tunnel",
+              "description": "The SSH tunnel configuration to use for the connection",
+              "label": "",
+              "type": "SSHTunnel",
+              "longType": "SSHTunnel",
+              "fullType": "mgmt.v1alpha1.SSHTunnel",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CheckSSHConnectionResponse",
+          "longName": "CheckSSHConnectionResponse",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "result",
+              "description": "The result of the SSH connection check",
+              "label": "",
+              "type": "CheckSSHConnectionResult",
+              "longType": "CheckSSHConnectionResult",
+              "fullType": "mgmt.v1alpha1.CheckSSHConnectionResult",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CheckSSHConnectionResult",
+          "longName": "CheckSSHConnectionResult",
+          "fullName": "mgmt.v1alpha1.CheckSSHConnectionResult",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_successful",
+              "description": "Whether or not the SSH connection is successful",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "error_message",
+              "description": "The error message returned by the SSH client if the connection is not successful",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_error_message",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "CheckSqlQueryRequest",
           "longName": "CheckSqlQueryRequest",
           "fullName": "mgmt.v1alpha1.CheckSqlQueryRequest",
@@ -5740,6 +7177,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "exclude_sensitive",
+              "description": "Whether or not to exclude sensitive data from the connection\nIf the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data\nThis behavior exists to preserve backwards compatibility that originally always returned sensitive data",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -5784,6 +7233,18 @@
               "type": "string",
               "longType": "string",
               "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "exclude_sensitive",
+              "description": "Whether or not to exclude sensitive data from the connection\nIf the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data\nThis behavior exists to preserve backwards compatibility that originally always returned sensitive data",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -6812,6 +8273,30 @@
               "responseLongType": "CheckSqlQueryResponse",
               "responseFullType": "mgmt.v1alpha1.CheckSqlQueryResponse",
               "responseStreaming": false
+            },
+            {
+              "name": "CheckSSHConnection",
+              "description": "Checks if the SSH server is reachable and accessible with the given credentials",
+              "requestType": "CheckSSHConnectionRequest",
+              "requestLongType": "CheckSSHConnectionRequest",
+              "requestFullType": "mgmt.v1alpha1.CheckSSHConnectionRequest",
+              "requestStreaming": false,
+              "responseType": "CheckSSHConnectionResponse",
+              "responseLongType": "CheckSSHConnectionResponse",
+              "responseFullType": "mgmt.v1alpha1.CheckSSHConnectionResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "CheckSSHConnectionById",
+              "description": "Checks if the SSH server is reachable and accessible with the given credentials",
+              "requestType": "CheckSSHConnectionByIdRequest",
+              "requestLongType": "CheckSSHConnectionByIdRequest",
+              "requestFullType": "mgmt.v1alpha1.CheckSSHConnectionByIdRequest",
+              "requestStreaming": false,
+              "responseType": "CheckSSHConnectionByIdResponse",
+              "responseLongType": "CheckSSHConnectionByIdResponse",
+              "responseFullType": "mgmt.v1alpha1.CheckSSHConnectionByIdResponse",
+              "responseStreaming": false
             }
           ]
         }
@@ -7523,6 +9008,126 @@
           ]
         },
         {
+          "name": "GetAllSchemasAndTablesRequest",
+          "longName": "GetAllSchemasAndTablesRequest",
+          "fullName": "mgmt.v1alpha1.GetAllSchemasAndTablesRequest",
+          "description": "Request to get all the schemas and tables for a connection",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "The unique identifier of the connection to get the all schema tables for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAllSchemasAndTablesResponse",
+          "longName": "GetAllSchemasAndTablesResponse",
+          "fullName": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse",
+          "description": "A list of all the schemas and tables for a connection",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schemas",
+              "description": "A list of all the schemas for a connection. Empty schemas (those without any tables) will appear in this list.",
+              "label": "repeated",
+              "type": "Schema",
+              "longType": "GetAllSchemasAndTablesResponse.Schema",
+              "fullType": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Schema",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "tables",
+              "description": "A list of all the tables for the connection",
+              "label": "repeated",
+              "type": "Table",
+              "longType": "GetAllSchemasAndTablesResponse.Table",
+              "fullType": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Table",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Schema",
+          "longName": "GetAllSchemasAndTablesResponse.Schema",
+          "fullName": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Schema",
+          "description": "A schema",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "name",
+              "description": "The name of the schema",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Table",
+          "longName": "GetAllSchemasAndTablesResponse.Table",
+          "fullName": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Table",
+          "description": "A table in a schema",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema_name",
+              "description": "The name of the schema",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table_name",
+              "description": "The name of the table",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetConnectionDataStreamRequest",
           "longName": "GetConnectionDataStreamRequest",
           "fullName": "mgmt.v1alpha1.GetConnectionDataStreamRequest",
@@ -7654,7 +9259,7 @@
           "fields": [
             {
               "name": "table_init_statements",
-              "description": "The key here is \u003cschema\u003e.\u003ctable\u003e and value is the table init statement.",
+              "description": "@deprecated - Use schema_init_statements instead",
               "label": "repeated",
               "type": "TableInitStatementsEntry",
               "longType": "GetConnectionInitStatementsResponse.TableInitStatementsEntry",
@@ -7662,7 +9267,10 @@
               "ismap": true,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "table_truncate_statements",
@@ -8047,6 +9655,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "unique_indexes",
+              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is the unique index",
+              "label": "repeated",
+              "type": "UniqueIndexesEntry",
+              "longType": "GetConnectionTableConstraintsResponse.UniqueIndexesEntry",
+              "fullType": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.UniqueIndexesEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -8151,6 +9771,42 @@
               "type": "UniqueConstraints",
               "longType": "UniqueConstraints",
               "fullType": "mgmt.v1alpha1.UniqueConstraints",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UniqueIndexesEntry",
+          "longName": "GetConnectionTableConstraintsResponse.UniqueIndexesEntry",
+          "fullName": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.UniqueIndexesEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "UniqueIndexes",
+              "longType": "UniqueIndexes",
+              "fullType": "mgmt.v1alpha1.UniqueIndexes",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -8463,6 +10119,54 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "UniqueIndex",
+          "longName": "UniqueIndex",
+          "fullName": "mgmt.v1alpha1.UniqueIndex",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "columns",
+              "description": "The columns that are part of the unique index",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UniqueIndexes",
+          "longName": "UniqueIndexes",
+          "fullName": "mgmt.v1alpha1.UniqueIndexes",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "indexes",
+              "description": "The unique indexes found for the table",
+              "label": "repeated",
+              "type": "UniqueIndex",
+              "longType": "UniqueIndex",
+              "fullType": "mgmt.v1alpha1.UniqueIndex",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         }
       ],
       "services": [
@@ -8566,6 +10270,21 @@
               "responseType": "GetTableRowCountResponse",
               "responseLongType": "GetTableRowCountResponse",
               "responseFullType": "mgmt.v1alpha1.GetTableRowCountResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            },
+            {
+              "name": "GetAllSchemasAndTables",
+              "description": "Get all schemas and tables for a connection",
+              "requestType": "GetAllSchemasAndTablesRequest",
+              "requestLongType": "GetAllSchemasAndTablesRequest",
+              "requestFullType": "mgmt.v1alpha1.GetAllSchemasAndTablesRequest",
+              "requestStreaming": false,
+              "responseType": "GetAllSchemasAndTablesResponse",
+              "responseLongType": "GetAllSchemasAndTablesResponse",
+              "responseFullType": "mgmt.v1alpha1.GetAllSchemasAndTablesResponse",
               "responseStreaming": false,
               "options": {
                 "idempotency_level": "NO_SIDE_EFFECTS"
@@ -9886,6 +11605,18 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "job_type",
+              "description": "The type of job to create",
+              "label": "optional",
+              "type": "JobTypeConfig",
+              "longType": "JobTypeConfig",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_job_type",
               "defaultValue": ""
             }
           ]
@@ -11520,6 +13251,66 @@
           ]
         },
         {
+          "name": "GetPiiDetectionReportRequest",
+          "longName": "GetPiiDetectionReportRequest",
+          "fullName": "mgmt.v1alpha1.GetPiiDetectionReportRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_run_id",
+              "description": "The unique identifier of the job run",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "account_id",
+              "description": "The unique identifier of the account",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetPiiDetectionReportResponse",
+          "longName": "GetPiiDetectionReportResponse",
+          "fullName": "mgmt.v1alpha1.GetPiiDetectionReportResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "report",
+              "description": "The pii detection report",
+              "label": "",
+              "type": "PiiDetectionReport",
+              "longType": "PiiDetectionReport",
+              "fullType": "mgmt.v1alpha1.PiiDetectionReport",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetRunContextRequest",
           "longName": "GetRunContextRequest",
           "fullName": "mgmt.v1alpha1.GetRunContextRequest",
@@ -11860,6 +13651,18 @@
               "type": "VirtualForeignConstraint",
               "longType": "VirtualForeignConstraint",
               "fullType": "mgmt.v1alpha1.VirtualForeignConstraint",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "job_type",
+              "description": "The type of job",
+              "label": "",
+              "type": "JobTypeConfig",
+              "longType": "JobTypeConfig",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -12994,6 +14797,292 @@
           ]
         },
         {
+          "name": "JobTypeConfig",
+          "longName": "JobTypeConfig",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig",
+          "description": "Specifies the job type along with any specific configuration for that job type",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "sync",
+              "description": "This is the default if no job type is specified",
+              "label": "",
+              "type": "JobTypeSync",
+              "longType": "JobTypeConfig.JobTypeSync",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "job_type",
+              "defaultValue": ""
+            },
+            {
+              "name": "pii_detect",
+              "description": "",
+              "label": "",
+              "type": "JobTypePiiDetect",
+              "longType": "JobTypeConfig.JobTypePiiDetect",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "job_type",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "JobTypePiiDetect",
+          "longName": "JobTypeConfig.JobTypePiiDetect",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "data_sampling",
+              "description": "The configuration for data sampling",
+              "label": "",
+              "type": "DataSampling",
+              "longType": "JobTypeConfig.JobTypePiiDetect.DataSampling",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table_scan_filter",
+              "description": "The configuration for filtering tables to scan",
+              "label": "",
+              "type": "TableScanFilter",
+              "longType": "JobTypeConfig.JobTypePiiDetect.TableScanFilter",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableScanFilter",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "user_prompt",
+              "description": "The user prompt to use for PII detection to help influence the LLM",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_user_prompt",
+              "defaultValue": ""
+            },
+            {
+              "name": "incremental",
+              "description": "The configuration for incremental PII detection",
+              "label": "optional",
+              "type": "Incremental",
+              "longType": "JobTypeConfig.JobTypePiiDetect.Incremental",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.Incremental",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_incremental",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "DataSampling",
+          "longName": "JobTypeConfig.JobTypePiiDetect.DataSampling",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling",
+          "description": "The configuration for data sampling",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_enabled",
+              "description": "Whether to enable data sampling",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "IncludeAll",
+          "longName": "JobTypeConfig.JobTypePiiDetect.IncludeAll",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.IncludeAll",
+          "description": "Configuration to include all tables",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Incremental",
+          "longName": "JobTypeConfig.JobTypePiiDetect.Incremental",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.Incremental",
+          "description": "The configuration for incremental PII detection",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_enabled",
+              "description": "Whether to enable incremental PII detection",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TableIdentifier",
+          "longName": "JobTypeConfig.JobTypePiiDetect.TableIdentifier",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableIdentifier",
+          "description": "Identifier for a specific table",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "The schema name",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "The table name",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TablePatterns",
+          "longName": "JobTypeConfig.JobTypePiiDetect.TablePatterns",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns",
+          "description": "Patterns for matching tables and schemas",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schemas",
+              "description": "Match entire schemas",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "tables",
+              "description": "Match specific tables within schemas",
+              "label": "repeated",
+              "type": "TableIdentifier",
+              "longType": "JobTypeConfig.JobTypePiiDetect.TableIdentifier",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableIdentifier",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TableScanFilter",
+          "longName": "JobTypeConfig.JobTypePiiDetect.TableScanFilter",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableScanFilter",
+          "description": "Filter configuration for table scanning",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "include_all",
+              "description": "Include all tables (default behavior)",
+              "label": "",
+              "type": "IncludeAll",
+              "longType": "JobTypeConfig.JobTypePiiDetect.IncludeAll",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.IncludeAll",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "mode",
+              "defaultValue": ""
+            },
+            {
+              "name": "include",
+              "description": "Only include specified tables/schemas",
+              "label": "",
+              "type": "TablePatterns",
+              "longType": "JobTypeConfig.JobTypePiiDetect.TablePatterns",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "mode",
+              "defaultValue": ""
+            },
+            {
+              "name": "exclude",
+              "description": "Include all except specified tables/schemas",
+              "label": "",
+              "type": "TablePatterns",
+              "longType": "JobTypeConfig.JobTypePiiDetect.TablePatterns",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "mode",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "JobTypeSync",
+          "longName": "JobTypeConfig.JobTypeSync",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync",
+          "description": "The configuration for a data sync job",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "MongoDBDestinationConnectionOptions",
           "longName": "MongoDBDestinationConnectionOptions",
           "fullName": "mgmt.v1alpha1.MongoDBDestinationConnectionOptions",
@@ -13148,7 +15237,7 @@
           "fields": [
             {
               "name": "halt_on_new_column_addition",
-              "description": "Whether to halt the job if a new column is added",
+              "description": "Whether to halt the job if a new column is added\nDeprecated: Use new_column_addition_strategy instead",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -13156,7 +15245,10 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "schemas",
@@ -13201,6 +15293,18 @@
               "type": "ColumnRemovalStrategy",
               "longType": "MssqlSourceConnectionOptions.ColumnRemovalStrategy",
               "fullType": "mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "new_column_addition_strategy",
+              "description": "Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.",
+              "label": "",
+              "type": "NewColumnAdditionStrategy",
+              "longType": "MssqlSourceConnectionOptions.NewColumnAdditionStrategy",
+              "fullType": "mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -13260,6 +15364,64 @@
           "longName": "MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob",
           "fullName": "mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob",
           "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "NewColumnAdditionStrategy",
+          "longName": "MssqlSourceConnectionOptions.NewColumnAdditionStrategy",
+          "fullName": "mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "halt_job",
+              "description": "halt job if a new column is detected.",
+              "label": "",
+              "type": "HaltJob",
+              "longType": "MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+              "fullType": "mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "passthrough",
+              "description": "pass the new column through as is.",
+              "label": "",
+              "type": "Passthrough",
+              "longType": "MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "fullType": "mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "HaltJob",
+          "longName": "MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+          "fullName": "mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+          "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Passthrough",
+          "longName": "MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "fullName": "mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "description": "Configuration for the Passthrough strategy",
           "hasExtensions": false,
           "hasFields": false,
           "hasOneofs": false,
@@ -13552,7 +15714,7 @@
           "fields": [
             {
               "name": "halt_on_new_column_addition",
-              "description": "Whether to halt the job if a new column is added",
+              "description": "Whether to halt the job if a new column is added\nDeprecated: Use new_column_addition_strategy instead",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -13560,7 +15722,10 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "schemas",
@@ -13605,6 +15770,18 @@
               "type": "ColumnRemovalStrategy",
               "longType": "MysqlSourceConnectionOptions.ColumnRemovalStrategy",
               "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "new_column_addition_strategy",
+              "description": "Provide a strategy of what to do in the event Neosync encounters an unmapped column for the job's mapped tables.",
+              "label": "",
+              "type": "NewColumnAdditionStrategy",
+              "longType": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy",
+              "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -13664,6 +15841,87 @@
           "longName": "MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob",
           "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob",
           "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "NewColumnAdditionStrategy",
+          "longName": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy",
+          "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "halt_job",
+              "description": "halt job if a new column is detected.",
+              "label": "",
+              "type": "HaltJob",
+              "longType": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+              "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "auto_map",
+              "description": "automatically handle unmapped columns. It handles this by using the DBs default/nullable values.\nIf this doesn't exist, will fall back to configuring generators for supported datatypes.\nIf none of the criteria above can be met, the job run will fail to prevent leaking of PII.",
+              "label": "",
+              "type": "AutoMap",
+              "longType": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+              "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "passthrough",
+              "description": "pass the new column through as is.",
+              "label": "",
+              "type": "Passthrough",
+              "longType": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "fullType": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "AutoMap",
+          "longName": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+          "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap",
+          "description": "Configuration for the AutoMap strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "HaltJob",
+          "longName": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+          "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
+          "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Passthrough",
+          "longName": "MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "fullName": "mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "description": "Configuration for the Passthrough strategy",
           "hasExtensions": false,
           "hasFields": false,
           "hasOneofs": false,
@@ -13978,6 +16236,186 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "_last_failure",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "PiiDetectionReport",
+          "longName": "PiiDetectionReport",
+          "fullName": "mgmt.v1alpha1.PiiDetectionReport",
+          "description": "The pii detection report",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "tables",
+              "description": "The report for each table where PII was detected. If no PII was detected, the table will not be included.",
+              "label": "repeated",
+              "type": "TableReport",
+              "longType": "PiiDetectionReport.TableReport",
+              "fullType": "mgmt.v1alpha1.PiiDetectionReport.TableReport",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TableReport",
+          "longName": "PiiDetectionReport.TableReport",
+          "fullName": "mgmt.v1alpha1.PiiDetectionReport.TableReport",
+          "description": "The report for a table",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "The schema of the table",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "The name of the table",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "columns",
+              "description": "The report for each column",
+              "label": "repeated",
+              "type": "ColumnReport",
+              "longType": "PiiDetectionReport.TableReport.ColumnReport",
+              "fullType": "mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ColumnReport",
+          "longName": "PiiDetectionReport.TableReport.ColumnReport",
+          "fullName": "mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport",
+          "description": "The report for a column",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "column",
+              "description": "The name of the column",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "regex_report",
+              "description": "The regex report. Will be empty if no regex matched the column name.",
+              "label": "optional",
+              "type": "Regex",
+              "longType": "PiiDetectionReport.TableReport.ColumnReport.Regex",
+              "fullType": "mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.Regex",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_regex_report",
+              "defaultValue": ""
+            },
+            {
+              "name": "llm_report",
+              "description": "The LLM report. Will be empty if the LLM determined the column name (and optionally the data) was not PII.",
+              "label": "optional",
+              "type": "LLM",
+              "longType": "PiiDetectionReport.TableReport.ColumnReport.LLM",
+              "fullType": "mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.LLM",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_llm_report",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "LLM",
+          "longName": "PiiDetectionReport.TableReport.ColumnReport.LLM",
+          "fullName": "mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.LLM",
+          "description": "The LLM report",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "category",
+              "description": "The category of the column",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "confidence",
+              "description": "The confidence of the column from 0.0-1.0",
+              "label": "",
+              "type": "float",
+              "longType": "float",
+              "fullType": "float",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Regex",
+          "longName": "PiiDetectionReport.TableReport.ColumnReport.Regex",
+          "fullName": "mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.Regex",
+          "description": "The regex report",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "category",
+              "description": "The category of the column",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]
@@ -14302,6 +16740,18 @@
               "isoneof": true,
               "oneofdecl": "strategy",
               "defaultValue": ""
+            },
+            {
+              "name": "passthrough",
+              "description": "pass the new column through as is.",
+              "label": "",
+              "type": "Passthrough",
+              "longType": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "fullType": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
             }
           ]
         },
@@ -14321,6 +16771,17 @@
           "longName": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
           "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob",
           "description": "Configuration for the HaltJob strategy",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Passthrough",
+          "longName": "PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "fullName": "mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough",
+          "description": "Configuration for the Passthrough strategy",
           "hasExtensions": false,
           "hasFields": false,
           "hasOneofs": false,
@@ -15317,6 +17778,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "job_type",
+              "description": "The new job type configuration",
+              "label": "",
+              "type": "JobTypeConfig",
+              "longType": "JobTypeConfig",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -15469,6 +17942,138 @@
               "type": "TableError",
               "longType": "TableError",
               "fullType": "mgmt.v1alpha1.TableError",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ValidateSchemaRequest",
+          "longName": "ValidateSchemaRequest",
+          "fullName": "mgmt.v1alpha1.ValidateSchemaRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "mappings",
+              "description": "The list of mappings to validate",
+              "label": "repeated",
+              "type": "JobMapping",
+              "longType": "JobMapping",
+              "fullType": "mgmt.v1alpha1.JobMapping",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "connection_id",
+              "description": "The unique identifier of the connection to validate",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ValidateSchemaResponse",
+          "longName": "ValidateSchemaResponse",
+          "fullName": "mgmt.v1alpha1.ValidateSchemaResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "missing_columns",
+              "description": "The list columns missing in destination",
+              "label": "repeated",
+              "type": "DatabaseColumn",
+              "longType": "DatabaseColumn",
+              "fullType": "mgmt.v1alpha1.DatabaseColumn",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "extra_columns",
+              "description": "The list of extra columns in destination and not in source",
+              "label": "repeated",
+              "type": "DatabaseColumn",
+              "longType": "DatabaseColumn",
+              "fullType": "mgmt.v1alpha1.DatabaseColumn",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "missing_tables",
+              "description": "The list of tables missing in destination",
+              "label": "repeated",
+              "type": "Table",
+              "longType": "ValidateSchemaResponse.Table",
+              "fullType": "mgmt.v1alpha1.ValidateSchemaResponse.Table",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "missing_schemas",
+              "description": "The list of schemas missing in destination",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Table",
+          "longName": "ValidateSchemaResponse.Table",
+          "fullName": "mgmt.v1alpha1.ValidateSchemaResponse.Table",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "The schema of the table",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "The table",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -15983,6 +18588,18 @@
               "responseStreaming": false
             },
             {
+              "name": "ValidateSchema",
+              "description": "Validates that the schema is compatible with the job mappings",
+              "requestType": "ValidateSchemaRequest",
+              "requestLongType": "ValidateSchemaRequest",
+              "requestFullType": "mgmt.v1alpha1.ValidateSchemaRequest",
+              "requestStreaming": false,
+              "responseType": "ValidateSchemaResponse",
+              "responseLongType": "ValidateSchemaResponse",
+              "responseFullType": "mgmt.v1alpha1.ValidateSchemaResponse",
+              "responseStreaming": false
+            },
+            {
               "name": "GetRunContext",
               "description": "Gets a run context to be used by a workflow run",
               "requestType": "GetRunContextRequest",
@@ -16118,6 +18735,21 @@
               "responseType": "GetActiveJobHooksByTimingResponse",
               "responseLongType": "GetActiveJobHooksByTimingResponse",
               "responseFullType": "mgmt.v1alpha1.GetActiveJobHooksByTimingResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            },
+            {
+              "name": "GetPiiDetectionReport",
+              "description": "",
+              "requestType": "GetPiiDetectionReportRequest",
+              "requestLongType": "GetPiiDetectionReportRequest",
+              "requestFullType": "mgmt.v1alpha1.GetPiiDetectionReportRequest",
+              "requestStreaming": false,
+              "responseType": "GetPiiDetectionReportResponse",
+              "responseLongType": "GetPiiDetectionReportResponse",
+              "responseFullType": "mgmt.v1alpha1.GetPiiDetectionReportResponse",
               "responseStreaming": false,
               "options": {
                 "idempotency_level": "NO_SIDE_EFFECTS"
@@ -16599,6 +19231,67 @@
               "name": "BILLING_STATUS_TRIAL_EXPIRED",
               "number": "4",
               "description": "The account does not have an active subscription and the trial period has ended"
+            }
+          ]
+        },
+        {
+          "name": "Action",
+          "longName": "ResourcePermission.Action",
+          "fullName": "mgmt.v1alpha1.ResourcePermission.Action",
+          "description": "",
+          "values": [
+            {
+              "name": "ACTION_UNSPECIFIED",
+              "number": "0",
+              "description": ""
+            },
+            {
+              "name": "ACTION_CREATE",
+              "number": "1",
+              "description": ""
+            },
+            {
+              "name": "ACTION_READ",
+              "number": "2",
+              "description": ""
+            },
+            {
+              "name": "ACTION_UPDATE",
+              "number": "3",
+              "description": ""
+            },
+            {
+              "name": "ACTION_DELETE",
+              "number": "4",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "Type",
+          "longName": "ResourcePermission.Type",
+          "fullName": "mgmt.v1alpha1.ResourcePermission.Type",
+          "description": "",
+          "values": [
+            {
+              "name": "TYPE_UNSPECIFIED",
+              "number": "0",
+              "description": ""
+            },
+            {
+              "name": "TYPE_ACCOUNT",
+              "number": "1",
+              "description": ""
+            },
+            {
+              "name": "TYPE_CONNECTION",
+              "number": "2",
+              "description": ""
+            },
+            {
+              "name": "TYPE_JOB",
+              "number": "3",
+              "description": ""
             }
           ]
         },
@@ -17675,6 +20368,126 @@
           ]
         },
         {
+          "name": "HasPermissionRequest",
+          "longName": "HasPermissionRequest",
+          "fullName": "mgmt.v1alpha1.HasPermissionRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The unique identifier of the account to check the permission for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "resource",
+              "description": "The resource to check the permission for.",
+              "label": "",
+              "type": "ResourcePermission",
+              "longType": "ResourcePermission",
+              "fullType": "mgmt.v1alpha1.ResourcePermission",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "HasPermissionResponse",
+          "longName": "HasPermissionResponse",
+          "fullName": "mgmt.v1alpha1.HasPermissionResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "has_permission",
+              "description": "Whether or not the user has the given permission.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "HasPermissionsRequest",
+          "longName": "HasPermissionsRequest",
+          "fullName": "mgmt.v1alpha1.HasPermissionsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The unique identifier of the account to check the permissions for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "resources",
+              "description": "The resources to check the permissions for.",
+              "label": "repeated",
+              "type": "ResourcePermission",
+              "longType": "ResourcePermission",
+              "fullType": "mgmt.v1alpha1.ResourcePermission",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "HasPermissionsResponse",
+          "longName": "HasPermissionsResponse",
+          "fullName": "mgmt.v1alpha1.HasPermissionsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "assertions",
+              "description": "Parallel array to the resources, with the same index.",
+              "label": "repeated",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "InviteUserToTeamAccountRequest",
           "longName": "InviteUserToTeamAccountRequest",
           "fullName": "mgmt.v1alpha1.InviteUserToTeamAccountRequest",
@@ -17983,6 +20796,54 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "ResourcePermission",
+          "longName": "ResourcePermission",
+          "fullName": "mgmt.v1alpha1.ResourcePermission",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "type",
+              "description": "The type of resource to check the permission for.",
+              "label": "",
+              "type": "Type",
+              "longType": "ResourcePermission.Type",
+              "fullType": "mgmt.v1alpha1.ResourcePermission.Type",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "id",
+              "description": "The unique identifier of the resource to check the permission for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "action",
+              "description": "The action to check for.",
+              "label": "",
+              "type": "Action",
+              "longType": "ResourcePermission.Action",
+              "fullType": "mgmt.v1alpha1.ResourcePermission.Action",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "SetAccountOnboardingConfigRequest",
@@ -18766,6 +21627,30 @@
               "responseType": "SetUserRoleResponse",
               "responseLongType": "SetUserRoleResponse",
               "responseFullType": "mgmt.v1alpha1.SetUserRoleResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "HasPermission",
+              "description": "Checks if the user has the given permission",
+              "requestType": "HasPermissionRequest",
+              "requestLongType": "HasPermissionRequest",
+              "requestFullType": "mgmt.v1alpha1.HasPermissionRequest",
+              "requestStreaming": false,
+              "responseType": "HasPermissionResponse",
+              "responseLongType": "HasPermissionResponse",
+              "responseFullType": "mgmt.v1alpha1.HasPermissionResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "HasPermissions",
+              "description": "Bulk check if a user has the given permissions",
+              "requestType": "HasPermissionsRequest",
+              "requestLongType": "HasPermissionsRequest",
+              "requestFullType": "mgmt.v1alpha1.HasPermissionsRequest",
+              "requestStreaming": false,
+              "responseType": "HasPermissionsResponse",
+              "responseLongType": "HasPermissionsResponse",
+              "responseFullType": "mgmt.v1alpha1.HasPermissionsResponse",
               "responseStreaming": false
             }
           ]

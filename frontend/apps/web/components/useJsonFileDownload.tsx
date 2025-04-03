@@ -1,3 +1,4 @@
+'use client';
 import { useState } from 'react';
 
 interface FileDownloadProps<T> {
@@ -50,9 +51,12 @@ export function useJsonFileDownload<T = unknown>(): UseFileDownloadResponse<T> {
       if (!data) {
         throw new Error('No data provided for download');
       }
+      if (typeof window === 'undefined') {
+        throw new Error('useJsonFileDownload is not supported in the server');
+      }
 
       const workerUrl = URL.createObjectURL(WORKER_BLOB);
-      const worker = new Worker(workerUrl);
+      const worker = new window.Worker(workerUrl);
 
       // Handle worker response with timeout
       const textToDownload = await Promise.race([

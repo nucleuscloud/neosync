@@ -124,7 +124,7 @@ export default function MysqlDBDestinationOptionsForm(
         <FormItemContainer>
           <FormHeader
             title="Batch Count"
-            description="The max allowed per batch before flushing to S3. 0 to disable count-based batching."
+            description="The max allowed per batch before flushing to the database. 0 to disable count-based batching."
             isErrored={!!errors?.batch?.count}
           />
           <FormInputContainer>
@@ -185,7 +185,7 @@ interface FormItemBorderProps {
 function FormItemBorder(props: FormItemBorderProps): ReactElement {
   const { children } = props;
   return (
-    <div className="rounded-lg border p-3 shadow-sm dark:border-gray-700">
+    <div className="rounded-lg border p-3 shadow-xs dark:border-gray-700">
       {children}
     </div>
   );

@@ -31,7 +31,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
 
   return (
     <div className="flex flex-col w-full space-y-4">
-      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-xs">
         <div className="space-y-0.5 w-[80%]">
           <FormLabel>Preserve Length</FormLabel>
           <FormDescription>
@@ -52,7 +52,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
         />
         <FormErrorMessage message={errors?.preserveLength?.message} />
       </div>
-      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-xs">
         <div className="space-y-0.5 w-[80%]">
           <FormLabel>Preserve Domain</FormLabel>
           <FormDescription>
@@ -75,12 +75,13 @@ export default function TransformEmailForm(props: Props): ReactElement {
         />
         <FormErrorMessage message={errors?.preserveDomain?.message} />
       </div>
-      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-xs">
         <div className="space-y-0.5 w-[80%]">
           <FormLabel>Excluded Domains</FormLabel>
           <FormDescription>
             Provide a list of comma-separated domains that you want to be
-            excluded from the transformer. Do not provide an @ with the domains.{' '}
+            excluded from the transformer. Do not provide an @ with the
+            domains.{' '}
           </FormDescription>
         </div>
         <div className="min-w-[300px]">
@@ -101,7 +102,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
         </div>
         <FormErrorMessage message={errors?.excludedDomains?.message} />
       </div>
-      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-xs">
         <div className="space-y-0.5 w-[80%]">
           <FormLabel>Email Type</FormLabel>
           <FormDescription>
@@ -142,7 +143,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
         </Select>
         <FormErrorMessage message={errors?.emailType?.message} />
       </div>
-      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-xs">
         <div className="space-y-0.5 w-[80%]">
           <FormLabel>Invalid Email Action</FormLabel>
           <FormDescription>

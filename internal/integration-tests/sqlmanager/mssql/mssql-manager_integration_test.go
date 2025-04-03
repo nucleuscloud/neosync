@@ -48,7 +48,8 @@ func Test_MssqlManager(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log("Successfully setup source and target databases")
-	manager := mssql.NewManager(mssql_queries.New(), source.DB, func() {})
+	testlogger := testutil.GetTestLogger(t)
+	manager := mssql.NewManager(mssql_queries.New(), source.DB, func() {}, testlogger)
 
 	t.Run("GetDatabaseSchema", func(t *testing.T) {
 		t.Parallel()
@@ -182,10 +183,46 @@ func Test_MssqlManager(t *testing.T) {
 		}
 	})
 
+	t.Run("GetUniqueConstraintsMap", func(t *testing.T) {
+		t.Parallel()
+		schema := "mssqlinit"
+		actual, err := manager.GetTableConstraintsBySchema(ctx, []string{schema})
+		require.NoError(t, err)
+		require.NotEmpty(t, actual)
+
+		uniques, ok := actual.UniqueConstraints[buildTable(schema, "table_with_unique_constraint")]
+		require.True(t, ok)
+		require.Len(t, uniques, 1)
+		require.ElementsMatch(t, []string{"column1"}, uniques[0])
+
+		uniques, ok = actual.UniqueConstraints[buildTable(schema, "table_with_unique_constraint_composite")]
+		require.True(t, ok)
+		require.Len(t, uniques, 1)
+		require.ElementsMatch(t, []string{"column1", "column2"}, uniques[0])
+	})
+
+	t.Run("GetUniqueIndexesMap", func(t *testing.T) {
+		t.Parallel()
+		schema := "mssqlinit"
+		actual, err := manager.GetTableConstraintsBySchema(ctx, []string{schema})
+		require.NoError(t, err)
+		require.NotEmpty(t, actual)
+
+		indexes, ok := actual.UniqueIndexes[buildTable(schema, "table_with_unique_index")]
+		require.True(t, ok)
+		require.Len(t, indexes, 1)
+		require.ElementsMatch(t, []string{"column1"}, indexes[0])
+
+		indexes, ok = actual.UniqueIndexes[buildTable(schema, "table_with_composite_unique_index")]
+		require.True(t, ok)
+		require.Len(t, indexes, 1)
+		require.ElementsMatch(t, []string{"column1", "column2"}, indexes[0])
+	})
+
 	t.Run("GetSchemaInitStatements", func(t *testing.T) {
 		t.Parallel()
 		schema := "mssqlinit"
-		tables := []string{"Invoices", "Customers", "Orders", "Products", "OrderItems"}
+		tables := []string{"Invoices", "Customers", "Orders", "Products", "OrderItems", "TestTable"}
 
 		schematables := []*sqlmanager_shared.SchemaTable{}
 		for _, t := range tables {
@@ -223,6 +260,43 @@ func Test_MssqlManager(t *testing.T) {
 			_, err = target.DB.ExecContext(ctx, stmt)
 			require.NoErrorf(t, err, "failed to create fk constraints in target db: %s", stmt)
 		}
+	})
+
+	t.Run("GetAllSchemas", func(t *testing.T) {
+		t.Parallel()
+		schemas, err := manager.GetAllSchemas(ctx)
+		require.NoError(t, err)
+		require.NotEmpty(t, schemas)
+
+		// Check if schemas contain the expected values instead of exact matching
+		schemaNames := make([]string, len(schemas))
+		for i, s := range schemas {
+			schemaNames[i] = s.SchemaName
+		}
+		require.Contains(t, schemaNames, "sqlmanagermssql2")
+		require.Contains(t, schemaNames, "sqlmanagermssql3")
+	})
+
+	t.Run("GetAllTables", func(t *testing.T) {
+		t.Parallel()
+		tables, err := manager.GetAllTables(ctx)
+		require.NoError(t, err)
+		require.NotEmpty(t, tables)
+		// Check table names
+		tableNames := make([]string, len(tables))
+		for i, t := range tables {
+			tableNames[i] = t.TableName
+		}
+		require.Contains(t, tableNames, "users")
+		require.Contains(t, tableNames, "parent1")
+
+		// Check schemas
+		schemaTableMap := make(map[string]string)
+		for _, t := range tables {
+			schemaTableMap[t.TableName] = t.SchemaName
+		}
+		require.Equal(t, "sqlmanagermssql2", schemaTableMap["parent1"])
+		require.Equal(t, "sqlmanagermssql3", schemaTableMap["users"])
 	})
 
 	t.Log("Finished running mssql manager integration tests")

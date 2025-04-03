@@ -5,6 +5,7 @@ import (
 	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	"github.com/nucleuscloud/neosync/internal/connectiondata"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/internal/temporal/clientmanager"
 )
@@ -18,7 +19,8 @@ type Service struct {
 
 	temporalmgr clientmanager.Interface
 
-	hookService jobhooks.Interface
+	hookService           jobhooks.Interface
+	connectiondatabuilder connectiondata.ConnectionDataBuilder
 }
 
 type RunLogType string
@@ -63,14 +65,16 @@ func New(
 	sqlmanager sql_manager.SqlManagerClient,
 	jobhookService jobhooks.Interface,
 	userdataclient userdata.Interface,
+	connectiondatabuilder connectiondata.ConnectionDataBuilder,
 ) *Service {
 	return &Service{
-		cfg:               cfg,
-		db:                db,
-		temporalmgr:       temporalWfManager,
-		connectionService: connectionService,
-		sqlmanager:        sqlmanager,
-		hookService:       jobhookService,
-		userdataclient:    userdataclient,
+		cfg:                   cfg,
+		db:                    db,
+		temporalmgr:           temporalWfManager,
+		connectionService:     connectionService,
+		sqlmanager:            sqlmanager,
+		hookService:           jobhookService,
+		userdataclient:        userdataclient,
+		connectiondatabuilder: connectiondatabuilder,
 	}
 }

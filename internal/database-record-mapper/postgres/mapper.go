@@ -24,7 +24,9 @@ func NewPostgresBuilder() *builder.Builder[*sql.Rows] {
 	}
 }
 
-func (m *PostgresMapper) MapRecordWithKeyType(rows *sql.Rows) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
+func (m *PostgresMapper) MapRecordWithKeyType(
+	rows *sql.Rows,
+) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
 	return nil, nil, errors.ErrUnsupported
 }
 
@@ -109,6 +111,10 @@ func parsePgRowValues(values []any, columnNames, columnTypes []string) (map[stri
 			}
 			jObj[col] = val
 		case *NullableJSON:
+			if t.Valid && string(t.RawMessage) == "null" {
+				jObj[col] = string(t.RawMessage)
+				continue
+			}
 			js, err := t.Unmarshal()
 			if err != nil {
 				return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
@@ -268,7 +274,10 @@ func (a *PgxArray[T]) Scan(src any) error {
 		pgt, ok = m.TypeForName(strings.ToLower(a.colDataType))
 	}
 	if !ok {
-		return fmt.Errorf("cannot convert to sql.Scanner: cannot find registered type for %s", a.colDataType)
+		return fmt.Errorf(
+			"cannot convert to sql.Scanner: cannot find registered type for %s",
+			a.colDataType,
+		)
 	}
 
 	v := &a.Array
@@ -333,7 +342,10 @@ func toBinaryArray(array *PgxArray[[]byte]) (*neosynctypes.NeosyncArray, error) 
 		return nil, errors.ErrUnsupported
 	}
 
-	binaryArray, err := neosynctypes.NewBinaryArrayFromPgx(array.Elements, []neosynctypes.NeosyncTypeOption{})
+	binaryArray, err := neosynctypes.NewBinaryArrayFromPgx(
+		array.Elements,
+		[]neosynctypes.NeosyncTypeOption{},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -350,7 +362,10 @@ func toBitsArray(array *PgxArray[*pgtype.Bits]) (*neosynctypes.NeosyncArray, err
 		return nil, errors.ErrUnsupported
 	}
 
-	bitsArray, err := neosynctypes.NewBitsArrayFromPgx(array.Elements, []neosynctypes.NeosyncTypeOption{})
+	bitsArray, err := neosynctypes.NewBitsArrayFromPgx(
+		array.Elements,
+		[]neosynctypes.NeosyncTypeOption{},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -367,7 +382,10 @@ func toIntervalArray(array *PgxArray[*pgtype.Interval]) (*neosynctypes.NeosyncAr
 		return nil, errors.ErrUnsupported
 	}
 
-	neoIntervalArray, err := neosynctypes.NewIntervalArrayFromPgx(array.Elements, []neosynctypes.NeosyncTypeOption{})
+	neoIntervalArray, err := neosynctypes.NewIntervalArrayFromPgx(
+		array.Elements,
+		[]neosynctypes.NeosyncTypeOption{},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -388,7 +406,9 @@ func pgArrayToGoSlice(array *PgxArray[any]) (any, error) {
 		return createMultiDimSlice(dims, array.Elements), nil
 	}
 
-	if strings.EqualFold(array.colDataType, "timestamp") || strings.EqualFold(array.colDataType, "date") || strings.EqualFold(array.colDataType, "timestampz") {
+	if strings.EqualFold(array.colDataType, "timestamp") ||
+		strings.EqualFold(array.colDataType, "date") ||
+		strings.EqualFold(array.colDataType, "timestampz") {
 		timeArray := make([]time.Time, len(array.Elements))
 		for i, elem := range array.Elements {
 			if t, ok := elem.(time.Time); ok {
@@ -397,7 +417,10 @@ func pgArrayToGoSlice(array *PgxArray[any]) (any, error) {
 				return nil, fmt.Errorf("expected time.Time, got %T", elem)
 			}
 		}
-		dtArray, err := neosynctypes.NewDateTimeArrayFromPgx(timeArray, []neosynctypes.NeosyncTypeOption{})
+		dtArray, err := neosynctypes.NewDateTimeArrayFromPgx(
+			timeArray,
+			[]neosynctypes.NeosyncTypeOption{},
+		)
 		if err != nil {
 			return nil, err
 		}

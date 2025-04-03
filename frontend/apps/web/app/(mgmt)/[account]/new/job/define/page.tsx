@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, use, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
@@ -42,8 +42,10 @@ import { JobService } from '@neosync/sdk';
 import { usePostHog } from 'posthog-js/react';
 import { DEFAULT_CRON_STRING } from '../../../jobs/[id]/components/ScheduleCard';
 import { getNewJobSessionKeys } from '../../../jobs/util';
+import SyncActivityOptionsForm from './components/WorkflowSettings';
 
-export default function Page({ searchParams }: PageProps): ReactElement {
+export default function Page(props: PageProps): ReactElement {
+  const searchParams = use(props.searchParams);
   const router = useRouter();
   const { account } = useAccount();
   useEffect(() => {
@@ -105,6 +107,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     } else if (newJobType === 'ai-generate-table') {
       router.push(
         `/${account?.name}/new/job/aigenerate/single/connect?sessionId=${sessionPrefix}`
+      );
+    } else if (newJobType === 'pii-detection') {
+      router.push(
+        `/${account?.name}/new/job/piidetect/connect?sessionId=${sessionPrefix}`
       );
     } else {
       router.push(
@@ -228,7 +234,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     name="workflowSettings.runTimeout"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel> Job Run Timeout</FormLabel>
+                        <FormLabel>Job Run Timeout</FormLabel>
                         <FormDescription>
                           The maximum length of time (in minutes) that a single
                           job run is allowed to span before it times out.{' '}
@@ -248,94 +254,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       </FormItem>
                     )}
                   />
-                  <div className="flex flex-col">
-                    <FormField
-                      control={form.control}
-                      name="syncActivityOptions.startToCloseTimeout"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Table Sync Timeout</FormLabel>
-                          <FormDescription>
-                            The maximum amount of time (in minutes) a single
-                            table synchronization may run before it times out.
-                            This may need tuning depending on your datasize, and
-                            should be able to contain the table that contains
-                            the largest amount of data. This timeout is applied
-                            per retry.
-                          </FormDescription>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              {...field}
-                              value={field.value || 0}
-                              onChange={(e) => {
-                                field.onChange(e.target.valueAsNumber);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="syncActivityOptions.scheduleToCloseTimeout"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Max Table Timeout including retries
-                          </FormLabel>
-                          <FormDescription>
-                            The total time (in minutes) that a single table sync
-                            is allowed to run,{' '}
-                            <strong>
-                              <u>including</u>
-                            </strong>{' '}
-                            retries. 0 means no timeout.
-                          </FormDescription>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              {...field}
-                              value={field.value || 0}
-                              onChange={(e) => {
-                                field.onChange(e.target.valueAsNumber);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div>
-                    <FormField
-                      control={form.control}
-                      name="syncActivityOptions.retryPolicy.maximumAttempts"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Maximum Retry Attempts</FormLabel>
-                          <FormDescription>
-                            {`When exceeded, the retries stop even if they're not
-                            expired yet. If not set or set to 0, it means
-                            unlimited retry attemps and we rely on the max table
-                            timeout including retries to know when to stop.`}
-                          </FormDescription>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              {...field}
-                              value={field.value || 0}
-                              onChange={(e) => {
-                                field.onChange(e.target.valueAsNumber);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <SyncActivityOptionsForm
+                    value={form.watch('syncActivityOptions') ?? {}}
+                    setValue={(value) => {
+                      form.setValue('syncActivityOptions', value);
+                    }}
+                    errors={form.formState.errors?.syncActivityOptions}
+                    jobtype={newJobType}
+                  />
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -363,6 +289,7 @@ function getNewJobType(jobtype?: string): NewJobType {
     case 'generate-table':
     case 'ai-generate-table':
     case 'data-sync':
+    case 'pii-detection':
       return jobtype as NewJobType;
     default:
       return 'data-sync';

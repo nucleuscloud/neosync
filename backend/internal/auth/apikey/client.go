@@ -24,12 +24,16 @@ type TokenContextData struct {
 }
 
 var (
-	InvalidApiKeyErr = errors.New("token is not a valid neosync api key")
-	ApiKeyExpiredErr = nucleuserrors.NewUnauthenticated("token is expired")
+	ErrInvalidApiKey = errors.New("token is not a valid neosync api key")
+	ErrApiKeyExpired = nucleuserrors.NewUnauthenticated("token is expired")
 )
 
 type Queries interface {
-	GetAccountApiKeyByKeyValue(ctx context.Context, db db_queries.DBTX, apiKey string) (db_queries.NeosyncApiAccountApiKey, error)
+	GetAccountApiKeyByKeyValue(
+		ctx context.Context,
+		db db_queries.DBTX,
+		apiKey string,
+	) (db_queries.NeosyncApiAccountApiKey, error)
 }
 
 type Client struct {
@@ -49,10 +53,19 @@ func New(
 	for _, procedure := range allowedWorkerProcedures {
 		allowedWorkerProcedureSet[procedure] = struct{}{}
 	}
-	return &Client{q: queries, db: db, allowedWorkerApiKeys: allowedWorkerApiKeys, allowedWorkerProcedures: allowedWorkerProcedureSet}
+	return &Client{
+		q:                       queries,
+		db:                      db,
+		allowedWorkerApiKeys:    allowedWorkerApiKeys,
+		allowedWorkerProcedures: allowedWorkerProcedureSet,
+	}
 }
 
-func (c *Client) InjectTokenCtx(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
+func (c *Client) InjectTokenCtx(
+	ctx context.Context,
+	header http.Header,
+	spec connect.Spec,
+) (context.Context, error) {
 	token, err := utils.GetBearerTokenFromHeader(header, "Authorization")
 	if err != nil {
 		return nil, err
@@ -66,11 +79,11 @@ func (c *Client) InjectTokenCtx(ctx context.Context, header http.Header, spec co
 		if err != nil && !neosyncdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && neosyncdb.IsNoRows(err) {
-			return nil, InvalidApiKeyErr
+			return nil, ErrInvalidApiKey
 		}
 
 		if time.Now().After(apiKey.ExpiresAt.Time) {
-			return nil, ApiKeyExpiredErr
+			return nil, ErrApiKeyExpired
 		}
 
 		return SetTokenData(ctx, &TokenContextData{
@@ -87,13 +100,15 @@ func (c *Client) InjectTokenCtx(ctx context.Context, header http.Header, spec co
 			ApiKeyType: apikey.WorkerApiKey,
 		}), nil
 	}
-	return nil, InvalidApiKeyErr
+	return nil, ErrInvalidApiKey
 }
 
 func GetTokenDataFromCtx(ctx context.Context) (*TokenContextData, error) {
 	data, ok := ctx.Value(TokenContextKey{}).(*TokenContextData)
 	if !ok {
-		return nil, nucleuserrors.NewUnauthenticated("ctx does not contain TokenContextData or unable to cast struct")
+		return nil, nucleuserrors.NewUnauthenticated(
+			"ctx does not contain TokenContextData or unable to cast struct",
+		)
 	}
 	return data, nil
 }

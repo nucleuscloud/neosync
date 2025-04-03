@@ -5,8 +5,8 @@ import (
 	"errors"
 	"strings"
 
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
@@ -18,18 +18,24 @@ func NewGcpCloudStorageSyncBuilder() bb_internal.BenthosBuilder {
 	return &gcpCloudStorageSyncBuilder{}
 }
 
-func (b *gcpCloudStorageSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
+func (b *gcpCloudStorageSyncBuilder) BuildSourceConfigs(
+	ctx context.Context,
+	params *bb_internal.SourceParams,
+) ([]*bb_internal.BenthosSourceConfig, error) {
 	return nil, errors.ErrUnsupported
 }
 
-func (b *gcpCloudStorageSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
+func (b *gcpCloudStorageSyncBuilder) BuildDestinationConfig(
+	ctx context.Context,
+	params *bb_internal.DestinationParams,
+) (*bb_internal.BenthosDestinationConfig, error) {
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	benthosConfig := params.SourceConfig
-	if benthosConfig.RunType == tabledependency.RunTypeUpdate {
+	if benthosConfig.RunType == runconfigs.RunTypeUpdate {
 		return config, nil
 	}
-	destinationOpts := params.DestinationOpts.GetAwsS3Options()
+	destinationOpts := params.DestinationOpts.GetGcpCloudstorageOptions()
 	gcpCloudStorageConfig := params.DestConnection.GetConnectionConfig().GetGcpCloudstorageConfig()
 
 	if destinationOpts == nil {
@@ -47,7 +53,7 @@ func (b *gcpCloudStorageSyncBuilder) BuildDestinationConfig(ctx context.Context,
 	pathpieces = append(
 		pathpieces,
 		"workflows",
-		params.WorkflowId,
+		params.JobRunId,
 		"activities",
 		neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName),
 		"data",
@@ -59,7 +65,7 @@ func (b *gcpCloudStorageSyncBuilder) BuildDestinationConfig(ctx context.Context,
 			{
 				GcpCloudStorage: &neosync_benthos.GcpCloudStorageOutput{
 					Bucket:          gcpCloudStorageConfig.GetBucket(),
-					MaxInFlight:     64,
+					MaxInFlight:     10,
 					Path:            strings.Join(pathpieces, "/"),
 					ContentType:     shared.Ptr("txt/plain"),
 					ContentEncoding: shared.Ptr("gzip"),

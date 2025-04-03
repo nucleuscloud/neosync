@@ -96,7 +96,7 @@ export default function NewApiKeyForm(): ReactElement {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-8"
+        className="flex flex-col gap-4"
       >
         <FormField
           control={form.control}
@@ -169,54 +169,56 @@ export default function NewApiKeyForm(): ReactElement {
           )}
         />
 
-        {form.watch().expiresAtSelect === 'custom' && (
-          <FormField
-            control={form.control}
-            disabled={form.getValues().expiresAtSelect !== 'custom'}
-            name="expiresAt"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={'outline'}
-                        className={cn(
-                          'w-[240px] pl-3 text-left font-normal',
-                          !field.value && 'text-muted-foreground'
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, 'PPP')
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={(val) => {
-                        field.onChange(startOfDay(val ?? new Date()));
-                      }}
-                      disabled={(date) =>
-                        date < endOfDay(new Date()) ||
-                        // must be days instead of years to account for leap year
-                        // backend constraints to within 365 days of the current time
-                        date > addDays(startOfDay(new Date()), 365)
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+        <FormField
+          control={form.control}
+          name="expiresAt"
+          render={({ field }) => (
+            <FormItem
+              className={cn(
+                'flex flex-col',
+                form.watch('expiresAtSelect') !== 'custom' && 'hidden'
+              )}
+            >
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      disabled={form.watch('expiresAtSelect') !== 'custom'}
+                      variant={'outline'}
+                      className={cn(
+                        'w-[240px] pl-3 text-left font-normal',
+                        !field.value && 'text-muted-foreground'
+                      )}
+                    >
+                      {field.value ? (
+                        format(field.value, 'PPP')
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={(val) => {
+                      field.onChange(startOfDay(val ?? new Date()));
+                    }}
+                    disabled={(date) =>
+                      date < endOfDay(new Date()) ||
+                      // must be days instead of years to account for leap year
+                      // backend constraints to within 365 days of the current time
+                      date > addDays(startOfDay(new Date()), 365)
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <div className="flex flex-row justify-end">
           <Button type="submit">Submit</Button>
         </div>

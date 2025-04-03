@@ -8,7 +8,7 @@ import (
 )
 
 type NeosyncArray struct {
-	BaseType `json:",inline"`
+	BaseType `                 json:",inline"`
 	Elements []NeosyncAdapter `json:"elements"`
 }
 
@@ -43,7 +43,11 @@ func (a *NeosyncArray) ScanPgx(value any) error {
 		return err
 	}
 	if len(valueSlice) != len(a.Elements) {
-		return fmt.Errorf("length mismatch: got %d elements, expected %d", len(valueSlice), len(a.Elements))
+		return fmt.Errorf(
+			"length mismatch: got %d elements, expected %d",
+			len(valueSlice),
+			len(a.Elements),
+		)
 	}
 	for i, v := range valueSlice {
 		if err := a.Elements[i].ScanPgx(v); err != nil {
@@ -71,7 +75,11 @@ func (a *NeosyncArray) ScanJson(value any) error {
 		return err
 	}
 	if len(valueSlice) != len(a.Elements) {
-		return fmt.Errorf("length mismatch: got %d elements, expected %d", len(valueSlice), len(a.Elements))
+		return fmt.Errorf(
+			"length mismatch: got %d elements, expected %d",
+			len(valueSlice),
+			len(a.Elements),
+		)
 	}
 	for i, v := range valueSlice {
 		if err := a.Elements[i].ScanJson(v); err != nil {
@@ -99,7 +107,11 @@ func (a *NeosyncArray) ScanMysql(value any) error {
 		return err
 	}
 	if len(valueSlice) != len(a.Elements) {
-		return fmt.Errorf("length mismatch: got %d elements, expected %d", len(valueSlice), len(a.Elements))
+		return fmt.Errorf(
+			"length mismatch: got %d elements, expected %d",
+			len(valueSlice),
+			len(a.Elements),
+		)
 	}
 	for i, v := range valueSlice {
 		if err := a.Elements[i].ScanMysql(v); err != nil {

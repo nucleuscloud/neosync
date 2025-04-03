@@ -65,6 +65,7 @@ func Test_PostgresManager(t *testing.T) {
 				NumericPrecision:       -1,
 				NumericScale:           -1,
 				OrdinalPosition:        1,
+				UpdateAllowed:          true,
 			},
 		}
 
@@ -88,6 +89,7 @@ func Test_PostgresManager(t *testing.T) {
 				NumericScale:           0,
 				OrdinalPosition:        1,
 				IdentityGeneration:     sqlmanager_shared.Ptr("a"),
+				UpdateAllowed:          false,
 			},
 		}
 
@@ -164,7 +166,6 @@ func Test_PostgresManager(t *testing.T) {
 			},
 		})
 	})
-
 	t.Run("GetForeignKeyConstraintsMap_BasicCircular", func(t *testing.T) {
 		t.Parallel()
 		actual, err := manager.GetTableConstraintsBySchema(ctx, []string{schema})
@@ -267,6 +268,23 @@ func Test_PostgresManager(t *testing.T) {
 		require.ElementsMatch(t, []string{"email", "username"}, entry)
 	})
 
+	t.Run("GetUniqueIndexesMap", func(t *testing.T) {
+		t.Parallel()
+		actual, err := manager.GetTableConstraintsBySchema(ctx, []string{schema})
+		require.NoError(t, err)
+		require.NotEmpty(t, actual)
+
+		indexes, ok := actual.UniqueIndexes[buildTable(schema, "table_with_unique_index")]
+		require.True(t, ok)
+		require.Len(t, indexes, 1)
+		require.ElementsMatch(t, []string{"column1"}, indexes[0])
+
+		indexes, ok = actual.UniqueIndexes[buildTable(schema, "table_with_composite_unique_index")]
+		require.True(t, ok)
+		require.Len(t, indexes, 1)
+		require.ElementsMatch(t, []string{"column1", "column2"}, indexes[0])
+	})
+
 	t.Run("GetRolePermissionsMap", func(t *testing.T) {
 		t.Parallel()
 		actual, err := manager.GetRolePermissionsMap(context.Background())
@@ -280,15 +298,6 @@ func Test_PostgresManager(t *testing.T) {
 			"INSERT", "SELECT", "UPDATE", "DELETE",
 			"TRUNCATE", "REFERENCES", "TRIGGER",
 		}, usersRecord)
-	})
-
-	t.Run("GetCreateTableStatement", func(t *testing.T) {
-		t.Parallel()
-		actual, err := manager.GetCreateTableStatement(context.Background(), schema, "users")
-		require.NoError(t, err)
-		require.NotEmpty(t, actual)
-		_, err = target.DB.Exec(ctx, actual)
-		require.NoError(t, err)
 	})
 
 	t.Run("Exec", func(t *testing.T) {
@@ -416,6 +425,47 @@ func Test_PostgresManager(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+	})
+
+	t.Run("GetAllSchemas", func(t *testing.T) {
+		t.Parallel()
+		schemas, err := manager.GetAllSchemas(ctx)
+		require.NoError(t, err)
+		require.NotEmpty(t, schemas)
+
+		// Check if schemas contain the expected values instead of exact matching
+		schemaNames := make([]string, len(schemas))
+		for i, s := range schemas {
+			schemaNames[i] = s.SchemaName
+		}
+		require.Contains(t, schemaNames, schema)
+		require.Contains(t, schemaNames, capitalSchema)
+	})
+
+	t.Run("GetAllTables", func(t *testing.T) {
+		t.Parallel()
+		tables, err := manager.GetAllTables(ctx)
+		require.NoError(t, err)
+		require.NotEmpty(t, tables)
+		// Check table names
+		tableNames := make([]string, len(tables))
+		for i, t := range tables {
+			tableNames[i] = t.TableName
+		}
+		require.Contains(t, tableNames, "users")
+		require.Contains(t, tableNames, "users_with_identity")
+		require.Contains(t, tableNames, "child1")
+		require.Contains(t, tableNames, "parent1")
+
+		// Check schemas
+		schemaTableMap := make(map[string]string)
+		for _, t := range tables {
+			schemaTableMap[t.TableName] = t.SchemaName
+		}
+		require.Equal(t, schema, schemaTableMap["users"])
+		require.Equal(t, schema, schemaTableMap["users_with_identity"])
+		require.Equal(t, schema, schemaTableMap["child1"])
+		require.Equal(t, schema, schemaTableMap["parent1"])
 	})
 }
 

@@ -15,14 +15,17 @@ import (
 )
 
 type Activity struct {
-	jobclient mgmtv1alpha1connect.JobServiceClient
+	jobclient           mgmtv1alpha1connect.JobServiceClient
+	postgresSchemaDrift bool
 }
 
 func New(
 	jobclient mgmtv1alpha1connect.JobServiceClient,
+	postgresSchemaDrift bool,
 ) *Activity {
 	return &Activity{
-		jobclient: jobclient,
+		jobclient:           jobclient,
+		postgresSchemaDrift: postgresSchemaDrift,
 	}
 }
 
@@ -33,6 +36,8 @@ type RetrieveActivityOptionsResponse struct {
 	SyncActivityOptions  *workflow.ActivityOptions
 	AccountId            string
 	RequestedRecordCount *uint64
+	Destinations         []*mgmtv1alpha1.JobDestination
+	PostgresSchemaDrift  bool
 }
 
 func (a *Activity) RetrieveActivityOptions(
@@ -48,7 +53,10 @@ func (a *Activity) RetrieveActivityOptions(
 	)
 	logger.Debug("retrieving activity options")
 
-	jobResp, err := a.jobclient.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: req.JobId}))
+	jobResp, err := a.jobclient.GetJob(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: req.JobId}),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get job by id: %w", err)
 	}
@@ -57,6 +65,8 @@ func (a *Activity) RetrieveActivityOptions(
 		SyncActivityOptions:  getSyncActivityOptionsFromJob(job),
 		AccountId:            job.GetAccountId(),
 		RequestedRecordCount: getRequestedRecordCount(job),
+		Destinations:         job.GetDestinations(),
+		PostgresSchemaDrift:  a.postgresSchemaDrift,
 	}, nil
 }
 
@@ -122,10 +132,14 @@ func getSyncActivityOptionsFromJob(job *mgmtv1alpha1.Job) *workflow.ActivityOpti
 	}
 	if job.SyncOptions != nil {
 		if job.SyncOptions.StartToCloseTimeout != nil {
-			syncActivityOptions.StartToCloseTimeout = time.Duration(*job.SyncOptions.StartToCloseTimeout)
+			syncActivityOptions.StartToCloseTimeout = time.Duration(
+				*job.SyncOptions.StartToCloseTimeout,
+			)
 		}
 		if job.SyncOptions.ScheduleToCloseTimeout != nil {
-			syncActivityOptions.ScheduleToCloseTimeout = time.Duration(*job.SyncOptions.ScheduleToCloseTimeout)
+			syncActivityOptions.ScheduleToCloseTimeout = time.Duration(
+				*job.SyncOptions.ScheduleToCloseTimeout,
+			)
 		}
 		if job.SyncOptions.RetryPolicy != nil {
 			if job.SyncOptions.RetryPolicy.MaximumAttempts != nil {
@@ -143,7 +157,8 @@ func getSyncActivityOptionsFromJob(job *mgmtv1alpha1.Job) *workflow.ActivityOpti
 			},
 		}
 	}
-	if syncActivityOptions.StartToCloseTimeout == 0 && syncActivityOptions.ScheduleToCloseTimeout == 0 {
+	if syncActivityOptions.StartToCloseTimeout == 0 &&
+		syncActivityOptions.ScheduleToCloseTimeout == 0 {
 		syncActivityOptions.StartToCloseTimeout = defaultStartCloseTimeout
 	}
 	if syncActivityOptions.RetryPolicy == nil {

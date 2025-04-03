@@ -18,7 +18,11 @@ var (
 
 // Used when using the PII Anonymizer with Neosync Transformers
 type NeosyncOperatorApi interface {
-	Transform(ctx context.Context, config *mgmtv1alpha1.TransformerConfig, value string) (string, error)
+	Transform(
+		ctx context.Context,
+		config *mgmtv1alpha1.TransformerConfig,
+		value string,
+	) (string, error)
 }
 
 func TransformPiiText(
@@ -48,12 +52,21 @@ func TransformPiiText(
 	}
 
 	if analyzeResp.JSON200 == nil {
-		return "", fmt.Errorf("received non-200 response from analyzer: %s %d %s", analyzeResp.Status(), analyzeResp.StatusCode(), string(analyzeResp.Body))
+		return "", fmt.Errorf(
+			"received non-200 response from analyzer: %s %d %s",
+			analyzeResp.Status(),
+			analyzeResp.StatusCode(),
+			string(analyzeResp.Body),
+		)
 	}
 
 	analysisResults := removeAllowedPhrases(*analyzeResp.JSON200, value, config.GetAllowedPhrases())
 
-	analysisResults, neosyncEntityMap := processAnalysisResultsForNeosyncTransformers(analysisResults, getNeosyncConfiguredEntities(config), value)
+	analysisResults, neosyncEntityMap := processAnalysisResultsForNeosyncTransformers(
+		analysisResults,
+		getNeosyncConfiguredEntities(config),
+		value,
+	)
 	anonymizers, err := buildAnonymizers(config)
 	if err != nil {
 		return "", fmt.Errorf("unable to build anonymizers: %w", err)
@@ -133,7 +146,11 @@ func handleNeosyncEntityAnonymization(
 			transformerConfig = defaultTransformerConfig
 		}
 		if transformerConfig == nil {
-			logger.Warn("no transformer config found for entity (a default presidio profile may have been used)", "entity", presidioEntity)
+			logger.Warn(
+				"no transformer config found for entity (a default presidio profile may have been used)",
+				"entity",
+				presidioEntity,
+			)
 			continue
 		}
 
@@ -147,11 +164,17 @@ func handleNeosyncEntityAnonymization(
 			logger.Warn("no original values found in queue for entity", "entity", item.EntityType)
 			continue
 		}
-		transformedSnippet, err := neosyncOperatorApi.Transform(ctx, transformerConfig, originalValue)
+		transformedSnippet, err := neosyncOperatorApi.Transform(
+			ctx,
+			transformerConfig,
+			originalValue,
+		)
 		if err != nil {
 			return "", fmt.Errorf("unable to transform neosync entity %s: %w", presidioEntity, err)
 		}
-		logger.Debug(fmt.Sprintf("transformed snippet %s replacing %s", transformedSnippet, *item.Text))
+		logger.Debug(
+			fmt.Sprintf("transformed snippet %s replacing %s", transformedSnippet, *item.Text),
+		)
 		outputText = strings.Replace(outputText, *item.Text, transformedSnippet, 1)
 	}
 	return outputText, nil
@@ -228,7 +251,10 @@ func getDefaultTransformerConfigByEntity(entity string) *mgmtv1alpha1.Transforme
 		invalidEmailAction := mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_GENERATE
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
-				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{EmailType: &emailType, InvalidEmailAction: &invalidEmailAction},
+				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
+					EmailType:          &emailType,
+					InvalidEmailAction: &invalidEmailAction,
+				},
 			},
 		}
 	default:
@@ -247,7 +273,9 @@ func getNeosyncConfiguredEntities(config *mgmtv1alpha1.TransformPiiText) []strin
 	return entities
 }
 
-func buildAnonymizers(config *mgmtv1alpha1.TransformPiiText) (map[string]presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties, error) {
+func buildAnonymizers(
+	config *mgmtv1alpha1.TransformPiiText,
+) (map[string]presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties, error) {
 	output := map[string]presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties{}
 	defaultAnon, ok, err := toPresidioAnonymizerConfig("DEFAULT", config.GetDefaultAnonymizer())
 	if err != nil {
@@ -340,7 +368,10 @@ func buildAdhocRecognizers(dtos []*mgmtv1alpha1.PiiDenyRecognizer) []presidioapi
 	return output
 }
 
-func toPresidioAnonymizerConfig(entity string, dto *mgmtv1alpha1.PiiAnonymizer) (*presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties, bool, error) {
+func toPresidioAnonymizerConfig(
+	entity string,
+	dto *mgmtv1alpha1.PiiAnonymizer,
+) (*presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties, bool, error) {
 	switch cfg := dto.GetConfig().(type) {
 	case *mgmtv1alpha1.PiiAnonymizer_Redact_:
 		ap := &presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties{}
@@ -416,7 +447,12 @@ func handleAnonRespErr(resp *presidioapi.PostAnonymizeResponse) error {
 		return fmt.Errorf("%s", *resp.JSON422.Error)
 	}
 	if resp.JSON200 == nil {
-		return fmt.Errorf("received non-200 response from anonymizer: %s %d %s", resp.Status(), resp.StatusCode(), string(resp.Body))
+		return fmt.Errorf(
+			"received non-200 response from anonymizer: %s %d %s",
+			resp.Status(),
+			resp.StatusCode(),
+			string(resp.Body),
+		)
 	}
 	return nil
 }

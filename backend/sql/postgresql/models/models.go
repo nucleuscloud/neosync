@@ -3,9 +3,12 @@ package pg_models
 import (
 	"errors"
 	"fmt"
+	"log/slog"
+	"net/url"
 	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
 )
 
 type ConnectionConfig struct {
@@ -20,11 +23,11 @@ type ConnectionConfig struct {
 	MssqlConfig           *MssqlConfig                    `json:"mssqlConfig,omitempty"`
 }
 
-func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
+func (c *ConnectionConfig) ToDto(canViewSensitive bool) (*mgmtv1alpha1.ConnectionConfig, error) {
 	if c.PgConfig != nil {
 		var tunnel *mgmtv1alpha1.SSHTunnel
 		if c.PgConfig.SSHTunnel != nil {
-			tunnel = c.PgConfig.SSHTunnel.ToDto()
+			tunnel = c.PgConfig.SSHTunnel.ToDto(canViewSensitive)
 		}
 		var connectionOptions *mgmtv1alpha1.SqlConnectionOptions
 		if c.PgConfig.ConnectionOptions != nil {
@@ -32,9 +35,13 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 		}
 		var clientTls *mgmtv1alpha1.ClientTlsConfig
 		if c.PgConfig.ClientTls != nil {
-			clientTls = c.PgConfig.ClientTls.ToDto()
+			clientTls = c.PgConfig.ClientTls.ToDto(canViewSensitive)
 		}
 		if c.PgConfig.Connection != nil {
+			pass := c.PgConfig.Connection.Pass
+			if !canViewSensitive && pass != "" {
+				pass = sensitiveValue
+			}
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
@@ -44,7 +51,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 								Port:    c.PgConfig.Connection.Port,
 								Name:    c.PgConfig.Connection.Name,
 								User:    c.PgConfig.Connection.User,
-								Pass:    c.PgConfig.Connection.Pass,
+								Pass:    pass,
 								SslMode: c.PgConfig.Connection.SslMode,
 							},
 						},
@@ -55,11 +62,21 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 				},
 			}, nil
 		} else if c.PgConfig.Url != nil {
+			uri, err := dbconnectconfig.GetPostgresUri(*c.PgConfig.Url)
+			if err != nil {
+				return nil, err
+			}
+			if !canViewSensitive && uri.User != nil {
+				_, ok := uri.User.Password()
+				if ok {
+					uri.User = url.UserPassword(uri.User.Username(), uriSensitiveValue)
+				}
+			}
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: *c.PgConfig.Url,
+							Url: uri.String(),
 						},
 						Tunnel:            tunnel,
 						ConnectionOptions: connectionOptions,
@@ -84,7 +101,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 	} else if c.MysqlConfig != nil {
 		var tunnel *mgmtv1alpha1.SSHTunnel
 		if c.MysqlConfig.SSHTunnel != nil {
-			tunnel = c.MysqlConfig.SSHTunnel.ToDto()
+			tunnel = c.MysqlConfig.SSHTunnel.ToDto(canViewSensitive)
 		}
 		var connectionOptions *mgmtv1alpha1.SqlConnectionOptions
 		if c.MysqlConfig.ConnectionOptions != nil {
@@ -92,16 +109,20 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 		}
 		var clientTls *mgmtv1alpha1.ClientTlsConfig
 		if c.MysqlConfig.ClientTls != nil {
-			clientTls = c.MysqlConfig.ClientTls.ToDto()
+			clientTls = c.MysqlConfig.ClientTls.ToDto(canViewSensitive)
 		}
 		if c.MysqlConfig.Connection != nil {
+			pass := c.MysqlConfig.Connection.Pass
+			if !canViewSensitive && pass != "" {
+				pass = sensitiveValue
+			}
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
 					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
 						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
 							Connection: &mgmtv1alpha1.MysqlConnection{
 								User:     c.MysqlConfig.Connection.User,
-								Pass:     c.MysqlConfig.Connection.Pass,
+								Pass:     pass,
 								Protocol: c.MysqlConfig.Connection.Protocol,
 								Host:     c.MysqlConfig.Connection.Host,
 								Port:     c.MysqlConfig.Connection.Port,
@@ -115,11 +136,22 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 				},
 			}, nil
 		} else if c.MysqlConfig.Url != nil {
+			mysqlUrl := *c.MysqlConfig.Url
+			if !canViewSensitive {
+				dsn, err := dbconnectconfig.GetMysqlDsn(mysqlUrl, slog.Default())
+				if err != nil {
+					return nil, err
+				}
+				if dsn.Passwd != "" {
+					dsn.Passwd = uriSensitiveValue
+				}
+				mysqlUrl = dsn.FormatDSN()
+			}
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
 					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
 						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-							Url: *c.MysqlConfig.Url,
+							Url: mysqlUrl,
 						},
 						Tunnel:            tunnel,
 						ConnectionOptions: connectionOptions,
@@ -144,7 +176,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 	} else if c.AwsS3Config != nil {
 		return &mgmtv1alpha1.ConnectionConfig{
 			Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{
-				AwsS3Config: c.AwsS3Config.ToDto(),
+				AwsS3Config: c.AwsS3Config.ToDto(canViewSensitive),
 			},
 		}, nil
 	} else if c.LocalDirectoryConfig != nil {
@@ -156,11 +188,11 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 	} else if c.OpenAiConfig != nil {
 		return &mgmtv1alpha1.ConnectionConfig{
 			Config: &mgmtv1alpha1.ConnectionConfig_OpenaiConfig{
-				OpenaiConfig: c.OpenAiConfig.ToDto(),
+				OpenaiConfig: c.OpenAiConfig.ToDto(canViewSensitive),
 			},
 		}, nil
 	} else if c.MongoConfig != nil {
-		mdto, err := c.MongoConfig.ToDto()
+		mdto, err := c.MongoConfig.ToDto(canViewSensitive)
 		if err != nil {
 			return nil, err
 		}
@@ -180,7 +212,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 			},
 		}, nil
 	} else if c.DynamoDBConfig != nil {
-		dto, err := c.DynamoDBConfig.ToDto()
+		dto, err := c.DynamoDBConfig.ToDto(canViewSensitive)
 		if err != nil {
 			return nil, err
 		}
@@ -190,7 +222,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 			},
 		}, nil
 	} else if c.MssqlConfig != nil {
-		mdto, err := c.MssqlConfig.ToDto()
+		mdto, err := c.MssqlConfig.ToDto(canViewSensitive)
 		if err != nil {
 			return nil, err
 		}
@@ -315,21 +347,41 @@ type MongoConnectionConfig struct {
 	ClientTls *ClientTls `json:"clientTls,omitempty"`
 }
 
-func (m *MongoConnectionConfig) ToDto() (*mgmtv1alpha1.MongoConnectionConfig, error) {
+func (m *MongoConnectionConfig) ToDto(
+	canViewSensitive bool,
+) (*mgmtv1alpha1.MongoConnectionConfig, error) {
 	if m.Url == nil {
 		return nil, errors.New("mongo connection does not contain url")
 	}
 	var tunnel *mgmtv1alpha1.SSHTunnel
 	if m.SSHTunnel != nil {
-		tunnel = m.SSHTunnel.ToDto()
+		tunnel = m.SSHTunnel.ToDto(canViewSensitive)
 	}
 	var clienttls *mgmtv1alpha1.ClientTlsConfig
 	if m.ClientTls != nil {
-		clienttls = m.ClientTls.ToDto()
+		clienttls = m.ClientTls.ToDto(canViewSensitive)
+	}
+	uri := *m.Url
+	if !canViewSensitive {
+		uriconfig, err := url.Parse(uri)
+		if err != nil {
+			var urlErr *url.Error
+			if errors.As(err, &urlErr) {
+				return nil, fmt.Errorf("unable to parse mongo url [%s]: %w", urlErr.Op, urlErr.Err)
+			}
+			return nil, fmt.Errorf("unable to parse mongo url: %w", err)
+		}
+		if uriconfig.User != nil {
+			_, ok := uriconfig.User.Password()
+			if ok {
+				uriconfig.User = url.UserPassword(uriconfig.User.Username(), uriSensitiveValue)
+			}
+		}
+		uri = uriconfig.String()
 	}
 	return &mgmtv1alpha1.MongoConnectionConfig{
 		ConnectionConfig: &mgmtv1alpha1.MongoConnectionConfig_Url{
-			Url: *m.Url,
+			Url: uri,
 		},
 		Tunnel:    tunnel,
 		ClientTls: clienttls,
@@ -387,23 +439,33 @@ type MssqlConfig struct {
 	ClientTls         *ClientTls         `json:"clientTls,omitempty"`
 }
 
-func (d *MssqlConfig) ToDto() (*mgmtv1alpha1.MssqlConnectionConfig, error) {
+func (d *MssqlConfig) ToDto(canViewSensitive bool) (*mgmtv1alpha1.MssqlConnectionConfig, error) {
 	var connectionOptions *mgmtv1alpha1.SqlConnectionOptions
 	if d.ConnectionOptions != nil {
 		connectionOptions = d.ConnectionOptions.ToDto()
 	}
 	var tunnel *mgmtv1alpha1.SSHTunnel
 	if d.SSHTunnel != nil {
-		tunnel = d.SSHTunnel.ToDto()
+		tunnel = d.SSHTunnel.ToDto(canViewSensitive)
 	}
 	var clientTls *mgmtv1alpha1.ClientTlsConfig
 	if d.ClientTls != nil {
-		clientTls = d.ClientTls.ToDto()
+		clientTls = d.ClientTls.ToDto(canViewSensitive)
 	}
 	if d.Url != nil {
+		uri, err := dbconnectconfig.GetMssqlUri(*d.Url)
+		if err != nil {
+			return nil, err
+		}
+		if !canViewSensitive && uri.User != nil {
+			_, ok := uri.User.Password()
+			if ok {
+				uri.User = url.UserPassword(uri.User.Username(), uriSensitiveValue)
+			}
+		}
 		return &mgmtv1alpha1.MssqlConnectionConfig{
 			ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
-				Url: *d.Url,
+				Url: uri.String(),
 			},
 			ConnectionOptions: connectionOptions,
 			Tunnel:            tunnel,
@@ -459,10 +521,12 @@ type DynamoDBConfig struct {
 	Endpoint    *string           `json:"Endpoint,omitempty"`
 }
 
-func (d *DynamoDBConfig) ToDto() (*mgmtv1alpha1.DynamoDBConnectionConfig, error) {
+func (d *DynamoDBConfig) ToDto(
+	canViewSensitive bool,
+) (*mgmtv1alpha1.DynamoDBConnectionConfig, error) {
 	var creds *mgmtv1alpha1.AwsS3Credentials
 	if d.Credentials != nil {
-		creds = d.Credentials.ToDto()
+		creds = d.Credentials.ToDto(canViewSensitive)
 	}
 	return &mgmtv1alpha1.DynamoDBConnectionConfig{
 		Credentials: creds,
@@ -534,10 +598,10 @@ type SSHTunnel struct {
 	SSHAuthentication  *SSHAuthentication `json:"sshAuthentication,omitempty"`
 }
 
-func (s *SSHTunnel) ToDto() *mgmtv1alpha1.SSHTunnel {
+func (s *SSHTunnel) ToDto(canViewSensitive bool) *mgmtv1alpha1.SSHTunnel {
 	var auth *mgmtv1alpha1.SSHAuthentication
 	if s.SSHAuthentication != nil {
-		auth = s.SSHAuthentication.ToDto()
+		auth = s.SSHAuthentication.ToDto(canViewSensitive)
 	}
 	return &mgmtv1alpha1.SSHTunnel{
 		Host:               s.Host,
@@ -566,19 +630,37 @@ type SSHAuthentication struct {
 	SSHPrivateKey *SSHPrivateKey `json:"sshPrivateKey,omitempty"`
 }
 
-func (s *SSHAuthentication) ToDto() *mgmtv1alpha1.SSHAuthentication {
+const sensitiveValue = "********"
+
+// splitting this out because URI encodes **** as %2A and it looks ugly
+const uriSensitiveValue = "______"
+
+func (s *SSHAuthentication) ToDto(canViewSensitive bool) *mgmtv1alpha1.SSHAuthentication {
 	if s.SSHPassphrase != nil {
+		value := s.SSHPassphrase.Value
+		if !canViewSensitive {
+			value = sensitiveValue
+		}
 		return &mgmtv1alpha1.SSHAuthentication{
 			AuthConfig: &mgmtv1alpha1.SSHAuthentication_Passphrase{
-				Passphrase: &mgmtv1alpha1.SSHPassphrase{Value: s.SSHPassphrase.Value},
+				Passphrase: &mgmtv1alpha1.SSHPassphrase{Value: value},
 			},
 		}
 	} else if s.SSHPrivateKey != nil {
+		sshPrivateKeyValue := s.SSHPrivateKey.Value
+		if !canViewSensitive {
+			sshPrivateKeyValue = sensitiveValue
+		}
+		sshPrivateKeyPassphrase := s.SSHPrivateKey.Passphrase
+		if !canViewSensitive {
+			v := sensitiveValue
+			sshPrivateKeyPassphrase = &v
+		}
 		return &mgmtv1alpha1.SSHAuthentication{
 			AuthConfig: &mgmtv1alpha1.SSHAuthentication_PrivateKey{
 				PrivateKey: &mgmtv1alpha1.SSHPrivateKey{
-					Value:      s.SSHPrivateKey.Value,
-					Passphrase: s.SSHPrivateKey.Passphrase,
+					Value:      sshPrivateKeyValue,
+					Passphrase: sshPrivateKeyPassphrase,
 				},
 			},
 		}
@@ -616,11 +698,16 @@ type ClientTls struct {
 	ServerName *string `json:"serverName,omitempty"`
 }
 
-func (c *ClientTls) ToDto() *mgmtv1alpha1.ClientTlsConfig {
+func (c *ClientTls) ToDto(canViewSensitive bool) *mgmtv1alpha1.ClientTlsConfig {
+	clientKey := c.ClientKey
+	if !canViewSensitive {
+		v := sensitiveValue
+		clientKey = &v
+	}
 	return &mgmtv1alpha1.ClientTlsConfig{
 		RootCert:   c.RootCert,
 		ClientCert: c.ClientCert,
-		ClientKey:  c.ClientKey,
+		ClientKey:  clientKey,
 		ServerName: c.ServerName,
 	}
 }
@@ -663,11 +750,16 @@ type AwsS3Credentials struct {
 	RoleExternalId  *string `json:"roleExternalId,omitempty"`
 }
 
-func (a *AwsS3Credentials) ToDto() *mgmtv1alpha1.AwsS3Credentials {
+func (a *AwsS3Credentials) ToDto(canViewSensitive bool) *mgmtv1alpha1.AwsS3Credentials {
+	secretAccessKey := a.SecretAccessKey
+	if !canViewSensitive && secretAccessKey != nil && *secretAccessKey != "" {
+		v := sensitiveValue
+		secretAccessKey = &v
+	}
 	return &mgmtv1alpha1.AwsS3Credentials{
 		Profile:         a.Profile,
 		AccessKeyId:     a.AccessKeyId,
-		SecretAccessKey: a.SecretAccessKey,
+		SecretAccessKey: secretAccessKey,
 		SessionToken:    a.SessionToken,
 		FromEc2Role:     a.FromEc2Role,
 		RoleArn:         a.RoleArn,
@@ -705,9 +797,14 @@ type OpenAiConnectionConfig struct {
 	ApiKey string `json:"apiKey"`
 }
 
-func (o *OpenAiConnectionConfig) ToDto() *mgmtv1alpha1.OpenAiConnectionConfig {
+func (o *OpenAiConnectionConfig) ToDto(canViewSensitive bool) *mgmtv1alpha1.OpenAiConnectionConfig {
+	apiKey := o.ApiKey
+	if !canViewSensitive && apiKey != "" {
+		v := sensitiveValue
+		apiKey = v
+	}
 	return &mgmtv1alpha1.OpenAiConnectionConfig{
-		ApiKey: o.ApiKey,
+		ApiKey: apiKey,
 		ApiUrl: o.ApiUrl,
 	}
 }
@@ -729,7 +826,7 @@ type AwsS3ConnectionConfig struct {
 	Endpoint    *string
 }
 
-func (a *AwsS3ConnectionConfig) ToDto() *mgmtv1alpha1.AwsS3ConnectionConfig {
+func (a *AwsS3ConnectionConfig) ToDto(canViewSensitive bool) *mgmtv1alpha1.AwsS3ConnectionConfig {
 	var bucket = a.Bucket
 	if a.Bucket == "" && a.BucketArn != "" {
 		bucket = strings.ReplaceAll(a.BucketArn, "arn:aws:s3:::", "")
@@ -738,7 +835,7 @@ func (a *AwsS3ConnectionConfig) ToDto() *mgmtv1alpha1.AwsS3ConnectionConfig {
 	return &mgmtv1alpha1.AwsS3ConnectionConfig{
 		Bucket:      bucket,
 		PathPrefix:  a.PathPrefix,
-		Credentials: a.Credentials.ToDto(),
+		Credentials: a.Credentials.ToDto(canViewSensitive),
 		Region:      a.Region,
 		Endpoint:    a.Endpoint,
 	}
@@ -760,13 +857,17 @@ type JobMapping struct {
 	JobMappingTransformer *JobMappingTransformerModel `json:"jobMappingTransformerModel,omitempty"`
 }
 
-func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
+func (jm *JobMapping) ToDto() (*mgmtv1alpha1.JobMapping, error) {
+	transformer, err := jm.JobMappingTransformer.ToTransformerDto()
+	if err != nil {
+		return nil, err
+	}
 	return &mgmtv1alpha1.JobMapping{
 		Schema:      jm.Schema,
 		Table:       jm.Table,
 		Column:      jm.Column,
-		Transformer: jm.JobMappingTransformer.ToTransformerDto(),
-	}
+		Transformer: transformer,
+	}, nil
 }
 
 func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
@@ -844,12 +945,22 @@ type JobSourceOptions struct {
 }
 
 type MssqlSourceOptions struct {
-	HaltOnNewColumnAddition       bool                        `json:"haltOnNewColumnAddition"`
-	SubsetByForeignKeyConstraints bool                        `json:"subsetByForeignKeyConstraints"`
-	Schemas                       []*MssqlSourceSchemaOption  `json:"schemas"`
-	ConnectionId                  string                      `json:"connectionId"`
-	ColumnRemovalStrategy         *MssqlColumnRemovalStrategy `json:"columnRemovalStrategy,omitempty"`
+	// @deprecated
+	HaltOnNewColumnAddition       bool                            `json:"haltOnNewColumnAddition"`
+	SubsetByForeignKeyConstraints bool                            `json:"subsetByForeignKeyConstraints"`
+	Schemas                       []*MssqlSourceSchemaOption      `json:"schemas"`
+	ConnectionId                  string                          `json:"connectionId"`
+	ColumnRemovalStrategy         *MssqlColumnRemovalStrategy     `json:"columnRemovalStrategy,omitempty"`
+	NewColumnAdditionStrategy     *MssqlNewColumnAdditionStrategy `json:"newColumnAdditionStrategy,omitempty"`
 }
+
+type MssqlNewColumnAdditionStrategy struct {
+	HaltJob     *MssqlHaltJobNewColumnAdditionStrategy     `json:"haltJob,omitempty"`
+	Passthrough *MssqlPassthroughNewColumnAdditionStrategy `json:"passthrough,omitempty"`
+}
+
+type MssqlHaltJobNewColumnAdditionStrategy struct{}
+type MssqlPassthroughNewColumnAdditionStrategy struct{}
 
 type MssqlColumnRemovalStrategy struct {
 	HaltJob     *MssqlHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
@@ -872,7 +983,10 @@ func (p *MssqlColumnRemovalStrategy) ToDto() *mgmtv1alpha1.MssqlSourceConnection
 	}
 	return nil
 }
-func (p *MssqlColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy) {
+
+func (p *MssqlColumnRemovalStrategy) FromDto(
+	dto *mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy,
+) {
 	if dto == nil {
 		dto = &mgmtv1alpha1.MssqlSourceConnectionOptions_ColumnRemovalStrategy{}
 	}
@@ -889,9 +1003,11 @@ type MssqlContinueJobColumnRemovalStrategy struct{}
 
 func (m *MssqlSourceOptions) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions {
 	dto := &mgmtv1alpha1.MssqlSourceConnectionOptions{
-		HaltOnNewColumnAddition:       m.HaltOnNewColumnAddition,
-		ConnectionId:                  m.ConnectionId,
-		Schemas:                       make([]*mgmtv1alpha1.MssqlSourceSchemaOption, len(m.Schemas)),
+		ConnectionId: m.ConnectionId,
+		Schemas: make(
+			[]*mgmtv1alpha1.MssqlSourceSchemaOption,
+			len(m.Schemas),
+		),
 		SubsetByForeignKeyConstraints: m.SubsetByForeignKeyConstraints,
 	}
 	for idx := range m.Schemas {
@@ -902,13 +1018,23 @@ func (m *MssqlSourceOptions) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions 
 		dto.ColumnRemovalStrategy = m.ColumnRemovalStrategy.ToDto()
 	}
 
+	if m.NewColumnAdditionStrategy != nil {
+		dto.NewColumnAdditionStrategy = m.NewColumnAdditionStrategy.ToDto()
+	} else if m.HaltOnNewColumnAddition {
+		dto.NewColumnAdditionStrategy = &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
+			},
+		}
+	}
+
 	return dto
 }
+
 func (m *MssqlSourceOptions) FromDto(dto *mgmtv1alpha1.MssqlSourceConnectionOptions) {
 	if dto == nil {
 		dto = &mgmtv1alpha1.MssqlSourceConnectionOptions{}
 	}
-	m.HaltOnNewColumnAddition = dto.GetHaltOnNewColumnAddition()
 	m.ConnectionId = dto.GetConnectionId()
 	m.SubsetByForeignKeyConstraints = dto.GetSubsetByForeignKeyConstraints()
 	m.Schemas = FromDtoMssqlSourceSchemaOptions(dto.GetSchemas())
@@ -916,6 +1042,46 @@ func (m *MssqlSourceOptions) FromDto(dto *mgmtv1alpha1.MssqlSourceConnectionOpti
 	if dto.GetColumnRemovalStrategy().GetStrategy() != nil {
 		m.ColumnRemovalStrategy = &MssqlColumnRemovalStrategy{}
 		m.ColumnRemovalStrategy.FromDto(dto.GetColumnRemovalStrategy())
+	}
+
+	if dto.GetNewColumnAdditionStrategy().GetStrategy() != nil {
+		m.NewColumnAdditionStrategy = &MssqlNewColumnAdditionStrategy{}
+		m.NewColumnAdditionStrategy.FromDto(dto.GetNewColumnAdditionStrategy())
+	} else if m.HaltOnNewColumnAddition {
+		m.NewColumnAdditionStrategy = &MssqlNewColumnAdditionStrategy{
+			HaltJob: &MssqlHaltJobNewColumnAdditionStrategy{},
+		}
+	}
+}
+
+func (s *MssqlNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy {
+	if s.HaltJob != nil {
+		return &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
+			},
+		}
+	}
+	if s.Passthrough != nil {
+		return &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_{
+				Passthrough: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough{},
+			},
+		}
+	}
+	return nil
+}
+
+func (s *MssqlNewColumnAdditionStrategy) FromDto(
+	dto *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy,
+) {
+	if dto.GetStrategy() != nil {
+		switch dto.GetStrategy().(type) {
+		case *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
+			s.HaltJob = &MssqlHaltJobNewColumnAdditionStrategy{}
+		case *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_:
+			s.Passthrough = &MssqlPassthroughNewColumnAdditionStrategy{}
+		}
 	}
 }
 
@@ -939,7 +1105,9 @@ func (m *MssqlSourceSchemaOption) FromDto(dto *mgmtv1alpha1.MssqlSourceSchemaOpt
 	m.Tables = FromDtoMssqlSourceTableOption(dto.GetTables())
 }
 
-func FromDtoMssqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MssqlSourceSchemaOption) []*MssqlSourceSchemaOption {
+func FromDtoMssqlSourceSchemaOptions(
+	dtos []*mgmtv1alpha1.MssqlSourceSchemaOption,
+) []*MssqlSourceSchemaOption {
 	output := make([]*MssqlSourceSchemaOption, len(dtos))
 	for idx := range dtos {
 		output[idx] = &MssqlSourceSchemaOption{}
@@ -948,7 +1116,9 @@ func FromDtoMssqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MssqlSourceSchemaOptio
 	return output
 }
 
-func FromDtoMssqlSourceTableOption(dtos []*mgmtv1alpha1.MssqlSourceTableOption) []*MssqlSourceTableOption {
+func FromDtoMssqlSourceTableOption(
+	dtos []*mgmtv1alpha1.MssqlSourceTableOption,
+) []*MssqlSourceTableOption {
 	output := make([]*MssqlSourceTableOption, len(dtos))
 	for idx := range dtos {
 		output[idx] = &MssqlSourceTableOption{}
@@ -990,15 +1160,34 @@ type DynamoDBSourceUnmappedTransformConfig struct {
 	S       *JobMappingTransformerModel `json:"s"`
 }
 
-func (s *DynamoDBSourceUnmappedTransformConfig) ToDto() *mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig {
-	return &mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig{
-		B:       s.B.ToTransformerDto(),
-		Boolean: s.Boolean.ToTransformerDto(),
-		N:       s.N.ToTransformerDto(),
-		S:       s.S.ToTransformerDto(),
+func (s *DynamoDBSourceUnmappedTransformConfig) ToDto() (*mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig, error) {
+	b, err := s.B.ToTransformerDto()
+	if err != nil {
+		return nil, err
 	}
+	boolean, err := s.Boolean.ToTransformerDto()
+	if err != nil {
+		return nil, err
+	}
+	n, err := s.N.ToTransformerDto()
+	if err != nil {
+		return nil, err
+	}
+	str, err := s.S.ToTransformerDto()
+	if err != nil {
+		return nil, err
+	}
+	return &mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig{
+		B:       b,
+		Boolean: boolean,
+		N:       n,
+		S:       str,
+	}, nil
 }
-func (s *DynamoDBSourceUnmappedTransformConfig) FromDto(dto *mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig) error {
+
+func (s *DynamoDBSourceUnmappedTransformConfig) FromDto(
+	dto *mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig,
+) error {
 	if dto == nil {
 		dto = &mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig{}
 	}
@@ -1046,7 +1235,7 @@ func (s *DynamoDBSourceTableOption) FromDto(dto *mgmtv1alpha1.DynamoDBSourceTabl
 	s.WhereClause = dto.WhereClause
 }
 
-func (s *DynamoDBSourceOptions) ToDto() *mgmtv1alpha1.DynamoDBSourceConnectionOptions {
+func (s *DynamoDBSourceOptions) ToDto() (*mgmtv1alpha1.DynamoDBSourceConnectionOptions, error) {
 	tables := make([]*mgmtv1alpha1.DynamoDBSourceTableOption, len(s.Tables))
 	for i, t := range s.Tables {
 		tables[i] = t.ToDto()
@@ -1075,12 +1264,16 @@ func (s *DynamoDBSourceOptions) ToDto() *mgmtv1alpha1.DynamoDBSourceConnectionOp
 			},
 		}
 	}
+	unmappedTransforms, err := s.UnmappedTransforms.ToDto()
+	if err != nil {
+		return nil, err
+	}
 	return &mgmtv1alpha1.DynamoDBSourceConnectionOptions{
 		ConnectionId:         s.ConnectionId,
 		Tables:               tables,
-		UnmappedTransforms:   s.UnmappedTransforms.ToDto(),
+		UnmappedTransforms:   unmappedTransforms,
 		EnableConsistentRead: s.EnableConsistentRead,
-	}
+	}, nil
 }
 
 func (s *DynamoDBSourceOptions) FromDto(dto *mgmtv1alpha1.DynamoDBSourceConnectionOptions) error {
@@ -1116,13 +1309,24 @@ func (s *MongoDbSourceOptions) FromDto(dto *mgmtv1alpha1.MongoDBSourceConnection
 }
 
 type MysqlSourceOptions struct {
-	HaltOnNewColumnAddition       bool                        `json:"haltOnNewColumnAddition"`
-	SubsetByForeignKeyConstraints bool                        `json:"subsetByForeignKeyConstraints"`
-	Schemas                       []*MysqlSourceSchemaOption  `json:"schemas"`
-	ConnectionId                  string                      `json:"connectionId"`
-	ColumnRemovalStrategy         *MysqlColumnRemovalStrategy `json:"columnRemovalStrategy,omitempty"`
+	// @deprecated
+	HaltOnNewColumnAddition       bool                            `json:"haltOnNewColumnAddition"`
+	SubsetByForeignKeyConstraints bool                            `json:"subsetByForeignKeyConstraints"`
+	Schemas                       []*MysqlSourceSchemaOption      `json:"schemas"`
+	ConnectionId                  string                          `json:"connectionId"`
+	ColumnRemovalStrategy         *MysqlColumnRemovalStrategy     `json:"columnRemovalStrategy,omitempty"`
+	NewColumnAdditionStrategy     *MysqlNewColumnAdditionStrategy `json:"newColumnAdditionStrategy,omitempty"`
 }
 
+type MysqlNewColumnAdditionStrategy struct {
+	HaltJob     *MysqlHaltJobNewColumnAdditionStrategy     `json:"haltJob,omitempty"`
+	AutoMap     *MysqlAutoMapNewColumnAdditionStrategy     `json:"autoMap,omitempty"`
+	Passthrough *MysqlPassthroughNewColumnAdditionStrategy `json:"passthrough,omitempty"`
+}
+
+type MysqlHaltJobNewColumnAdditionStrategy struct{}
+type MysqlAutoMapNewColumnAdditionStrategy struct{}
+type MysqlPassthroughNewColumnAdditionStrategy struct{}
 type MysqlColumnRemovalStrategy struct {
 	HaltJob     *MysqlHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
 	ContinueJob *MysqlContinueJobColumnRemovalStrategy `json:"continueJob,omitempty"`
@@ -1144,7 +1348,10 @@ func (p *MysqlColumnRemovalStrategy) ToDto() *mgmtv1alpha1.MysqlSourceConnection
 	}
 	return nil
 }
-func (p *MysqlColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy) {
+
+func (p *MysqlColumnRemovalStrategy) FromDto(
+	dto *mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy,
+) {
 	if dto == nil {
 		dto = &mgmtv1alpha1.MysqlSourceConnectionOptions_ColumnRemovalStrategy{}
 	}
@@ -1170,8 +1377,9 @@ type PostgresSourceOptions struct {
 }
 
 type PostgresNewColumnAdditionStrategy struct {
-	HaltJob *PostgresHaltJobStrategy `json:"haltJob,omitempty"`
-	AutoMap *PostgresAutoMapStrategy `json:"autoMap,omitempty"`
+	HaltJob     *PostgresHaltJobStrategy     `json:"haltJob,omitempty"`
+	AutoMap     *PostgresAutoMapStrategy     `json:"autoMap,omitempty"`
+	Passthrough *PostgresPassthroughStrategy `json:"passthrough,omitempty"`
 }
 
 func (p *PostgresNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy {
@@ -1187,10 +1395,19 @@ func (p *PostgresNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.PostgresSource
 				AutoMap: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap{},
 			},
 		}
+	} else if p.Passthrough != nil {
+		return &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_{
+				Passthrough: &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough{},
+			},
+		}
 	}
 	return nil
 }
-func (p *PostgresNewColumnAdditionStrategy) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy) {
+
+func (p *PostgresNewColumnAdditionStrategy) FromDto(
+	dto *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy,
+) {
 	if dto == nil {
 		dto = &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{}
 	}
@@ -1199,11 +1416,14 @@ func (p *PostgresNewColumnAdditionStrategy) FromDto(dto *mgmtv1alpha1.PostgresSo
 		p.AutoMap = &PostgresAutoMapStrategy{}
 	case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
 		p.HaltJob = &PostgresHaltJobStrategy{}
+	case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_:
+		p.Passthrough = &PostgresPassthroughStrategy{}
 	}
 }
 
 type PostgresHaltJobStrategy struct{}
 type PostgresAutoMapStrategy struct{}
+type PostgresPassthroughStrategy struct{}
 
 type PostgresColumnRemovalStrategy struct {
 	HaltJob     *PostgresHaltJobColumnRemovalStrategy     `json:"haltJob,omitempty"`
@@ -1226,7 +1446,10 @@ func (p *PostgresColumnRemovalStrategy) ToDto() *mgmtv1alpha1.PostgresSourceConn
 	}
 	return nil
 }
-func (p *PostgresColumnRemovalStrategy) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy) {
+
+func (p *PostgresColumnRemovalStrategy) FromDto(
+	dto *mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy,
+) {
 	if dto == nil {
 		dto = &mgmtv1alpha1.PostgresSourceConnectionOptions_ColumnRemovalStrategy{}
 	}
@@ -1326,7 +1549,9 @@ func (s *PostgresSourceOptions) FromDto(dto *mgmtv1alpha1.PostgresSourceConnecti
 	}
 }
 
-func FromDtoPostgresSourceSchemaOptions(dtos []*mgmtv1alpha1.PostgresSourceSchemaOption) []*PostgresSourceSchemaOption {
+func FromDtoPostgresSourceSchemaOptions(
+	dtos []*mgmtv1alpha1.PostgresSourceSchemaOption,
+) []*PostgresSourceSchemaOption {
 	output := make([]*PostgresSourceSchemaOption, len(dtos))
 	for idx := range dtos {
 		schema := dtos[idx]
@@ -1349,7 +1574,6 @@ func FromDtoPostgresSourceSchemaOptions(dtos []*mgmtv1alpha1.PostgresSourceSchem
 
 func (s *MysqlSourceOptions) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions {
 	dto := &mgmtv1alpha1.MysqlSourceConnectionOptions{
-		HaltOnNewColumnAddition:       s.HaltOnNewColumnAddition,
 		SubsetByForeignKeyConstraints: s.SubsetByForeignKeyConstraints,
 		ConnectionId:                  s.ConnectionId,
 	}
@@ -1373,11 +1597,68 @@ func (s *MysqlSourceOptions) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions 
 	if s.ColumnRemovalStrategy != nil {
 		dto.ColumnRemovalStrategy = s.ColumnRemovalStrategy.ToDto()
 	}
+	if s.NewColumnAdditionStrategy != nil {
+		dto.NewColumnAdditionStrategy = s.NewColumnAdditionStrategy.ToDto()
+	} else if s.HaltOnNewColumnAddition {
+		dto.NewColumnAdditionStrategy = &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
+			},
+		}
+	}
 
 	return dto
 }
+
+func (s *MysqlNewColumnAdditionStrategy) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy {
+	if s.HaltJob != nil {
+		return &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_{
+				HaltJob: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
+			},
+		}
+	}
+	if s.AutoMap != nil {
+		return &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_{
+				AutoMap: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap{},
+			},
+		}
+	}
+	if s.Passthrough != nil {
+		return &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy{
+			Strategy: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_{
+				Passthrough: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough{},
+			},
+		}
+	}
+	return nil
+}
+
+func (s *MysqlNewColumnAdditionStrategy) FromDto(
+	dto *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy,
+) {
+	if dto.GetStrategy() != nil {
+		switch dto.GetStrategy().(type) {
+		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
+			s.HaltJob = &MysqlHaltJobNewColumnAdditionStrategy{}
+		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_:
+			s.AutoMap = &MysqlAutoMapNewColumnAdditionStrategy{}
+		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_:
+			s.Passthrough = &MysqlPassthroughNewColumnAdditionStrategy{}
+		}
+	}
+}
+
 func (s *MysqlSourceOptions) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOptions) {
-	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
+	if dto.GetNewColumnAdditionStrategy().GetStrategy() != nil {
+		s.NewColumnAdditionStrategy = &MysqlNewColumnAdditionStrategy{}
+		s.NewColumnAdditionStrategy.FromDto(dto.GetNewColumnAdditionStrategy())
+	} else if dto.HaltOnNewColumnAddition { //nolint:staticcheck
+		s.NewColumnAdditionStrategy = &MysqlNewColumnAdditionStrategy{
+			HaltJob: &MysqlHaltJobNewColumnAdditionStrategy{},
+		}
+	}
 	s.SubsetByForeignKeyConstraints = dto.SubsetByForeignKeyConstraints
 	s.Schemas = FromDtoMysqlSourceSchemaOptions(dto.Schemas)
 	s.ConnectionId = dto.ConnectionId
@@ -1387,7 +1668,9 @@ func (s *MysqlSourceOptions) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOpti
 	}
 }
 
-func FromDtoMysqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MysqlSourceSchemaOption) []*MysqlSourceSchemaOption {
+func FromDtoMysqlSourceSchemaOptions(
+	dtos []*mgmtv1alpha1.MysqlSourceSchemaOption,
+) []*MysqlSourceSchemaOption {
 	output := make([]*MysqlSourceSchemaOption, len(dtos))
 	for idx := range dtos {
 		schema := dtos[idx]
@@ -1408,7 +1691,9 @@ func FromDtoMysqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MysqlSourceSchemaOptio
 	return output
 }
 
-func FromDtoDynamoDBSourceTableOptions(dtos []*mgmtv1alpha1.DynamoDBSourceTableOption) []*DynamoDBSourceTableOption {
+func FromDtoDynamoDBSourceTableOptions(
+	dtos []*mgmtv1alpha1.DynamoDBSourceTableOption,
+) []*DynamoDBSourceTableOption {
 	tables := make([]*DynamoDBSourceTableOption, len(dtos))
 	for i, table := range dtos {
 		t := &DynamoDBSourceTableOption{}
@@ -1446,7 +1731,9 @@ func (s *GenerateSourceOptions) FromDto(dto *mgmtv1alpha1.GenerateSourceOptions)
 	s.Schemas = FromDtoGenerateSourceSchemaOptions(dto.Schemas)
 }
 
-func FromDtoGenerateSourceSchemaOptions(dtos []*mgmtv1alpha1.GenerateSourceSchemaOption) []*GenerateSourceSchemaOption {
+func FromDtoGenerateSourceSchemaOptions(
+	dtos []*mgmtv1alpha1.GenerateSourceSchemaOption,
+) []*GenerateSourceSchemaOption {
 	output := make([]*GenerateSourceSchemaOption, len(dtos))
 	for idx := range dtos {
 		schema := dtos[idx]
@@ -1502,7 +1789,9 @@ func (s *AiGenerateSourceOptions) FromDto(dto *mgmtv1alpha1.AiGenerateSourceOpti
 	s.GenerateBatchSize = dto.GenerateBatchSize
 }
 
-func FromDtoAiGenerateSourceSchemaOptions(dtos []*mgmtv1alpha1.AiGenerateSourceSchemaOption) []*AiGenerateSourceSchemaOption {
+func FromDtoAiGenerateSourceSchemaOptions(
+	dtos []*mgmtv1alpha1.AiGenerateSourceSchemaOption,
+) []*AiGenerateSourceSchemaOption {
 	output := make([]*AiGenerateSourceSchemaOption, len(dtos))
 	for idx := range dtos {
 		schema := dtos[idx]
@@ -1541,57 +1830,61 @@ type MysqlSourceTableOption struct {
 	WhereClause *string `json:"whereClause,omitempty"`
 }
 
-func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
+func (j *JobSourceOptions) ToDto() (*mgmtv1alpha1.JobSourceOptions, error) {
 	if j.PostgresOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
 				Postgres: j.PostgresOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
 	if j.MysqlOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
 				Mysql: j.MysqlOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
 	if j.GenerateOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Generate{
 				Generate: j.GenerateOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
 	if j.AiGenerateOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_AiGenerate{
 				AiGenerate: j.AiGenerateOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
 	if j.MongoDbOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Mongodb{
 				Mongodb: j.MongoDbOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
 	if j.DynamoDBOptions != nil {
+		dto, err := j.DynamoDBOptions.ToDto()
+		if err != nil {
+			return nil, err
+		}
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Dynamodb{
-				Dynamodb: j.DynamoDBOptions.ToDto(),
+				Dynamodb: dto,
 			},
-		}
+		}, nil
 	}
 	if j.MssqlOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Mssql{
 				Mssql: j.MssqlOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
-	return nil
+	return nil, fmt.Errorf("invalid job source options config, received type: %T", j)
 }
 
 func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
@@ -1656,7 +1949,10 @@ func (d *DynamoDBDestinationOptions) ToDto() *mgmtv1alpha1.DynamoDBDestinationCo
 		TableMappings: tableMappings,
 	}
 }
-func (d *DynamoDBDestinationOptions) FromDto(dto *mgmtv1alpha1.DynamoDBDestinationConnectionOptions) {
+
+func (d *DynamoDBDestinationOptions) FromDto(
+	dto *mgmtv1alpha1.DynamoDBDestinationConnectionOptions,
+) {
 	d.TableMappings = make([]*DynamoDBDestinationTableMapping, 0, len(dto.GetTableMappings()))
 
 	for _, dtotm := range dto.GetTableMappings() {
@@ -1677,7 +1973,10 @@ func (d *DynamoDBDestinationTableMapping) ToDto() *mgmtv1alpha1.DynamoDBDestinat
 		DestinationTable: d.DestinationTable,
 	}
 }
-func (d *DynamoDBDestinationTableMapping) FromDto(dto *mgmtv1alpha1.DynamoDBDestinationTableMapping) {
+
+func (d *DynamoDBDestinationTableMapping) FromDto(
+	dto *mgmtv1alpha1.DynamoDBDestinationTableMapping,
+) {
 	d.SourceTable = dto.GetSourceTable()
 	d.DestinationTable = dto.GetDestinationTable()
 }
@@ -1728,7 +2027,9 @@ func (m *PostgresDestinationOptions) ToDto() *mgmtv1alpha1.PostgresDestinationCo
 	}
 }
 
-func (m *PostgresDestinationOptions) FromDto(dto *mgmtv1alpha1.PostgresDestinationConnectionOptions) {
+func (m *PostgresDestinationOptions) FromDto(
+	dto *mgmtv1alpha1.PostgresDestinationConnectionOptions,
+) {
 	if dto == nil {
 		dto = &mgmtv1alpha1.PostgresDestinationConnectionOptions{}
 	}
@@ -2067,7 +2368,9 @@ func (a *AwsS3DestinationOptions) ToDto() *mgmtv1alpha1.AwsS3DestinationConnecti
 	storageClass := mgmtv1alpha1.AwsS3DestinationConnectionOptions_STORAGE_CLASS_UNSPECIFIED
 	if a.StorageClass != nil {
 		if _, ok := mgmtv1alpha1.AwsS3DestinationConnectionOptions_StorageClass_name[*a.StorageClass]; ok {
-			storageClass = mgmtv1alpha1.AwsS3DestinationConnectionOptions_StorageClass(*a.StorageClass)
+			storageClass = mgmtv1alpha1.AwsS3DestinationConnectionOptions_StorageClass(
+				*a.StorageClass,
+			)
 		}
 	}
 	var batch *mgmtv1alpha1.BatchConfig

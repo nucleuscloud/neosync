@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/Jeffail/shutdown"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqldbtx"
@@ -43,7 +42,8 @@ func sqlUpdateOutputSpec() *service.ConfigSpec {
 // Registers an output on a benthos environment called pooled_sql_raw
 func RegisterPooledSqlUpdateOutput(env *service.Environment, dbprovider ConnectionProvider) error {
 	return env.RegisterBatchOutput(
-		"pooled_sql_update", sqlUpdateOutputSpec(),
+		"pooled_sql_update",
+		sqlUpdateOutputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
 			batchPolicy, err := conf.FieldBatchPolicy("batching")
 			if err != nil {
@@ -78,11 +78,13 @@ type pooledUpdateOutput struct {
 	columns                  []string
 	whereCols                []string
 	skipForeignKeyViolations bool
-
-	shutSig *shutdown.Signaller
 }
 
-func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provider ConnectionProvider) (*pooledUpdateOutput, error) {
+func newUpdateOutput(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+	provider ConnectionProvider,
+) (*pooledUpdateOutput, error) {
 	connectionId, err := conf.FieldString("connection_id")
 	if err != nil {
 		return nil, err
@@ -122,7 +124,6 @@ func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		driver:                   driver,
 		connectionId:             connectionId,
 		logger:                   mgr.Logger(),
-		shutSig:                  shutdown.NewSignaller(),
 		provider:                 provider,
 		schema:                   schema,
 		table:                    table,
@@ -146,22 +147,16 @@ func (s *pooledUpdateOutput) Connect(ctx context.Context) error {
 		return err
 	}
 	s.db = db
-
-	go func() {
-		<-s.shutSig.HardStopChan()
-
-		s.dbMut.Lock()
-		// not closing the connection here as that is managed by an outside force
-		s.db = nil
-		s.dbMut.Unlock()
-
-		s.shutSig.TriggerHasStopped()
-	}()
 	return nil
 }
 
 func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
 	s.dbMut.RLock()
+	if s.db == nil {
+		s.dbMut.RUnlock()
+		return service.ErrNotConnected
+	}
+	db := s.db
 	defer s.dbMut.RUnlock()
 
 	batchLen := len(batch)
@@ -178,12 +173,20 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 			return fmt.Errorf("message returned non-map result: %T", msgMap)
 		}
 
-		query, err := querybuilder.BuildUpdateQuery(s.driver, s.schema, s.table, s.columns, s.whereCols, msgMap)
+		query, err := querybuilder.BuildUpdateQuery(
+			s.driver,
+			s.schema,
+			s.table,
+			s.columns,
+			s.whereCols,
+			msgMap,
+		)
 		if err != nil {
 			return err
 		}
-		if _, err := s.db.ExecContext(ctx, query); err != nil {
-			if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
+		if _, err := db.ExecContext(ctx, query); err != nil {
+			if !s.skipForeignKeyViolations ||
+				!neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 				return err
 			}
 		}
@@ -193,17 +196,16 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 }
 
 func (s *pooledUpdateOutput) Close(ctx context.Context) error {
-	s.shutSig.TriggerHardStop()
 	s.dbMut.RLock()
-	isNil := s.db == nil
-	s.dbMut.RUnlock()
-	if isNil {
+	if s.db == nil {
+		s.dbMut.RUnlock()
 		return nil
 	}
-	select {
-	case <-s.shutSig.HasStoppedChan():
-	case <-ctx.Done():
-		return ctx.Err()
-	}
+	s.dbMut.RUnlock()
+
+	// Take write lock to null out the connection
+	s.dbMut.Lock()
+	s.db = nil
+	s.dbMut.Unlock()
 	return nil
 }

@@ -410,6 +410,7 @@ func (s *IntegrationTestSuite) Test_CreateJob() {
 		WorkflowOptions:    &pg_models.WorkflowOptions{},
 		SyncOptions:        &pg_models.ActivityOptions{},
 		VirtualForeignKeys: []*pg_models.VirtualForeignConstraint{},
+		JobtypeConfig:      []byte(`{"job_type": {"sync": {}}}`),
 	}, []*neosyncdb.CreateJobConnectionDestination{
 		{
 			ConnectionId: connection.ID,
@@ -438,6 +439,7 @@ func (s *IntegrationTestSuite) Test_SetSourceSubsets() {
 		WorkflowOptions:    &pg_models.WorkflowOptions{},
 		SyncOptions:        &pg_models.ActivityOptions{},
 		VirtualForeignKeys: []*pg_models.VirtualForeignConstraint{},
+		JobtypeConfig:      []byte(`{"job_type": {"sync": {}}}`),
 	}, []*neosyncdb.CreateJobConnectionDestination{})
 	requireNoErrResp(t, job, err)
 

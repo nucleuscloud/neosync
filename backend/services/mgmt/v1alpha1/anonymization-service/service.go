@@ -3,6 +3,7 @@ package v1alpha_anonymizationservice
 import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
+	"github.com/nucleuscloud/neosync/internal/ee/license"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	"go.opentelemetry.io/otel/metric"
@@ -17,13 +18,14 @@ type Service struct {
 	analyze            presidioapi.AnalyzeInterface
 	anonymize          presidioapi.AnonymizeInterface
 	db                 *neosyncdb.NeosyncDb
+	license            license.EEInterface
 }
 
 type Config struct {
 	IsAuthEnabled           bool
+	IsNeosyncCloud          bool
 	IsPresidioEnabled       bool
 	PresidioDefaultLanguage *string
-	IsNeosyncCloud          bool
 }
 
 func New(
@@ -35,6 +37,7 @@ func New(
 	analyzeclient presidioapi.AnalyzeInterface,
 	anonymizeclient presidioapi.AnonymizeInterface,
 	db *neosyncdb.NeosyncDb,
+	license license.EEInterface,
 ) *Service {
 	return &Service{
 		cfg:                cfg,
@@ -45,5 +48,6 @@ func New(
 		analyze:            analyzeclient,
 		anonymize:          anonymizeclient,
 		db:                 db,
+		license:            license,
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 
@@ -24,7 +25,6 @@ func redisHashOutputConfig() *service.ConfigSpec {
 		Stable().
 		Summary(`Sets Redis hash objects using the HMSET command.`).
 		Categories("Services").
-		Fields(clientFields()...).
 		Fields(
 			service.NewInterpolatedStringField(hoFieldKey).
 				Description("The key for each message, function interpolations should be used to create a unique key per message.").
@@ -40,19 +40,18 @@ func redisHashOutputConfig() *service.ConfigSpec {
 		)
 }
 
-func init() {
-	err := service.RegisterOutput(
-		"redis_hash_output", redisHashOutputConfig(),
+func RegisterRedisHashOutput(env *service.Environment, client redis.UniversalClient) error {
+	return env.RegisterOutput(
+		"redis_hash_output",
+		redisHashOutputConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (out service.Output, maxInFlight int, err error) {
 			if maxInFlight, err = conf.FieldMaxInFlight(); err != nil {
-				return
+				return nil, 0, err
 			}
-			out, err = newRedisHashWriter(conf, mgr)
-			return
-		})
-	if err != nil {
-		panic(err)
-	}
+			out, err = newRedisHashWriter(conf, mgr, client)
+			return out, maxInFlight, err
+		},
+	)
 }
 
 type redisHashWriter struct {
@@ -63,30 +62,28 @@ type redisHashWriter struct {
 	walkJSON      bool
 	fieldsMapping *bloblang.Executor
 
-	clientCtor func() (redis.UniversalClient, error)
-	client     redis.UniversalClient
-	connMut    sync.RWMutex
+	client  redis.UniversalClient
+	connMut sync.RWMutex
 }
 
-func newRedisHashWriter(conf *service.ParsedConfig, mgr *service.Resources) (r *redisHashWriter, err error) {
+func newRedisHashWriter(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+	client redis.UniversalClient,
+) (r *redisHashWriter, err error) {
 	r = &redisHashWriter{
-		clientCtor: func() (redis.UniversalClient, error) {
-			return getClient(conf)
-		},
-		log: mgr.Logger(),
-	}
-	if _, err = getClient(conf); err != nil {
-		return
+		client: client,
+		log:    mgr.Logger(),
 	}
 
 	if r.key, err = conf.FieldInterpolatedString(hoFieldKey); err != nil {
-		return
+		return nil, err
 	}
 	if r.walkMetadata, err = conf.FieldBool(hoFieldWalkMetadata); err != nil {
-		return
+		return nil, err
 	}
 	if r.walkJSON, err = conf.FieldBool(hoFieldWalkJSON); err != nil {
-		return
+		return nil, err
 	}
 	if r.fieldsMapping, err = conf.FieldBloblang(hoFieldFieldsMapping); err != nil {
 		return nil, err
@@ -95,27 +92,12 @@ func newRedisHashWriter(conf *service.ParsedConfig, mgr *service.Resources) (r *
 	if !r.walkMetadata && !r.walkJSON && r.fieldsMapping == nil {
 		return nil, errors.New("at least one mechanism for setting fields must be enabled")
 	}
-	return
+	return r, nil
 }
 
 func (r *redisHashWriter) Connect(ctx context.Context) error {
-	r.connMut.Lock()
-	defer r.connMut.Unlock()
-
-	client, err := r.clientCtor()
-	if err != nil {
-		return err
-	}
-	if _, err = client.Ping(ctx).Result(); err != nil {
-		return err
-	}
-
-	r.log.Info("Setting messages as hash objects to Redis")
-	r.client = client
 	return nil
 }
-
-//------------------------------------------------------------------------------
 
 func walkForHashFields(msg *service.Message, fields map[string]any) error {
 	jVal, err := msg.AsStructured()
@@ -138,7 +120,7 @@ func (r *redisHashWriter) Write(ctx context.Context, msg *service.Message) error
 	r.connMut.RUnlock()
 
 	if client == nil {
-		return service.ErrNotConnected
+		return errors.New("missing redis client. this operation requires redis")
 	}
 
 	key, err := r.key.TryString(msg)
@@ -174,7 +156,7 @@ func (r *redisHashWriter) Write(ctx context.Context, msg *service.Message) error
 		}
 
 		if mapVal != nil {
-			fieldMappings, ok := mapVal.(map[string]interface{}) //nolint:gofmt
+			fieldMappings, ok := mapVal.(map[string]any)
 			if !ok {
 				return fmt.Errorf("fieldMappings resulted in a non-object mapping: %T", mapVal)
 			}
@@ -184,25 +166,18 @@ func (r *redisHashWriter) Write(ctx context.Context, msg *service.Message) error
 		}
 	}
 
-	if err := client.HMSet(ctx, key, fields).Err(); err != nil {
-		_ = r.disconnect()
-		r.log.Errorf("Error from redis: %v\n", err)
+	pipe := client.Pipeline()
+	pipe.HMSet(ctx, key, fields)
+	pipe.Expire(ctx, key, 24*time.Hour)
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		r.log.Errorf("Error executing redis pipeline: %v\n", err)
 		return service.ErrNotConnected
 	}
-	return nil
-}
 
-func (r *redisHashWriter) disconnect() error {
-	r.connMut.Lock()
-	defer r.connMut.Unlock()
-	if r.client != nil {
-		err := r.client.Close()
-		r.client = nil
-		return err
-	}
 	return nil
 }
 
 func (r *redisHashWriter) Close(context.Context) error {
-	return r.disconnect()
+	return nil
 }

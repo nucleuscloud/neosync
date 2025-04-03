@@ -13,36 +13,37 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	javascript_userland "github.com/nucleuscloud/neosync/internal/javascript/userland"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func buildProcessorConfigsByRunType(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	config *tabledependency.RunConfig,
+	config *runconfigs.RunConfig,
 	columnForeignKeysMap map[string][]*bb_internal.ReferenceKey,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	jobId, runId string,
-	redisConfig *neosync_redis.RedisConfig,
 	mappings []*mgmtv1alpha1.JobMapping,
 	columnInfoMap map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
 	mappedKeys []string,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
-	if config.RunType() == tabledependency.RunTypeUpdate {
+	if config.RunType() == runconfigs.RunTypeUpdate {
 		// sql update processor configs
-		processorConfigs, err := buildSqlUpdateProcessorConfigs(config, redisConfig, jobId, runId, transformedFktoPkMap)
-		if err != nil {
-			return nil, err
-		}
+		processorConfigs := buildSqlUpdateProcessorConfigs(
+			config,
+			jobId,
+			runId,
+			transformedFktoPkMap,
+		)
 		return processorConfigs, nil
 	} else {
 		// sql insert processor configs
@@ -59,7 +60,6 @@ func buildProcessorConfigsByRunType(
 			fkSourceCols,
 			jobId,
 			runId,
-			redisConfig,
 			config,
 			jobSourceOptions,
 			mappedKeys,
@@ -72,11 +72,10 @@ func buildProcessorConfigsByRunType(
 }
 
 func buildSqlUpdateProcessorConfigs(
-	config *tabledependency.RunConfig,
-	redisConfig *neosync_redis.RedisConfig,
+	config *runconfigs.RunConfig,
 	jobId, runId string,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
-) ([]*neosync_benthos.ProcessorConfig, error) {
+) []*neosync_benthos.ProcessorConfig {
 	processorConfigs := []*neosync_benthos.ProcessorConfig{}
 	for fkCol, pks := range transformedFktoPkMap {
 		for _, pk := range pks {
@@ -86,14 +85,21 @@ func buildSqlUpdateProcessorConfigs(
 
 			// circular dependent foreign key
 			hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, pk.Table, pk.Column)
-			requestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, fkCol)
+			requestMap := fmt.Sprintf(
+				`root = if this.%q == null { deleted() } else { this }`,
+				fkCol,
+			)
 			argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, fkCol)
 			resultMap := fmt.Sprintf("root.%q = this", fkCol)
-			fkBranch, err := buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap, redisConfig)
-			if err != nil {
-				return nil, err
-			}
-			processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: fkBranch})
+			fkBranch := buildRedisGetBranchConfig(
+				resultMap,
+				argsMapping,
+				&requestMap,
+			)
+			processorConfigs = append(
+				processorConfigs,
+				&neosync_benthos.ProcessorConfig{Branch: fkBranch},
+			)
 		}
 	}
 
@@ -104,20 +110,27 @@ func buildSqlUpdateProcessorConfigs(
 			pkRequestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, pk)
 			pkArgsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, pk)
 			pkResultMap := fmt.Sprintf("root.%q = this", pk)
-			pkBranch, err := buildRedisGetBranchConfig(pkResultMap, pkArgsMapping, &pkRequestMap, redisConfig)
-			if err != nil {
-				return nil, err
-			}
-			processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: pkBranch})
+			pkBranch := buildRedisGetBranchConfig(
+				pkResultMap,
+				pkArgsMapping,
+				&pkRequestMap,
+			)
+			processorConfigs = append(
+				processorConfigs,
+				&neosync_benthos.ProcessorConfig{Branch: pkBranch},
+			)
 		}
 		// add catch and error processor
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
-			{Error: &neosync_benthos.ErrorProcessorConfig{
-				ErrorMsg: `${! error()}`,
+		processorConfigs = append(
+			processorConfigs,
+			&neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
+				{Error: &neosync_benthos.ErrorProcessorConfig{
+					ErrorMsg: `${! error()}`,
+				}},
 			}},
-		}})
+		)
 	}
-	return processorConfigs, nil
+	return processorConfigs
 }
 
 func buildProcessorConfigs(
@@ -128,8 +141,7 @@ func buildProcessorConfigs(
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	fkSourceCols []string,
 	jobId, runId string,
-	redisConfig *neosync_redis.RedisConfig,
-	runconfig *tabledependency.RunConfig,
+	runconfig *runconfigs.RunConfig,
 	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
 	mappedKeys []string,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
@@ -145,15 +157,23 @@ func buildProcessorConfigs(
 		return nil, err
 	}
 
-	mutations, err := buildMutationConfigs(ctx, transformerclient, filteredCols, tableColumnInfo, runconfig.SplitColumnPaths())
+	mutations, err := buildMutationConfigs(
+		ctx,
+		transformerclient,
+		filteredCols,
+		tableColumnInfo,
+		runconfig.SplitColumnPaths(),
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	cacheBranches, err := buildBranchCacheConfigs(filteredCols, transformedFktoPkMap, jobId, runId, redisConfig)
-	if err != nil {
-		return nil, err
-	}
+	cacheBranches := buildBranchCacheConfigs(
+		filteredCols,
+		transformedFktoPkMap,
+		jobId,
+		runId,
+	)
 
 	pkMapping := buildPrimaryKeyMappingConfigs(filteredCols, fkSourceCols)
 
@@ -163,30 +183,50 @@ func buildProcessorConfigs(
 	}
 	var processorConfigs []*neosync_benthos.ProcessorConfig
 	if pkMapping != "" {
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mapping: &pkMapping})
+		processorConfigs = append(
+			processorConfigs,
+			&neosync_benthos.ProcessorConfig{Mapping: &pkMapping},
+		)
 	}
 	if mutations != "" {
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
+		processorConfigs = append(
+			processorConfigs,
+			&neosync_benthos.ProcessorConfig{Mutation: &mutations},
+		)
 	}
 	if jsCode != "" {
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{NeosyncJavascript: &neosync_benthos.NeosyncJavascriptConfig{Code: jsCode}})
+		processorConfigs = append(
+			processorConfigs,
+			&neosync_benthos.ProcessorConfig{
+				NeosyncJavascript: &neosync_benthos.NeosyncJavascriptConfig{Code: jsCode},
+			},
+		)
 	}
 	if len(cacheBranches) > 0 {
 		for _, config := range cacheBranches {
-			processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: config})
+			processorConfigs = append(
+				processorConfigs,
+				&neosync_benthos.ProcessorConfig{Branch: config},
+			)
 		}
 	}
 	if defaultTransformerConfig != nil {
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{NeosyncDefaultTransformer: defaultTransformerConfig})
+		processorConfigs = append(
+			processorConfigs,
+			&neosync_benthos.ProcessorConfig{NeosyncDefaultTransformer: defaultTransformerConfig},
+		)
 	}
 
 	if len(processorConfigs) > 0 {
 		// add catch and error processor
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
-			{Error: &neosync_benthos.ErrorProcessorConfig{
-				ErrorMsg: `${! error()}`,
+		processorConfigs = append(
+			processorConfigs,
+			&neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
+				{Error: &neosync_benthos.ErrorProcessorConfig{
+					ErrorMsg: `${! error()}`,
+				}},
 			}},
-		}})
+		)
 	}
 
 	return processorConfigs, err
@@ -211,7 +251,11 @@ func buildDefaultTransformerConfigs(
 	}, nil
 }
 
-func extractJsFunctionsAndOutputs(ctx context.Context, transformerclient mgmtv1alpha1connect.TransformersServiceClient, cols []*mgmtv1alpha1.JobMapping) (string, error) {
+func extractJsFunctionsAndOutputs(
+	ctx context.Context,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	cols []*mgmtv1alpha1.JobMapping,
+) (string, error) {
 	var benthosOutputs []string
 	var jsFunctions []string
 
@@ -219,7 +263,11 @@ func extractJsFunctionsAndOutputs(ctx context.Context, transformerclient mgmtv1a
 		jmTransformer := col.GetTransformer()
 		if shouldProcessStrict(jmTransformer) {
 			if jmTransformer.GetConfig().GetUserDefinedTransformerConfig() != nil {
-				val, err := convertUserDefinedFunctionConfig(ctx, transformerclient, col.GetTransformer())
+				val, err := convertUserDefinedFunctionConfig(
+					ctx,
+					transformerclient,
+					col.GetTransformer(),
+				)
 				if err != nil {
 					return "", errors.New("unable to look up user defined transformer config by id")
 				}
@@ -255,8 +303,39 @@ func isJavascriptTransformer(jmt *mgmtv1alpha1.JobMappingTransformer) bool {
 		return false
 	}
 
-	isConfig := jmt.GetConfig().GetTransformJavascriptConfig() != nil || jmt.GetConfig().GetGenerateJavascriptConfig() != nil
+	isConfig := jmt.GetConfig().GetTransformJavascriptConfig() != nil ||
+		jmt.GetConfig().GetGenerateJavascriptConfig() != nil
 	return isConfig
+}
+
+func buildIdentityCursors(
+	ctx context.Context,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	cols []*mgmtv1alpha1.JobMapping,
+) (map[string]*tablesync_shared.IdentityCursor, error) {
+	cursors := map[string]*tablesync_shared.IdentityCursor{}
+
+	for _, col := range cols {
+		transformer := col.GetTransformer()
+
+		if transformer.GetConfig().GetUserDefinedTransformerConfig() != nil {
+			val, err := convertUserDefinedFunctionConfig(ctx, transformerclient, transformer)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"unable to look up user defined transformer config by id: %w",
+					err,
+				)
+			}
+			transformer = val
+		}
+
+		scrambleConfig := transformer.GetConfig().GetTransformScrambleIdentityConfig()
+		if scrambleConfig != nil {
+			cursors[buildScrambleIdentityToken(col)] = tablesync_shared.NewDefaultIdentityCursor()
+		}
+	}
+
+	return cursors, nil
 }
 
 func buildMutationConfigs(
@@ -273,7 +352,11 @@ func buildMutationConfigs(
 		if shouldProcessColumn(col.GetTransformer()) {
 			if col.GetTransformer().GetConfig().GetUserDefinedTransformerConfig() != nil {
 				// handle user defined transformer -> get the user defined transformer configs using the id
-				val, err := convertUserDefinedFunctionConfig(ctx, transformerclient, col.GetTransformer())
+				val, err := convertUserDefinedFunctionConfig(
+					ctx,
+					transformerclient,
+					col.GetTransformer(),
+				)
 				if err != nil {
 					return "", errors.New("unable to look up user defined transformer config by id")
 				}
@@ -282,9 +365,20 @@ func buildMutationConfigs(
 			if !isJavascriptTransformer(col.GetTransformer()) {
 				mutation, err := computeMutationFunction(col, colInfo, splitColumnPaths)
 				if err != nil {
-					return "", fmt.Errorf("%s is not a supported transformer: %w", col.GetTransformer(), err)
+					return "", fmt.Errorf(
+						"%s is not a supported transformer: %w",
+						col.GetTransformer(),
+						err,
+					)
 				}
-				mutations = append(mutations, fmt.Sprintf("root.%s = %s", getBenthosColumnKey(col.GetColumn(), splitColumnPaths), mutation))
+				mutations = append(
+					mutations,
+					fmt.Sprintf(
+						"root.%s = %s",
+						getBenthosColumnKey(col.GetColumn(), splitColumnPaths),
+						mutation,
+					),
+				)
 			}
 		}
 	}
@@ -309,7 +403,14 @@ func buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys 
 	mappings := []string{}
 	for _, col := range cols {
 		if shouldProcessColumn(col.Transformer) && slices.Contains(primaryKeys, col.Column) {
-			mappings = append(mappings, fmt.Sprintf("meta %s = this.%q", hashPrimaryKeyMetaKey(col.Schema, col.Table, col.Column), col.Column))
+			mappings = append(
+				mappings,
+				fmt.Sprintf(
+					"meta %s = this.%q",
+					hashPrimaryKeyMetaKey(col.Schema, col.Table, col.Column),
+					col.Column,
+				),
+			)
 		}
 	}
 	return strings.Join(mappings, "\n")
@@ -330,8 +431,7 @@ func buildBranchCacheConfigs(
 	cols []*mgmtv1alpha1.JobMapping,
 	transformedFktoPkMap map[string][]*bb_internal.ReferenceKey,
 	jobId, runId string,
-	redisConfig *neosync_redis.RedisConfig,
-) ([]*neosync_benthos.BranchConfig, error) {
+) []*neosync_benthos.BranchConfig {
 	branchConfigs := []*neosync_benthos.BranchConfig{}
 	for _, col := range cols {
 		fks, ok := transformedFktoPkMap[col.Column]
@@ -343,44 +443,40 @@ func buildBranchCacheConfigs(
 				}
 
 				hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, fk.Column)
-				requestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, col.Column)
+				requestMap := fmt.Sprintf(
+					`root = if this.%q == null { deleted() } else { this }`,
+					col.Column,
+				)
 				argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, col.Column)
 				resultMap := fmt.Sprintf("root.%q = this", col.Column)
-				br, err := buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap, redisConfig)
-				if err != nil {
-					return nil, err
-				}
+				br := buildRedisGetBranchConfig(
+					resultMap,
+					argsMapping,
+					&requestMap,
+				)
 				branchConfigs = append(branchConfigs, br)
 			}
 		}
 	}
-	return branchConfigs, nil
+	return branchConfigs
 }
 
 func buildRedisGetBranchConfig(
 	resultMap, argsMapping string,
 	requestMap *string,
-	redisConfig *neosync_redis.RedisConfig,
-) (*neosync_benthos.BranchConfig, error) {
-	if redisConfig == nil {
-		return nil, fmt.Errorf("missing redis config. this operation requires redis")
-	}
+) *neosync_benthos.BranchConfig {
 	return &neosync_benthos.BranchConfig{
 		RequestMap: requestMap,
 		Processors: []neosync_benthos.ProcessorConfig{
 			{
 				Redis: &neosync_benthos.RedisProcessorConfig{
-					Url:         redisConfig.Url,
 					Command:     "hget",
 					ArgsMapping: argsMapping,
-					Kind:        &redisConfig.Kind,
-					Master:      redisConfig.Master,
-					Tls:         shared.BuildBenthosRedisTlsConfig(redisConfig),
 				},
 			},
 		},
 		ResultMap: &resultMap,
-	}, nil
+	}
 }
 
 func constructJsFunction(jsCode, col string, source mgmtv1alpha1.TransformerSource) string {
@@ -411,7 +507,14 @@ func convertUserDefinedFunctionConfig(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	t *mgmtv1alpha1.JobMappingTransformer,
 ) (*mgmtv1alpha1.JobMappingTransformer, error) {
-	transformerResp, err := transformerclient.GetUserDefinedTransformerById(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{TransformerId: t.Config.GetUserDefinedTransformerConfig().Id}))
+	transformerResp, err := transformerclient.GetUserDefinedTransformerById(
+		ctx,
+		connect.NewRequest(
+			&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{
+				TransformerId: t.Config.GetUserDefinedTransformerConfig().Id,
+			},
+		),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -422,7 +525,11 @@ func convertUserDefinedFunctionConfig(
 	}, nil
 }
 
-func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_shared.DatabaseSchemaRow, splitColumnPath bool) (string, error) {
+func computeMutationFunction(
+	col *mgmtv1alpha1.JobMapping,
+	colInfo *sqlmanager_shared.DatabaseSchemaRow,
+	splitColumnPath bool,
+) (string, error) {
 	var maxLen int64 = 10000
 	if colInfo != nil && colInfo.CharacterMaximumLength > 0 {
 		maxLen = int64(colInfo.CharacterMaximumLength)
@@ -708,9 +815,32 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 			return "", err
 		}
 		return opts.BuildBloblangString(formattedColPath), nil
+	case *mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig:
+		token := buildScrambleIdentityToken(col)
+		opts, err := transformers.NewTransformIdentityScrambleOptsFromConfigWithToken(token)
+		if err != nil {
+			return "", err
+		}
+		return opts.BuildBloblangString(formattedColPath), nil
+	case *mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig:
+		opts, err := transformers.NewTransformPiiTextOptsFromConfig(cfg.TransformPiiTextConfig)
+		if err != nil {
+			return "", err
+		}
+		bloblangString, err := opts.BuildBloblangString(formattedColPath)
+		if err != nil {
+			return "", fmt.Errorf("unable to build bloblang string for TransformPiiText: %w", err)
+		}
+		return bloblangString, nil
 	default:
 		return "", fmt.Errorf("unsupported transformer: %T", cfg)
 	}
+}
+
+func buildScrambleIdentityToken(col *mgmtv1alpha1.JobMapping) string {
+	return neosync_benthos.ToSha256(
+		fmt.Sprintf("%s.%s.%s", col.GetSchema(), col.GetTable(), col.GetColumn()),
+	)
 }
 
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {

@@ -12,7 +12,6 @@ import (
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mysqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/mysql"
 	testmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"golang.org/x/sync/errgroup"
@@ -23,7 +22,10 @@ type MysqlTestSyncContainer struct {
 	Target *MysqlTestContainer
 }
 
-func NewMysqlTestSyncContainer(ctx context.Context, sourceOpts, destOpts []Option) (*MysqlTestSyncContainer, error) {
+func NewMysqlTestSyncContainer(
+	ctx context.Context,
+	sourceOpts, destOpts []Option,
+) (*MysqlTestSyncContainer, error) {
 	tc := &MysqlTestSyncContainer{}
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
@@ -131,11 +133,13 @@ func WithTls() Option {
 // Creates and starts a MySQL test container and sets up the connection.
 func setup(ctx context.Context, cfg *mysqlTestContainerConfig) (*MysqlTestContainer, error) {
 	tcopts := []testcontainers.ContainerCustomizer{
-		mysql.WithDatabase(cfg.database),
-		mysql.WithUsername(cfg.username),
-		mysql.WithPassword(cfg.password),
+		testmysql.WithDatabase(cfg.database),
+		testmysql.WithUsername(cfg.username),
+		testmysql.WithPassword(cfg.password),
 		testcontainers.WithWaitStrategy(
-			wait.ForLog("port: 3306  MySQL Community Server").WithOccurrence(1).WithStartupTimeout(20 * time.Second),
+			wait.ForLog("port: 3306  MySQL Community Server").
+				WithOccurrence(1).
+				WithStartupTimeout(20 * time.Second),
 		),
 	}
 	if cfg.useTls {
@@ -175,7 +179,7 @@ func setup(ctx context.Context, cfg *mysqlTestContainerConfig) (*MysqlTestContai
 			})),
 		)
 	}
-	mysqlContainer, err := mysql.Run(
+	mysqlContainer, err := testmysql.Run(
 		ctx,
 		"mysql:8.0.36",
 		tcopts...,
@@ -253,7 +257,11 @@ func (m *MysqlTestContainer) TearDown(ctx context.Context) error {
 }
 
 // Executes SQL files within the test container
-func (m *MysqlTestContainer) RunSqlFiles(ctx context.Context, folder *string, files []string) error {
+func (m *MysqlTestContainer) RunSqlFiles(
+	ctx context.Context,
+	folder *string,
+	files []string,
+) error {
 	for _, file := range files {
 		filePath := file
 		if folder != nil && *folder != "" {
@@ -272,7 +280,12 @@ func (m *MysqlTestContainer) RunSqlFiles(ctx context.Context, folder *string, fi
 }
 
 // Creates schema and sets USE to schema before running SQL files
-func (m *MysqlTestContainer) RunCreateStmtsInDatabase(ctx context.Context, folder string, files []string, database string) error {
+func (m *MysqlTestContainer) RunCreateStmtsInDatabase(
+	ctx context.Context,
+	folder string,
+	files []string,
+	database string,
+) error {
 	for _, file := range files {
 		filePath := file
 		if folder != "" {
@@ -283,7 +296,11 @@ func (m *MysqlTestContainer) RunCreateStmtsInDatabase(ctx context.Context, folde
 			return err
 		}
 
-		setSchemaSql := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`; \n USE `%s`; \n", database, database)
+		setSchemaSql := fmt.Sprintf(
+			"CREATE DATABASE IF NOT EXISTS `%s`; \n USE `%s`; \n",
+			database,
+			database,
+		)
 		_, err = m.DB.ExecContext(ctx, setSchemaSql+string(sqlStr))
 		if err != nil {
 			return fmt.Errorf("unable to exec sql when running mysql sql files: %w", err)
@@ -294,7 +311,10 @@ func (m *MysqlTestContainer) RunCreateStmtsInDatabase(ctx context.Context, folde
 
 func (m *MysqlTestContainer) CreateDatabases(ctx context.Context, databases []string) error {
 	for _, database := range databases {
-		_, err := m.DB.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`;", database))
+		_, err := m.DB.ExecContext(
+			ctx,
+			fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`;", database),
+		)
 		if err != nil {
 			return fmt.Errorf("unable to create database %s: %w", database, err)
 		}
@@ -312,8 +332,14 @@ func (m *MysqlTestContainer) DropDatabases(ctx context.Context, databases []stri
 	return nil
 }
 
-func (m *MysqlTestContainer) GetTableRowCount(ctx context.Context, schema, table string) (int, error) {
-	rows := m.DB.QueryRowContext(ctx, fmt.Sprintf("SELECT COUNT(*) FROM  `%s`.`%s`;", schema, table))
+func (m *MysqlTestContainer) GetTableRowCount(
+	ctx context.Context,
+	schema, table string,
+) (int, error) {
+	rows := m.DB.QueryRowContext(
+		ctx,
+		fmt.Sprintf("SELECT COUNT(*) FROM  `%s`.`%s`;", schema, table),
+	)
 	var count int
 	err := rows.Scan(&count)
 	if err != nil {

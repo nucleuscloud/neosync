@@ -64,7 +64,7 @@ function NavSettings(): ReactElement {
               'rounded p-2 text-sm',
               refInPathName(item.ref, pathname)
                 ? 'bg-gray-200/70 hover:bg-gray-200/70 font-bold dark:bg-gray-700'
-                : 'hover:bg-gray-200/70 hover:no-underline hover:dark:bg-gray-700'
+                : 'hover:bg-gray-200/70 hover:no-underline dark:hover:bg-gray-700'
             )}
           >
             {item.title}
@@ -104,6 +104,11 @@ function useGetNavSettings(): Item[] {
     !isSystemConfigLoading && systemAppConfigData?.isNeosyncCloud
       ? items
       : items.filter((item) => item.ref !== 'billing');
+  // filter out hooks if account hooks are not enabled
+  items =
+    !isSystemConfigLoading && !systemAppConfigData?.isAccountHooksEnabled
+      ? items.filter((item) => item.ref !== 'hooks')
+      : items;
 
   return items;
 }
@@ -134,6 +139,11 @@ function getAllNavSettings(accountName: string): Item[] {
       href: `/${accountName}/settings/usage`,
       ref: 'usage',
       title: 'Usage',
+    },
+    {
+      href: `/${accountName}/settings/hooks`,
+      ref: 'hooks',
+      title: 'Hooks',
     },
   ];
 }

@@ -26,7 +26,7 @@ They can also be configured via the API as well as via the Neosync Terraform pro
 
 Job Hooks can be configured after a job itself has been created. After creation, navigate to the hooks tab for your job of choice.
 
-![Job Hooks Overview](/img/hooks/job-hooks-overview.png)
+![Job Hooks Overview](/img/jobhooks/job-hooks-overview.png)
 
 ### Creating a new hook
 
@@ -36,7 +36,7 @@ There are a few different configuration options available to you to further fine
 
 Today, only `SQL` hooks are supported, with plans for web hooks in the future.
 
-![New Hook Form](/img/hooks/new-hook-form.png)
+![New Hook Form](/img/jobhooks/new-hook-form.png)
 
 Choosing the hook's priority will determine the order in which the hook is executed.
 

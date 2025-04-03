@@ -124,7 +124,7 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
           </Button>
         </div>
       </div>
-      <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm mt-4">
+      <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-xs mt-4">
         <Editor
           height="50vh"
           width="100%"

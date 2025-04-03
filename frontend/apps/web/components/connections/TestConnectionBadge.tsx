@@ -1,4 +1,5 @@
 'use client';
+import { getErrorMessage } from '@/util/util';
 import {
   CheckConnectionConfigByIdResponse,
   CheckConnectionConfigResponse,
@@ -58,7 +59,7 @@ function ValidationResponseBadge(
             href={url}
             passHref
             target="_blank"
-            className="flex flex-row items-center gap-2 rounded-xl px-2 py-1 h-auto text-orange-900 dark:text-orange-100 border border-orange-700 bg-orange-100 dark:bg-orange-900 hover:bg-orange-200 hover:dark:bg-orange-950/90 transition-colors"
+            className="flex flex-row items-center gap-2 rounded-xl px-2 py-1 h-auto text-orange-900 dark:text-orange-100 border border-orange-700 bg-orange-100 dark:bg-orange-900 hover:bg-orange-200 dark:hover:bg-orange-950/90 transition-colors"
           >
             <TiWarningOutline />
             <div className="text-nowrap text-xs pl-2 font-medium">
@@ -86,12 +87,13 @@ function ValidationResponseBadge(
         href={url}
         passHref
         target="_blank"
-        className="flex flex-row items-center gap-2 rounded-xl px-2 py-1 h-auto text-red-900 dark:text-red-100 border border-red-700 bg-red-100 dark:bg-red-950 hover:dark:bg-red-950/90 hover:bg-red-200 transition-colors"
+        className="flex flex-row items-center gap-2 rounded-xl px-2 py-1 h-auto text-red-900 dark:text-red-100 border border-red-700 bg-red-100 dark:bg-red-950 dark:hover:bg-red-950/90 hover:bg-red-200 transition-colors"
       >
         <MdErrorOutline />
         <div className="text-nowrap text-xs pl-2 font-medium">
           Connection Error - Unable to connect.{' '}
           <span className="underline">More info</span>
+          <p>{getErrorMessage(validationResponse.connectionError)}</p>
         </div>
         <ArrowTopRightIcon />
       </Link>

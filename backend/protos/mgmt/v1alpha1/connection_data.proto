@@ -195,8 +195,8 @@ message SchemaInitStatements {
 
 // Init statement for a specific table
 message GetConnectionInitStatementsResponse {
-  // The key here is <schema>.<table> and value is the table init statement.
-  map<string, string> table_init_statements = 1;
+  // @deprecated - Use schema_init_statements instead
+  map<string, string> table_init_statements = 1 [deprecated = true];
   // The key here is <schema>.<table> and value is the table truncate statement.
   map<string, string> table_truncate_statements = 2;
   // A list of schema initialization statements
@@ -253,6 +253,16 @@ message UniqueConstraints {
   repeated UniqueConstraint constraints = 1;
 }
 
+message UniqueIndexes {
+  // The unique indexes found for the table
+  repeated UniqueIndex indexes = 1;
+}
+
+message UniqueIndex {
+  // The columns that are part of the unique index
+  repeated string columns = 1;
+}
+
 message GetConnectionTableConstraintsResponse {
   // the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.
   map<string, ForeignConstraintTables> foreign_key_constraints = 1;
@@ -260,6 +270,8 @@ message GetConnectionTableConstraintsResponse {
   map<string, PrimaryConstraint> primary_key_constraints = 2;
   // the key here is <schema>.<table> and value is the unique constraint
   map<string, UniqueConstraints> unique_constraints = 3;
+  // the key here is <schema>.<table> and value is the unique index
+  map<string, UniqueIndexes> unique_indexes = 4;
 }
 
 message GetTableRowCountRequest {
@@ -276,6 +288,33 @@ message GetTableRowCountRequest {
 message GetTableRowCountResponse {
   // The count of the rows in the table
   int64 count = 1;
+}
+
+// Request to get all the schemas and tables for a connection
+message GetAllSchemasAndTablesRequest {
+  // The unique identifier of the connection to get the all schema tables for.
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// A list of all the schemas and tables for a connection
+message GetAllSchemasAndTablesResponse {
+  // A list of all the schemas for a connection. Empty schemas (those without any tables) will appear in this list.
+  repeated Schema schemas = 1;
+  // A list of all the tables for the connection
+  repeated Table tables = 2;
+
+  // A schema
+  message Schema {
+    // The name of the schema
+    string name = 1;
+  }
+  // A table in a schema
+  message Table {
+    // The name of the schema
+    string schema_name = 1;
+    // The name of the table
+    string table_name = 2;
+  }
 }
 
 // Service for managing connection data.
@@ -299,6 +338,10 @@ service ConnectionDataService {
   rpc GetAiGeneratedData(GetAiGeneratedDataRequest) returns (GetAiGeneratedDataResponse) {}
   // Query table with subset to get row count
   rpc GetTableRowCount(GetTableRowCountRequest) returns (GetTableRowCountResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Get all schemas and tables for a connection
+  rpc GetAllSchemasAndTables(GetAllSchemasAndTablesRequest) returns (GetAllSchemasAndTablesResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 }

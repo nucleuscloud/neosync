@@ -25,13 +25,19 @@ type neosyncToJsonProcessor struct {
 	logger *service.Logger
 }
 
-func newNeosyncToJsonProcessor(_ *service.ParsedConfig, mgr *service.Resources) *neosyncToJsonProcessor {
+func newNeosyncToJsonProcessor(
+	_ *service.ParsedConfig,
+	mgr *service.Resources,
+) *neosyncToJsonProcessor {
 	return &neosyncToJsonProcessor{
 		logger: mgr.Logger(),
 	}
 }
 
-func (m *neosyncToJsonProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
+func (m *neosyncToJsonProcessor) ProcessBatch(
+	ctx context.Context,
+	batch service.MessageBatch,
+) ([]service.MessageBatch, error) {
 	newBatch := make(service.MessageBatch, 0, len(batch))
 	for _, msg := range batch {
 		root, err := msg.AsStructuredMut()

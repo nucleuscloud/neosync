@@ -20,6 +20,8 @@ servers:
         default: '8080'
         description: The port to use for the development server
 tags:
+  - name: mgmt.v1alpha1.AccountHookService
+    x-displayName: mgmt.v1alpha1.AccountHookService
   - name: mgmt.v1alpha1.AnonymizationService
     description: >-
       Service that transactionally anonymizes data, regardless of the connection
@@ -61,6 +63,474 @@ externalDocs:
   description: API and SDK Documentation
   url: https://docs.neosync.dev/api
 paths:
+  /mgmt.v1alpha1.AccountHookService/GetAccountHooks:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: GetAccountHooks
+      description: Retrieves all account hooks.
+      operationId: mgmt.v1alpha1.AccountHookService.GetAccountHooks
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountHooksRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountHooksResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/GetAccountHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: GetAccountHook
+      description: Retrieves a specific account hook.
+      operationId: mgmt.v1alpha1.AccountHookService.GetAccountHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountHookRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAccountHookResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/CreateAccountHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: CreateAccountHook
+      description: Creates a new account hook.
+      operationId: mgmt.v1alpha1.AccountHookService.CreateAccountHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CreateAccountHookRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CreateAccountHookResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/UpdateAccountHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: UpdateAccountHook
+      description: Updates an existing account hook.
+      operationId: mgmt.v1alpha1.AccountHookService.UpdateAccountHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.UpdateAccountHookRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.UpdateAccountHookResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/DeleteAccountHook:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: DeleteAccountHook
+      description: Deletes an account hook.
+      operationId: mgmt.v1alpha1.AccountHookService.DeleteAccountHook
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.DeleteAccountHookRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.DeleteAccountHookResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/IsAccountHookNameAvailable:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: IsAccountHookNameAvailable
+      description: Checks if an account hook name is available.
+      operationId: mgmt.v1alpha1.AccountHookService.IsAccountHookNameAvailable
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                #/components/schemas/mgmt.v1alpha1.IsAccountHookNameAvailableRequest
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.IsAccountHookNameAvailableResponse
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/SetAccountHookEnabled:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: SetAccountHookEnabled
+      description: Enables or disables an account hook.
+      operationId: mgmt.v1alpha1.AccountHookService.SetAccountHookEnabled
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SetAccountHookEnabledRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.SetAccountHookEnabledResponse
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/GetActiveAccountHooksByEvent:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: GetActiveAccountHooksByEvent
+      description: Retrieves all active account hooks for a specific event.
+      operationId: mgmt.v1alpha1.AccountHookService.GetActiveAccountHooksByEvent
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                #/components/schemas/mgmt.v1alpha1.GetActiveAccountHooksByEventRequest
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.GetActiveAccountHooksByEventResponse
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/GetSlackConnectionUrl:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: GetSlackConnectionUrl
+      description: >-
+        Retrieves the Slack connection url that allows a user to connect their
+        Slack workspace to Neosync.
+      operationId: mgmt.v1alpha1.AccountHookService.GetSlackConnectionUrl
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetSlackConnectionUrlRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.GetSlackConnectionUrlResponse
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/HandleSlackOAuthCallback:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: HandleSlackOAuthCallback
+      description: Handles the Slack OAuth callback.
+      operationId: mgmt.v1alpha1.AccountHookService.HandleSlackOAuthCallback
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                #/components/schemas/mgmt.v1alpha1.HandleSlackOAuthCallbackRequest
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.HandleSlackOAuthCallbackResponse
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/TestSlackConnection:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: TestSlackConnection
+      description: >-
+        Tests the Slack connection by using the stored access token to initiate
+        an auth test api call to slack.
+      operationId: mgmt.v1alpha1.AccountHookService.TestSlackConnection
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.TestSlackConnectionRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.TestSlackConnectionResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.AccountHookService/SendSlackMessage:
+    post:
+      tags:
+        - mgmt.v1alpha1.AccountHookService
+      summary: SendSlackMessage
+      description: For sending slack messages from the worker.
+      operationId: mgmt.v1alpha1.AccountHookService.SendSlackMessage
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.SendSlackMessageRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.SendSlackMessageResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.AnonymizationService/AnonymizeMany:
     post:
       tags:
@@ -888,6 +1358,87 @@ paths:
                 $ref: '#/components/schemas/connect.error'
       security:
         - BearerAuth: []
+  /mgmt.v1alpha1.ConnectionService/CheckSSHConnection:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: CheckSSHConnection
+      description: >-
+        Checks if the SSH server is reachable and accessible with the given
+        credentials
+      operationId: mgmt.v1alpha1.ConnectionService.CheckSSHConnection
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.ConnectionService/CheckSSHConnectionById:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionService
+      summary: CheckSSHConnectionById
+      description: >-
+        Checks if the SSH server is reachable and accessible with the given
+        credentials
+      operationId: mgmt.v1alpha1.ConnectionService.CheckSSHConnectionById
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionByIdRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.CheckSSHConnectionByIdResponse
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.ConnectionDataService/GetConnectionDataStream: {}
   /mgmt.v1alpha1.ConnectionDataService/GetConnectionSchema:
     post:
@@ -1165,6 +1716,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.GetTableRowCountResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.ConnectionDataService/GetAllSchemasAndTables:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetAllSchemasAndTables
+      description: Get all schemas and tables for a connection
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetAllSchemasAndTables
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemasAndTablesRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.GetAllSchemasAndTablesResponse
         default:
           description: Error
           content:
@@ -2229,6 +2819,44 @@ paths:
                 $ref: '#/components/schemas/connect.error'
       security:
         - BearerAuth: []
+  /mgmt.v1alpha1.JobService/ValidateSchema:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: ValidateSchema
+      description: Validates that the schema is compatible with the job mappings
+      operationId: mgmt.v1alpha1.JobService.ValidateSchema
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.ValidateSchemaRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.ValidateSchemaResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
   /mgmt.v1alpha1.JobService/GetRunContext:
     post:
       tags:
@@ -2607,6 +3235,44 @@ paths:
               schema:
                 $ref: >-
                   #/components/schemas/mgmt.v1alpha1.GetActiveJobHooksByTimingResponse
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.JobService/GetPiiDetectionReport:
+    post:
+      tags:
+        - mgmt.v1alpha1.JobService
+      summary: GetPiiDetectionReport
+      operationId: mgmt.v1alpha1.JobService.GetPiiDetectionReport
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetPiiDetectionReportRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/mgmt.v1alpha1.GetPiiDetectionReportResponse
         default:
           description: Error
           content:
@@ -4118,8 +4784,735 @@ paths:
                 $ref: '#/components/schemas/connect.error'
       security:
         - BearerAuth: []
+  /mgmt.v1alpha1.UserAccountService/HasPermission:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: HasPermission
+      description: Checks if the user has the given permission
+      operationId: mgmt.v1alpha1.UserAccountService.HasPermission
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.HasPermissionRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.HasPermissionResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
+  /mgmt.v1alpha1.UserAccountService/HasPermissions:
+    post:
+      tags:
+        - mgmt.v1alpha1.UserAccountService
+      summary: HasPermissions
+      description: Bulk check if a user has the given permissions
+      operationId: mgmt.v1alpha1.UserAccountService.HasPermissions
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.HasPermissionsRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.HasPermissionsResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+      security:
+        - BearerAuth: []
 components:
   schemas:
+    mgmt.v1alpha1.AccountHookEvent:
+      type: string
+      title: AccountHookEvent
+      enum:
+        - ACCOUNT_HOOK_EVENT_UNSPECIFIED
+        - ACCOUNT_HOOK_EVENT_JOB_RUN_CREATED
+        - ACCOUNT_HOOK_EVENT_JOB_RUN_FAILED
+        - ACCOUNT_HOOK_EVENT_JOB_RUN_SUCCEEDED
+      description: Enum of all possible events that can trigger an account hook.
+    google.protobuf.Timestamp:
+      type: string
+      format: date-time
+      description: >-
+        A Timestamp represents a point in time independent of any time zone or
+        local
+         calendar, encoded as a count of seconds and fractions of seconds at
+         nanosecond resolution. The count is relative to an epoch at UTC midnight on
+         January 1, 1970, in the proleptic Gregorian calendar which extends the
+         Gregorian calendar backwards to year one.
+
+         All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap
+         second table is needed for interpretation, using a [24-hour linear
+         smear](https://developers.google.com/time/smear).
+
+         The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By
+         restricting to that range, we ensure that we can convert to and from [RFC
+         3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.
+
+         # Examples
+
+         Example 1: Compute Timestamp from POSIX `time()`.
+
+             Timestamp timestamp;
+             timestamp.set_seconds(time(NULL));
+             timestamp.set_nanos(0);
+
+         Example 2: Compute Timestamp from POSIX `gettimeofday()`.
+
+             struct timeval tv;
+             gettimeofday(&tv, NULL);
+
+             Timestamp timestamp;
+             timestamp.set_seconds(tv.tv_sec);
+             timestamp.set_nanos(tv.tv_usec * 1000);
+
+         Example 3: Compute Timestamp from Win32 `GetSystemTimeAsFileTime()`.
+
+             FILETIME ft;
+             GetSystemTimeAsFileTime(&ft);
+             UINT64 ticks = (((UINT64)ft.dwHighDateTime) << 32) | ft.dwLowDateTime;
+
+             // A Windows tick is 100 nanoseconds. Windows epoch 1601-01-01T00:00:00Z
+             // is 11644473600 seconds before Unix epoch 1970-01-01T00:00:00Z.
+             Timestamp timestamp;
+             timestamp.set_seconds((INT64) ((ticks / 10000000) - 11644473600LL));
+             timestamp.set_nanos((INT32) ((ticks % 10000000) * 100));
+
+         Example 4: Compute Timestamp from Java `System.currentTimeMillis()`.
+
+             long millis = System.currentTimeMillis();
+
+             Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
+                 .setNanos((int) ((millis % 1000) * 1000000)).build();
+
+         Example 5: Compute Timestamp from Java `Instant.now()`.
+
+             Instant now = Instant.now();
+
+             Timestamp timestamp =
+                 Timestamp.newBuilder().setSeconds(now.getEpochSecond())
+                     .setNanos(now.getNano()).build();
+
+         Example 6: Compute Timestamp from current time in Python.
+
+             timestamp = Timestamp()
+             timestamp.GetCurrentTime()
+
+         # JSON Mapping
+
+         In JSON format, the Timestamp type is encoded as a string in the
+         [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) format. That is, the
+         format is "{year}-{month}-{day}T{hour}:{min}:{sec}[.{frac_sec}]Z"
+         where {year} is always expressed using four digits while {month}, {day},
+         {hour}, {min}, and {sec} are zero-padded to two digits each. The fractional
+         seconds, which can go up to 9 digits (i.e. up to 1 nanosecond resolution),
+         are optional. The "Z" suffix indicates the timezone ("UTC"); the timezone
+         is required. A proto3 JSON serializer should always use UTC (as indicated by
+         "Z") when printing the Timestamp type and a proto3 JSON parser should be
+         able to accept both UTC and other timezones (as indicated by an offset).
+
+         For example, "2017-01-15T01:30:15.01Z" encodes 15.01 seconds past
+         01:30 UTC on January 15, 2017.
+
+         In JavaScript, one can convert a Date object to this format using the
+         standard
+         [toISOString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString)
+         method. In Python, a standard `datetime.datetime` object can be converted
+         to this format using
+         [`strftime`](https://docs.python.org/2/library/time.html#time.strftime) with
+         the time format spec '%Y-%m-%dT%H:%M:%S.%fZ'. Likewise, in Java, one can use
+         the Joda Time's [`ISODateTimeFormat.dateTime()`](
+         http://joda-time.sourceforge.net/apidocs/org/joda/time/format/ISODateTimeFormat.html#dateTime()
+         ) to obtain a formatter capable of generating timestamps in this format.
+    mgmt.v1alpha1.AccountHook:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          description: The unique identifier of this hook.
+        name:
+          type: string
+          title: name
+          description: Name of the hook for display/reference.
+        description:
+          type: string
+          title: description
+          description: Description of what this hook does.
+        accountId:
+          type: string
+          title: account_id
+          description: The unique identifier of the account this hook belongs to.
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookEvent'
+          title: events
+          description: The events that will trigger this hook.
+        config:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookConfig'
+          title: config
+          description: Hook-type specific configuration.
+        createdByUserId:
+          type: string
+          title: created_by_user_id
+          description: The user that created this hook.
+        createdAt:
+          allOf:
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: created_at
+          description: The time this hook was created.
+        updatedByUserId:
+          type: string
+          title: updated_by_user_id
+          description: The user that last updated this hook.
+        updatedAt:
+          allOf:
+            - $ref: '#/components/schemas/google.protobuf.Timestamp'
+          title: updated_at
+          description: The last time this hook was updated.
+        enabled:
+          type: boolean
+          title: enabled
+          description: Whether or not the hook is enabled.
+      title: AccountHook
+      additionalProperties: false
+    mgmt.v1alpha1.AccountHookConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - slack
+            - required:
+                - webhook
+            - not:
+                anyOf:
+                  - required:
+                      - slack
+                  - required:
+                      - webhook
+      anyOf:
+        - required:
+            - slack
+        - required:
+            - webhook
+        - not:
+            anyOf:
+              - required:
+                  - slack
+              - required:
+                  - webhook
+      properties:
+        webhook:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookConfig.WebHook'
+          title: webhook
+          description: Webhook-based hooks
+        slack:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookConfig.SlackHook'
+          title: slack
+          description: 'Slack-based hooks Future: Discord, Teams, etc.'
+      title: AccountHookConfig
+      additionalProperties: false
+      description: Hook-specific configuration
+    mgmt.v1alpha1.AccountHookConfig.SlackHook:
+      type: object
+      properties:
+        channelId:
+          type: string
+          title: channel_id
+          minLength: 1
+          description: The Slack channel id to post messages to.
+      title: SlackHook
+      additionalProperties: false
+      description: Slack hook configuration
+    mgmt.v1alpha1.AccountHookConfig.WebHook:
+      type: object
+      properties:
+        url:
+          type: string
+          title: url
+          format: uri
+          description: The webhook URL to send the event to.
+        secret:
+          type: string
+          title: secret
+          minLength: 1
+          description: The secret to use for the webhook.
+        disableSslVerification:
+          type: boolean
+          title: disable_ssl_verification
+          description: Whether to disable SSL verification for the webhook.
+      title: WebHook
+      additionalProperties: false
+      description: Webhook-specific configuration
+    mgmt.v1alpha1.CreateAccountHookRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to create the hook for.
+        hook:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.NewAccountHook'
+          title: hook
+          description: The new account hook configuration.
+      title: CreateAccountHookRequest
+      required:
+        - hook
+      additionalProperties: false
+    mgmt.v1alpha1.CreateAccountHookResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHook'
+          title: hook
+          description: The newly created account hook.
+      title: CreateAccountHookResponse
+      additionalProperties: false
+    mgmt.v1alpha1.DeleteAccountHookRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The ID of the hook to delete.
+      title: DeleteAccountHookRequest
+      additionalProperties: false
+    mgmt.v1alpha1.DeleteAccountHookResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHook'
+          title: hook
+          description: The deleted account hook.
+      title: DeleteAccountHookResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountHookRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The ID of the hook to retrieve.
+      title: GetAccountHookRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountHookResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHook'
+          title: hook
+          description: The account hook.
+      title: GetAccountHookResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountHooksRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to retrieve hooks for.
+      title: GetAccountHooksRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetAccountHooksResponse:
+      type: object
+      properties:
+        hooks:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.AccountHook'
+          title: hooks
+          description: The list of account hooks.
+      title: GetAccountHooksResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetActiveAccountHooksByEventRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to retrieve hooks for.
+        event:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookEvent'
+          title: event
+          description: |-
+            The event to retrieve hooks for.
+             A specific event will return hooks that are listening to that specific event as well as wildcard hooks.
+             If you want to retrieve only wildcard hooks, use ACCOUNT_HOOK_EVENT_UNSPECIFIED.
+      title: GetActiveAccountHooksByEventRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetActiveAccountHooksByEventResponse:
+      type: object
+      properties:
+        hooks:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.AccountHook'
+          title: hooks
+          description: The list of active account hooks.
+      title: GetActiveAccountHooksByEventResponse
+      additionalProperties: false
+    mgmt.v1alpha1.GetSlackConnectionUrlRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to retrieve the Slack connection URL for.
+      title: GetSlackConnectionUrlRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetSlackConnectionUrlResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          title: url
+          description: The Slack connection URL.
+      title: GetSlackConnectionUrlResponse
+      additionalProperties: false
+    mgmt.v1alpha1.HandleSlackOAuthCallbackRequest:
+      type: object
+      properties:
+        state:
+          type: string
+          title: state
+          minLength: 1
+          description: The Slack state.
+        code:
+          type: string
+          title: code
+          minLength: 1
+          description: The Slack code.
+      title: HandleSlackOAuthCallbackRequest
+      additionalProperties: false
+    mgmt.v1alpha1.HandleSlackOAuthCallbackResponse:
+      type: object
+      title: HandleSlackOAuthCallbackResponse
+      additionalProperties: false
+    mgmt.v1alpha1.IsAccountHookNameAvailableRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to check the name for.
+        name:
+          type: string
+          title: name
+          pattern: ^[a-z0-9-]{3,100}$
+          description: The name to check.
+      title: IsAccountHookNameAvailableRequest
+      additionalProperties: false
+    mgmt.v1alpha1.IsAccountHookNameAvailableResponse:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+          title: is_available
+          description: Whether the name is available.
+      title: IsAccountHookNameAvailableResponse
+      additionalProperties: false
+    mgmt.v1alpha1.NewAccountHook:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          pattern: ^[a-z0-9-]{3,100}$
+          description: Name of the hook for display/reference.
+        description:
+          type: string
+          title: description
+          minLength: 1
+          description: Description of what this hook does.
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookEvent'
+          title: events
+          minItems: 1
+          description: The events that will trigger this hook.
+        config:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookConfig'
+          title: config
+          description: Hook-type specific configuration.
+        enabled:
+          type: boolean
+          title: enabled
+          description: Whether or not the hook is enabled.
+      title: NewAccountHook
+      required:
+        - config
+      additionalProperties: false
+    mgmt.v1alpha1.SendSlackMessageRequest:
+      type: object
+      properties:
+        accountHookId:
+          type: string
+          title: account_hook_id
+          format: uuid
+          description: The account hook ID to send the Slack message to.
+        event:
+          type: string
+          title: event
+          format: byte
+          description: The marshaled event that was emitted by the worker.
+      title: SendSlackMessageRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SendSlackMessageResponse:
+      type: object
+      title: SendSlackMessageResponse
+      additionalProperties: false
+    mgmt.v1alpha1.SetAccountHookEnabledRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The ID of the hook to enable/disable.
+        enabled:
+          type: boolean
+          title: enabled
+          description: Whether to enable or disable the hook.
+      title: SetAccountHookEnabledRequest
+      additionalProperties: false
+    mgmt.v1alpha1.SetAccountHookEnabledResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHook'
+          title: hook
+          description: The updated account hook.
+      title: SetAccountHookEnabledResponse
+      additionalProperties: false
+    mgmt.v1alpha1.TestSlackConnectionRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The account ID to test the Slack connection for.
+      title: TestSlackConnectionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.TestSlackConnectionResponse:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - error
+            - not:
+                anyOf:
+                  - required:
+                      - error
+        - anyOf:
+            - required:
+                - testResponse
+            - not:
+                anyOf:
+                  - required:
+                      - testResponse
+      properties:
+        hasConfiguration:
+          type: boolean
+          title: has_configuration
+          description: Whether there is an existing Slack configuration.
+        testResponse:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.TestSlackConnectionResponse.Response
+          title: test_response
+          description: The response from the Slack API.
+        error:
+          type: string
+          title: error
+          description: The error message if the connection failed.
+      title: TestSlackConnectionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.TestSlackConnectionResponse.Response:
+      type: object
+      properties:
+        url:
+          type: string
+          title: url
+          description: The URL of the Slack that is connected.
+        team:
+          type: string
+          title: team
+          description: The team name of the Slack that is connected.
+      title: Response
+      additionalProperties: false
+    mgmt.v1alpha1.UpdateAccountHookRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The ID of the hook to update.
+        name:
+          type: string
+          title: name
+          pattern: ^[a-z0-9-]{3,100}$
+          description: Name of the hook for display/reference.
+        description:
+          type: string
+          title: description
+          minLength: 1
+          description: Description of what this hook does.
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookEvent'
+          title: events
+          minItems: 1
+          description: The events that will trigger this hook.
+        config:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHookConfig'
+          title: config
+          description: Hook-type specific configuration.
+        enabled:
+          type: boolean
+          title: enabled
+          description: Whether or not the hook is enabled.
+      title: UpdateAccountHookRequest
+      additionalProperties: false
+    mgmt.v1alpha1.UpdateAccountHookResponse:
+      type: object
+      properties:
+        hook:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.AccountHook'
+          title: hook
+          description: The updated account hook.
+      title: UpdateAccountHookResponse
+      additionalProperties: false
+    connect-protocol-version:
+      type: number
+      title: Connect-Protocol-Version
+      enum:
+        - 1
+      description: Define the version of the Connect protocol
+      const: 1
+    connect-timeout-header:
+      type: number
+      title: Connect-Timeout-Ms
+      description: Define the timeout, in ms
+    connect.error:
+      type: object
+      properties:
+        code:
+          type: string
+          examples:
+            - CodeNotFound
+          enum:
+            - CodeCanceled
+            - CodeUnknown
+            - CodeInvalidArgument
+            - CodeDeadlineExceeded
+            - CodeNotFound
+            - CodeAlreadyExists
+            - CodePermissionDenied
+            - CodeResourceExhausted
+            - CodeFailedPrecondition
+            - CodeAborted
+            - CodeOutOfRange
+            - CodeInternal
+            - CodeUnavailable
+            - CodeDataLoss
+            - CodeUnauthenticated
+          description: >-
+            The status code, which should be an enum value of
+            [google.rpc.Code][google.rpc.Code].
+        message:
+          type: string
+          description: >-
+            A developer-facing error message, which should be in English. Any
+            user-facing error message should be localized and sent in the
+            [google.rpc.Status.details][google.rpc.Status.details] field, or
+            localized by the client.
+        detail:
+          $ref: '#/components/schemas/google.protobuf.Any'
+      title: Connect Error
+      additionalProperties: true
+      description: >-
+        Error type returned by Connect:
+        https://connectrpc.com/docs/go/errors/#http-representation
+    google.protobuf.Any:
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+          format: binary
+        debug:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+      description: >-
+        Contains an arbitrary serialized message along with a @type that
+        describes the type of the serialized message.
     mgmt.v1alpha1.GenerateEmailType:
       type: string
       title: GenerateEmailType
@@ -5476,6 +6869,14 @@ components:
           title: value
       title: EntityAnonymizersEntry
       additionalProperties: false
+    mgmt.v1alpha1.TransformScrambleIdentity:
+      type: object
+      title: TransformScrambleIdentity
+      additionalProperties: false
+      description: >-
+        Takes an input integer and scrambles it, effectively outputing another
+        integer that is not the same as the input.
+         This is effectively a random integer generator that has unique properties.
     mgmt.v1alpha1.TransformString:
       type: object
       allOf:
@@ -5601,6 +7002,8 @@ components:
             - required:
                 - transformPiiTextConfig
             - required:
+                - transformScrambleIdentityConfig
+            - required:
                 - transformStringConfig
             - required:
                 - transformUuidConfig
@@ -5699,6 +7102,8 @@ components:
                   - required:
                       - transformPiiTextConfig
                   - required:
+                      - transformScrambleIdentityConfig
+                  - required:
                       - transformStringConfig
                   - required:
                       - transformUuidConfig
@@ -5795,6 +7200,8 @@ components:
             - transformPhoneNumberConfig
         - required:
             - transformPiiTextConfig
+        - required:
+            - transformScrambleIdentityConfig
         - required:
             - transformStringConfig
         - required:
@@ -5893,6 +7300,8 @@ components:
                   - transformPhoneNumberConfig
               - required:
                   - transformPiiTextConfig
+              - required:
+                  - transformScrambleIdentityConfig
               - required:
                   - transformStringConfig
               - required:
@@ -6089,6 +7498,11 @@ components:
           allOf:
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformUuid'
           title: transform_uuid_config
+        transformScrambleIdentityConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformScrambleIdentity'
+          title: transform_scramble_identity_config
+          description: Scrambles an integer while keeping it unique.
         transformHashConfig:
           allOf:
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformHash'
@@ -6131,166 +7545,6 @@ components:
             along with it's configuration that was chosen.
       title: UserDefinedTransformerConfig
       additionalProperties: false
-    connect-protocol-version:
-      type: number
-      title: Connect-Protocol-Version
-      enum:
-        - 1
-      description: Define the version of the Connect protocol
-      const: 1
-    connect-timeout-header:
-      type: number
-      title: Connect-Timeout-Ms
-      description: Define the timeout, in ms
-    connect.error:
-      type: object
-      properties:
-        code:
-          type: string
-          examples:
-            - CodeNotFound
-          enum:
-            - CodeCanceled
-            - CodeUnknown
-            - CodeInvalidArgument
-            - CodeDeadlineExceeded
-            - CodeNotFound
-            - CodeAlreadyExists
-            - CodePermissionDenied
-            - CodeResourceExhausted
-            - CodeFailedPrecondition
-            - CodeAborted
-            - CodeOutOfRange
-            - CodeInternal
-            - CodeUnavailable
-            - CodeDataLoss
-            - CodeUnauthenticated
-          description: >-
-            The status code, which should be an enum value of
-            [google.rpc.Code][google.rpc.Code].
-        message:
-          type: string
-          description: >-
-            A developer-facing error message, which should be in English. Any
-            user-facing error message should be localized and sent in the
-            [google.rpc.Status.details][google.rpc.Status.details] field, or
-            localized by the client.
-        detail:
-          $ref: '#/components/schemas/google.protobuf.Any'
-      title: Connect Error
-      additionalProperties: true
-      description: >-
-        Error type returned by Connect:
-        https://connectrpc.com/docs/go/errors/#http-representation
-    google.protobuf.Any:
-      type: object
-      properties:
-        type:
-          type: string
-        value:
-          type: string
-          format: binary
-        debug:
-          type: object
-          additionalProperties: true
-      additionalProperties: true
-      description: >-
-        Contains an arbitrary serialized message along with a @type that
-        describes the type of the serialized message.
-    google.protobuf.Timestamp:
-      type: string
-      format: date-time
-      description: >-
-        A Timestamp represents a point in time independent of any time zone or
-        local
-         calendar, encoded as a count of seconds and fractions of seconds at
-         nanosecond resolution. The count is relative to an epoch at UTC midnight on
-         January 1, 1970, in the proleptic Gregorian calendar which extends the
-         Gregorian calendar backwards to year one.
-
-         All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap
-         second table is needed for interpretation, using a [24-hour linear
-         smear](https://developers.google.com/time/smear).
-
-         The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By
-         restricting to that range, we ensure that we can convert to and from [RFC
-         3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.
-
-         # Examples
-
-         Example 1: Compute Timestamp from POSIX `time()`.
-
-             Timestamp timestamp;
-             timestamp.set_seconds(time(NULL));
-             timestamp.set_nanos(0);
-
-         Example 2: Compute Timestamp from POSIX `gettimeofday()`.
-
-             struct timeval tv;
-             gettimeofday(&tv, NULL);
-
-             Timestamp timestamp;
-             timestamp.set_seconds(tv.tv_sec);
-             timestamp.set_nanos(tv.tv_usec * 1000);
-
-         Example 3: Compute Timestamp from Win32 `GetSystemTimeAsFileTime()`.
-
-             FILETIME ft;
-             GetSystemTimeAsFileTime(&ft);
-             UINT64 ticks = (((UINT64)ft.dwHighDateTime) << 32) | ft.dwLowDateTime;
-
-             // A Windows tick is 100 nanoseconds. Windows epoch 1601-01-01T00:00:00Z
-             // is 11644473600 seconds before Unix epoch 1970-01-01T00:00:00Z.
-             Timestamp timestamp;
-             timestamp.set_seconds((INT64) ((ticks / 10000000) - 11644473600LL));
-             timestamp.set_nanos((INT32) ((ticks % 10000000) * 100));
-
-         Example 4: Compute Timestamp from Java `System.currentTimeMillis()`.
-
-             long millis = System.currentTimeMillis();
-
-             Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
-                 .setNanos((int) ((millis % 1000) * 1000000)).build();
-
-         Example 5: Compute Timestamp from Java `Instant.now()`.
-
-             Instant now = Instant.now();
-
-             Timestamp timestamp =
-                 Timestamp.newBuilder().setSeconds(now.getEpochSecond())
-                     .setNanos(now.getNano()).build();
-
-         Example 6: Compute Timestamp from current time in Python.
-
-             timestamp = Timestamp()
-             timestamp.GetCurrentTime()
-
-         # JSON Mapping
-
-         In JSON format, the Timestamp type is encoded as a string in the
-         [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) format. That is, the
-         format is "{year}-{month}-{day}T{hour}:{min}:{sec}[.{frac_sec}]Z"
-         where {year} is always expressed using four digits while {month}, {day},
-         {hour}, {min}, and {sec} are zero-padded to two digits each. The fractional
-         seconds, which can go up to 9 digits (i.e. up to 1 nanosecond resolution),
-         are optional. The "Z" suffix indicates the timezone ("UTC"); the timezone
-         is required. A proto3 JSON serializer should always use UTC (as indicated by
-         "Z") when printing the Timestamp type and a proto3 JSON parser should be
-         able to accept both UTC and other timezones (as indicated by an offset).
-
-         For example, "2017-01-15T01:30:15.01Z" encodes 15.01 seconds past
-         01:30 UTC on January 15, 2017.
-
-         In JavaScript, one can convert a Date object to this format using the
-         standard
-         [toISOString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString)
-         method. In Python, a standard `datetime.datetime` object can be converted
-         to this format using
-         [`strftime`](https://docs.python.org/2/library/time.html#time.strftime) with
-         the time format spec '%Y-%m-%dT%H:%M:%S.%fZ'. Likewise, in Java, one can use
-         the Joda Time's [`ISODateTimeFormat.dateTime()`](
-         http://joda-time.sourceforge.net/apidocs/org/joda/time/format/ISODateTimeFormat.html#dateTime()
-         ) to obtain a formatter capable of generating timestamps in this format.
     mgmt.v1alpha1.AccountApiKey:
       type: object
       allOf:
@@ -6865,6 +8119,76 @@ components:
           title: privileges
       title: CheckConnectionConfigResponse
       additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionByIdRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          format: uuid
+          description: The connection id that the SSH connection will be checked against
+      title: CheckSSHConnectionByIdRequest
+      additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionByIdResponse:
+      type: object
+      properties:
+        result:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionResult'
+          title: result
+          description: The result of the SSH connection check
+      title: CheckSSHConnectionByIdResponse
+      additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionRequest:
+      type: object
+      properties:
+        tunnel:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.SSHTunnel'
+          title: tunnel
+          description: The SSH tunnel configuration to use for the connection
+      title: CheckSSHConnectionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionResponse:
+      type: object
+      properties:
+        result:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.CheckSSHConnectionResult'
+          title: result
+          description: The result of the SSH connection check
+      title: CheckSSHConnectionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.CheckSSHConnectionResult:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - errorMessage
+            - not:
+                anyOf:
+                  - required:
+                      - errorMessage
+      anyOf:
+        - required:
+            - errorMessage
+        - not:
+            anyOf:
+              - required:
+                  - errorMessage
+      properties:
+        isSuccessful:
+          type: boolean
+          title: is_successful
+          description: Whether or not the SSH connection is successful
+        errorMessage:
+          type: string
+          title: error_message
+          description: >-
+            The error message returned by the SSH client if the connection is
+            not successful
+      title: CheckSSHConnectionResult
+      additionalProperties: false
     mgmt.v1alpha1.CheckSqlQueryRequest:
       type: object
       properties:
@@ -7295,6 +8619,13 @@ components:
           title: id
           format: uuid
           description: The unique identifier of the connection to get
+        excludeSensitive:
+          type: boolean
+          title: exclude_sensitive
+          description: |-
+            Whether or not to exclude sensitive data from the connection
+             If the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data
+             This behavior exists to preserve backwards compatibility that originally always returned sensitive data
       title: GetConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionResponse:
@@ -7315,6 +8646,13 @@ components:
           title: account_id
           format: uuid
           description: The unique identifier of the account to get connections for
+        excludeSensitive:
+          type: boolean
+          title: exclude_sensitive
+          description: |-
+            Whether or not to exclude sensitive data from the connection
+             If the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data
+             This behavior exists to preserve backwards compatibility that originally always returned sensitive data
       title: GetConnectionsRequest
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionsResponse:
@@ -8542,6 +9880,65 @@ components:
           description: A list of generated records
       title: GetAiGeneratedDataResponse
       additionalProperties: false
+    mgmt.v1alpha1.GetAllSchemasAndTablesRequest:
+      type: object
+      properties:
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+          description: >-
+            The unique identifier of the connection to get the all schema tables
+            for.
+      title: GetAllSchemasAndTablesRequest
+      additionalProperties: false
+      description: Request to get all the schemas and tables for a connection
+    mgmt.v1alpha1.GetAllSchemasAndTablesResponse:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            $ref: >-
+              #/components/schemas/mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Schema
+          title: schemas
+          description: >-
+            A list of all the schemas for a connection. Empty schemas (those
+            without any tables) will appear in this list.
+        tables:
+          type: array
+          items:
+            $ref: >-
+              #/components/schemas/mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Table
+          title: tables
+          description: A list of all the tables for the connection
+      title: GetAllSchemasAndTablesResponse
+      additionalProperties: false
+      description: A list of all the schemas and tables for a connection
+    mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Schema:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          description: The name of the schema
+      title: Schema
+      additionalProperties: false
+      description: A schema
+    mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Table:
+      type: object
+      properties:
+        schemaName:
+          type: string
+          title: schema_name
+          description: The name of the schema
+        tableName:
+          type: string
+          title: table_name
+          description: The name of the table
+      title: Table
+      additionalProperties: false
+      description: A table in a schema
     mgmt.v1alpha1.GetConnectionDataStreamRequest:
       type: object
       properties:
@@ -8604,9 +10001,7 @@ components:
           additionalProperties:
             type: string
             title: value
-          description: >-
-            The key here is <schema>.<table> and value is the table init
-            statement.
+          description: '@deprecated - Use schema_init_statements instead'
         tableTruncateStatements:
           type: object
           title: table_truncate_statements
@@ -8782,6 +10177,14 @@ components:
               - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraints'
             title: value
           description: the key here is <schema>.<table> and value is the unique constraint
+        uniqueIndexes:
+          type: object
+          title: unique_indexes
+          additionalProperties:
+            allOf:
+              - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueIndexes'
+            title: value
+          description: the key here is <schema>.<table> and value is the unique index
       title: GetConnectionTableConstraintsResponse
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionTableConstraintsResponse.ForeignKeyConstraintsEntry:
@@ -8819,6 +10222,18 @@ components:
             - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraints'
           title: value
       title: UniqueConstraintsEntry
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionTableConstraintsResponse.UniqueIndexesEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueIndexes'
+          title: value
+      title: UniqueIndexesEntry
       additionalProperties: false
     mgmt.v1alpha1.GetTableRowCountRequest:
       type: object
@@ -8963,6 +10378,28 @@ components:
           title: constraints
           description: The unique constraints found for the table
       title: UniqueConstraints
+      additionalProperties: false
+    mgmt.v1alpha1.UniqueIndex:
+      type: object
+      properties:
+        columns:
+          type: array
+          items:
+            type: string
+          title: columns
+          description: The columns that are part of the unique index
+      title: UniqueIndex
+      additionalProperties: false
+    mgmt.v1alpha1.UniqueIndexes:
+      type: object
+      properties:
+        indexes:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.UniqueIndex'
+          title: indexes
+          description: The unique indexes found for the table
+      title: UniqueIndexes
       additionalProperties: false
     mgmt.v1alpha1.ActivityStatus:
       type: string
@@ -9468,6 +10905,7 @@ components:
           items:
             $ref: '#/components/schemas/mgmt.v1alpha1.CreateJobDestination'
           title: destinations
+          minItems: 1
           description: The list of destinations to create and associate with the job
       title: CreateJobDestinationConnectionsRequest
       additionalProperties: false
@@ -9515,13 +10953,13 @@ components:
                 anyOf:
                   - required:
                       - cronSchedule
-      anyOf:
-        - required:
-            - cronSchedule
-        - not:
-            anyOf:
-              - required:
-                  - cronSchedule
+        - anyOf:
+            - required:
+                - jobType
+            - not:
+                anyOf:
+                  - required:
+                      - jobType
       properties:
         accountId:
           type: string
@@ -9586,8 +11024,33 @@ components:
           description: >-
             The list of virtual foreign keys that will be used to further
             constrain the data ontop of the database defined constraints
+        jobType:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig'
+          title: job_type
+          description: The type of job to create
       title: CreateJobRequest
       additionalProperties: false
+      description: >+
+        For sync jobs, at least one mapping is required:
+
+        ```
+
+        !has(this.job_type) || has(this.job_type.sync) ? size(this.mappings) >=
+        1 : true
+
+        ```
+
+
+        For sync jobs, at least one destination is required:
+
+        ```
+
+        !has(this.job_type) || has(this.job_type.sync) ? size(this.destinations)
+        >= 1 : true
+
+        ```
+
     mgmt.v1alpha1.CreateJobResponse:
       type: object
       properties:
@@ -10422,6 +11885,31 @@ components:
           description: The list of jobs
       title: GetJobsResponse
       additionalProperties: false
+    mgmt.v1alpha1.GetPiiDetectionReportRequest:
+      type: object
+      properties:
+        jobRunId:
+          type: string
+          title: job_run_id
+          minLength: 1
+          description: The unique identifier of the job run
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account
+      title: GetPiiDetectionReportRequest
+      additionalProperties: false
+    mgmt.v1alpha1.GetPiiDetectionReportResponse:
+      type: object
+      properties:
+        report:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.PiiDetectionReport'
+          title: report
+          description: The pii detection report
+      title: GetPiiDetectionReportResponse
+      additionalProperties: false
     mgmt.v1alpha1.GetRunContextRequest:
       type: object
       properties:
@@ -10577,6 +12065,11 @@ components:
             $ref: '#/components/schemas/mgmt.v1alpha1.VirtualForeignConstraint'
           title: virtual_foreign_keys
           description: Any virtual foreign keys that are configured as a part of this job
+        jobType:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig'
+          title: job_type
+          description: The type of job
       title: Job
       additionalProperties: false
     mgmt.v1alpha1.JobDestination:
@@ -11310,6 +12803,209 @@ components:
           description: The status of the job
       title: JobStatusRecord
       additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - piiDetect
+            - required:
+                - sync
+            - not:
+                anyOf:
+                  - required:
+                      - piiDetect
+                  - required:
+                      - sync
+      anyOf:
+        - required:
+            - piiDetect
+        - required:
+            - sync
+        - not:
+            anyOf:
+              - required:
+                  - piiDetect
+              - required:
+                  - sync
+      properties:
+        sync:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync'
+          title: sync
+          description: This is the default if no job type is specified
+        piiDetect:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect
+          title: pii_detect
+      title: JobTypeConfig
+      additionalProperties: false
+      description: >-
+        Specifies the job type along with any specific configuration for that
+        job type
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - incremental
+            - not:
+                anyOf:
+                  - required:
+                      - incremental
+        - anyOf:
+            - required:
+                - userPrompt
+            - not:
+                anyOf:
+                  - required:
+                      - userPrompt
+      properties:
+        dataSampling:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling
+          title: data_sampling
+          description: The configuration for data sampling
+        tableScanFilter:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableScanFilter
+          title: table_scan_filter
+          description: The configuration for filtering tables to scan
+        userPrompt:
+          type: string
+          title: user_prompt
+          description: The user prompt to use for PII detection to help influence the LLM
+        incremental:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.Incremental
+          title: incremental
+          description: The configuration for incremental PII detection
+      title: JobTypePiiDetect
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.DataSampling:
+      type: object
+      properties:
+        isEnabled:
+          type: boolean
+          title: is_enabled
+          description: Whether to enable data sampling
+      title: DataSampling
+      additionalProperties: false
+      description: The configuration for data sampling
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.IncludeAll:
+      type: object
+      title: IncludeAll
+      additionalProperties: false
+      description: Configuration to include all tables
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.Incremental:
+      type: object
+      properties:
+        isEnabled:
+          type: boolean
+          title: is_enabled
+          description: Whether to enable incremental PII detection
+      title: Incremental
+      additionalProperties: false
+      description: The configuration for incremental PII detection
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableIdentifier:
+      type: object
+      properties:
+        schema:
+          type: string
+          title: schema
+          minLength: 1
+          description: The schema name
+        table:
+          type: string
+          title: table
+          minLength: 1
+          description: The table name
+      title: TableIdentifier
+      additionalProperties: false
+      description: Identifier for a specific table
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          title: schemas
+          description: Match entire schemas
+        tables:
+          type: array
+          items:
+            $ref: >-
+              #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableIdentifier
+          title: tables
+          description: Match specific tables within schemas
+      title: TablePatterns
+      additionalProperties: false
+      description: Patterns for matching tables and schemas
+    mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TableScanFilter:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - exclude
+            - required:
+                - include
+            - required:
+                - includeAll
+            - not:
+                anyOf:
+                  - required:
+                      - exclude
+                  - required:
+                      - include
+                  - required:
+                      - includeAll
+      anyOf:
+        - required:
+            - exclude
+        - required:
+            - include
+        - required:
+            - includeAll
+        - not:
+            anyOf:
+              - required:
+                  - exclude
+              - required:
+                  - include
+              - required:
+                  - includeAll
+      properties:
+        includeAll:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.IncludeAll
+          title: include_all
+          description: Include all tables (default behavior)
+        include:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns
+          title: include
+          description: Only include specified tables/schemas
+        exclude:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypePiiDetect.TablePatterns
+          title: exclude
+          description: Include all except specified tables/schemas
+      title: TableScanFilter
+      additionalProperties: false
+      description: Filter configuration for table scanning
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync:
+      type: object
+      title: JobTypeSync
+      additionalProperties: false
+      description: The configuration for a data sync job
     mgmt.v1alpha1.MongoDBDestinationConnectionOptions:
       type: object
       title: MongoDBDestinationConnectionOptions
@@ -11392,7 +13088,9 @@ components:
         haltOnNewColumnAddition:
           type: boolean
           title: halt_on_new_column_addition
-          description: Whether to halt the job if a new column is added
+          description: |-
+            Whether to halt the job if a new column is added
+             Deprecated: Use new_column_addition_strategy instead
         schemas:
           type: array
           items:
@@ -11418,6 +13116,14 @@ components:
           description: >-
             Provide a strategy of what to do in the event Neosync encounters a
             column that is removed from the source table.
+        newColumnAdditionStrategy:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy
+          title: new_column_addition_strategy
+          description: >-
+            Provide a strategy of what to do in the event Neosync encounters an
+            unmapped column for the job's mapped tables.
       title: MssqlSourceConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.MssqlSourceConnectionOptions.ColumnRemovalStrategy:
@@ -11470,6 +13176,56 @@ components:
       title: HaltJob
       additionalProperties: false
       description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - haltJob
+            - required:
+                - passthrough
+            - not:
+                anyOf:
+                  - required:
+                      - haltJob
+                  - required:
+                      - passthrough
+      anyOf:
+        - required:
+            - haltJob
+        - required:
+            - passthrough
+        - not:
+            anyOf:
+              - required:
+                  - haltJob
+              - required:
+                  - passthrough
+      properties:
+        haltJob:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
+          title: halt_job
+          description: halt job if a new column is detected.
+        passthrough:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough
+          title: passthrough
+          description: pass the new column through as is.
+      title: NewColumnAdditionStrategy
+      additionalProperties: false
+    mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob:
+      type: object
+      title: HaltJob
+      additionalProperties: false
+      description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough:
+      type: object
+      title: Passthrough
+      additionalProperties: false
+      description: Configuration for the Passthrough strategy
     mgmt.v1alpha1.MssqlSourceSchemaOption:
       type: object
       properties:
@@ -11657,7 +13413,9 @@ components:
         haltOnNewColumnAddition:
           type: boolean
           title: halt_on_new_column_addition
-          description: Whether to halt the job if a new column is added
+          description: |-
+            Whether to halt the job if a new column is added
+             Deprecated: Use new_column_addition_strategy instead
         schemas:
           type: array
           items:
@@ -11683,6 +13441,14 @@ components:
           description: >-
             Provide a strategy of what to do in the event Neosync encounters a
             column that is removed from the source table.
+        newColumnAdditionStrategy:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy
+          title: new_column_addition_strategy
+          description: >-
+            Provide a strategy of what to do in the event Neosync encounters an
+            unmapped column for the job's mapped tables.
       title: MysqlSourceConnectionOptions
       additionalProperties: false
     mgmt.v1alpha1.MysqlSourceConnectionOptions.ColumnRemovalStrategy:
@@ -11735,6 +13501,79 @@ components:
       title: HaltJob
       additionalProperties: false
       description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - autoMap
+            - required:
+                - haltJob
+            - required:
+                - passthrough
+            - not:
+                anyOf:
+                  - required:
+                      - autoMap
+                  - required:
+                      - haltJob
+                  - required:
+                      - passthrough
+      anyOf:
+        - required:
+            - autoMap
+        - required:
+            - haltJob
+        - required:
+            - passthrough
+        - not:
+            anyOf:
+              - required:
+                  - autoMap
+              - required:
+                  - haltJob
+              - required:
+                  - passthrough
+      properties:
+        haltJob:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
+          title: halt_job
+          description: halt job if a new column is detected.
+        autoMap:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
+          title: auto_map
+          description: >-
+            automatically handle unmapped columns. It handles this by using the
+            DBs default/nullable values.
+             If this doesn't exist, will fall back to configuring generators for supported datatypes.
+             If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+        passthrough:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough
+          title: passthrough
+          description: pass the new column through as is.
+      title: NewColumnAdditionStrategy
+      additionalProperties: false
+    mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap:
+      type: object
+      title: AutoMap
+      additionalProperties: false
+      description: Configuration for the AutoMap strategy
+    mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob:
+      type: object
+      title: HaltJob
+      additionalProperties: false
+      description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough:
+      type: object
+      title: Passthrough
+      additionalProperties: false
+      description: Configuration for the Passthrough strategy
     mgmt.v1alpha1.MysqlSourceSchemaOption:
       type: object
       properties:
@@ -11917,6 +13756,105 @@ components:
           description: The last failure of the activity
       title: PendingActivity
       additionalProperties: false
+    mgmt.v1alpha1.PiiDetectionReport:
+      type: object
+      properties:
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.PiiDetectionReport.TableReport'
+          title: tables
+          description: >-
+            The report for each table where PII was detected. If no PII was
+            detected, the table will not be included.
+      title: PiiDetectionReport
+      additionalProperties: false
+      description: The pii detection report
+    mgmt.v1alpha1.PiiDetectionReport.TableReport:
+      type: object
+      properties:
+        schema:
+          type: string
+          title: schema
+          description: The schema of the table
+        table:
+          type: string
+          title: table
+          description: The name of the table
+        columns:
+          type: array
+          items:
+            $ref: >-
+              #/components/schemas/mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport
+          title: columns
+          description: The report for each column
+      title: TableReport
+      additionalProperties: false
+      description: The report for a table
+    mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - llmReport
+            - not:
+                anyOf:
+                  - required:
+                      - llmReport
+        - anyOf:
+            - required:
+                - regexReport
+            - not:
+                anyOf:
+                  - required:
+                      - regexReport
+      properties:
+        column:
+          type: string
+          title: column
+          description: The name of the column
+        regexReport:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.Regex
+          title: regex_report
+          description: The regex report. Will be empty if no regex matched the column name.
+        llmReport:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.LLM
+          title: llm_report
+          description: >-
+            The LLM report. Will be empty if the LLM determined the column name
+            (and optionally the data) was not PII.
+      title: ColumnReport
+      additionalProperties: false
+      description: The report for a column
+    mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.LLM:
+      type: object
+      properties:
+        category:
+          type: string
+          title: category
+          description: The category of the column
+        confidence:
+          type: number
+          title: confidence
+          format: float
+          description: The confidence of the column from 0.0-1.0
+      title: LLM
+      additionalProperties: false
+      description: The LLM report
+    mgmt.v1alpha1.PiiDetectionReport.TableReport.ColumnReport.Regex:
+      type: object
+      properties:
+        category:
+          type: string
+          title: category
+          description: The category of the column
+      title: Regex
+      additionalProperties: false
+      description: The regex report
     mgmt.v1alpha1.PostgresDestinationConnectionOptions:
       type: object
       allOf:
@@ -12119,23 +14057,31 @@ components:
                 - autoMap
             - required:
                 - haltJob
+            - required:
+                - passthrough
             - not:
                 anyOf:
                   - required:
                       - autoMap
                   - required:
                       - haltJob
+                  - required:
+                      - passthrough
       anyOf:
         - required:
             - autoMap
         - required:
             - haltJob
+        - required:
+            - passthrough
         - not:
             anyOf:
               - required:
                   - autoMap
               - required:
                   - haltJob
+              - required:
+                  - passthrough
       properties:
         haltJob:
           allOf:
@@ -12153,6 +14099,12 @@ components:
             DBs default/nullable values.
              If this doesn't exist, will fall back to configuring generators for supported datatypes.
              If none of the criteria above can be met, the job run will fail to prevent leaking of PII.
+        passthrough:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough
+          title: passthrough
+          description: pass the new column through as is.
       title: NewColumnAdditionStrategy
       additionalProperties: false
     mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap:
@@ -12165,6 +14117,11 @@ components:
       title: HaltJob
       additionalProperties: false
       description: Configuration for the HaltJob strategy
+    mgmt.v1alpha1.PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough:
+      type: object
+      title: Passthrough
+      additionalProperties: false
+      description: Configuration for the Passthrough strategy
     mgmt.v1alpha1.PostgresSourceSchemaOption:
       type: object
       properties:
@@ -12637,6 +14594,11 @@ components:
           description: >-
             The new list of virtual foreign keys that will be used to further
             constrain the data ontop of the database defined constraints
+        jobType:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.JobTypeConfig'
+          title: job_type
+          description: The new job type configuration
       title: UpdateJobSourceConnectionRequest
       additionalProperties: false
     mgmt.v1alpha1.UpdateJobSourceConnectionResponse:
@@ -12722,6 +14684,64 @@ components:
           title: table_errors
           description: The list of table errors
       title: ValidateJobMappingsResponse
+      additionalProperties: false
+    mgmt.v1alpha1.ValidateSchemaRequest:
+      type: object
+      properties:
+        mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.JobMapping'
+          title: mappings
+          description: The list of mappings to validate
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+          description: The unique identifier of the connection to validate
+      title: ValidateSchemaRequest
+      additionalProperties: false
+    mgmt.v1alpha1.ValidateSchemaResponse:
+      type: object
+      properties:
+        missingColumns:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseColumn'
+          title: missing_columns
+          description: The list columns missing in destination
+        extraColumns:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.DatabaseColumn'
+          title: extra_columns
+          description: The list of extra columns in destination and not in source
+        missingTables:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.ValidateSchemaResponse.Table'
+          title: missing_tables
+          description: The list of tables missing in destination
+        missingSchemas:
+          type: array
+          items:
+            type: string
+          title: missing_schemas
+          description: The list of schemas missing in destination
+      title: ValidateSchemaResponse
+      additionalProperties: false
+    mgmt.v1alpha1.ValidateSchemaResponse.Table:
+      type: object
+      properties:
+        schema:
+          type: string
+          title: schema
+          description: The schema of the table
+        table:
+          type: string
+          title: table
+          description: The table
+      title: Table
       additionalProperties: false
     mgmt.v1alpha1.VirtualForeignConstraint:
       type: object
@@ -13096,6 +15116,7 @@ components:
         - TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME
         - TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS
         - TRANSFORMER_SOURCE_TRANSFORM_UUID
+        - TRANSFORMER_SOURCE_TRANSFORM_SCRAMBLE_IDENTITY
         - TRANSFORMER_SOURCE_TRANSFORM_HASH
     mgmt.v1alpha1.CreateUserDefinedTransformerRequest:
       type: object
@@ -13473,6 +15494,23 @@ components:
         - BILLING_STATUS_EXPIRED
         - BILLING_STATUS_TRIAL_ACTIVE
         - BILLING_STATUS_TRIAL_EXPIRED
+    mgmt.v1alpha1.ResourcePermission.Action:
+      type: string
+      title: Action
+      enum:
+        - ACTION_UNSPECIFIED
+        - ACTION_CREATE
+        - ACTION_READ
+        - ACTION_UPDATE
+        - ACTION_DELETE
+    mgmt.v1alpha1.ResourcePermission.Type:
+      type: string
+      title: Type
+      enum:
+        - TYPE_UNSPECIFIED
+        - TYPE_ACCOUNT
+        - TYPE_CONNECTION
+        - TYPE_JOB
     mgmt.v1alpha1.UserAccountType:
       type: string
       title: UserAccountType
@@ -13978,6 +16016,57 @@ components:
           description: The unique identifier of the user that was retrieved.
       title: GetUserResponse
       additionalProperties: false
+    mgmt.v1alpha1.HasPermissionRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to check the permission for.
+        resource:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ResourcePermission'
+          title: resource
+          description: The resource to check the permission for.
+      title: HasPermissionRequest
+      additionalProperties: false
+    mgmt.v1alpha1.HasPermissionResponse:
+      type: object
+      properties:
+        hasPermission:
+          type: boolean
+          title: has_permission
+          description: Whether or not the user has the given permission.
+      title: HasPermissionResponse
+      additionalProperties: false
+    mgmt.v1alpha1.HasPermissionsRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique identifier of the account to check the permissions for.
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.ResourcePermission'
+          title: resources
+          description: The resources to check the permissions for.
+      title: HasPermissionsRequest
+      additionalProperties: false
+    mgmt.v1alpha1.HasPermissionsResponse:
+      type: object
+      properties:
+        assertions:
+          type: array
+          items:
+            type: boolean
+          title: assertions
+          description: Parallel array to the resources, with the same index.
+      title: HasPermissionsResponse
+      additionalProperties: false
     mgmt.v1alpha1.InviteUserToTeamAccountRequest:
       type: object
       allOf:
@@ -14152,6 +16241,26 @@ components:
     mgmt.v1alpha1.RemoveTeamAccountMemberResponse:
       type: object
       title: RemoveTeamAccountMemberResponse
+      additionalProperties: false
+    mgmt.v1alpha1.ResourcePermission:
+      type: object
+      properties:
+        type:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ResourcePermission.Type'
+          title: type
+          description: The type of resource to check the permission for.
+        id:
+          type: string
+          title: id
+          minLength: 1
+          description: The unique identifier of the resource to check the permission for.
+        action:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.ResourcePermission.Action'
+          title: action
+          description: The action to check for.
+      title: ResourcePermission
       additionalProperties: false
     mgmt.v1alpha1.SetAccountOnboardingConfigRequest:
       type: object
@@ -14351,6 +16460,7 @@ components:
 x-tagGroups:
   - name: mgmt.v1alpha1
     tags:
+      - mgmt.v1alpha1.AccountHookService
       - mgmt.v1alpha1.AnonymizationService
       - mgmt.v1alpha1.ApiKeyService
       - mgmt.v1alpha1.AuthService

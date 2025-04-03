@@ -271,6 +271,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'guides/account-hooks',
+      label: 'Account Hooks',
+    },
+    {
+      type: 'doc',
       id: 'guides/rbac',
       label: 'RBAC',
     },
@@ -368,6 +373,16 @@ const sidebars: SidebarsConfig = {
       type: 'doc',
       id: 'table-constraints/subsetting',
       label: 'Subsetting',
+    },
+    {
+      type: 'html',
+      value: '<div>Schema Initialization</div>',
+      className: 'sidebarcategory',
+    },
+    {
+      type: 'doc',
+      id: 'schema-init/schema-initialization-overview',
+      label: 'Schema Initialization Overview',
     },
   ],
 };

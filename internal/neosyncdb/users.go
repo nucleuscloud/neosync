@@ -95,7 +95,12 @@ type upsertPersonalAccountResponse struct {
 	Account *db_queries.NeosyncApiAccount
 }
 
-func upsertPersonalAccount(ctx context.Context, q db_queries.Querier, dbtx BaseDBTX, req *upsertPersonalAccountRequest) (*upsertPersonalAccountResponse, error) {
+func upsertPersonalAccount(
+	ctx context.Context,
+	q db_queries.Querier,
+	dbtx BaseDBTX,
+	req *upsertPersonalAccountRequest,
+) (*upsertPersonalAccountResponse, error) {
 	resp := &upsertPersonalAccountResponse{}
 	account, err := q.GetPersonalAccountByUserId(ctx, dbtx, req.UserId)
 	if err != nil && !IsNoRows(err) {
@@ -175,13 +180,18 @@ func (d *NeosyncDb) CreateTeamAccount(
 func verifyAccountNameUnique(accounts []db_queries.NeosyncApiAccount, name string) error {
 	for idx := range accounts {
 		if strings.EqualFold(accounts[idx].AccountSlug, name) {
-			return nucleuserrors.NewAlreadyExists(fmt.Sprintf("team account with the name %s already exists", name))
+			return nucleuserrors.NewAlreadyExists(
+				fmt.Sprintf("team account with the name %s already exists", name),
+			)
 		}
 	}
 	return nil
 }
 
-func getAccountById(accounts []db_queries.NeosyncApiAccount, id pgtype.UUID) (*db_queries.NeosyncApiAccount, error) {
+func getAccountById(
+	accounts []db_queries.NeosyncApiAccount,
+	id pgtype.UUID,
+) (*db_queries.NeosyncApiAccount, error) {
 	for idx := range accounts {
 		if accounts[idx].ID.Valid && id.Valid && UUIDString(accounts[idx].ID) == UUIDString(id) {
 			return &accounts[idx], nil

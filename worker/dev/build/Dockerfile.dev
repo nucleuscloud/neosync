@@ -1,14 +1,14 @@
 # Build the manager binary
-FROM golang:1.23-bookworm AS builder
+FROM golang:1.24-bookworm AS builder
 
 WORKDIR /workspace
 
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive \
   apt-get install --no-install-recommends -y \
-    build-essential
+  build-essential
 
-RUN go install github.com/air-verse/air@v1.61.1
+RUN go install github.com/air-verse/air@v1.61.7
 
 # Copy the Go Modules manifests
 COPY go.mod go.sum ./

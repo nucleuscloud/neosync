@@ -136,7 +136,7 @@ function NoJobHooks(props: NoJobHooksProps): ReactElement {
   return (
     <EmptyState
       title="No Hooks yet"
-      description="Hooks are events that are invoked during a job run to allow for further customization of a sync"
+      description="Hooks are invoked during specific lifecycles of a job run to allow for further customization of a run"
       icon={<MdWebhook className="w-8 h-8 text-primary" />}
       extra={button}
     />

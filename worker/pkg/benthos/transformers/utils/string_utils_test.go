@@ -2,7 +2,6 @@ package transformer_utils
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 	"time"
 
@@ -154,12 +153,12 @@ func Test_WithoutCharacters(t *testing.T) {
 }
 
 func Test_GetRandomCharacterString(t *testing.T) {
-	actual := GetRandomCharacterString(rand.New(rand.NewSource(1)), 100)
+	actual := GetRandomCharacterString(rng.New(1), 100)
 	require.Len(t, actual, 100)
 }
 
 func Test_GenerateStringFromCorpus(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	values := []string{"aa", "bb", "cc", "dd"}
 	stringMap := map[int64][2]int{2: {0, 3}}
 	sizeIndices := []int64{2}
@@ -178,7 +177,7 @@ func Test_GenerateStringFromCorpus(t *testing.T) {
 }
 
 func Test_GenerateStringFromCorpus_No_Candidates(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	values := []string{"aa", "bb", "cc", "dd"}
 	stringMap := map[int64][2]int{2: {0, 3}}
 	sizeIndices := []int64{2}
@@ -198,7 +197,7 @@ func Test_GenerateStringFromCorpus_No_Candidates(t *testing.T) {
 }
 
 func Test_GenerateStringFromCorpus_Mismatched_MapAndIndices(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	// the index has a key of 3, but it is not present in the map
 	values := []string{"aa", "bb", "cc", "dd"}
 	stringMap := map[int64][2]int{2: {0, 3}}
@@ -217,7 +216,7 @@ func Test_GenerateStringFromCorpus_Mismatched_MapAndIndices(t *testing.T) {
 	require.Empty(t, output)
 }
 func Test_GenerateStringFromCorpus_NoDice(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	// the index has a key of 3, but it is not present in the map
 	values := []string{"aa", "bb"}
 	stringMap := map[int64][2]int{2: {0, 1}}
@@ -254,6 +253,38 @@ func Test_getRangeFromCandidates(t *testing.T) {
 		t.Run("", func(t *testing.T) {
 			actual := getRangeFromCandidates(tc.candidates, tc.lengthMap)
 			require.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func BenchmarkGenerateRandomStringWithInclusiveBounds(b *testing.B) {
+	randomizer := rng.New(42) // Use a fixed seed for reproducibility
+
+	benchCases := []struct {
+		name string
+		min  int64
+		max  int64
+	}{
+		{"SmallRange_1_10", 1, 10},
+		{"MediumRange_10_100", 10, 100},
+		{"LargeRange_100_1000", 100, 1000},
+		{"FixedLength_50_50", 50, 50},
+		{"ZeroLength_0_0", 0, 0},
+		{"Text_1_65535", 1, 65535},                 // TEXT max size
+		{"AboveLimit_1_100000", 1, 100000},         // Should be capped at 65535
+		{"FixedAboveLimit_100000", 100000, 100000}, // Should be capped at 65535
+		{"MaxTextSize_65535", 65535, 65535},        // Maximum TEXT size
+	}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_, err := GenerateRandomStringWithInclusiveBounds(randomizer, bc.min, bc.max)
+				if err != nil {
+					b.Fatalf("Error generating random string: %v", err)
+				}
+			}
 		})
 	}
 }

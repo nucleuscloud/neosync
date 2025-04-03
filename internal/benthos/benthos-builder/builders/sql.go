@@ -13,12 +13,11 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	job_util "github.com/nucleuscloud/neosync/internal/job"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
+	rc "github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
@@ -26,9 +25,9 @@ import (
 type sqlSyncBuilder struct {
 	transformerclient  mgmtv1alpha1connect.TransformersServiceClient
 	sqlmanagerclient   sqlmanager.SqlManagerClient
-	redisConfig        *neosync_redis.RedisConfig
 	driver             string
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder
+	pageLimit          int // default page limit for queries
 
 	// reverse of table dependency
 	// map of foreign key to source table + column
@@ -36,28 +35,30 @@ type sqlSyncBuilder struct {
 	colTransformerMap            map[string]map[string]*mgmtv1alpha1.JobMappingTransformer  // schema.table -> column -> transformer
 	sqlSourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
 	// merged source and destination schema. with preference given to destination schema
-	mergedSchemaColumnMap        map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
-	isNotForeignKeySafeSubsetMap map[string]map[tabledependency.RunType]bool                // schema.table -> true if the query could return rows that violate foreign key constraints
+	mergedSchemaColumnMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
+	configQueryMap        map[string]*sqlmanager_shared.SelectQuery                  // config id -> query info
 }
 
 func NewSqlSyncBuilder(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
-	redisConfig *neosync_redis.RedisConfig,
 	databaseDriver string,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
+	pageLimit int,
 ) bb_internal.BenthosBuilder {
 	return &sqlSyncBuilder{
-		transformerclient:            transformerclient,
-		sqlmanagerclient:             sqlmanagerclient,
-		redisConfig:                  redisConfig,
-		driver:                       databaseDriver,
-		selectQueryBuilder:           selectQueryBuilder,
-		isNotForeignKeySafeSubsetMap: map[string]map[tabledependency.RunType]bool{},
+		transformerclient:  transformerclient,
+		sqlmanagerclient:   sqlmanagerclient,
+		driver:             databaseDriver,
+		selectQueryBuilder: selectQueryBuilder,
+		pageLimit:          pageLimit,
 	}
 }
 
-func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
+func (b *sqlSyncBuilder) BuildSourceConfigs(
+	ctx context.Context,
+	params *bb_internal.SourceParams,
+) ([]*bb_internal.BenthosSourceConfig, error) {
 	sourceConnection := params.SourceConnection
 	job := params.Job
 	logger := params.Logger
@@ -71,7 +72,12 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		sourceTableOpts = groupSqlJobSourceOptionsByTable(sqlSourceOpts)
 	}
 
-	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.WorkflowId)), sourceConnection, logger)
+	db, err := b.sqlmanagerclient.NewSqlConnection(
+		ctx,
+		connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.JobRunId)),
+		sourceConnection,
+		logger,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
@@ -86,26 +92,61 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	if sqlSourceOpts != nil && sqlSourceOpts.HaltOnNewColumnAddition {
 		newColumns, shouldHalt := shouldHaltOnSchemaAddition(groupedColumnInfo, job.Mappings)
 		if shouldHalt {
-			return nil, fmt.Errorf("%s: [%s]", haltOnSchemaAdditionErrMsg, strings.Join(newColumns, ", "))
+			return nil, fmt.Errorf(
+				"%s: [%s]",
+				haltOnSchemaAdditionErrMsg,
+				strings.Join(newColumns, ", "),
+			)
 		}
 	}
 
 	if sqlSourceOpts != nil && sqlSourceOpts.HaltOnColumnRemoval {
-		missing, shouldHalt := isSourceMissingColumnsFoundInMappings(groupedColumnInfo, job.Mappings)
+		missing, shouldHalt := isSourceMissingColumnsFoundInMappings(
+			groupedColumnInfo,
+			job.Mappings,
+		)
 		if shouldHalt {
-			return nil, fmt.Errorf("%s: [%s]", haltOnSchemaAdditionErrMsg, strings.Join(missing, ", "))
+			return nil, fmt.Errorf(
+				"%s: [%s]",
+				haltOnSchemaAdditionErrMsg,
+				strings.Join(missing, ", "),
+			)
 		}
 	}
 
 	// remove mappings that are not found in the source
 	existingSourceMappings := removeMappingsNotFoundInSource(job.Mappings, groupedColumnInfo)
 
-	if sqlSourceOpts != nil && sqlSourceOpts.GenerateNewColumnTransformers {
-		extraMappings, err := getAdditionalJobMappings(b.driver, groupedColumnInfo, existingSourceMappings, splitKeyToTablePieces, logger)
+	if sqlSourceOpts != nil && sqlSourceOpts.PassthroughOnNewColumnAddition {
+		extraMappings, err := getAdditionalPassthroughJobMappings(
+			groupedColumnInfo,
+			existingSourceMappings,
+			splitKeyToTablePieces,
+			logger,
+		)
 		if err != nil {
 			return nil, err
 		}
-		logger.Debug(fmt.Sprintf("adding %d extra mappings due to unmapped columns", len(extraMappings)))
+		logger.Debug(
+			fmt.Sprintf("adding %d extra passthrough mappings due to unmapped columns", len(extraMappings)),
+		)
+		existingSourceMappings = append(existingSourceMappings, extraMappings...)
+	}
+
+	if sqlSourceOpts != nil && sqlSourceOpts.GenerateNewColumnTransformers {
+		extraMappings, err := getAdditionalJobMappings(
+			b.driver,
+			groupedColumnInfo,
+			existingSourceMappings,
+			splitKeyToTablePieces,
+			logger,
+		)
+		if err != nil {
+			return nil, err
+		}
+		logger.Debug(
+			fmt.Sprintf("adding %d extra mappings due to unmapped columns", len(extraMappings)),
+		)
 		existingSourceMappings = append(existingSourceMappings, extraMappings...)
 	}
 	uniqueSchemas := shared.GetUniqueSchemasFromMappings(existingSourceMappings)
@@ -115,24 +156,47 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 		return nil, fmt.Errorf("unable to retrieve database table constraints: %w", err)
 	}
 
-	foreignKeysMap, err := mergeVirtualForeignKeys(tableConstraints.ForeignKeyConstraints, job.GetVirtualForeignKeys(), groupedColumnInfo)
+	foreignKeysMap, err := mergeVirtualForeignKeys(
+		tableConstraints.ForeignKeyConstraints,
+		job.GetVirtualForeignKeys(),
+		groupedColumnInfo,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Info(fmt.Sprintf("found %d foreign key constraints for database", getMapValuesCount(tableConstraints.ForeignKeyConstraints)))
-	logger.Info(fmt.Sprintf("found %d primary key constraints for database", getMapValuesCount(tableConstraints.PrimaryKeyConstraints)))
+	logger.Info(
+		fmt.Sprintf(
+			"found %d foreign key constraints for database",
+			getMapValuesCount(tableConstraints.ForeignKeyConstraints),
+		),
+	)
+	logger.Info(
+		fmt.Sprintf(
+			"found %d primary key constraints for database",
+			getMapValuesCount(tableConstraints.PrimaryKeyConstraints),
+		),
+	)
 
 	groupedMappings := groupMappingsByTable(existingSourceMappings)
 	groupedTableMapping := getTableMappingsMap(groupedMappings)
-	colTransformerMap := getColumnTransformerMap(groupedTableMapping) // schema.table ->  column -> transformer
+	colTransformerMap := getColumnTransformerMap(
+		groupedTableMapping,
+	) // schema.table ->  column -> transformer
 	b.colTransformerMap = colTransformerMap
 	// include virtual foreign keys and removes fks that have null transformers
 	filteredForeignKeysMap := filterForeignKeysMap(colTransformerMap, foreignKeysMap)
 
 	tableSubsetMap := buildTableSubsetMap(sourceTableOpts, groupedTableMapping)
 	tableColMap := getTableColMapFromMappings(groupedMappings)
-	runConfigs, err := tabledependency.GetRunConfigs(filteredForeignKeysMap, tableSubsetMap, tableConstraints.PrimaryKeyConstraints, tableColMap)
+	runConfigs, err := rc.BuildRunConfigs(
+		filteredForeignKeysMap,
+		tableSubsetMap,
+		tableConstraints.PrimaryKeyConstraints,
+		tableColMap,
+		tableConstraints.UniqueIndexes,
+		tableConstraints.UniqueConstraints,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -140,21 +204,32 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_inte
 	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(filteredForeignKeysMap)
 	b.primaryKeyToForeignKeysMap = primaryKeyToForeignKeysMap
 
-	tableRunTypeQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(db.Driver(), runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedColumnInfo)
+	configQueryMap, err := b.selectQueryBuilder.BuildSelectQueryMap(
+		db.Driver(),
+		runConfigs,
+		sqlSourceOpts.SubsetByForeignKeyConstraints,
+		b.pageLimit,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
+	b.configQueryMap = configQueryMap
 
-	// build map of table to runType to isNotForeignKeySafeSubset
-	// used in destination config to determine if foreign key violations should be skipped
-	for table, querymap := range tableRunTypeQueryMap {
-		b.isNotForeignKeySafeSubsetMap[table] = make(map[tabledependency.RunType]bool)
-		for runtype, q := range querymap {
-			b.isNotForeignKeySafeSubsetMap[table][runtype] = q.IsNotForeignKeySafeSubset
-		}
-	}
-
-	configs, err := buildBenthosSqlSourceConfigResponses(logger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, tableRunTypeQueryMap, groupedColumnInfo, filteredForeignKeysMap, colTransformerMap, job.Id, params.WorkflowId, b.redisConfig, primaryKeyToForeignKeysMap)
+	configs, err := buildBenthosSqlSourceConfigResponses(
+		logger,
+		ctx,
+		b.transformerclient,
+		groupedTableMapping,
+		runConfigs,
+		sourceConnection.Id,
+		configQueryMap,
+		groupedColumnInfo,
+		filteredForeignKeysMap,
+		colTransformerMap,
+		job.Id,
+		params.JobRunId,
+		primaryKeyToForeignKeysMap,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 	}
@@ -176,14 +251,13 @@ func buildBenthosSqlSourceConfigResponses(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	groupedTableMapping map[string]*tableMapping,
-	runconfigs []*tabledependency.RunConfig,
+	runconfigs []*rc.RunConfig,
 	dsnConnectionId string,
-	tableRunTypeQueryMap map[string]map[tabledependency.RunType]*sqlmanager_shared.SelectQuery,
+	configQueryMap map[string]*sqlmanager_shared.SelectQuery,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
 	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
 	jobId, runId string,
-	redisConfig *neosync_redis.RedisConfig,
 	primaryKeyToForeignKeysMap map[string]map[string][]*bb_internal.ReferenceKey,
 ) ([]*bb_internal.BenthosSourceConfig, error) {
 	configs := []*bb_internal.BenthosSourceConfig{}
@@ -196,10 +270,11 @@ func buildBenthosSqlSourceConfigResponses(
 		if !ok {
 			return nil, fmt.Errorf("missing column mappings for table: %s", config.Table())
 		}
-		query, ok := tableRunTypeQueryMap[config.Table()][config.RunType()]
+		query, ok := configQueryMap[config.Id()]
 		if !ok {
-			return nil, fmt.Errorf("select query not found for table: %s runType: %s", config.Table(), config.RunType())
+			return nil, fmt.Errorf("query info not found for id: %s", config.Id())
 		}
+
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
 				Input: &neosync_benthos.InputConfig{
@@ -207,7 +282,10 @@ func buildBenthosSqlSourceConfigResponses(
 						PooledSqlRaw: &neosync_benthos.InputPooledSqlRaw{
 							ConnectionId: dsnConnectionId,
 
-							Query: query.Query,
+							Query:             query.Query,
+							PagedQuery:        query.PageQuery,
+							OrderByColumns:    config.OrderByColumns(),
+							ExpectedTotalRows: &query.PageLimit,
 						},
 					},
 				},
@@ -239,7 +317,6 @@ func buildBenthosSqlSourceConfigResponses(
 			transformedFktoPkMap,
 			jobId,
 			runId,
-			redisConfig,
 			mappings.Mappings,
 			colInfoMap,
 			nil,
@@ -249,15 +326,19 @@ func buildBenthosSqlSourceConfigResponses(
 			return nil, err
 		}
 		for _, pc := range processorConfigs {
-			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
+			bc.Pipeline.Processors = append(bc.Pipeline.Processors, *pc)
+		}
+
+		cursors, err := buildIdentityCursors(ctx, transformerclient, mappings.Mappings)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build identity cursors: %w", err)
 		}
 
 		configs = append(configs, &bb_internal.BenthosSourceConfig{
-			Name:           fmt.Sprintf("%s.%s", config.Table(), config.RunType()),
-			Config:         bc,
-			DependsOn:      config.DependsOn(),
-			RedisDependsOn: buildRedisDependsOnMap(transformedFktoPkMap, config),
-			RunType:        config.RunType(),
+			Name:      config.Id(),
+			Config:    bc,
+			DependsOn: config.DependsOn(),
+			RunType:   config.RunType(),
 
 			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: dsnConnectionId}},
 
@@ -265,6 +346,8 @@ func buildBenthosSqlSourceConfigResponses(
 			TableName:   mappings.Table,
 			Columns:     config.InsertColumns(),
 			PrimaryKeys: config.PrimaryKeys(),
+
+			ColumnIdentityCursors: cursors,
 
 			Metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, mappings.Schema),
@@ -276,20 +359,36 @@ func buildBenthosSqlSourceConfigResponses(
 	return configs, nil
 }
 
-func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
+func (b *sqlSyncBuilder) BuildDestinationConfig(
+	ctx context.Context,
+	params *bb_internal.DestinationParams,
+) (*bb_internal.BenthosDestinationConfig, error) {
 	logger := params.Logger
 	benthosConfig := params.SourceConfig
-	tableKey := neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName)
+	tableKey := neosync_benthos.BuildBenthosTable(
+		benthosConfig.TableSchema,
+		benthosConfig.TableName,
+	)
 
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	// lazy load
 	if len(b.mergedSchemaColumnMap) == 0 {
-		sqlSchemaColMap := getSqlSchemaColumnMap(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.WorkflowId)), params.DestConnection, b.sqlSourceSchemaColumnInfoMap, b.sqlmanagerclient, params.Logger)
+		sqlSchemaColMap := getSqlSchemaColumnMap(
+			ctx,
+			connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.JobRunId)),
+			params.DestConnection,
+			b.sqlSourceSchemaColumnInfoMap,
+			b.sqlmanagerclient,
+			params.Logger,
+		)
 		b.mergedSchemaColumnMap = sqlSchemaColMap
 	}
 	if len(b.mergedSchemaColumnMap) == 0 {
-		return nil, fmt.Errorf("unable to retrieve schema columns for either source or destination: %s", params.DestConnection.Name)
+		return nil, fmt.Errorf(
+			"unable to retrieve schema columns for either source or destination: %s",
+			params.DestConnection.Name,
+		)
 	}
 
 	var colInfoMap map[string]*sqlmanager_shared.DatabaseSchemaRow
@@ -299,7 +398,11 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	}
 
 	if len(colInfoMap) == 0 {
-		return nil, fmt.Errorf("unable to retrieve schema columns for destination: %s table: %s", params.DestConnection.Name, tableKey)
+		return nil, fmt.Errorf(
+			"unable to retrieve schema columns for destination: %s table: %s",
+			params.DestConnection.Name,
+			tableKey,
+		)
 	}
 
 	colTransformerMap := b.colTransformerMap
@@ -307,7 +410,9 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	if len(colTransformerMap) == 0 {
 		groupedMappings := groupMappingsByTable(params.Job.Mappings)
 		groupedTableMapping := getTableMappingsMap(groupedMappings)
-		colTMap := getColumnTransformerMap(groupedTableMapping) // schema.table ->  column -> transformer
+		colTMap := getColumnTransformerMap(
+			groupedTableMapping,
+		) // schema.table ->  column -> transformer
 		b.colTransformerMap = colTMap
 		colTransformerMap = colTMap
 	}
@@ -317,7 +422,13 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		return nil, fmt.Errorf("column transformer mappings not found for table: %s", tableKey)
 	}
 
-	columnDefaultProperties, err := getColumnDefaultProperties(logger, b.driver, benthosConfig.Columns, colInfoMap, tableColTransformers)
+	columnDefaultProperties, err := getColumnDefaultProperties(
+		logger,
+		b.driver,
+		benthosConfig.Columns,
+		colInfoMap,
+		tableColTransformers,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -328,11 +439,36 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		return nil, fmt.Errorf("unable to parse destination options: %w", err)
 	}
 
-	// skip foreign key violations if the query could return rows that violate foreign key constraints
-	skipForeignKeyViolations := destOpts.SkipForeignKeyViolations || b.isNotForeignKeySafeSubsetMap[tableKey][benthosConfig.RunType]
+	columnUpdatesDisallowed := []string{}
+	for _, col := range colInfoMap {
+		if !col.UpdateAllowed {
+			columnUpdatesDisallowed = append(columnUpdatesDisallowed, col.ColumnName)
+		}
+	}
 
-	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
-	if benthosConfig.RunType == tabledependency.RunTypeUpdate {
+	// this will be nil if coming from CLI sync
+	query := b.configQueryMap[benthosConfig.Name]
+
+	// skip foreign key violations if the query could return rows that violate foreign key constraints
+	skipForeignKeyViolations := destOpts.SkipForeignKeyViolations ||
+		(query != nil && query.IsNotForeignKeySafeSubset)
+
+	config.BenthosDsns = append(
+		config.BenthosDsns,
+		&bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id},
+	)
+	if benthosConfig.RunType == rc.RunTypeUpdate {
+		processorColumns := benthosConfig.Columns
+		processorColumns = append(processorColumns, benthosConfig.PrimaryKeys...)
+		sqlProcessor, err := getProcessors(
+			b.driver,
+			processorColumns,
+			colInfoMap,
+			columnDefaultProperties,
+		)
+		if err != nil {
+			return nil, err
+		}
 		config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
 				{
@@ -347,8 +483,9 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 						WhereColumns:             benthosConfig.PrimaryKeys,
 
 						Batching: &neosync_benthos.Batching{
-							Period: destOpts.BatchPeriod,
-							Count:  destOpts.BatchCount,
+							Period:     destOpts.BatchPeriod,
+							Count:      destOpts.BatchCount,
+							Processors: []*neosync_benthos.BatchProcessor{sqlProcessor},
 						},
 					},
 				},
@@ -368,20 +505,21 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 		for col := range constraints {
 			transformer := b.colTransformerMap[tableKey][col]
 			if shouldProcessStrict(transformer) {
-				if b.redisConfig == nil {
-					return nil, fmt.Errorf("missing redis config. this operation requires redis")
-				}
-				hashedKey := neosync_benthos.HashBenthosCacheKey(params.Job.GetId(), params.WorkflowId, tableKey, col)
+				hashedKey := neosync_benthos.HashBenthosCacheKey(params.Job.GetId(), params.JobRunId, tableKey, col)
 				config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
-					RedisHashOutput: &neosync_benthos.RedisHashOutputConfig{
-						Url:            b.redisConfig.Url,
-						Key:            hashedKey,
-						FieldsMapping:  fmt.Sprintf(`root = {meta(%q): json(%q)}`, hashPrimaryKeyMetaKey(benthosConfig.TableSchema, benthosConfig.TableName, col), col), // map of original value to transformed value
-						WalkMetadata:   false,
-						WalkJsonObject: false,
-						Kind:           &b.redisConfig.Kind,
-						Master:         b.redisConfig.Master,
-						Tls:            shared.BuildBenthosRedisTlsConfig(b.redisConfig),
+					Fallback: []neosync_benthos.Outputs{
+						{
+							RedisHashOutput: &neosync_benthos.RedisHashOutputConfig{
+								Key:            hashedKey,
+								FieldsMapping:  fmt.Sprintf(`root = {meta(%q): json(%q)}`, hashPrimaryKeyMetaKey(benthosConfig.TableSchema, benthosConfig.TableName, col), col), // map of original value to transformed value
+								WalkMetadata:   false,
+								WalkJsonObject: false,
+							},
+						},
+						// kills activity depending on error
+						{Error: &neosync_benthos.ErrorOutputConfig{
+							ErrorMsg: `${! meta("fallback_error")}`,
+						}},
 					},
 				})
 				benthosConfig.RedisConfig = append(benthosConfig.RedisConfig, &bb_shared.BenthosRedisConfig{
@@ -391,16 +529,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 				})
 			}
 		}
-
-		columnDataTypes := map[string]string{}
-		for _, c := range benthosConfig.Columns {
-			colType, ok := colInfoMap[c]
-			if ok {
-				columnDataTypes[c] = colType.DataType
-			}
-		}
-
-		sqlProcessor, err := getSqlBatchProcessors(b.driver, benthosConfig.Columns, columnDataTypes, columnDefaultProperties)
+		sqlProcessor, err := getProcessors(b.driver, benthosConfig.Columns, colInfoMap, columnDefaultProperties)
 		if err != nil {
 			return nil, err
 		}
@@ -415,6 +544,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 						Schema:                      benthosConfig.TableSchema,
 						Table:                       benthosConfig.TableName,
 						PrimaryKeyColumns:           benthosConfig.PrimaryKeys,
+						ColumnUpdatesDisallowed:     columnUpdatesDisallowed,
 						OnConflictDoNothing:         destOpts.OnConflictDoNothing,
 						OnConflictDoUpdate:          destOpts.OnConflictDoUpdate,
 						SkipForeignKeyViolations:    skipForeignKeyViolations,
@@ -446,6 +576,23 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_
 	return config, nil
 }
 
+func getProcessors(
+	driver string,
+	columns []string,
+	colInfoMap map[string]*sqlmanager_shared.DatabaseSchemaRow,
+	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties,
+) (*neosync_benthos.BatchProcessor, error) {
+	columnDataTypes := map[string]string{}
+	for _, c := range columns {
+		colType, ok := colInfoMap[c]
+		if ok {
+			columnDataTypes[c] = colType.DataType
+		}
+	}
+
+	return getSqlBatchProcessors(driver, columns, columnDataTypes, columnDefaultProperties)
+}
+
 func getInsertPrefixAndSuffix(
 	driver, schema, table string,
 	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties,
@@ -458,9 +605,17 @@ func getInsertPrefixAndSuffix(
 	case sqlmanager_shared.MssqlDriver:
 		if hasPassthroughIdentityColumn(columnDefaultProperties) {
 			enableIdentityInsert := true
-			p := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, enableIdentityInsert)
+			p := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(
+				schema,
+				table,
+				enableIdentityInsert,
+			)
 			pre = &p
-			s := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, !enableIdentityInsert)
+			s := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(
+				schema,
+				table,
+				!enableIdentityInsert,
+			)
 			suff = &s
 		}
 		return pre, suff
@@ -469,7 +624,9 @@ func getInsertPrefixAndSuffix(
 	}
 }
 
-func hasPassthroughIdentityColumn(columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties) bool {
+func hasPassthroughIdentityColumn(
+	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties,
+) bool {
 	for _, d := range columnDefaultProperties {
 		if d.NeedsOverride && d.NeedsReset && !d.HasDefaultTransformer {
 			return true

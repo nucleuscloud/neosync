@@ -167,7 +167,10 @@ func newCobraCmdConfig(
 			return nil, err
 		}
 		if _, err := time.ParseDuration(openDuration); err != nil {
-			return nil, fmt.Errorf("unable to parse destination-open-duration as a valid duration string: %w", err)
+			return nil, fmt.Errorf(
+				"unable to parse destination-open-duration as a valid duration string: %w",
+				err,
+			)
 		}
 		config.Destination.ConnectionOpts.OpenDuration = &openDuration
 	}
@@ -177,7 +180,10 @@ func newCobraCmdConfig(
 			return nil, err
 		}
 		if _, err := time.ParseDuration(idleDuration); err != nil {
-			return nil, fmt.Errorf("unable to parse destination-idle-duration as valid duration string: %w", err)
+			return nil, fmt.Errorf(
+				"unable to parse destination-idle-duration as valid duration string: %w",
+				err,
+			)
 		}
 		config.Destination.ConnectionOpts.IdleDuration = &idleDuration
 	}
@@ -207,34 +213,53 @@ func newCobraCmdConfig(
 			config.Destination.Batch = &batchConfig{}
 		}
 		if _, err := time.ParseDuration(batchperiod); err != nil {
-			return nil, fmt.Errorf("unable to parse destination-batch-period as valid duration string: %w", err)
+			return nil, fmt.Errorf(
+				"unable to parse destination-batch-period as valid duration string: %w",
+				err,
+			)
 		}
 		config.Destination.Batch.Period = &batchperiod
 	}
 	return config, nil
 }
 
-func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1alpha1.Connection, sourceConnectionType benthosbuilder_shared.ConnectionType) error {
-	if sourceConnectionType == benthosbuilder_shared.ConnectionTypeAwsS3 && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
-		return errors.New("S3 source connection type requires job-id or job-run-id.")
+func isConfigValid(
+	cmd *cmdConfig,
+	logger *slog.Logger,
+	sourceConnection *mgmtv1alpha1.Connection,
+	sourceConnectionType benthosbuilder_shared.ConnectionType,
+) error {
+	if sourceConnectionType == benthosbuilder_shared.ConnectionTypeAwsS3 &&
+		(cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") &&
+		(cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
+		return errors.New("s3 source connection type requires job-id or job-run-id")
 	}
-	if sourceConnectionType == benthosbuilder_shared.ConnectionTypeGCP && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
-		return errors.New("GCP Cloud Storage source connection type requires job-id or job-run-id")
+	if sourceConnectionType == benthosbuilder_shared.ConnectionTypeGCP &&
+		(cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") &&
+		(cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
+		return errors.New("gcp cloud storage source connection type requires job-id or job-run-id")
 	}
 
-	if (sourceConnectionType == benthosbuilder_shared.ConnectionTypeAwsS3 || sourceConnectionType == benthosbuilder_shared.ConnectionTypeGCP) && cmd.Destination.InitSchema {
+	if (sourceConnectionType == benthosbuilder_shared.ConnectionTypeAwsS3 || sourceConnectionType == benthosbuilder_shared.ConnectionTypeGCP) &&
+		cmd.Destination.InitSchema {
 		return errors.New("init schema is only supported when source is a SQL Database")
 	}
 
-	if cmd.Destination != nil && cmd.Destination.TruncateCascade && cmd.Destination.Driver == mysqlDriver {
+	if cmd.Destination != nil && cmd.Destination.TruncateCascade &&
+		cmd.Destination.Driver == mysqlDriver {
 		return fmt.Errorf("truncate cascade is only supported in postgres")
 	}
 
-	if cmd.Destination != nil && cmd.Destination.OnConflict.DoNothing && cmd.Destination.OnConflict.DoUpdate != nil && cmd.Destination.OnConflict.DoUpdate.Enabled {
-		return errors.New("on-conflict-do-nothing and on-conflict-do-update cannot be used together")
+	if cmd.Destination != nil && cmd.Destination.OnConflict.DoNothing &&
+		cmd.Destination.OnConflict.DoUpdate != nil &&
+		cmd.Destination.OnConflict.DoUpdate.Enabled {
+		return errors.New(
+			"on-conflict-do-nothing and on-conflict-do-update cannot be used together",
+		)
 	}
 
-	if sourceConnectionType == benthosbuilder_shared.ConnectionTypeMysql || sourceConnectionType == benthosbuilder_shared.ConnectionTypePostgres {
+	if sourceConnectionType == benthosbuilder_shared.ConnectionTypeMysql ||
+		sourceConnectionType == benthosbuilder_shared.ConnectionTypePostgres {
 		if cmd.Destination.Driver == "" {
 			return fmt.Errorf("must provide destination-driver")
 		}
@@ -243,7 +268,9 @@ func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1
 		}
 
 		if cmd.Destination.Driver != mysqlDriver && cmd.Destination.Driver != postgresDriver {
-			return errors.New("unsupported destination driver. only pgx (postgres) and mysql are currently supported")
+			return errors.New(
+				"unsupported destination driver. only pgx (postgres) and mysql are currently supported",
+			)
 		}
 	}
 
@@ -258,7 +285,7 @@ func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1
 	}
 
 	if sourceConnection.AccountId != *cmd.AccountId {
-		return fmt.Errorf("Connection not found. AccountId: %s", *cmd.AccountId)
+		return fmt.Errorf("connection not found. accountId: %s", *cmd.AccountId)
 	}
 
 	var destinationDriver *DriverType

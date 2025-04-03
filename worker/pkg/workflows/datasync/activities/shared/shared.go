@@ -9,7 +9,6 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 
 	benthosbuilder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
@@ -23,10 +22,15 @@ const (
 
 	runContext_ExternalId_BenthosConfig       = "benthosconfig"
 	runContext_ExternalId_PostTableSyncConfig = "posttablesync"
+	runContext_ExternalId_ConnectionIds       = "tablesync-connectionids"
 )
 
 func GetBenthosConfigExternalId(identifier string) string {
 	return fmt.Sprintf("%s-%s", runContext_ExternalId_BenthosConfig, identifier)
+}
+
+func GetConnectionIdsExternalId() string {
+	return runContext_ExternalId_ConnectionIds
 }
 
 func GetPostTableSyncConfigExternalId(identifier string) string {
@@ -178,25 +182,7 @@ func GetRedisConfig() *neosync_redis.RedisConfig {
 	}
 }
 
-func BuildBenthosRedisTlsConfig(redisConfig *neosync_redis.RedisConfig) *neosync_benthos.RedisTlsConfig {
-	var tls *neosync_benthos.RedisTlsConfig
-	if redisConfig.Tls != nil && redisConfig.Tls.Enabled {
-		tls = &neosync_benthos.RedisTlsConfig{
-			Enabled:             redisConfig.Tls.Enabled,
-			SkipCertVerify:      redisConfig.Tls.SkipCertVerify,
-			EnableRenegotiation: redisConfig.Tls.EnableRenegotiation,
-			RootCas:             redisConfig.Tls.RootCertAuthority,
-			RootCasFile:         redisConfig.Tls.RootCertAuthorityFile,
-		}
-	}
-	return tls
-}
-
-func GetJobSourceConnection(
-	ctx context.Context,
-	jobSource *mgmtv1alpha1.JobSource,
-	connclient mgmtv1alpha1connect.ConnectionServiceClient,
-) (*mgmtv1alpha1.Connection, error) {
+func GetJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (string, error) {
 	var connectionId string
 	switch jobSourceConfig := jobSource.GetOptions().GetConfig().(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:
@@ -214,7 +200,19 @@ func GetJobSourceConnection(
 	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
 		connectionId = jobSourceConfig.Dynamodb.GetConnectionId()
 	default:
-		return nil, fmt.Errorf("unsupported job source options type for job source connection: %T", jobSourceConfig)
+		return "", fmt.Errorf("unsupported job source options type for job source connection: %T", jobSourceConfig)
+	}
+	return connectionId, nil
+}
+
+func GetJobSourceConnection(
+	ctx context.Context,
+	jobSource *mgmtv1alpha1.JobSource,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+) (*mgmtv1alpha1.Connection, error) {
+	connectionId, err := GetJobSourceConnectionId(jobSource)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get job source connection id: %w", err)
 	}
 	sourceConnection, err := GetConnectionById(ctx, connclient, connectionId)
 	if err != nil {
@@ -238,9 +236,12 @@ func GetConnectionById(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	connectionId string,
 ) (*mgmtv1alpha1.Connection, error) {
-	getConnResp, err := connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: connectionId,
-	}))
+	getConnResp, err := connclient.GetConnection(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: connectionId,
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -8,9 +8,10 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
 )
 
 // Determines SQL driver from connection type
@@ -63,13 +64,16 @@ type BenthosBuilder interface {
 	BuildSourceConfigs(ctx context.Context, params *SourceParams) ([]*BenthosSourceConfig, error)
 	// BuildDestinationConfig creates a Benthos destination configuration for writing processed data.
 	// Returns single config for a schema.table configuration
-	BuildDestinationConfig(ctx context.Context, params *DestinationParams) (*BenthosDestinationConfig, error)
+	BuildDestinationConfig(
+		ctx context.Context,
+		params *DestinationParams,
+	) (*BenthosDestinationConfig, error)
 }
 
 // SourceParams contains all parameters needed to build a source benthos configuration
 type SourceParams struct {
 	Job              *mgmtv1alpha1.Job
-	WorkflowId       string
+	JobRunId         string
 	SourceConnection *mgmtv1alpha1.Connection
 	Logger           *slog.Logger
 }
@@ -83,7 +87,7 @@ type ReferenceKey struct {
 type DestinationParams struct {
 	SourceConfig    *BenthosSourceConfig
 	Job             *mgmtv1alpha1.Job
-	WorkflowId      string
+	JobRunId        string
 	DestinationOpts *mgmtv1alpha1.JobDestinationOptions
 	DestConnection  *mgmtv1alpha1.Connection
 	Logger          *slog.Logger
@@ -93,8 +97,8 @@ type DestinationParams struct {
 type BenthosSourceConfig struct {
 	Config                  *neosync_benthos.BenthosConfig
 	Name                    string
-	DependsOn               []*tabledependency.DependsOn
-	RunType                 tabledependency.RunType
+	DependsOn               []*runconfigs.DependsOn
+	RunType                 runconfigs.RunType
 	TableSchema             string
 	TableName               string
 	Columns                 []string
@@ -105,6 +109,7 @@ type BenthosSourceConfig struct {
 	RedisConfig             []*bb_shared.BenthosRedisConfig
 	PrimaryKeys             []string
 	Metriclabels            metrics.MetricLabels
+	ColumnIdentityCursors   map[string]*tablesync_shared.IdentityCursor
 }
 
 // BenthosDestinationConfig represents a Benthos destination configuration

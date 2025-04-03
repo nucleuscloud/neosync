@@ -615,6 +615,59 @@ components:
           description: A list of generated records
       title: GetAiGeneratedDataResponse
       additionalProperties: false
+    mgmt.v1alpha1.GetAllSchemasAndTablesRequest:
+      type: object
+      properties:
+        connectionId:
+          type: string
+          title: connection_id
+          format: uuid
+          description: The unique identifier of the connection to get the all schema tables for.
+      title: GetAllSchemasAndTablesRequest
+      additionalProperties: false
+      description: Request to get all the schemas and tables for a connection
+    mgmt.v1alpha1.GetAllSchemasAndTablesResponse:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Schema'
+          title: schemas
+          description: A list of all the schemas for a connection. Empty schemas (those without any tables) will appear in this list.
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Table'
+          title: tables
+          description: A list of all the tables for the connection
+      title: GetAllSchemasAndTablesResponse
+      additionalProperties: false
+      description: A list of all the schemas and tables for a connection
+    mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Schema:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          description: The name of the schema
+      title: Schema
+      additionalProperties: false
+      description: A schema
+    mgmt.v1alpha1.GetAllSchemasAndTablesResponse.Table:
+      type: object
+      properties:
+        schemaName:
+          type: string
+          title: schema_name
+          description: The name of the schema
+        tableName:
+          type: string
+          title: table_name
+          description: The name of the table
+      title: Table
+      additionalProperties: false
+      description: A table in a schema
     mgmt.v1alpha1.GetConnectionDataStreamRequest:
       type: object
       properties:
@@ -673,7 +726,7 @@ components:
           additionalProperties:
             type: string
             title: value
-          description: The key here is <schema>.<table> and value is the table init statement.
+          description: '@deprecated - Use schema_init_statements instead'
         tableTruncateStatements:
           type: object
           title: table_truncate_statements
@@ -843,6 +896,14 @@ components:
               - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraints'
             title: value
           description: the key here is <schema>.<table> and value is the unique constraint
+        uniqueIndexes:
+          type: object
+          title: unique_indexes
+          additionalProperties:
+            allOf:
+              - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueIndexes'
+            title: value
+          description: the key here is <schema>.<table> and value is the unique index
       title: GetConnectionTableConstraintsResponse
       additionalProperties: false
     mgmt.v1alpha1.GetConnectionTableConstraintsResponse.ForeignKeyConstraintsEntry:
@@ -880,6 +941,18 @@ components:
             - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueConstraints'
           title: value
       title: UniqueConstraintsEntry
+      additionalProperties: false
+    mgmt.v1alpha1.GetConnectionTableConstraintsResponse.UniqueIndexesEntry:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        value:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.UniqueIndexes'
+          title: value
+      title: UniqueIndexesEntry
       additionalProperties: false
     mgmt.v1alpha1.GetTableRowCountRequest:
       type: object
@@ -1020,6 +1093,28 @@ components:
           title: constraints
           description: The unique constraints found for the table
       title: UniqueConstraints
+      additionalProperties: false
+    mgmt.v1alpha1.UniqueIndex:
+      type: object
+      properties:
+        columns:
+          type: array
+          items:
+            type: string
+          title: columns
+          description: The columns that are part of the unique index
+      title: UniqueIndex
+      additionalProperties: false
+    mgmt.v1alpha1.UniqueIndexes:
+      type: object
+      properties:
+        indexes:
+          type: array
+          items:
+            $ref: '#/components/schemas/mgmt.v1alpha1.UniqueIndex'
+          title: indexes
+          description: The unique indexes found for the table
+      title: UniqueIndexes
       additionalProperties: false
     connect-protocol-version:
       type: number
@@ -1335,6 +1430,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/mgmt.v1alpha1.GetTableRowCountResponse'
+  /mgmt.v1alpha1.ConnectionDataService/GetAllSchemasAndTables:
+    post:
+      tags:
+        - mgmt.v1alpha1.ConnectionDataService
+      summary: GetAllSchemasAndTables
+      description: Get all schemas and tables for a connection
+      operationId: mgmt.v1alpha1.ConnectionDataService.GetAllSchemasAndTables
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemasAndTablesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mgmt.v1alpha1.GetAllSchemasAndTablesResponse'
 tags:
   - name: mgmt.v1alpha1.ConnectionDataService
     description: |-

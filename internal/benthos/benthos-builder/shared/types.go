@@ -5,7 +5,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	rc "github.com/nucleuscloud/neosync/internal/runconfigs"
 )
 
 // Holds the environment variable name and the connection id that should replace it at runtime when the Sync activity is launched
@@ -25,10 +25,10 @@ type BenthosRedisConfig struct {
 type SelectQueryMapBuilder interface {
 	BuildSelectQueryMap(
 		driver string,
-		runConfigs []*tabledependency.RunConfig,
+		runConfigs []*rc.RunConfig,
 		subsetByForeignKeyConstraints bool,
-		groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
-	) (map[string]map[tabledependency.RunType]*sqlmanager_shared.SelectQuery, error)
+		pageLimit int,
+	) (map[string]*sqlmanager_shared.SelectQuery, error)
 }
 
 func WithEnvInterpolation(input string) string {

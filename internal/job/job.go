@@ -13,8 +13,10 @@ type SqlJobSourceOpts struct {
 	HaltOnColumnRemoval bool
 	// Newly detected columns are automatically transformed
 	GenerateNewColumnTransformers bool
-	SubsetByForeignKeyConstraints bool
-	SchemaOpt                     []*SchemaOptions
+	// Newly detected columns are set to passthrough to the destination
+	PassthroughOnNewColumnAddition bool
+	SubsetByForeignKeyConstraints  bool
+	SchemaOpt                      []*SchemaOptions
 }
 
 type SchemaOptions struct {
@@ -50,11 +52,14 @@ func GetSqlJobSourceOpts(
 		}
 		shouldHalt := false
 		shouldGenerateNewColTransforms := false
+		shouldPassthrough := false
 		switch jobSourceConfig.Postgres.GetNewColumnAdditionStrategy().GetStrategy().(type) {
 		case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
 			shouldHalt = true
 		case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_:
 			shouldGenerateNewColTransforms = true
+		case *mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_:
+			shouldPassthrough = true
 		}
 
 		shouldHaltOnColumnRemoval := false
@@ -63,11 +68,12 @@ func GetSqlJobSourceOpts(
 		}
 
 		return &SqlJobSourceOpts{
-			HaltOnNewColumnAddition:       shouldHalt,
-			HaltOnColumnRemoval:           shouldHaltOnColumnRemoval,
-			GenerateNewColumnTransformers: shouldGenerateNewColTransforms,
-			SubsetByForeignKeyConstraints: jobSourceConfig.Postgres.SubsetByForeignKeyConstraints,
-			SchemaOpt:                     schemaOpt,
+			HaltOnNewColumnAddition:        shouldHalt,
+			PassthroughOnNewColumnAddition: shouldPassthrough,
+			HaltOnColumnRemoval:            shouldHaltOnColumnRemoval,
+			GenerateNewColumnTransformers:  shouldGenerateNewColTransforms,
+			SubsetByForeignKeyConstraints:  jobSourceConfig.Postgres.SubsetByForeignKeyConstraints,
+			SchemaOpt:                      schemaOpt,
 		}, nil
 	case *mgmtv1alpha1.JobSourceOptions_Mysql:
 		if jobSourceConfig.Mysql == nil {
@@ -87,15 +93,28 @@ func GetSqlJobSourceOpts(
 				Tables: tableOpts,
 			})
 		}
+		shouldHalt := false
+		shouldGenerateNewColTransforms := false
+		shouldPassthrough := false
+		switch jobSourceConfig.Mysql.GetNewColumnAdditionStrategy().GetStrategy().(type) {
+		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
+			shouldHalt = true
+		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_AutoMap_:
+			shouldGenerateNewColTransforms = true
+		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_:
+			shouldPassthrough = true
+		}
 		shouldHaltOnColumnRemoval := false
 		if jobSourceConfig.Mysql.GetColumnRemovalStrategy().GetHaltJob() != nil {
 			shouldHaltOnColumnRemoval = true
 		}
 		return &SqlJobSourceOpts{
-			HaltOnNewColumnAddition:       jobSourceConfig.Mysql.HaltOnNewColumnAddition,
-			HaltOnColumnRemoval:           shouldHaltOnColumnRemoval,
-			SubsetByForeignKeyConstraints: jobSourceConfig.Mysql.SubsetByForeignKeyConstraints,
-			SchemaOpt:                     schemaOpt,
+			HaltOnNewColumnAddition:        shouldHalt,
+			PassthroughOnNewColumnAddition: shouldPassthrough,
+			HaltOnColumnRemoval:            shouldHaltOnColumnRemoval,
+			GenerateNewColumnTransformers:  shouldGenerateNewColTransforms,
+			SubsetByForeignKeyConstraints:  jobSourceConfig.Mysql.SubsetByForeignKeyConstraints,
+			SchemaOpt:                      schemaOpt,
 		}, nil
 	case *mgmtv1alpha1.JobSourceOptions_Mssql:
 		if jobSourceConfig.Mssql == nil {
@@ -119,11 +138,21 @@ func GetSqlJobSourceOpts(
 		if jobSourceConfig.Mssql.GetColumnRemovalStrategy().GetHaltJob() != nil {
 			shouldHaltOnColumnRemoval = true
 		}
+
+		shouldHaltNewColumnAddition := false
+		shouldPassthrough := false
+		switch jobSourceConfig.Mssql.GetNewColumnAdditionStrategy().GetStrategy().(type) {
+		case *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob_:
+			shouldHaltNewColumnAddition = true
+		case *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_:
+			shouldPassthrough = true
+		}
 		return &SqlJobSourceOpts{
-			HaltOnNewColumnAddition:       jobSourceConfig.Mssql.HaltOnNewColumnAddition,
-			HaltOnColumnRemoval:           shouldHaltOnColumnRemoval,
-			SubsetByForeignKeyConstraints: jobSourceConfig.Mssql.SubsetByForeignKeyConstraints,
-			SchemaOpt:                     schemaOpt,
+			HaltOnNewColumnAddition:        shouldHaltNewColumnAddition,
+			PassthroughOnNewColumnAddition: shouldPassthrough,
+			HaltOnColumnRemoval:            shouldHaltOnColumnRemoval,
+			SubsetByForeignKeyConstraints:  jobSourceConfig.Mssql.SubsetByForeignKeyConstraints,
+			SchemaOpt:                      schemaOpt,
 		}, nil
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		if jobSourceConfig.Generate == nil {

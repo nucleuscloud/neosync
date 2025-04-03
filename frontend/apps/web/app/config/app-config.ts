@@ -9,6 +9,8 @@ export interface SystemAppConfig {
   signInProviderId?: string;
   isMetricsServiceEnabled: boolean;
   isJobHooksEnabled: boolean;
+  isAccountHooksEnabled: boolean;
+  isSlackAccountHookEnabled: boolean;
   gtag: GtagConfig;
 
   calendlyUpgradeLink: string;
@@ -18,6 +20,7 @@ export interface SystemAppConfig {
   // public (client-side) base url;
   publicNeosyncApiBaseUrl: string;
   isRbacEnabled: boolean;
+  isPiiDetectionJobEnabled: boolean;
 }
 
 interface PosthogConfig {

@@ -9,8 +9,8 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 )
 
 func maxInt(a, b int) int {
@@ -25,7 +25,10 @@ func parseDriverString(str string) (DriverType, bool) {
 	return p, ok
 }
 
-func isConfigReady(config *benthosbuilder.BenthosConfigResponse, queuedMap map[string][]string) bool {
+func isConfigReady(
+	config *benthosbuilder.BenthosConfigResponse,
+	queuedMap map[string][]string,
+) bool {
 	for _, dep := range config.DependsOn {
 		if cols, ok := queuedMap[dep.Table]; ok {
 			for _, dc := range dep.Columns {
@@ -40,7 +43,10 @@ func isConfigReady(config *benthosbuilder.BenthosConfigResponse, queuedMap map[s
 	return true
 }
 
-func groupConfigsByDependency(configs []*benthosbuilder.BenthosConfigResponse, logger *slog.Logger) [][]*benthosbuilder.BenthosConfigResponse {
+func groupConfigsByDependency(
+	configs []*benthosbuilder.BenthosConfigResponse,
+	logger *slog.Logger,
+) [][]*benthosbuilder.BenthosConfigResponse {
 	groupedConfigs := [][]*benthosbuilder.BenthosConfigResponse{}
 	configMap := map[string]*benthosbuilder.BenthosConfigResponse{}
 	queuedMap := map[string][]string{} // map -> table to cols
@@ -66,7 +72,7 @@ func groupConfigsByDependency(configs []*benthosbuilder.BenthosConfigResponse, l
 	for len(configMap) > 0 {
 		// prevents looping forever
 		if prevTableLen == len(configMap) {
-			logger.Info("Unable to order configs by dependency. No path found.")
+			logger.Error("Unable to order configs by dependency. No path found.")
 			return nil
 		}
 		prevTableLen = len(configMap)
@@ -104,7 +110,7 @@ func getTableColMap(schemas []*mgmtv1alpha1.DatabaseColumn) map[string][]string 
 	return tableColMap
 }
 
-func buildDependencyMap(syncConfigs []*tabledependency.RunConfig) map[string][]string {
+func buildDependencyMap(syncConfigs []*runconfigs.RunConfig) map[string][]string {
 	dependencyMap := map[string][]string{}
 	for _, cfg := range syncConfigs {
 		_, dpOk := dependencyMap[cfg.Table()]
@@ -119,15 +125,18 @@ func buildDependencyMap(syncConfigs []*tabledependency.RunConfig) map[string][]s
 	return dependencyMap
 }
 
-func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destinationDriver *DriverType) error {
+func areSourceAndDestCompatible(
+	connection *mgmtv1alpha1.Connection,
+	destinationDriver *DriverType,
+) error {
 	switch connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		if destinationDriver != nil && *destinationDriver != postgresDriver {
-			return fmt.Errorf("Connection and destination types are incompatible [postgres, %s]", *destinationDriver)
+			return fmt.Errorf("connection and destination types are incompatible [postgres, %s]", *destinationDriver)
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		if destinationDriver != nil && *destinationDriver != mysqlDriver {
-			return fmt.Errorf("Connection and destination types are incompatible [mysql, %s]", *destinationDriver)
+			return fmt.Errorf("connection and destination types are incompatible [mysql, %s]", *destinationDriver)
 		}
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig, *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
 	default:

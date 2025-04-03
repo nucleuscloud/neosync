@@ -11,7 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"golang.org/x/sync/errgroup"
@@ -22,7 +21,10 @@ type PostgresTestSyncContainer struct {
 	Target *PostgresTestContainer
 }
 
-func NewPostgresTestSyncContainer(ctx context.Context, sourceOpts, destOpts []Option) (*PostgresTestSyncContainer, error) {
+func NewPostgresTestSyncContainer(
+	ctx context.Context,
+	sourceOpts, destOpts []Option,
+) (*PostgresTestSyncContainer, error) {
 	tc := &PostgresTestSyncContainer{}
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
@@ -130,9 +132,9 @@ func WithTls() Option {
 // Creates and starts a PostgreSQL test container and sets up the connection.
 func setup(ctx context.Context, cfg *pgTestContainerConfig) (*PostgresTestContainer, error) {
 	tcopts := []testcontainers.ContainerCustomizer{
-		postgres.WithDatabase(cfg.database),
-		postgres.WithUsername(cfg.username),
-		postgres.WithPassword(cfg.password),
+		testpg.WithDatabase(cfg.database),
+		testpg.WithUsername(cfg.username),
+		testpg.WithPassword(cfg.password),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).WithStartupTimeout(20 * time.Second),
@@ -175,7 +177,7 @@ func setup(ctx context.Context, cfg *pgTestContainerConfig) (*PostgresTestContai
 			})),
 		)
 	}
-	pgContainer, err := postgres.Run(
+	pgContainer, err := testpg.Run(
 		ctx,
 		"postgres:15",
 		tcopts...,
@@ -258,7 +260,11 @@ func (p *PostgresTestContainer) TearDown(ctx context.Context) error {
 }
 
 // Executes SQL files within the test container
-func (p *PostgresTestContainer) RunSqlFiles(ctx context.Context, folder *string, files []string) error {
+func (p *PostgresTestContainer) RunSqlFiles(
+	ctx context.Context,
+	folder *string,
+	files []string,
+) error {
 	for _, file := range files {
 		filePath := file
 		if folder != nil && *folder != "" {
@@ -277,7 +283,12 @@ func (p *PostgresTestContainer) RunSqlFiles(ctx context.Context, folder *string,
 }
 
 // Creates schema and sets search_path to schema before running SQL files
-func (p *PostgresTestContainer) RunCreateStmtsInSchema(ctx context.Context, folder string, files []string, schema string) error {
+func (p *PostgresTestContainer) RunCreateStmtsInSchema(
+	ctx context.Context,
+	folder string,
+	files []string,
+	schema string,
+) error {
 	for _, file := range files {
 		filePath := file
 		if folder != "" {
@@ -287,7 +298,11 @@ func (p *PostgresTestContainer) RunCreateStmtsInSchema(ctx context.Context, fold
 		if err != nil {
 			return err
 		}
-		setSchemaSql := fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %q; \n SET search_path TO %q; \n", schema, schema)
+		setSchemaSql := fmt.Sprintf(
+			"CREATE SCHEMA IF NOT EXISTS %q; \n SET search_path TO %q; \n",
+			schema,
+			schema,
+		)
 		_, err = p.DB.Exec(ctx, setSchemaSql+string(sqlStr))
 		if err != nil {
 			return fmt.Errorf("unable to exec postgres create stmts in schema: %w", err)
@@ -316,7 +331,10 @@ func (p *PostgresTestContainer) DropSchemas(ctx context.Context, schemas []strin
 	return nil
 }
 
-func (p *PostgresTestContainer) GetTableRowCount(ctx context.Context, schema, table string) (int, error) {
+func (p *PostgresTestContainer) GetTableRowCount(
+	ctx context.Context,
+	schema, table string,
+) (int, error) {
 	rows := p.DB.QueryRow(ctx, fmt.Sprintf("SELECT COUNT(*) FROM %q.%q;", schema, table))
 	var count int
 	err := rows.Scan(&count)

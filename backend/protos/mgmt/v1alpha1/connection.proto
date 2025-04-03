@@ -8,6 +8,11 @@ import "google/protobuf/timestamp.proto";
 message GetConnectionsRequest {
   // The unique identifier of the account to get connections for
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+
+  // Whether or not to exclude sensitive data from the connection
+  // If the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data
+  // This behavior exists to preserve backwards compatibility that originally always returned sensitive data
+  bool exclude_sensitive = 2;
 }
 message GetConnectionsResponse {
   // The connections
@@ -17,6 +22,11 @@ message GetConnectionsResponse {
 message GetConnectionRequest {
   // The unique identifier of the connection to get
   string id = 1 [(buf.validate.field).string.uuid = true];
+
+  // Whether or not to exclude sensitive data from the connection
+  // If the caller does not have permission to view sensitive data, the connection will always be returned without sensitive data
+  // This behavior exists to preserve backwards compatibility that originally always returned sensitive data
+  bool exclude_sensitive = 2;
 }
 message GetConnectionResponse {
   // The connection
@@ -423,6 +433,33 @@ message CheckSqlQueryResponse {
   optional string erorr_message = 2;
 }
 
+message CheckSSHConnectionRequest {
+  // The SSH tunnel configuration to use for the connection
+  SSHTunnel tunnel = 1;
+}
+
+message CheckSSHConnectionResponse {
+  // The result of the SSH connection check
+  CheckSSHConnectionResult result = 1;
+}
+
+message CheckSSHConnectionByIdRequest {
+  // The connection id that the SSH connection will be checked against
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message CheckSSHConnectionByIdResponse {
+  // The result of the SSH connection check
+  CheckSSHConnectionResult result = 1;
+}
+
+message CheckSSHConnectionResult {
+  // Whether or not the SSH connection is successful
+  bool is_successful = 1;
+  // The error message returned by the SSH client if the connection is not successful
+  optional string error_message = 2;
+}
+
 // Service for managing datasource connections.
 // This is a primary data model in Neosync and is used in reference when hooking up Jobs to synchronize and generate data.
 service ConnectionService {
@@ -452,4 +489,8 @@ service ConnectionService {
   // Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema
   // This is useful when constructing subsets to see if the WHERE clause is correct
   rpc CheckSqlQuery(CheckSqlQueryRequest) returns (CheckSqlQueryResponse) {}
+  // Checks if the SSH server is reachable and accessible with the given credentials
+  rpc CheckSSHConnection(CheckSSHConnectionRequest) returns (CheckSSHConnectionResponse) {}
+  // Checks if the SSH server is reachable and accessible with the given credentials
+  rpc CheckSSHConnectionById(CheckSSHConnectionByIdRequest) returns (CheckSSHConnectionByIdResponse) {}
 }

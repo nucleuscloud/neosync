@@ -3,13 +3,13 @@ package transformers
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net/mail"
 	"strings"
 	"testing"
 	"time"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/redpanda-data/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/require"
 )
@@ -19,14 +19,14 @@ var maxEmailCharLimit = int64(40)
 var excludedDomains = []string{"gmail.com", "hotmail.com"}
 
 func Test_TransformEmail_Empty_Email(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := transformEmail(randomizer, "", transformeEmailOptions{})
 	require.NoError(t, err)
 	require.Nil(t, res)
 }
 
 func Test_TransformEmail_Empty_Options(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{})
 	require.NoError(t, err)
 	require.NotNil(t, res)
@@ -37,7 +37,7 @@ func Test_TransformEmail_Empty_Options(t *testing.T) {
 }
 
 func Test_TransformEmail_Seed_1711240985047220000_Specific_Options(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1711240985047220000))
+	randomizer := rng.New(1711240985047220000)
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{MaxLength: 40, EmailType: GenerateEmailType_FullName, ExcludedDomains: excludedDomains, PreserveLength: true, PreserveDomain: true})
 	require.NoError(t, err)
 	require.NotNil(t, res)
@@ -48,7 +48,7 @@ func Test_TransformEmail_Seed_1711240985047220000_Specific_Options(t *testing.T)
 }
 
 func Test_TransformEmail_Invalid_Email_Input(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := transformEmail(randomizer, "bademail", transformeEmailOptions{})
 	require.Error(t, err)
 	require.Nil(t, res)
@@ -56,7 +56,7 @@ func Test_TransformEmail_Invalid_Email_Input(t *testing.T) {
 
 func Test_TransformEmail_Random_Seed(t *testing.T) {
 	seed := time.Now().UnixNano()
-	randomizer := rand.New(rand.NewSource(seed))
+	randomizer := rng.New(seed)
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{})
 	require.NoError(t, err, "failed with seed", "seed", seed)
 	require.NotNil(t, res)
@@ -67,7 +67,7 @@ func Test_TransformEmail_Random_Seed(t *testing.T) {
 }
 
 func Test_TransformEmail_Any_EmailType(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(time.Now().UnixMicro()))
+	randomizer := rng.New(time.Now().UnixMicro())
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
 		EmailType: GenerateEmailType_Any,
 	})
@@ -80,7 +80,7 @@ func Test_TransformEmail_Any_EmailType(t *testing.T) {
 }
 
 func Test_TransformEmail_Uuid_EmailType(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(time.Now().UnixMicro()))
+	randomizer := rng.New(time.Now().UnixMicro())
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
 		EmailType: GenerateEmailType_UuidV4,
 	})
@@ -93,7 +93,7 @@ func Test_TransformEmail_Uuid_EmailType(t *testing.T) {
 }
 
 func Test_TransformEmail_Fullname_EmailType(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(time.Now().UnixMicro()))
+	randomizer := rng.New(time.Now().UnixMicro())
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
 		EmailType: GenerateEmailType_FullName,
 	})
@@ -106,7 +106,7 @@ func Test_TransformEmail_Fullname_EmailType(t *testing.T) {
 }
 
 func Test_TransformEmail_PreserveLength_False_PreserveDomain_False(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
 		PreserveLength: false,
 		PreserveDomain: false,
@@ -121,7 +121,7 @@ func Test_TransformEmail_PreserveLength_False_PreserveDomain_False(t *testing.T)
 }
 
 func Test_TransformEmail_PreserveLength_False_PreserveDomain_False_Excluded(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
 		PreserveLength:  false,
 		PreserveDomain:  false,
@@ -141,7 +141,7 @@ func Test_TransformEmail_PreserveLength_False_PreserveDomain_False_Excluded(t *t
 }
 
 func Test_TransformEmail_PreserveLength_False_PreserveDomain_True(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
 		PreserveLength: false,
 		PreserveDomain: true,
@@ -160,7 +160,7 @@ func Test_TransformEmail_PreserveLength_False_PreserveDomain_True(t *testing.T) 
 }
 
 func Test_TransformEmail_PreserveLength_False_PreserveDomain_True_Excluded(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
 		PreserveLength:  false,
 		PreserveDomain:  true,
@@ -180,7 +180,7 @@ func Test_TransformEmail_PreserveLength_False_PreserveDomain_True_Excluded(t *te
 }
 
 func Test_TransformEmail_PreserveLength_True_PreserveDomain_False(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
 		PreserveLength: true,
 		PreserveDomain: false,
@@ -197,7 +197,7 @@ func Test_TransformEmail_PreserveLength_True_PreserveDomain_False(t *testing.T) 
 }
 
 func Test_TransformEmail_PreserveLength_True_PreserveDomain_False_Excluded(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
 		PreserveLength:  true,
 		PreserveDomain:  false,
@@ -219,7 +219,7 @@ func Test_TransformEmail_PreserveLength_True_PreserveDomain_False_Excluded(t *te
 }
 
 func Test_TransformEmail_PreserveLength_True_PreserveDomain_True(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
 		PreserveLength: true,
 		PreserveDomain: true,
@@ -240,7 +240,7 @@ func Test_TransformEmail_PreserveLength_True_PreserveDomain_True(t *testing.T) {
 }
 
 func Test_TransformEmail_PreserveLength_True_PreserveDomain_True_Excluded(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
 		PreserveLength:  true,
 		PreserveDomain:  true,
@@ -262,7 +262,7 @@ func Test_TransformEmail_PreserveLength_True_PreserveDomain_True_Excluded(t *tes
 }
 
 func Test_TransformEmail_InvalidEmailArg(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rng.New(1)
 
 	invalidemail := "invalid@gmail..com"
 

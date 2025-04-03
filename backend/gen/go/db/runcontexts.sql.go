@@ -40,6 +40,48 @@ func (q *Queries) GetRunContextByKey(ctx context.Context, db DBTX, arg GetRunCon
 	return i, err
 }
 
+const getRunContextsByExternalIdSuffix = `-- name: GetRunContextsByExternalIdSuffix :many
+SELECT workflow_id, external_id, account_id, value, created_at, updated_at, created_by_id, updated_by_id from neosync_api.runcontexts
+WHERE workflow_id = $1
+  AND external_id LIKE '%' || $2::text
+  AND account_id = $3
+`
+
+type GetRunContextsByExternalIdSuffixParams struct {
+	WorkflowId       string
+	ExternalIdSuffix string
+	AccountId        pgtype.UUID
+}
+
+func (q *Queries) GetRunContextsByExternalIdSuffix(ctx context.Context, db DBTX, arg GetRunContextsByExternalIdSuffixParams) ([]NeosyncApiRuncontext, error) {
+	rows, err := db.Query(ctx, getRunContextsByExternalIdSuffix, arg.WorkflowId, arg.ExternalIdSuffix, arg.AccountId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NeosyncApiRuncontext
+	for rows.Next() {
+		var i NeosyncApiRuncontext
+		if err := rows.Scan(
+			&i.WorkflowID,
+			&i.ExternalID,
+			&i.AccountID,
+			&i.Value,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CreatedByID,
+			&i.UpdatedByID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const setRunContext = `-- name: SetRunContext :exec
 INSERT INTO neosync_api.runcontexts (
     workflow_id,

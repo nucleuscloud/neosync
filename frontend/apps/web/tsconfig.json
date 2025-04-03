@@ -27,9 +27,6 @@
     "paths": {
       "@/*": [
         "./*"
-      ],
-      "@neosync/sdk": [
-        "../sdk/ts-client/*"
       ]
     }
   },

@@ -30,9 +30,7 @@ import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
 import { TransformerResult } from './transformer-handler';
 
-type Side = (typeof SIDE_OPTIONS)[number];
-
-var SIDE_OPTIONS: readonly ['top', 'right', 'bottom', 'left'];
+type Side = 'top' | 'right' | 'bottom' | 'left';
 
 interface Props {
   getTransformers(): {

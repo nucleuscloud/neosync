@@ -53,9 +53,9 @@ func Test_parseMysqlRowValues(t *testing.T) {
 	})
 
 	t.Run("JSON Columns", func(t *testing.T) {
-		values := []any{[]byte(`"Hello"`), []byte(`true`), []byte(`null`), []byte(`42`), []byte(`{"items": ["book", "pen"], "count": 2, "in_stock": true}`), []byte(`[1,2,3]`)}
-		columnNames := []string{"text_col", "bool_col", "null_col", "int_col", "json_col", "array_col"}
-		cTypes := []string{"json", "json", "json", "json", "json", "json"}
+		values := []any{[]byte(`"Hello"`), []byte(`true`), []byte(`null`), []byte(`42`), []byte(`{"items": ["book", "pen"], "count": 2, "in_stock": true}`), []byte(`[1,2,3]`), nil}
+		columnNames := []string{"text_col", "bool_col", "null_col", "int_col", "json_col", "array_col", "nil_col"}
+		cTypes := []string{"json", "json", "json", "json", "json", "json", "json"}
 
 		result, err := parseMysqlRowValues(values, columnNames, cTypes)
 		require.NoError(t, err)
@@ -63,10 +63,11 @@ func Test_parseMysqlRowValues(t *testing.T) {
 		expected := map[string]any{
 			"text_col":  "Hello",
 			"bool_col":  true,
-			"null_col":  nil,
+			"null_col":  "null",
 			"int_col":   float64(42),
 			"json_col":  map[string]any{"items": []any{"book", "pen"}, "count": float64(2), "in_stock": true},
 			"array_col": []any{float64(1), float64(2), float64(3)},
+			"nil_col":   nil,
 		}
 		require.Equal(t, expected, result)
 	})

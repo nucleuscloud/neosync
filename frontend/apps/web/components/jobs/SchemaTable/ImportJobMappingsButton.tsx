@@ -1,3 +1,4 @@
+'use client';
 import ButtonText from '@/components/ButtonText';
 import ConfirmationDialog from '@/components/ConfirmationDialog';
 import SwitchCard from '@/components/switches/SwitchCard';
@@ -162,8 +163,11 @@ function Body(props: BodyProps): ReactElement {
   const [worker, setWorker] = useState<Worker | null>(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
     const workerUrl = URL.createObjectURL(workerBlob);
-    const newWorker = new Worker(workerUrl);
+    const newWorker = new window.Worker(workerUrl);
     setWorker(newWorker);
 
     return () => {

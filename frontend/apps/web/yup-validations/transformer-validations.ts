@@ -147,7 +147,7 @@ const generateInt64Config = Yup.object().shape({
 
 const generateStringPhoneNumberConfig = Yup.object().shape({
   min: getBigIntValidator({
-    range: [8, 12],
+    range: [8, 14],
   }).test(
     'is-less-than-or-equal-to-max',
     'Min must be less than or equal to Max',
@@ -158,7 +158,7 @@ const generateStringPhoneNumberConfig = Yup.object().shape({
     }
   ),
   max: getBigIntValidator({
-    range: [8, 12],
+    range: [8, 14],
   }).test(
     'is-greater-than-or-equal-to-min',
     'Max must be greater than or equal to Min',
@@ -436,6 +436,7 @@ const TRANSFORMER_SCHEMA_CONFIGS = {
   generateBusinessNameConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
   generateIpAddressConfig: generateIpAddressConfig,
   transformUuidConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  transformScrambleIdentityConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
 
   transformPiiTextConfig: transformPiiTextConfig,
 } as const;
@@ -531,7 +532,7 @@ const transformerNameSchema = Yup.string()
         return true;
       } catch (error) {
         return context.createError({
-          message: 'Error validating name availability.',
+          message: `Error validating name availability: ${error}`,
         });
       }
     }

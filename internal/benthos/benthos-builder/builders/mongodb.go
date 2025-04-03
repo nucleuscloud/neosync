@@ -7,10 +7,9 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -26,7 +25,10 @@ func NewMongoDbSyncBuilder(
 	}
 }
 
-func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
+func (b *mongodbSyncBuilder) BuildSourceConfigs(
+	ctx context.Context,
+	params *bb_internal.SourceParams,
+) ([]*bb_internal.BenthosSourceConfig, error) {
 	sourceConnection := params.SourceConnection
 	job := params.Job
 	groupedMappings := groupMappingsByTable(job.GetMappings())
@@ -65,16 +67,31 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_
 			columns = append(columns, jm.Column)
 		}
 
+		schemaTable := sqlmanager_shared.SchemaTable{
+			Schema: tableMapping.Schema,
+			Table:  tableMapping.Table,
+		}
+		runconfigType := runconfigs.RunTypeInsert
+		runconfigId := fmt.Sprintf("%s.%s", schemaTable.String(), runconfigType)
 		splitColumnPaths := true
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
-			tabledependency.NewRunConfig(tableMapping.Table, tabledependency.RunTypeInsert, []string{}, nil, columns, columns, nil, nil, splitColumnPaths),
+			runconfigs.NewRunConfig(
+				runconfigId,
+				schemaTable,
+				runconfigType,
+				[]string{},
+				nil,
+				columns,
+				columns,
+				nil,
+				splitColumnPaths,
+			),
 			map[string][]*bb_internal.ReferenceKey{},
 			map[string][]*bb_internal.ReferenceKey{},
 			params.Job.Id,
-			params.WorkflowId,
-			&neosync_redis.RedisConfig{},
+			params.JobRunId,
 			tableMapping.Mappings,
 			map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 			job.GetSource().GetOptions(),
@@ -84,7 +101,7 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_
 			return nil, err
 		}
 		for _, pc := range processorConfigs {
-			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
+			bc.Pipeline.Processors = append(bc.Pipeline.Processors, *pc)
 		}
 
 		benthosConfigs = append(benthosConfigs, &bb_internal.BenthosSourceConfig{
@@ -92,8 +109,8 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_
 			Name:        fmt.Sprintf("%s.%s", tableMapping.Schema, tableMapping.Table), // todo
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
-			RunType:     tabledependency.RunTypeInsert,
-			DependsOn:   []*tabledependency.DependsOn{},
+			RunType:     runconfigs.RunTypeInsert,
+			DependsOn:   []*runconfigs.DependsOn{},
 			Columns:     columns,
 			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: sourceConnection.GetId()}},
 
@@ -108,30 +125,39 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_
 	return benthosConfigs, nil
 }
 
-func (b *mongodbSyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
+func (b *mongodbSyncBuilder) BuildDestinationConfig(
+	ctx context.Context,
+	params *bb_internal.DestinationParams,
+) (*bb_internal.BenthosDestinationConfig, error) {
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	benthosConfig := params.SourceConfig
-	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.GetId()})
-	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{PooledMongoDB: &neosync_benthos.OutputMongoDb{
-		ConnectionId: params.DestConnection.GetId(),
+	config.BenthosDsns = append(
+		config.BenthosDsns,
+		&bb_shared.BenthosDsn{ConnectionId: params.DestConnection.GetId()},
+	)
+	config.Outputs = append(
+		config.Outputs,
+		neosync_benthos.Outputs{PooledMongoDB: &neosync_benthos.OutputMongoDb{
+			ConnectionId: params.DestConnection.GetId(),
 
-		Database:   benthosConfig.TableSchema,
-		Collection: benthosConfig.TableName,
-		Operation:  "update-one",
-		Upsert:     true,
-		DocumentMap: `
+			Database:   benthosConfig.TableSchema,
+			Collection: benthosConfig.TableName,
+			Operation:  "update-one",
+			Upsert:     true,
+			DocumentMap: `
 			root = {
 				"$set": this
 			}
 		`,
-		FilterMap: `
+			FilterMap: `
 			root._id = this._id
 		`,
-		WriteConcern: &neosync_benthos.MongoWriteConcern{
-			W: "1",
+			WriteConcern: &neosync_benthos.MongoWriteConcern{
+				W: "1",
+			},
 		},
-	},
-	})
+		},
+	)
 	return config, nil
 }

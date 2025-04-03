@@ -9,29 +9,30 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_conns "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	tablesync_shared "github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared"
 )
 
 // BenthosConfigResponse represents a complete Benthos data pipeline configuration for a specific table,
 type BenthosConfigResponse struct {
 	Name      string
-	DependsOn []*tabledependency.DependsOn
+	DependsOn []*runconfigs.DependsOn
 
 	// TODO refactor these out
 	Config                  *neosync_benthos.BenthosConfig
 	TableSchema             string
 	TableName               string
 	Columns                 []string
-	RunType                 tabledependency.RunType
+	RunType                 runconfigs.RunType
 	ColumnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
 	RedisDependsOn          map[string][]string
 	BenthosDsns             []*bb_shared.BenthosDsn
 	RedisConfig             []*bb_shared.BenthosRedisConfig
+	ColumnIdentityCursors   map[string]*tablesync_shared.IdentityCursor
 }
 
 // Combines a connection type and job type to uniquely identify a builder configuration
@@ -61,7 +62,11 @@ func NewBuilderProvider(logger *slog.Logger) *BuilderProvider {
 }
 
 // Handles registering new builders
-func (r *BuilderProvider) Register(jobType bb_internal.JobType, connType bb_shared.ConnectionType, builder bb_internal.BenthosBuilder) {
+func (r *BuilderProvider) Register(
+	jobType bb_internal.JobType,
+	connType bb_shared.ConnectionType,
+	builder bb_internal.BenthosBuilder,
+) {
 	key := BuilderKey{ConnType: connType, JobType: jobType}
 
 	r.mu.Lock()
@@ -69,7 +74,13 @@ func (r *BuilderProvider) Register(jobType bb_internal.JobType, connType bb_shar
 
 	_, exists := r.builders[key.String()]
 	if !exists {
-		r.logger.Debug(fmt.Sprintf("registering benthos builder for job type %s and connection type %s", jobType, connType))
+		r.logger.Debug(
+			fmt.Sprintf(
+				"registering benthos builder for job type %s and connection type %s",
+				jobType,
+				connType,
+			),
+		)
 		r.builders[key.String()] = builder
 	}
 }
@@ -90,7 +101,11 @@ func (r *BuilderProvider) GetBuilder(
 	builder, exists := r.builders[key.String()]
 	r.mu.RUnlock()
 	if !exists {
-		return nil, fmt.Errorf("builder not registered for connection type (%s) and job type (%s)", connectionType, jobType)
+		return nil, fmt.Errorf(
+			"builder not registered for connection type (%s) and job type (%s)",
+			connectionType,
+			jobType,
+		)
 	}
 	return builder, nil
 }
@@ -103,9 +118,13 @@ func (b *BuilderProvider) registerStandardBuilders(
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
-	redisConfig *neosync_redis.RedisConfig,
 	selectQueryBuilder bb_shared.SelectQueryMapBuilder,
+	pageLimit *int,
 ) error {
+	defaultPageLimit := 100_000
+	if pageLimit != nil && *pageLimit > 0 {
+		defaultPageLimit = *pageLimit
+	}
 	sourceConnectionType, err := bb_shared.GetConnectionType(sourceConnection)
 	if err != nil {
 		return err
@@ -124,22 +143,56 @@ func (b *BuilderProvider) registerStandardBuilders(
 		for _, connectionType := range connectionTypes {
 			switch connectionType {
 			case bb_shared.ConnectionTypePostgres:
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.PostgresDriver, selectQueryBuilder)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(
+					transformerclient,
+					sqlmanagerclient,
+					sqlmanager_shared.PostgresDriver,
+					selectQueryBuilder,
+					defaultPageLimit,
+				)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_shared.ConnectionTypeMysql:
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MysqlDriver, selectQueryBuilder)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(
+					transformerclient,
+					sqlmanagerclient,
+					sqlmanager_shared.MysqlDriver,
+					selectQueryBuilder,
+					defaultPageLimit,
+				)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_shared.ConnectionTypeMssql:
-				sqlbuilder := bb_conns.NewSqlSyncBuilder(transformerclient, sqlmanagerclient, redisConfig, sqlmanager_shared.MssqlDriver, selectQueryBuilder)
+				sqlbuilder := bb_conns.NewSqlSyncBuilder(
+					transformerclient,
+					sqlmanagerclient,
+					sqlmanager_shared.MssqlDriver,
+					selectQueryBuilder,
+					defaultPageLimit,
+				)
 				b.Register(bb_internal.JobTypeSync, connectionType, sqlbuilder)
 			case bb_shared.ConnectionTypeAwsS3:
-				b.Register(bb_internal.JobTypeSync, bb_shared.ConnectionTypeAwsS3, bb_conns.NewAwsS3SyncBuilder())
+				b.Register(
+					bb_internal.JobTypeSync,
+					bb_shared.ConnectionTypeAwsS3,
+					bb_conns.NewAwsS3SyncBuilder(),
+				)
 			case bb_shared.ConnectionTypeDynamodb:
-				b.Register(bb_internal.JobTypeSync, bb_shared.ConnectionTypeDynamodb, bb_conns.NewDynamoDbSyncBuilder(transformerclient))
+				b.Register(
+					bb_internal.JobTypeSync,
+					bb_shared.ConnectionTypeDynamodb,
+					bb_conns.NewDynamoDbSyncBuilder(transformerclient),
+				)
 			case bb_shared.ConnectionTypeMongo:
-				b.Register(bb_internal.JobTypeSync, bb_shared.ConnectionTypeMongo, bb_conns.NewMongoDbSyncBuilder(transformerclient))
+				b.Register(
+					bb_internal.JobTypeSync,
+					bb_shared.ConnectionTypeMongo,
+					bb_conns.NewMongoDbSyncBuilder(transformerclient),
+				)
 			case bb_shared.ConnectionTypeGCP:
-				b.Register(bb_internal.JobTypeSync, bb_shared.ConnectionTypeGCP, bb_conns.NewGcpCloudStorageSyncBuilder())
+				b.Register(
+					bb_internal.JobTypeSync,
+					bb_shared.ConnectionTypeGCP,
+					bb_conns.NewGcpCloudStorageSyncBuilder(),
+				)
 			default:
 				return fmt.Errorf("unsupport connection type for sync job: %s", connectionType)
 			}
@@ -148,7 +201,10 @@ func (b *BuilderProvider) registerStandardBuilders(
 
 	if jobType == bb_internal.JobTypeAIGenerate {
 		if len(destinationConnections) != 1 {
-			return fmt.Errorf("unsupported destination count for AI generate job: %d", len(destinationConnections))
+			return fmt.Errorf(
+				"unsupported destination count for AI generate job: %d",
+				len(destinationConnections),
+			)
 		}
 		destConnType, err := bb_shared.GetConnectionType(destinationConnections[0])
 		if err != nil {
@@ -158,13 +214,22 @@ func (b *BuilderProvider) registerStandardBuilders(
 		if err != nil {
 			return err
 		}
-		builder := bb_conns.NewGenerateAIBuilder(transformerclient, sqlmanagerclient, connectionclient, driver)
+		builder := bb_conns.NewGenerateAIBuilder(
+			transformerclient,
+			sqlmanagerclient,
+			connectionclient,
+			driver,
+		)
 		b.Register(bb_internal.JobTypeAIGenerate, bb_shared.ConnectionTypeOpenAI, builder)
 		b.Register(bb_internal.JobTypeAIGenerate, destConnType, builder)
 	}
 	if jobType == bb_internal.JobTypeGenerate {
 		for _, connectionType := range connectionTypes {
-			b.Register(bb_internal.JobTypeGenerate, connectionType, bb_conns.NewGenerateBuilder(transformerclient, sqlmanagerclient, connectionclient))
+			b.Register(
+				bb_internal.JobTypeGenerate,
+				connectionType,
+				bb_conns.NewGenerateBuilder(transformerclient, sqlmanagerclient, connectionclient),
+			)
 		}
 	}
 	return nil
@@ -203,7 +268,7 @@ type BenthosConfigManager struct {
 	job                    *mgmtv1alpha1.Job
 	sourceConnection       *mgmtv1alpha1.Connection
 	destinationConnections []*mgmtv1alpha1.Connection
-	workflowId             string
+	jobRunId               string
 }
 
 // Manages all necessary configuration parameters for creating
@@ -212,15 +277,15 @@ type WorkerBenthosConfig struct {
 	Job                    *mgmtv1alpha1.Job
 	SourceConnection       *mgmtv1alpha1.Connection
 	DestinationConnections []*mgmtv1alpha1.Connection
-	WorkflowId             string
+	JobRunId               string
 	MetricLabelKeyVals     map[string]string
 	Logger                 *slog.Logger
 	Sqlmanagerclient       sqlmanager.SqlManagerClient
 	Transformerclient      mgmtv1alpha1connect.TransformersServiceClient
 	Connectionclient       mgmtv1alpha1connect.ConnectionServiceClient
-	RedisConfig            *neosync_redis.RedisConfig
 	MetricsEnabled         bool
 	SelectQueryBuilder     bb_shared.SelectQueryMapBuilder
+	PageLimit              *int
 }
 
 // Creates a new BenthosConfigManager configured for worker
@@ -228,20 +293,29 @@ func NewWorkerBenthosConfigManager(
 	config *WorkerBenthosConfig,
 ) (*BenthosConfigManager, error) {
 	provider := NewBuilderProvider(config.Logger)
-	err := provider.registerStandardBuilders(
+	err := validateBenthosConfig(
+		config.Job,
+		config.SourceConnection,
+		config.DestinationConnections,
+	)
+	if err != nil {
+		return nil, err
+	}
+	err = provider.registerStandardBuilders(
 		config.Job,
 		config.SourceConnection,
 		config.DestinationConnections,
 		config.Sqlmanagerclient,
 		config.Transformerclient,
 		config.Connectionclient,
-		config.RedisConfig,
 		config.SelectQueryBuilder,
+		config.PageLimit,
 	)
 	if err != nil {
 		return nil, err
 	}
-	logger := config.Logger.With(withBenthosConfigLoggerTags(config.Job, config.SourceConnection)...)
+	logger := config.Logger.With(
+		withBenthosConfigLoggerTags(config.Job, config.SourceConnection)...)
 	return &BenthosConfigManager{
 		sourceProvider:         provider,
 		destinationProvider:    provider,
@@ -251,8 +325,28 @@ func NewWorkerBenthosConfigManager(
 		job:                    config.Job,
 		sourceConnection:       config.SourceConnection,
 		destinationConnections: config.DestinationConnections,
-		workflowId:             config.WorkflowId,
+		jobRunId:               config.JobRunId,
 	}, nil
+}
+
+func validateBenthosConfig(
+	job *mgmtv1alpha1.Job,
+	sourceConnection *mgmtv1alpha1.Connection,
+	destinationConnections []*mgmtv1alpha1.Connection,
+) error {
+	if sourceConnection == nil {
+		return fmt.Errorf("data sync job must have a source connection")
+	}
+	if len(destinationConnections) == 0 {
+		return fmt.Errorf("data sync job must have at least one destination connection")
+	}
+	if len(job.GetDestinations()) == 0 {
+		return fmt.Errorf("data sync job must have at least one destination")
+	}
+	if job.GetSource() == nil {
+		return fmt.Errorf("data sync job must have a source")
+	}
+	return nil
 }
 
 // Manages all necessary configuration parameters for creating
@@ -262,31 +356,39 @@ type CliBenthosConfig struct {
 	SourceConnection      *mgmtv1alpha1.Connection
 	DestinationConnection *mgmtv1alpha1.Connection
 	SourceJobRunId        *string // for use when AWS S3 is the source
-	SyncConfigs           []*tabledependency.RunConfig
-	WorkflowId            string
+	SyncConfigs           []*runconfigs.RunConfig
+	JobRunId              string
 	MetricLabelKeyVals    map[string]string
 	Logger                *slog.Logger
 	Sqlmanagerclient      sqlmanager.SqlManagerClient
 	Transformerclient     mgmtv1alpha1connect.TransformersServiceClient
 	Connectiondataclient  mgmtv1alpha1connect.ConnectionDataServiceClient
-	RedisConfig           *neosync_redis.RedisConfig
 	MetricsEnabled        bool
+	PageLimit             *int
 }
 
 // Creates a new BenthosConfigManager configured for CLI
 func NewCliBenthosConfigManager(
 	config *CliBenthosConfig,
 ) (*BenthosConfigManager, error) {
+	err := validateBenthosConfig(
+		config.Job,
+		config.SourceConnection,
+		[]*mgmtv1alpha1.Connection{config.DestinationConnection},
+	)
+	if err != nil {
+		return nil, err
+	}
 	destinationProvider := NewBuilderProvider(config.Logger)
-	err := destinationProvider.registerStandardBuilders(
+	err = destinationProvider.registerStandardBuilders(
 		config.Job,
 		config.SourceConnection,
 		[]*mgmtv1alpha1.Connection{config.DestinationConnection},
 		config.Sqlmanagerclient,
 		config.Transformerclient,
 		nil,
-		config.RedisConfig,
 		nil,
+		config.PageLimit,
 	)
 	if err != nil {
 		return nil, err
@@ -297,7 +399,8 @@ func NewCliBenthosConfigManager(
 		return nil, err
 	}
 
-	logger := config.Logger.With(withBenthosConfigLoggerTags(config.Job, config.SourceConnection)...)
+	logger := config.Logger.With(
+		withBenthosConfigLoggerTags(config.Job, config.SourceConnection)...)
 	return &BenthosConfigManager{
 		sourceProvider:         sourceProvider,
 		destinationProvider:    destinationProvider,
@@ -306,7 +409,7 @@ func NewCliBenthosConfigManager(
 		job:                    config.Job,
 		sourceConnection:       config.SourceConnection,
 		destinationConnections: []*mgmtv1alpha1.Connection{config.DestinationConnection},
-		workflowId:             config.WorkflowId,
+		jobRunId:               config.JobRunId,
 	}, nil
 }
 

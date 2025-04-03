@@ -393,6 +393,11 @@ func TestValidateCircularDependencies(t *testing.T) {
 			{Schema: "schema1", Table: "table2", Column: "col1"},
 		}
 
+		primaryKeys := map[string][]string{
+			"schema1.table1": {"col1"},
+			"schema1.table2": {"col1"},
+		}
+
 		foreignKeys := map[string][]*sqlmanager_shared.ForeignConstraint{
 			"schema1.table1": {
 				{
@@ -417,20 +422,25 @@ func TestValidateCircularDependencies(t *testing.T) {
 		}
 
 		jmv := NewJobMappingsValidator(mappings)
-		err := jmv.ValidateCircularDependencies(foreignKeys, []*mgmtv1alpha1.VirtualForeignConstraint{}, map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{})
+		err := jmv.ValidateCircularDependencies(foreignKeys, primaryKeys, []*mgmtv1alpha1.VirtualForeignConstraint{}, map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{})
 		require.NoError(t, err)
 
 		errs := jmv.GetDatabaseErrors()
 		require.Len(t, errs, 1)
 		require.Len(t, errs, 1)
 		assert.Equal(t, mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE, errs[0].Code)
-		assert.Contains(t, errs[0].Message, "Unsupported circular dependency. At least one foreign key in circular dependency must be nullable")
+		assert.Contains(t, errs[0].Message, "unsupported circular dependency detected. at least one foreign key in circular dependency must be nullable")
 	})
 
 	t.Run("should not return error when cycle has nullable foreign key", func(t *testing.T) {
 		mappings := []*mgmtv1alpha1.JobMapping{
 			{Schema: "schema1", Table: "table1", Column: "col1"},
 			{Schema: "schema1", Table: "table2", Column: "col1"},
+		}
+
+		primaryKeys := map[string][]string{
+			"schema1.table1": {"col1"},
+			"schema1.table2": {"col1"},
 		}
 
 		foreignKeys := map[string][]*sqlmanager_shared.ForeignConstraint{
@@ -457,7 +467,7 @@ func TestValidateCircularDependencies(t *testing.T) {
 		}
 
 		jmv := NewJobMappingsValidator(mappings)
-		err := jmv.ValidateCircularDependencies(foreignKeys, []*mgmtv1alpha1.VirtualForeignConstraint{}, map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{})
+		err := jmv.ValidateCircularDependencies(foreignKeys, primaryKeys, []*mgmtv1alpha1.VirtualForeignConstraint{}, map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{})
 		require.NoError(t, err)
 
 		errs := jmv.GetDatabaseErrors()
@@ -468,6 +478,11 @@ func TestValidateCircularDependencies(t *testing.T) {
 		mappings := []*mgmtv1alpha1.JobMapping{
 			{Schema: "schema1", Table: "table1", Column: "col1"},
 			{Schema: "schema1", Table: "table2", Column: "col1"},
+		}
+
+		primaryKeys := map[string][]string{
+			"schema1.table1": {"col1"},
+			"schema1.table2": {"col1"},
 		}
 
 		virtualForeignKeys := []*mgmtv1alpha1.VirtualForeignConstraint{
@@ -497,7 +512,7 @@ func TestValidateCircularDependencies(t *testing.T) {
 		}
 
 		jmv := NewJobMappingsValidator(mappings)
-		err := jmv.ValidateCircularDependencies(map[string][]*sqlmanager_shared.ForeignConstraint{}, virtualForeignKeys, tableColumnMap)
+		err := jmv.ValidateCircularDependencies(map[string][]*sqlmanager_shared.ForeignConstraint{}, primaryKeys, virtualForeignKeys, tableColumnMap)
 		require.NoError(t, err)
 	})
 
@@ -506,6 +521,12 @@ func TestValidateCircularDependencies(t *testing.T) {
 			{Schema: "schema1", Table: "table1", Column: "col1"},
 			{Schema: "schema1", Table: "table2", Column: "col1"},
 			{Schema: "schema1", Table: "table3", Column: "col1"},
+		}
+
+		primaryKeys := map[string][]string{
+			"schema1.table1": {"col1"},
+			"schema1.table2": {"col1"},
+			"schema1.table3": {"col1"},
 		}
 
 		foreignKeys := map[string][]*sqlmanager_shared.ForeignConstraint{
@@ -563,19 +584,23 @@ func TestValidateCircularDependencies(t *testing.T) {
 		}
 
 		jmv := NewJobMappingsValidator(mappings)
-		err := jmv.ValidateCircularDependencies(foreignKeys, virtualForeignKeys, tableColumnMap)
+		err := jmv.ValidateCircularDependencies(foreignKeys, primaryKeys, virtualForeignKeys, tableColumnMap)
 		require.NoError(t, err)
 
 		errs := jmv.GetDatabaseErrors()
 		require.NotEmpty(t, errs)
 		require.Len(t, errs, 1)
 		assert.Equal(t, mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE, errs[0].Code)
-		assert.Contains(t, errs[0].Message, "Unsupported circular dependency. At least one foreign key in circular dependency must be nullable")
+		assert.Contains(t, errs[0].Message, "unsupported circular dependency detected. at least one foreign key in circular dependency must be nullable")
 	})
 
 	t.Run("should skip tables not in mappings", func(t *testing.T) {
 		mappings := []*mgmtv1alpha1.JobMapping{
 			{Schema: "schema1", Table: "table1", Column: "col1"},
+		}
+
+		primaryKeys := map[string][]string{
+			"schema1.table1": {"col1"},
 		}
 
 		foreignKeys := map[string][]*sqlmanager_shared.ForeignConstraint{
@@ -592,7 +617,7 @@ func TestValidateCircularDependencies(t *testing.T) {
 		}
 
 		jmv := NewJobMappingsValidator(mappings)
-		err := jmv.ValidateCircularDependencies(foreignKeys, []*mgmtv1alpha1.VirtualForeignConstraint{}, map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{})
+		err := jmv.ValidateCircularDependencies(foreignKeys, primaryKeys, []*mgmtv1alpha1.VirtualForeignConstraint{}, map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{})
 		require.NoError(t, err)
 
 		errs := jmv.GetDatabaseErrors()
@@ -603,6 +628,11 @@ func TestValidateCircularDependencies(t *testing.T) {
 		mappings := []*mgmtv1alpha1.JobMapping{
 			{Schema: "schema1", Table: "table1", Column: "col1"},
 			{Schema: "schema1", Table: "table2", Column: "col1"},
+		}
+
+		primaryKeys := map[string][]string{
+			"schema1.table1": {"col1"},
+			"schema1.table2": {"col1"},
 		}
 
 		virtualForeignKeys := []*mgmtv1alpha1.VirtualForeignConstraint{
@@ -632,7 +662,7 @@ func TestValidateCircularDependencies(t *testing.T) {
 		}
 
 		jmv := NewJobMappingsValidator(mappings)
-		err := jmv.ValidateCircularDependencies(map[string][]*sqlmanager_shared.ForeignConstraint{}, virtualForeignKeys, tableColumnMap)
+		err := jmv.ValidateCircularDependencies(map[string][]*sqlmanager_shared.ForeignConstraint{}, primaryKeys, virtualForeignKeys, tableColumnMap)
 		require.NoError(t, err)
 
 		errs := jmv.GetColumnErrors()
@@ -1212,5 +1242,292 @@ func TestValidate(t *testing.T) {
 				Message: "Table does not exist [schema1.missing_table] in source",
 			},
 		}, resp.TableErrors["schema1.missing_table"])
+	})
+}
+
+func Test_ValidateVirtualForeignKeys(t *testing.T) {
+	t.Run("should validate circular dependencies with nullable column", func(t *testing.T) {
+		// store_notifications -> stores -> store_customers -> referral_codes -> store_customers (circular)
+		// But store_customers.referred_by_code is nullable, so this should be valid
+
+		mappings := []*mgmtv1alpha1.JobMapping{
+			// store_notifications
+			{Schema: "public", Table: "store_notifications", Column: "id"},
+
+			// stores
+			{Schema: "public", Table: "stores", Column: "id"},
+			{Schema: "public", Table: "stores", Column: "notifications_id"},
+
+			// store_customers
+			{Schema: "public", Table: "store_customers", Column: "id"},
+			{Schema: "public", Table: "store_customers", Column: "store_id"},
+			{Schema: "public", Table: "store_customers", Column: "referred_by_code"},
+
+			// referral_codes
+			{Schema: "public", Table: "referral_codes", Column: "id"},
+			{Schema: "public", Table: "referral_codes", Column: "customer_id"},
+		}
+
+		tableColumnMap := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+			"public.store_notifications": {
+				"id": &sqlmanager_shared.DatabaseSchemaRow{
+					DataType:    "uuid",
+					IsNullable:  false,
+					TableName:   "store_notifications",
+					TableSchema: "public",
+				},
+			},
+			"public.stores": {
+				"id": &sqlmanager_shared.DatabaseSchemaRow{
+					DataType:    "uuid",
+					IsNullable:  false,
+					TableName:   "stores",
+					TableSchema: "public",
+				},
+				"notifications_id": &sqlmanager_shared.DatabaseSchemaRow{
+					DataType:    "uuid",
+					IsNullable:  false,
+					TableName:   "stores",
+					TableSchema: "public",
+				},
+			},
+			"public.store_customers": {
+				"id": &sqlmanager_shared.DatabaseSchemaRow{
+					DataType:    "uuid",
+					IsNullable:  false,
+					TableName:   "store_customers",
+					TableSchema: "public",
+				},
+				"store_id": &sqlmanager_shared.DatabaseSchemaRow{
+					DataType:    "uuid",
+					IsNullable:  false,
+					TableName:   "store_customers",
+					TableSchema: "public",
+				},
+				"referred_by_code": &sqlmanager_shared.DatabaseSchemaRow{
+					DataType:    "uuid",
+					IsNullable:  true,
+					TableName:   "store_customers",
+					TableSchema: "public",
+				},
+			},
+			"public.referral_codes": {
+				"id": &sqlmanager_shared.DatabaseSchemaRow{
+					DataType:    "uuid",
+					IsNullable:  false,
+					TableName:   "referral_codes",
+					TableSchema: "public",
+				},
+				"customer_id": &sqlmanager_shared.DatabaseSchemaRow{
+					DataType:    "uuid",
+					IsNullable:  false,
+					TableName:   "referral_codes",
+					TableSchema: "public",
+				},
+			},
+		}
+
+		virtualForeignKeys := []*mgmtv1alpha1.VirtualForeignConstraint{
+			{
+				Schema:  "public",
+				Table:   "store_customers",
+				Columns: []string{"store_id"},
+				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
+					Schema:  "public",
+					Table:   "stores",
+					Columns: []string{"id"},
+				},
+			},
+			{
+				Schema:  "public",
+				Table:   "store_customers",
+				Columns: []string{"referred_by_code"},
+				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
+					Schema:  "public",
+					Table:   "referral_codes",
+					Columns: []string{"id"},
+				},
+			},
+			{
+				Schema:  "public",
+				Table:   "stores",
+				Columns: []string{"notifications_id"},
+				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
+					Schema:  "public",
+					Table:   "store_notifications",
+					Columns: []string{"id"},
+				},
+			},
+			{
+				Schema:  "public",
+				Table:   "referral_codes",
+				Columns: []string{"customer_id"},
+				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
+					Schema:  "public",
+					Table:   "store_customers",
+					Columns: []string{"id"},
+				},
+			},
+		}
+
+		primaryKeyConstraints := map[string][]string{
+			"public.store_notifications": {"id"},
+			"public.stores":              {"id"},
+			"public.store_customers":     {"id"},
+			"public.referral_codes":      {"id"},
+		}
+
+		tableConstraints := &sqlmanager_shared.TableConstraints{
+			ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{},
+			PrimaryKeyConstraints: primaryKeyConstraints,
+		}
+
+		jmv := NewJobMappingsValidator(mappings)
+		resp, err := jmv.Validate(tableColumnMap, virtualForeignKeys, tableConstraints)
+
+		require.NoError(t, err)
+		assert.Empty(t, resp.DatabaseErrors)
+	})
+
+	t.Run("should return error for unsupported circular dependencies", func(t *testing.T) {
+		// Same schema but with non-nullable referred_by_code, creating an unsupported circular dependency
+		mappings := []*mgmtv1alpha1.JobMapping{
+			// store_notifications
+			{Schema: "public", Table: "store_notifications", Column: "id"},
+
+			// stores
+			{Schema: "public", Table: "stores", Column: "id"},
+			{Schema: "public", Table: "stores", Column: "notifications_id"},
+
+			// store_customers
+			{Schema: "public", Table: "store_customers", Column: "id"},
+			{Schema: "public", Table: "store_customers", Column: "store_id"},
+			{Schema: "public", Table: "store_customers", Column: "referred_by_code"},
+
+			// referral_codes
+			{Schema: "public", Table: "referral_codes", Column: "id"},
+			{Schema: "public", Table: "referral_codes", Column: "customer_id"},
+		}
+
+		tableColumnMap := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
+			"public.store_notifications": {
+				"id": &sqlmanager_shared.DatabaseSchemaRow{
+					TableSchema: "public",
+					TableName:   "store_notifications",
+					DataType:    "uuid",
+					IsNullable:  false,
+				},
+			},
+			"public.stores": {
+				"id": &sqlmanager_shared.DatabaseSchemaRow{
+					TableSchema: "public",
+					TableName:   "stores",
+					DataType:    "uuid",
+					IsNullable:  false,
+				},
+				"notifications_id": &sqlmanager_shared.DatabaseSchemaRow{
+					TableSchema: "public",
+					TableName:   "stores",
+					DataType:    "uuid",
+					IsNullable:  false,
+				},
+			},
+			"public.store_customers": {
+				"id": &sqlmanager_shared.DatabaseSchemaRow{
+					TableSchema: "public",
+					TableName:   "store_customers",
+					DataType:    "uuid",
+					IsNullable:  false,
+				},
+				"store_id": &sqlmanager_shared.DatabaseSchemaRow{
+					TableSchema: "public",
+					TableName:   "store_customers",
+					DataType:    "uuid",
+					IsNullable:  false,
+				},
+				"referred_by_code": &sqlmanager_shared.DatabaseSchemaRow{
+					TableSchema: "public",
+					TableName:   "store_customers",
+					DataType:    "uuid",
+					IsNullable:  false, // Changed to non-nullable, creating an unsupported circular dependency
+				},
+			},
+			"public.referral_codes": {
+				"id": &sqlmanager_shared.DatabaseSchemaRow{
+					TableSchema: "public",
+					TableName:   "referral_codes",
+					DataType:    "uuid",
+					IsNullable:  false,
+				},
+				"customer_id": &sqlmanager_shared.DatabaseSchemaRow{
+					TableSchema: "public",
+					TableName:   "referral_codes",
+					DataType:    "uuid",
+					IsNullable:  false,
+				},
+			},
+		}
+
+		virtualForeignKeys := []*mgmtv1alpha1.VirtualForeignConstraint{
+			{
+				Schema:  "public",
+				Table:   "store_customers",
+				Columns: []string{"store_id"},
+				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
+					Schema:  "public",
+					Table:   "stores",
+					Columns: []string{"id"},
+				},
+			},
+			{
+				Schema:  "public",
+				Table:   "store_customers",
+				Columns: []string{"referred_by_code"},
+				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
+					Schema:  "public",
+					Table:   "referral_codes",
+					Columns: []string{"id"},
+				},
+			},
+			{
+				Schema:  "public",
+				Table:   "stores",
+				Columns: []string{"notifications_id"},
+				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
+					Schema:  "public",
+					Table:   "store_notifications",
+					Columns: []string{"id"},
+				},
+			},
+			{
+				Schema:  "public",
+				Table:   "referral_codes",
+				Columns: []string{"customer_id"},
+				ForeignKey: &mgmtv1alpha1.VirtualForeignKey{
+					Schema:  "public",
+					Table:   "store_customers",
+					Columns: []string{"id"},
+				},
+			},
+		}
+
+		primaryKeyConstraints := map[string][]string{
+			"public.store_notifications": {"id"},
+			"public.stores":              {"id"},
+			"public.store_customers":     {"id"},
+			"public.referral_codes":      {"id"},
+		}
+
+		tableConstraints := &sqlmanager_shared.TableConstraints{
+			ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{},
+			PrimaryKeyConstraints: primaryKeyConstraints,
+		}
+
+		jmv := NewJobMappingsValidator(mappings)
+		resp, err := jmv.Validate(tableColumnMap, virtualForeignKeys, tableConstraints)
+
+		require.NoError(t, err)
+		require.NotEmpty(t, resp.DatabaseErrors)
+		assert.Equal(t, mgmtv1alpha1.DatabaseError_DATABASE_ERROR_CODE_UNSUPPORTED_CIRCULAR_DEPENDENCY_AT_LEAST_ONE_NULLABLE, resp.DatabaseErrors[0].Code)
 	})
 }

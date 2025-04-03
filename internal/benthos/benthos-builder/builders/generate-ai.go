@@ -10,10 +10,10 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
@@ -48,11 +48,17 @@ type aiGenerateColumn struct {
 	DataType string
 }
 
-func (b *generateAIBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
+func (b *generateAIBuilder) BuildSourceConfigs(
+	ctx context.Context,
+	params *bb_internal.SourceParams,
+) ([]*bb_internal.BenthosSourceConfig, error) {
 	jobSource := params.Job.GetSource()
 	sourceOptions := jobSource.GetOptions().GetAiGenerate()
 	if sourceOptions == nil {
-		return nil, fmt.Errorf("job does not have AiGenerate source options, has: %T", jobSource.GetOptions().Config)
+		return nil, fmt.Errorf(
+			"job does not have AiGenerate source options, has: %T",
+			jobSource.GetOptions().Config,
+		)
 	}
 	sourceConnection := params.SourceConnection
 
@@ -60,11 +66,21 @@ func (b *generateAIBuilder) BuildSourceConfigs(ctx context.Context, params *bb_i
 	if openaiConfig == nil {
 		return nil, errors.New("configured source connection is not an openai configuration")
 	}
-	constraintConnection, err := getConstraintConnection(ctx, jobSource, b.connectionclient, shared.GetConnectionById)
+	constraintConnection, err := getConstraintConnection(
+		ctx,
+		jobSource,
+		b.connectionclient,
+		shared.GetConnectionById,
+	)
 	if err != nil {
 		return nil, err
 	}
-	db, err := b.sqlmanagerclient.NewSqlConnection(ctx, connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.WorkflowId)), constraintConnection, params.Logger)
+	db, err := b.sqlmanagerclient.NewSqlConnection(
+		ctx,
+		connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(params.JobRunId)),
+		constraintConnection,
+		params.Logger,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
@@ -82,7 +98,10 @@ func (b *generateAIBuilder) BuildSourceConfigs(ctx context.Context, params *bb_i
 
 			tableColsMap, ok := groupedSchemas[sqlmanager_shared.BuildTable(schema.GetSchema(), table.GetTable())]
 			if !ok {
-				return nil, fmt.Errorf("did not find schema data when building AI Generate config: %s", schema.GetSchema())
+				return nil, fmt.Errorf(
+					"did not find schema data when building AI Generate config: %s",
+					schema.GetSchema(),
+				)
 			}
 			for col, info := range tableColsMap {
 				columns = append(columns, &aiGenerateColumn{
@@ -100,7 +119,10 @@ func (b *generateAIBuilder) BuildSourceConfigs(ctx context.Context, params *bb_i
 		}
 	}
 	if len(mappings) == 0 {
-		return nil, fmt.Errorf("did not generate any mapping configs during AI Generate build for connection: %s", constraintConnection.GetId())
+		return nil, fmt.Errorf(
+			"did not generate any mapping configs during AI Generate build for connection: %s",
+			constraintConnection.GetId(),
+		)
 	}
 
 	var userPrompt *string
@@ -179,9 +201,12 @@ func buildBenthosAiGenerateSourceConfigResponses(
 		}
 
 		responses = append(responses, &bb_internal.BenthosSourceConfig{
-			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
+			Name: neosync_benthos.BuildBenthosTable(
+				tableMapping.Schema,
+				tableMapping.Table,
+			), // todo: may need to expand on this
 			Config:    bc,
-			DependsOn: []*tabledependency.DependsOn{},
+			DependsOn: []*runconfigs.DependsOn{},
 
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
@@ -197,7 +222,10 @@ func buildBenthosAiGenerateSourceConfigResponses(
 	return responses
 }
 
-func (b *generateAIBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
+func (b *generateAIBuilder) BuildDestinationConfig(
+	ctx context.Context,
+	params *bb_internal.DestinationParams,
+) (*bb_internal.BenthosDestinationConfig, error) {
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	benthosConfig := params.SourceConfig
@@ -211,7 +239,10 @@ func (b *generateAIBuilder) BuildDestinationConfig(ctx context.Context, params *
 		processorConfigs = append(processorConfigs, *pc)
 	}
 
-	config.BenthosDsns = append(config.BenthosDsns, &bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id})
+	config.BenthosDsns = append(
+		config.BenthosDsns,
+		&bb_shared.BenthosDsn{ConnectionId: params.DestConnection.Id},
+	)
 	config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 		// retry processor and output several times
 		Retry: &neosync_benthos.RetryConfig{
@@ -273,7 +304,11 @@ func getConstraintConnection(
 	}
 	connection, err := getConnectionById(ctx, connclient, connectionId)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get constraint connection by id (%s): %w", connectionId, err)
+		return nil, fmt.Errorf(
+			"unable to get constraint connection by id (%s): %w",
+			connectionId,
+			err,
+		)
 	}
 	return connection, nil
 }

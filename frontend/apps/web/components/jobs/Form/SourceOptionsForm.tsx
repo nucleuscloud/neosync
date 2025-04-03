@@ -53,7 +53,7 @@ export default function SourceOptionsForm(
         <MysqlDBSourceOptionsForm
           value={
             value.mysql ?? {
-              haltOnNewColumnAddition: false,
+              newColumnAdditionStrategy: 'continue',
               columnRemovalStrategy: 'continue',
             }
           }
@@ -100,7 +100,7 @@ export default function SourceOptionsForm(
         <MssqlDBSourceOptionsForm
           value={
             value.mssql ?? {
-              haltOnNewColumnAddition: false,
+              newColumnAdditionStrategy: 'continue',
               columnRemovalStrategy: 'continue',
             }
           }

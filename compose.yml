@@ -41,7 +41,7 @@ services:
       - POSTGRES_PASSWORD=foofar
       - PGUSER=postgres
     healthcheck:
-      test: ["CMD", "pg_isready"]
+      test: ['CMD', 'pg_isready']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -61,6 +61,7 @@ services:
       - HOST=0.0.0.0
       - PORT=8080
       - NUCLEUS_ENV=dev
+      - APP_BASEURL=http://localhost:3000
       - TEMPORAL_URL=temporal:7233
       - DB_AUTO_MIGRATE=true
       - DB_SCHEMA_DIR=/migrations
@@ -100,7 +101,7 @@ services:
 
   temporal-seed:
     container_name: neosync-temporal-seed
-    image: temporalio/admin-tools:1.23.0
+    image: temporalio/admin-tools:1.26.2
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
     entrypoint: /bin/sh -c "/create_schedules.sh"
@@ -122,6 +123,7 @@ services:
       - TEMPORAL_TASK_QUEUE=sync-job
       - NEOSYNC_URL=http://api:8080
       - REDIS_URL=redis://default:foofar@redis:6379
+      - TABLESYNC_MAX_CONCURRENCY=3
     networks:
       - neosync-network
       - temporal-network

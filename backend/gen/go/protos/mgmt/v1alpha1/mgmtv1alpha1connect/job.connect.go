@@ -106,6 +106,9 @@ const (
 	// JobServiceValidateJobMappingsProcedure is the fully-qualified name of the JobService's
 	// ValidateJobMappings RPC.
 	JobServiceValidateJobMappingsProcedure = "/mgmt.v1alpha1.JobService/ValidateJobMappings"
+	// JobServiceValidateSchemaProcedure is the fully-qualified name of the JobService's ValidateSchema
+	// RPC.
+	JobServiceValidateSchemaProcedure = "/mgmt.v1alpha1.JobService/ValidateSchema"
 	// JobServiceGetRunContextProcedure is the fully-qualified name of the JobService's GetRunContext
 	// RPC.
 	JobServiceGetRunContextProcedure = "/mgmt.v1alpha1.JobService/GetRunContext"
@@ -137,6 +140,9 @@ const (
 	// JobServiceGetActiveJobHooksByTimingProcedure is the fully-qualified name of the JobService's
 	// GetActiveJobHooksByTiming RPC.
 	JobServiceGetActiveJobHooksByTimingProcedure = "/mgmt.v1alpha1.JobService/GetActiveJobHooksByTiming"
+	// JobServiceGetPiiDetectionReportProcedure is the fully-qualified name of the JobService's
+	// GetPiiDetectionReport RPC.
+	JobServiceGetPiiDetectionReportProcedure = "/mgmt.v1alpha1.JobService/GetPiiDetectionReport"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -170,6 +176,7 @@ var (
 	jobServiceSetJobWorkflowOptionsMethodDescriptor            = jobServiceServiceDescriptor.Methods().ByName("SetJobWorkflowOptions")
 	jobServiceSetJobSyncOptionsMethodDescriptor                = jobServiceServiceDescriptor.Methods().ByName("SetJobSyncOptions")
 	jobServiceValidateJobMappingsMethodDescriptor              = jobServiceServiceDescriptor.Methods().ByName("ValidateJobMappings")
+	jobServiceValidateSchemaMethodDescriptor                   = jobServiceServiceDescriptor.Methods().ByName("ValidateSchema")
 	jobServiceGetRunContextMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("GetRunContext")
 	jobServiceSetRunContextMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("SetRunContext")
 	jobServiceSetRunContextsMethodDescriptor                   = jobServiceServiceDescriptor.Methods().ByName("SetRunContexts")
@@ -181,6 +188,7 @@ var (
 	jobServiceUpdateJobHookMethodDescriptor                    = jobServiceServiceDescriptor.Methods().ByName("UpdateJobHook")
 	jobServiceSetJobHookEnabledMethodDescriptor                = jobServiceServiceDescriptor.Methods().ByName("SetJobHookEnabled")
 	jobServiceGetActiveJobHooksByTimingMethodDescriptor        = jobServiceServiceDescriptor.Methods().ByName("GetActiveJobHooksByTiming")
+	jobServiceGetPiiDetectionReportMethodDescriptor            = jobServiceServiceDescriptor.Methods().ByName("GetPiiDetectionReport")
 )
 
 // JobServiceClient is a client for the mgmt.v1alpha1.JobService service.
@@ -242,6 +250,8 @@ type JobServiceClient interface {
 	SetJobSyncOptions(context.Context, *connect.Request[v1alpha1.SetJobSyncOptionsRequest]) (*connect.Response[v1alpha1.SetJobSyncOptionsResponse], error)
 	// Validates that the jobmapping configured can run with table constraints
 	ValidateJobMappings(context.Context, *connect.Request[v1alpha1.ValidateJobMappingsRequest]) (*connect.Response[v1alpha1.ValidateJobMappingsResponse], error)
+	// Validates that the schema is compatible with the job mappings
+	ValidateSchema(context.Context, *connect.Request[v1alpha1.ValidateSchemaRequest]) (*connect.Response[v1alpha1.ValidateSchemaResponse], error)
 	// Gets a run context to be used by a workflow run
 	GetRunContext(context.Context, *connect.Request[v1alpha1.GetRunContextRequest]) (*connect.Response[v1alpha1.GetRunContextResponse], error)
 	// Sets a run context to be used by a workflow run
@@ -264,6 +274,7 @@ type JobServiceClient interface {
 	SetJobHookEnabled(context.Context, *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error)
 	// Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
 	GetActiveJobHooksByTiming(context.Context, *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error)
+	GetPiiDetectionReport(context.Context, *connect.Request[v1alpha1.GetPiiDetectionReportRequest]) (*connect.Response[v1alpha1.GetPiiDetectionReportResponse], error)
 }
 
 // NewJobServiceClient constructs a client for the mgmt.v1alpha1.JobService service. By default, it
@@ -454,6 +465,12 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(jobServiceValidateJobMappingsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		validateSchema: connect.NewClient[v1alpha1.ValidateSchemaRequest, v1alpha1.ValidateSchemaResponse](
+			httpClient,
+			baseURL+JobServiceValidateSchemaProcedure,
+			connect.WithSchema(jobServiceValidateSchemaMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 		getRunContext: connect.NewClient[v1alpha1.GetRunContextRequest, v1alpha1.GetRunContextResponse](
 			httpClient,
 			baseURL+JobServiceGetRunContextProcedure,
@@ -523,6 +540,13 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
+		getPiiDetectionReport: connect.NewClient[v1alpha1.GetPiiDetectionReportRequest, v1alpha1.GetPiiDetectionReportResponse](
+			httpClient,
+			baseURL+JobServiceGetPiiDetectionReportProcedure,
+			connect.WithSchema(jobServiceGetPiiDetectionReportMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -556,6 +580,7 @@ type jobServiceClient struct {
 	setJobWorkflowOptions            *connect.Client[v1alpha1.SetJobWorkflowOptionsRequest, v1alpha1.SetJobWorkflowOptionsResponse]
 	setJobSyncOptions                *connect.Client[v1alpha1.SetJobSyncOptionsRequest, v1alpha1.SetJobSyncOptionsResponse]
 	validateJobMappings              *connect.Client[v1alpha1.ValidateJobMappingsRequest, v1alpha1.ValidateJobMappingsResponse]
+	validateSchema                   *connect.Client[v1alpha1.ValidateSchemaRequest, v1alpha1.ValidateSchemaResponse]
 	getRunContext                    *connect.Client[v1alpha1.GetRunContextRequest, v1alpha1.GetRunContextResponse]
 	setRunContext                    *connect.Client[v1alpha1.SetRunContextRequest, v1alpha1.SetRunContextResponse]
 	setRunContexts                   *connect.Client[v1alpha1.SetRunContextsRequest, v1alpha1.SetRunContextsResponse]
@@ -567,6 +592,7 @@ type jobServiceClient struct {
 	updateJobHook                    *connect.Client[v1alpha1.UpdateJobHookRequest, v1alpha1.UpdateJobHookResponse]
 	setJobHookEnabled                *connect.Client[v1alpha1.SetJobHookEnabledRequest, v1alpha1.SetJobHookEnabledResponse]
 	getActiveJobHooksByTiming        *connect.Client[v1alpha1.GetActiveJobHooksByTimingRequest, v1alpha1.GetActiveJobHooksByTimingResponse]
+	getPiiDetectionReport            *connect.Client[v1alpha1.GetPiiDetectionReportRequest, v1alpha1.GetPiiDetectionReportResponse]
 }
 
 // GetJobs calls mgmt.v1alpha1.JobService.GetJobs.
@@ -709,6 +735,11 @@ func (c *jobServiceClient) ValidateJobMappings(ctx context.Context, req *connect
 	return c.validateJobMappings.CallUnary(ctx, req)
 }
 
+// ValidateSchema calls mgmt.v1alpha1.JobService.ValidateSchema.
+func (c *jobServiceClient) ValidateSchema(ctx context.Context, req *connect.Request[v1alpha1.ValidateSchemaRequest]) (*connect.Response[v1alpha1.ValidateSchemaResponse], error) {
+	return c.validateSchema.CallUnary(ctx, req)
+}
+
 // GetRunContext calls mgmt.v1alpha1.JobService.GetRunContext.
 func (c *jobServiceClient) GetRunContext(ctx context.Context, req *connect.Request[v1alpha1.GetRunContextRequest]) (*connect.Response[v1alpha1.GetRunContextResponse], error) {
 	return c.getRunContext.CallUnary(ctx, req)
@@ -762,6 +793,11 @@ func (c *jobServiceClient) SetJobHookEnabled(ctx context.Context, req *connect.R
 // GetActiveJobHooksByTiming calls mgmt.v1alpha1.JobService.GetActiveJobHooksByTiming.
 func (c *jobServiceClient) GetActiveJobHooksByTiming(ctx context.Context, req *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error) {
 	return c.getActiveJobHooksByTiming.CallUnary(ctx, req)
+}
+
+// GetPiiDetectionReport calls mgmt.v1alpha1.JobService.GetPiiDetectionReport.
+func (c *jobServiceClient) GetPiiDetectionReport(ctx context.Context, req *connect.Request[v1alpha1.GetPiiDetectionReportRequest]) (*connect.Response[v1alpha1.GetPiiDetectionReportResponse], error) {
+	return c.getPiiDetectionReport.CallUnary(ctx, req)
 }
 
 // JobServiceHandler is an implementation of the mgmt.v1alpha1.JobService service.
@@ -823,6 +859,8 @@ type JobServiceHandler interface {
 	SetJobSyncOptions(context.Context, *connect.Request[v1alpha1.SetJobSyncOptionsRequest]) (*connect.Response[v1alpha1.SetJobSyncOptionsResponse], error)
 	// Validates that the jobmapping configured can run with table constraints
 	ValidateJobMappings(context.Context, *connect.Request[v1alpha1.ValidateJobMappingsRequest]) (*connect.Response[v1alpha1.ValidateJobMappingsResponse], error)
+	// Validates that the schema is compatible with the job mappings
+	ValidateSchema(context.Context, *connect.Request[v1alpha1.ValidateSchemaRequest]) (*connect.Response[v1alpha1.ValidateSchemaResponse], error)
 	// Gets a run context to be used by a workflow run
 	GetRunContext(context.Context, *connect.Request[v1alpha1.GetRunContextRequest]) (*connect.Response[v1alpha1.GetRunContextResponse], error)
 	// Sets a run context to be used by a workflow run
@@ -845,6 +883,7 @@ type JobServiceHandler interface {
 	SetJobHookEnabled(context.Context, *connect.Request[v1alpha1.SetJobHookEnabledRequest]) (*connect.Response[v1alpha1.SetJobHookEnabledResponse], error)
 	// Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
 	GetActiveJobHooksByTiming(context.Context, *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error)
+	GetPiiDetectionReport(context.Context, *connect.Request[v1alpha1.GetPiiDetectionReportRequest]) (*connect.Response[v1alpha1.GetPiiDetectionReportResponse], error)
 }
 
 // NewJobServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -1031,6 +1070,12 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(jobServiceValidateJobMappingsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	jobServiceValidateSchemaHandler := connect.NewUnaryHandler(
+		JobServiceValidateSchemaProcedure,
+		svc.ValidateSchema,
+		connect.WithSchema(jobServiceValidateSchemaMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	jobServiceGetRunContextHandler := connect.NewUnaryHandler(
 		JobServiceGetRunContextProcedure,
 		svc.GetRunContext,
@@ -1100,6 +1145,13 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
+	jobServiceGetPiiDetectionReportHandler := connect.NewUnaryHandler(
+		JobServiceGetPiiDetectionReportProcedure,
+		svc.GetPiiDetectionReport,
+		connect.WithSchema(jobServiceGetPiiDetectionReportMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.JobService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case JobServiceGetJobsProcedure:
@@ -1158,6 +1210,8 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceSetJobSyncOptionsHandler.ServeHTTP(w, r)
 		case JobServiceValidateJobMappingsProcedure:
 			jobServiceValidateJobMappingsHandler.ServeHTTP(w, r)
+		case JobServiceValidateSchemaProcedure:
+			jobServiceValidateSchemaHandler.ServeHTTP(w, r)
 		case JobServiceGetRunContextProcedure:
 			jobServiceGetRunContextHandler.ServeHTTP(w, r)
 		case JobServiceSetRunContextProcedure:
@@ -1180,6 +1234,8 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceSetJobHookEnabledHandler.ServeHTTP(w, r)
 		case JobServiceGetActiveJobHooksByTimingProcedure:
 			jobServiceGetActiveJobHooksByTimingHandler.ServeHTTP(w, r)
+		case JobServiceGetPiiDetectionReportProcedure:
+			jobServiceGetPiiDetectionReportHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -1301,6 +1357,10 @@ func (UnimplementedJobServiceHandler) ValidateJobMappings(context.Context, *conn
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.ValidateJobMappings is not implemented"))
 }
 
+func (UnimplementedJobServiceHandler) ValidateSchema(context.Context, *connect.Request[v1alpha1.ValidateSchemaRequest]) (*connect.Response[v1alpha1.ValidateSchemaResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.ValidateSchema is not implemented"))
+}
+
 func (UnimplementedJobServiceHandler) GetRunContext(context.Context, *connect.Request[v1alpha1.GetRunContextRequest]) (*connect.Response[v1alpha1.GetRunContextResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetRunContext is not implemented"))
 }
@@ -1343,4 +1403,8 @@ func (UnimplementedJobServiceHandler) SetJobHookEnabled(context.Context, *connec
 
 func (UnimplementedJobServiceHandler) GetActiveJobHooksByTiming(context.Context, *connect.Request[v1alpha1.GetActiveJobHooksByTimingRequest]) (*connect.Response[v1alpha1.GetActiveJobHooksByTimingResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetActiveJobHooksByTiming is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) GetPiiDetectionReport(context.Context, *connect.Request[v1alpha1.GetPiiDetectionReportRequest]) (*connect.Response[v1alpha1.GetPiiDetectionReportResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetPiiDetectionReport is not implemented"))
 }

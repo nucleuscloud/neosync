@@ -44,6 +44,9 @@ func Test_Workflow(t *testing.T) {
 		sourceConn := tcneosyncapi.CreatePostgresConnection(ctx, t, connclient, accountId, "postgres-source", postgres.Source.URL)
 		destConn := tcneosyncapi.CreatePostgresConnection(ctx, t, connclient, accountId, "postgres-dest", postgres.Target.URL)
 
+		_, err = postgres.Source.DB.Exec(ctx, `CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`)
+		require.NoError(t, err)
+
 		// Sync workflow tests
 		t.Run("types", func(t *testing.T) {
 			t.Parallel()
@@ -93,6 +96,33 @@ func Test_Workflow(t *testing.T) {
 			})
 		})
 
+		t.Run("small_batch_size", func(t *testing.T) {
+			t.Parallel()
+			test_postgres_small_batch_size(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
+		t.Run("complex", func(t *testing.T) {
+			t.Parallel()
+			test_postgres_complex(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
+		t.Run("passthrough_on_new_column_addition", func(t *testing.T) {
+			t.Parallel()
+			test_postgres_passthrough_on_new_column_addition(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
+		t.Run("schema_reconciliation", func(t *testing.T) {
+			t.Parallel()
+			t.Run("truncate", func(t *testing.T) {
+				t.Parallel()
+				test_postgres_schema_reconciliation(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn, true)
+			})
+			t.Run("retain_data", func(t *testing.T) {
+				t.Parallel()
+				test_postgres_schema_reconciliation(t, ctx, postgres, neosyncApi, dbManagers, accountId, sourceConn, destConn, false)
+			})
+		})
+
 		// Generate workflow tests
 		t.Run("generate", func(t *testing.T) {
 			t.Parallel()
@@ -134,6 +164,23 @@ func Test_Workflow(t *testing.T) {
 		t.Run("on_conflict_do_update", func(t *testing.T) {
 			t.Parallel()
 			test_mysql_on_conflict_do_update(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
+		})
+
+		t.Run("schema_reconciliation", func(t *testing.T) {
+			t.Parallel()
+			t.Run("truncate", func(t *testing.T) {
+				t.Parallel()
+				test_mysql_schema_reconciliation(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn, true)
+			})
+			t.Run("retain_data", func(t *testing.T) {
+				t.Parallel()
+				test_mysql_schema_reconciliation(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn, false)
+			})
+		})
+
+		t.Run("complex", func(t *testing.T) {
+			t.Parallel()
+			test_mysql_complex(t, ctx, mysql, neosyncApi, dbManagers, accountId, sourceConn, destConn)
 		})
 
 		t.Cleanup(func() {

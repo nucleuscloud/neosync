@@ -16,7 +16,10 @@ import (
 )
 
 type Interface interface {
-	NewFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig, logger *slog.Logger) (DbContainer, error)
+	NewFromConnectionConfig(
+		cc *mgmtv1alpha1.ConnectionConfig,
+		logger *slog.Logger,
+	) (DbContainer, error)
 }
 
 type DbContainer interface {
@@ -107,7 +110,9 @@ func getConnectionDetails(
 
 	mongoConfig := cc.GetMongoConfig()
 	if mongoConfig == nil {
-		return nil, fmt.Errorf("mongo config was nil, expected ConnectionConfig to contain valid MongoConfig")
+		return nil, fmt.Errorf(
+			"mongo config was nil, expected ConnectionConfig to contain valid MongoConfig",
+		)
 	}
 
 	if mongoConfig.GetClientTls() != nil {
@@ -118,7 +123,10 @@ func getConnectionDetails(
 	}
 	tunnelCfg := mongoConfig.GetTunnel()
 	if tunnelCfg != nil {
-		return nil, fmt.Errorf("tunneling in mongodb is not currently supported: %w", errors.ErrUnsupported)
+		return nil, fmt.Errorf(
+			"tunneling in mongodb is not currently supported: %w",
+			errors.ErrUnsupported,
+		)
 	}
 
 	connDetails, err := getGeneralDbConnectConfigFromMongo(mongoConfig)
@@ -130,7 +138,9 @@ func getConnectionDetails(
 	}, nil
 }
 
-func getGeneralDbConnectConfigFromMongo(config *mgmtv1alpha1.MongoConnectionConfig) (*connstring.ConnString, error) {
+func getGeneralDbConnectConfigFromMongo(
+	config *mgmtv1alpha1.MongoConnectionConfig,
+) (*connstring.ConnString, error) {
 	dburl := config.GetUrl()
 	if dburl == "" {
 		return nil, fmt.Errorf("must provide valid mongoconfig url")

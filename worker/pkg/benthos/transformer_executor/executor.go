@@ -37,7 +37,12 @@ type transformPiiTextConfig struct {
 	defaultLanguage *string
 }
 
-func WithTransformPiiTextConfig(analyze presidioapi.AnalyzeInterface, anonymize presidioapi.AnonymizeInterface, neosyncOperatorApi ee_transformer_fns.NeosyncOperatorApi, defaultLanguage *string) TransformerExecutorOption {
+func WithTransformPiiTextConfig(
+	analyze presidioapi.AnalyzeInterface,
+	anonymize presidioapi.AnonymizeInterface,
+	neosyncOperatorApi ee_transformer_fns.NeosyncOperatorApi,
+	defaultLanguage *string,
+) TransformerExecutorOption {
 	return func(c *TransformerExecutorConfig) {
 		c.transformPiiText = &transformPiiTextConfig{
 			analyze:            analyze,
@@ -54,21 +59,32 @@ func WithLogger(logger *slog.Logger) TransformerExecutorOption {
 	}
 }
 
-func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransformer, opts ...TransformerExecutorOption) (*TransformerExecutor, error) {
+func InitializeTransformer(
+	transformerMapping *mgmtv1alpha1.JobMappingTransformer,
+	opts ...TransformerExecutorOption,
+) (*TransformerExecutor, error) {
 	return InitializeTransformerByConfigType(transformerMapping.GetConfig(), opts...)
 }
 
 type UserDefinedTransformerResolver interface {
-	GetUserDefinedTransformer(ctx context.Context, id string) (*mgmtv1alpha1.TransformerConfig, error)
+	GetUserDefinedTransformer(
+		ctx context.Context,
+		id string,
+	) (*mgmtv1alpha1.TransformerConfig, error)
 }
 
-func WithUserDefinedTransformerResolver(resolver UserDefinedTransformerResolver) TransformerExecutorOption {
+func WithUserDefinedTransformerResolver(
+	resolver UserDefinedTransformerResolver,
+) TransformerExecutorOption {
 	return func(c *TransformerExecutorConfig) {
 		c.userDefinedTransformerResolver = resolver
 	}
 }
 
-func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.TransformerConfig, opts ...TransformerExecutorOption) (*TransformerExecutor, error) {
+func InitializeTransformerByConfigType(
+	transformerConfig *mgmtv1alpha1.TransformerConfig,
+	opts ...TransformerExecutorOption,
+) (*TransformerExecutor, error) {
 	execCfg := &TransformerExecutorConfig{logger: slog.Default()}
 	for _, opt := range opts {
 		opt(execCfg)
@@ -96,7 +112,17 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}
 
 		valueApi := newAnonValueApi()
-		runner, err := javascript.NewDefaultValueRunner(valueApi, execCfg.logger)
+		var transformPiiTextApi transformers.TransformPiiTextApi
+		if execCfg.transformPiiText != nil {
+			execCfg.logger.Debug("configuring using transform pii text api in generate javascript")
+			transformPiiTextApi = newFromExecConfig(
+				execCfg.transformPiiText,
+				execCfg.transformPiiText.neosyncOperatorApi,
+				execCfg.logger,
+			)
+		}
+
+		runner, err := javascript.NewDefaultValueRunner(valueApi, transformPiiTextApi, execCfg.logger)
 		if err != nil {
 			return nil, err
 		}
@@ -132,7 +158,16 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}
 
 		valueApi := newAnonValueApi()
-		runner, err := javascript.NewDefaultValueRunner(valueApi, execCfg.logger)
+		var transformPiiTextApi transformers.TransformPiiTextApi
+		if execCfg.transformPiiText != nil {
+			execCfg.logger.Debug("configuring using transform pii text api in transform javascript")
+			transformPiiTextApi = newFromExecConfig(
+				execCfg.transformPiiText,
+				execCfg.transformPiiText.neosyncOperatorApi,
+				execCfg.logger,
+			)
+		}
+		runner, err := javascript.NewDefaultValueRunner(valueApi, transformPiiTextApi, execCfg.logger)
 		if err != nil {
 			return nil, err
 		}
@@ -715,6 +750,12 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 			config.Language = execCfg.transformPiiText.defaultLanguage
 		}
 
+		transformPiiTextApi := newFromExecConfig(
+			execCfg.transformPiiText,
+			execCfg.transformPiiText.neosyncOperatorApi,
+			execCfg.logger,
+		)
+
 		return &TransformerExecutor{
 			Opts: nil,
 			Mutate: func(value, opts any) (any, error) {
@@ -722,12 +763,10 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 				if !ok {
 					return nil, fmt.Errorf("expected value to be of type string. %T", value)
 				}
-				return ee_transformer_fns.TransformPiiText(
+				return transformPiiTextApi.Transform(
 					context.Background(),
-					execCfg.transformPiiText.analyze, execCfg.transformPiiText.anonymize, execCfg.transformPiiText.neosyncOperatorApi,
 					config,
 					valueStr,
-					execCfg.logger,
 				)
 			},
 		}, nil
@@ -774,6 +813,6 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}, nil
 
 	default:
-		return nil, fmt.Errorf("unsupported transformerr: %T", typedCfg)
+		return nil, fmt.Errorf("unsupported transformer: %T", typedCfg)
 	}
 }

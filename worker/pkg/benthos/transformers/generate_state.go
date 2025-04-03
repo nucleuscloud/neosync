@@ -13,41 +13,48 @@ import (
 // +neosyncTransformerBuilder:generate:generateState
 
 func init() {
-	spec := bloblang.NewPluginSpec().Description("Randomly selects a US state and by default, returns it as a 2-letter state code.").
+	spec := bloblang.NewPluginSpec().
+		Description("Randomly selects a US state and by default, returns it as a 2-letter state code.").
 		Category("string").
 		Param(bloblang.NewBoolParam("generate_full_name").Default(false).Description("If true returns the full state name instead of the two character state code.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_state", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		generateFullName, err := args.GetBool("generate_full_name")
-		if err != nil {
-			return nil, err
-		}
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
-
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
-		randomizer := rng.New(seed)
-
-		return func() (any, error) {
-			val, err := generateRandomState(randomizer, generateFullName)
+	err := bloblang.RegisterFunctionV2(
+		"generate_state",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			generateFullName, err := args.GetBool("generate_full_name")
 			if err != nil {
-				return nil, fmt.Errorf("unable to run generate_state: %w", err)
+				return nil, err
 			}
-			return val, nil
-		}, nil
-	})
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
+			randomizer := rng.New(seed)
+
+			return func() (any, error) {
+				val, err := generateRandomState(randomizer, generateFullName)
+				if err != nil {
+					return nil, fmt.Errorf("unable to run generate_state: %w", err)
+				}
+				return val, nil
+			}, nil
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewGenerateStateOptsFromConfig(config *mgmtv1alpha1.GenerateState) (*GenerateStateOpts, error) {
+func NewGenerateStateOptsFromConfig(
+	config *mgmtv1alpha1.GenerateState,
+) (*GenerateStateOpts, error) {
 	if config == nil {
 		return NewGenerateStateOpts(nil, nil)
 	}

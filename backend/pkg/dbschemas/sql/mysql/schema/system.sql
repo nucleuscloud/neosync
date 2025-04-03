@@ -13,13 +13,23 @@ CREATE TABLE information_schema.columns (
   numeric_precision bigint,
   numeric_scale bigint,
   extra longtext null,
-  generation_expression longtext null
+  generation_expression longtext null,
+  column_comment longtext null
 );
 
 create table information_schema.tables (
   table_schema text not null,
   table_name text not null,
   auto_increment bigint
+);
+
+create table information_schema.schemata (
+  catalog_name text not null,
+  schema_name text not null,
+  default_character_set_name text,
+  default_collation_name text,
+  sql_path text,
+  default_encryption text
 );
 
 create table information_schema.key_column_usage (
@@ -74,6 +84,17 @@ create table information_schema.routines (
   dtd_identifier text not null,
   routine_definition longtext not null,
   is_deterministic text not null
+);
+
+create table information_schema.parameters (
+  parameter_name text not null,
+  specific_name text not null,
+  specific_schema text not null,
+  parameter_mode text not null,
+  parameter_type text not null,
+  data_type text not null,
+  ordinal_position bigint not null,
+  dt_identifier text not null
 );
 
 create table information_schema.triggers (

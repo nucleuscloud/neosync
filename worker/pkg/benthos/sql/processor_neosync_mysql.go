@@ -38,7 +38,10 @@ type neosyncToMysqlProcessor struct {
 	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
 }
 
-func newNeosyncToMysqlProcessor(conf *service.ParsedConfig, mgr *service.Resources) (*neosyncToMysqlProcessor, error) {
+func newNeosyncToMysqlProcessor(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+) (*neosyncToMysqlProcessor, error) {
 	columns, err := conf.FieldStringList("columns")
 	if err != nil {
 		return nil, err
@@ -67,14 +70,22 @@ func newNeosyncToMysqlProcessor(conf *service.ParsedConfig, mgr *service.Resourc
 	}, nil
 }
 
-func (p *neosyncToMysqlProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
+func (p *neosyncToMysqlProcessor) ProcessBatch(
+	ctx context.Context,
+	batch service.MessageBatch,
+) ([]service.MessageBatch, error) {
 	newBatch := make(service.MessageBatch, 0, len(batch))
 	for _, msg := range batch {
 		root, err := msg.AsStructuredMut()
 		if err != nil {
 			return nil, err
 		}
-		newRoot, err := transformNeosyncToMysql(root, p.columns, p.columnDataTypes, p.columnDefaultProperties)
+		newRoot, err := transformNeosyncToMysql(
+			root,
+			p.columns,
+			p.columnDataTypes,
+			p.columnDefaultProperties,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -122,7 +133,11 @@ func transformNeosyncToMysql(
 	return newMap, nil
 }
 
-func getMysqlValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties, datatype string) (any, error) {
+func getMysqlValue(
+	value any,
+	colDefaults *neosync_benthos.ColumnDefaultProperties,
+	datatype string,
+) (any, error) {
 	if colDefaults != nil && colDefaults.HasDefaultTransformer {
 		return goqu.Default(), nil
 	}
@@ -148,6 +163,9 @@ func getMysqlValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperti
 			}
 			return validJson, nil
 		}
+		if value == "null" {
+			return value, nil
+		}
 		bits, err := json.Marshal(value)
 		if err != nil {
 			return nil, fmt.Errorf("unable to marshal mysql json to bits: %w", err)
@@ -162,7 +180,10 @@ func getMysqlNeosyncValue(root any) (value any, isNeosyncValue bool, err error) 
 	if valuer, ok := root.(neosynctypes.NeosyncMysqlValuer); ok {
 		value, err := valuer.ValueMysql()
 		if err != nil {
-			return nil, false, fmt.Errorf("unable to get MYSQL value from NeosyncMysqlValuer: %w", err)
+			return nil, false, fmt.Errorf(
+				"unable to get MYSQL value from NeosyncMysqlValuer: %w",
+				err,
+			)
 		}
 		return value, true, nil
 	}

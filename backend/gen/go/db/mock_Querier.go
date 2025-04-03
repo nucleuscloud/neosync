@@ -198,6 +198,64 @@ func (_c *MockQuerier_CreateAccountApiKey_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
+// CreateAccountHook provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) CreateAccountHook(ctx context.Context, db DBTX, arg CreateAccountHookParams) (NeosyncApiAccountHook, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateAccountHook")
+	}
+
+	var r0 NeosyncApiAccountHook
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateAccountHookParams) (NeosyncApiAccountHook, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateAccountHookParams) NeosyncApiAccountHook); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiAccountHook)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, CreateAccountHookParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_CreateAccountHook_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAccountHook'
+type MockQuerier_CreateAccountHook_Call struct {
+	*mock.Call
+}
+
+// CreateAccountHook is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg CreateAccountHookParams
+func (_e *MockQuerier_Expecter) CreateAccountHook(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_CreateAccountHook_Call {
+	return &MockQuerier_CreateAccountHook_Call{Call: _e.mock.On("CreateAccountHook", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_CreateAccountHook_Call) Run(run func(ctx context.Context, db DBTX, arg CreateAccountHookParams)) *MockQuerier_CreateAccountHook_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(CreateAccountHookParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_CreateAccountHook_Call) Return(_a0 NeosyncApiAccountHook, _a1 error) *MockQuerier_CreateAccountHook_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_CreateAccountHook_Call) RunAndReturn(run func(context.Context, DBTX, CreateAccountHookParams) (NeosyncApiAccountHook, error)) *MockQuerier_CreateAccountHook_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateAccountInvite provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) CreateAccountInvite(ctx context.Context, db DBTX, arg CreateAccountInviteParams) (NeosyncApiAccountInvite, error) {
 	ret := _m.Called(ctx, db, arg)
@@ -824,6 +882,64 @@ func (_c *MockQuerier_CreatePersonalAccount_Call) RunAndReturn(run func(context.
 	return _c
 }
 
+// CreateSlackOAuthConnection provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) CreateSlackOAuthConnection(ctx context.Context, db DBTX, arg CreateSlackOAuthConnectionParams) (NeosyncApiSlackOauthConnection, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateSlackOAuthConnection")
+	}
+
+	var r0 NeosyncApiSlackOauthConnection
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateSlackOAuthConnectionParams) (NeosyncApiSlackOauthConnection, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateSlackOAuthConnectionParams) NeosyncApiSlackOauthConnection); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiSlackOauthConnection)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, CreateSlackOAuthConnectionParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_CreateSlackOAuthConnection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSlackOAuthConnection'
+type MockQuerier_CreateSlackOAuthConnection_Call struct {
+	*mock.Call
+}
+
+// CreateSlackOAuthConnection is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg CreateSlackOAuthConnectionParams
+func (_e *MockQuerier_Expecter) CreateSlackOAuthConnection(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_CreateSlackOAuthConnection_Call {
+	return &MockQuerier_CreateSlackOAuthConnection_Call{Call: _e.mock.On("CreateSlackOAuthConnection", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_CreateSlackOAuthConnection_Call) Run(run func(ctx context.Context, db DBTX, arg CreateSlackOAuthConnectionParams)) *MockQuerier_CreateSlackOAuthConnection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(CreateSlackOAuthConnectionParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_CreateSlackOAuthConnection_Call) Return(_a0 NeosyncApiSlackOauthConnection, _a1 error) *MockQuerier_CreateSlackOAuthConnection_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_CreateSlackOAuthConnection_Call) RunAndReturn(run func(context.Context, DBTX, CreateSlackOAuthConnectionParams) (NeosyncApiSlackOauthConnection, error)) *MockQuerier_CreateSlackOAuthConnection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateTeamAccount provides a mock function with given fields: ctx, db, accountSlug
 func (_m *MockQuerier) CreateTeamAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, accountSlug)
@@ -984,6 +1100,54 @@ func (_c *MockQuerier_DeleteJob_Call) Return(_a0 error) *MockQuerier_DeleteJob_C
 }
 
 func (_c *MockQuerier_DeleteJob_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) error) *MockQuerier_DeleteJob_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteSlackOAuthConnection provides a mock function with given fields: ctx, db, accountID
+func (_m *MockQuerier) DeleteSlackOAuthConnection(ctx context.Context, db DBTX, accountID pgtype.UUID) error {
+	ret := _m.Called(ctx, db, accountID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteSlackOAuthConnection")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r0 = rf(ctx, db, accountID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockQuerier_DeleteSlackOAuthConnection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSlackOAuthConnection'
+type MockQuerier_DeleteSlackOAuthConnection_Call struct {
+	*mock.Call
+}
+
+// DeleteSlackOAuthConnection is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - accountID pgtype.UUID
+func (_e *MockQuerier_Expecter) DeleteSlackOAuthConnection(ctx interface{}, db interface{}, accountID interface{}) *MockQuerier_DeleteSlackOAuthConnection_Call {
+	return &MockQuerier_DeleteSlackOAuthConnection_Call{Call: _e.mock.On("DeleteSlackOAuthConnection", ctx, db, accountID)}
+}
+
+func (_c *MockQuerier_DeleteSlackOAuthConnection_Call) Run(run func(ctx context.Context, db DBTX, accountID pgtype.UUID)) *MockQuerier_DeleteSlackOAuthConnection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_DeleteSlackOAuthConnection_Call) Return(_a0 error) *MockQuerier_DeleteSlackOAuthConnection_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockQuerier_DeleteSlackOAuthConnection_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) error) *MockQuerier_DeleteSlackOAuthConnection_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1324,6 +1488,124 @@ func (_c *MockQuerier_GetAccountApiKeys_Call) Return(_a0 []NeosyncApiAccountApiK
 }
 
 func (_c *MockQuerier_GetAccountApiKeys_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiAccountApiKey, error)) *MockQuerier_GetAccountApiKeys_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAccountHookById provides a mock function with given fields: ctx, db, id
+func (_m *MockQuerier) GetAccountHookById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountHook, error) {
+	ret := _m.Called(ctx, db, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountHookById")
+	}
+
+	var r0 NeosyncApiAccountHook
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiAccountHook, error)); ok {
+		return rf(ctx, db, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) NeosyncApiAccountHook); ok {
+		r0 = rf(ctx, db, id)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiAccountHook)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetAccountHookById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountHookById'
+type MockQuerier_GetAccountHookById_Call struct {
+	*mock.Call
+}
+
+// GetAccountHookById is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - id pgtype.UUID
+func (_e *MockQuerier_Expecter) GetAccountHookById(ctx interface{}, db interface{}, id interface{}) *MockQuerier_GetAccountHookById_Call {
+	return &MockQuerier_GetAccountHookById_Call{Call: _e.mock.On("GetAccountHookById", ctx, db, id)}
+}
+
+func (_c *MockQuerier_GetAccountHookById_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_GetAccountHookById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountHookById_Call) Return(_a0 NeosyncApiAccountHook, _a1 error) *MockQuerier_GetAccountHookById_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountHookById_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (NeosyncApiAccountHook, error)) *MockQuerier_GetAccountHookById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAccountHooksByAccount provides a mock function with given fields: ctx, db, accountID
+func (_m *MockQuerier) GetAccountHooksByAccount(ctx context.Context, db DBTX, accountID pgtype.UUID) ([]NeosyncApiAccountHook, error) {
+	ret := _m.Called(ctx, db, accountID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountHooksByAccount")
+	}
+
+	var r0 []NeosyncApiAccountHook
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiAccountHook, error)); ok {
+		return rf(ctx, db, accountID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) []NeosyncApiAccountHook); ok {
+		r0 = rf(ctx, db, accountID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]NeosyncApiAccountHook)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, accountID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetAccountHooksByAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountHooksByAccount'
+type MockQuerier_GetAccountHooksByAccount_Call struct {
+	*mock.Call
+}
+
+// GetAccountHooksByAccount is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - accountID pgtype.UUID
+func (_e *MockQuerier_Expecter) GetAccountHooksByAccount(ctx interface{}, db interface{}, accountID interface{}) *MockQuerier_GetAccountHooksByAccount_Call {
+	return &MockQuerier_GetAccountHooksByAccount_Call{Call: _e.mock.On("GetAccountHooksByAccount", ctx, db, accountID)}
+}
+
+func (_c *MockQuerier_GetAccountHooksByAccount_Call) Run(run func(ctx context.Context, db DBTX, accountID pgtype.UUID)) *MockQuerier_GetAccountHooksByAccount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountHooksByAccount_Call) Return(_a0 []NeosyncApiAccountHook, _a1 error) *MockQuerier_GetAccountHooksByAccount_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountHooksByAccount_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiAccountHook, error)) *MockQuerier_GetAccountHooksByAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1795,6 +2077,66 @@ func (_c *MockQuerier_GetAccountsByUser_Call) Return(_a0 []NeosyncApiAccount, _a
 }
 
 func (_c *MockQuerier_GetAccountsByUser_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiAccount, error)) *MockQuerier_GetAccountsByUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetActiveAccountHooksByEvent provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) GetActiveAccountHooksByEvent(ctx context.Context, db DBTX, arg GetActiveAccountHooksByEventParams) ([]NeosyncApiAccountHook, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActiveAccountHooksByEvent")
+	}
+
+	var r0 []NeosyncApiAccountHook
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, GetActiveAccountHooksByEventParams) ([]NeosyncApiAccountHook, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, GetActiveAccountHooksByEventParams) []NeosyncApiAccountHook); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]NeosyncApiAccountHook)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, GetActiveAccountHooksByEventParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetActiveAccountHooksByEvent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetActiveAccountHooksByEvent'
+type MockQuerier_GetActiveAccountHooksByEvent_Call struct {
+	*mock.Call
+}
+
+// GetActiveAccountHooksByEvent is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg GetActiveAccountHooksByEventParams
+func (_e *MockQuerier_Expecter) GetActiveAccountHooksByEvent(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_GetActiveAccountHooksByEvent_Call {
+	return &MockQuerier_GetActiveAccountHooksByEvent_Call{Call: _e.mock.On("GetActiveAccountHooksByEvent", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_GetActiveAccountHooksByEvent_Call) Run(run func(ctx context.Context, db DBTX, arg GetActiveAccountHooksByEventParams)) *MockQuerier_GetActiveAccountHooksByEvent_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(GetActiveAccountHooksByEventParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetActiveAccountHooksByEvent_Call) Return(_a0 []NeosyncApiAccountHook, _a1 error) *MockQuerier_GetActiveAccountHooksByEvent_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetActiveAccountHooksByEvent_Call) RunAndReturn(run func(context.Context, DBTX, GetActiveAccountHooksByEventParams) ([]NeosyncApiAccountHook, error)) *MockQuerier_GetActiveAccountHooksByEvent_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2980,6 +3322,124 @@ func (_c *MockQuerier_GetRunContextByKey_Call) RunAndReturn(run func(context.Con
 	return _c
 }
 
+// GetRunContextsByExternalIdSuffix provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) GetRunContextsByExternalIdSuffix(ctx context.Context, db DBTX, arg GetRunContextsByExternalIdSuffixParams) ([]NeosyncApiRuncontext, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRunContextsByExternalIdSuffix")
+	}
+
+	var r0 []NeosyncApiRuncontext
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, GetRunContextsByExternalIdSuffixParams) ([]NeosyncApiRuncontext, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, GetRunContextsByExternalIdSuffixParams) []NeosyncApiRuncontext); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]NeosyncApiRuncontext)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, GetRunContextsByExternalIdSuffixParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetRunContextsByExternalIdSuffix_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRunContextsByExternalIdSuffix'
+type MockQuerier_GetRunContextsByExternalIdSuffix_Call struct {
+	*mock.Call
+}
+
+// GetRunContextsByExternalIdSuffix is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg GetRunContextsByExternalIdSuffixParams
+func (_e *MockQuerier_Expecter) GetRunContextsByExternalIdSuffix(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_GetRunContextsByExternalIdSuffix_Call {
+	return &MockQuerier_GetRunContextsByExternalIdSuffix_Call{Call: _e.mock.On("GetRunContextsByExternalIdSuffix", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_GetRunContextsByExternalIdSuffix_Call) Run(run func(ctx context.Context, db DBTX, arg GetRunContextsByExternalIdSuffixParams)) *MockQuerier_GetRunContextsByExternalIdSuffix_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(GetRunContextsByExternalIdSuffixParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetRunContextsByExternalIdSuffix_Call) Return(_a0 []NeosyncApiRuncontext, _a1 error) *MockQuerier_GetRunContextsByExternalIdSuffix_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetRunContextsByExternalIdSuffix_Call) RunAndReturn(run func(context.Context, DBTX, GetRunContextsByExternalIdSuffixParams) ([]NeosyncApiRuncontext, error)) *MockQuerier_GetRunContextsByExternalIdSuffix_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetSlackAccessToken provides a mock function with given fields: ctx, db, accountID
+func (_m *MockQuerier) GetSlackAccessToken(ctx context.Context, db DBTX, accountID pgtype.UUID) (string, error) {
+	ret := _m.Called(ctx, db, accountID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSlackAccessToken")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (string, error)); ok {
+		return rf(ctx, db, accountID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) string); ok {
+		r0 = rf(ctx, db, accountID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, accountID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetSlackAccessToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSlackAccessToken'
+type MockQuerier_GetSlackAccessToken_Call struct {
+	*mock.Call
+}
+
+// GetSlackAccessToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - accountID pgtype.UUID
+func (_e *MockQuerier_Expecter) GetSlackAccessToken(ctx interface{}, db interface{}, accountID interface{}) *MockQuerier_GetSlackAccessToken_Call {
+	return &MockQuerier_GetSlackAccessToken_Call{Call: _e.mock.On("GetSlackAccessToken", ctx, db, accountID)}
+}
+
+func (_c *MockQuerier_GetSlackAccessToken_Call) Run(run func(ctx context.Context, db DBTX, accountID pgtype.UUID)) *MockQuerier_GetSlackAccessToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetSlackAccessToken_Call) Return(_a0 string, _a1 error) *MockQuerier_GetSlackAccessToken_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetSlackAccessToken_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (string, error)) *MockQuerier_GetSlackAccessToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTeamAccountsByUserId provides a mock function with given fields: ctx, db, userid
 func (_m *MockQuerier) GetTeamAccountsByUserId(ctx context.Context, db DBTX, userid pgtype.UUID) ([]NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, userid)
@@ -3630,6 +4090,64 @@ func (_c *MockQuerier_GetUserIdentityByUserId_Call) RunAndReturn(run func(contex
 	return _c
 }
 
+// IsAccountHookNameAvailable provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) IsAccountHookNameAvailable(ctx context.Context, db DBTX, arg IsAccountHookNameAvailableParams) (bool, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsAccountHookNameAvailable")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, IsAccountHookNameAvailableParams) (bool, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, IsAccountHookNameAvailableParams) bool); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, IsAccountHookNameAvailableParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_IsAccountHookNameAvailable_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsAccountHookNameAvailable'
+type MockQuerier_IsAccountHookNameAvailable_Call struct {
+	*mock.Call
+}
+
+// IsAccountHookNameAvailable is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg IsAccountHookNameAvailableParams
+func (_e *MockQuerier_Expecter) IsAccountHookNameAvailable(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_IsAccountHookNameAvailable_Call {
+	return &MockQuerier_IsAccountHookNameAvailable_Call{Call: _e.mock.On("IsAccountHookNameAvailable", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_IsAccountHookNameAvailable_Call) Run(run func(ctx context.Context, db DBTX, arg IsAccountHookNameAvailableParams)) *MockQuerier_IsAccountHookNameAvailable_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(IsAccountHookNameAvailableParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_IsAccountHookNameAvailable_Call) Return(_a0 bool, _a1 error) *MockQuerier_IsAccountHookNameAvailable_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_IsAccountHookNameAvailable_Call) RunAndReturn(run func(context.Context, DBTX, IsAccountHookNameAvailableParams) (bool, error)) *MockQuerier_IsAccountHookNameAvailable_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // IsConnectionInAccount provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) IsConnectionInAccount(ctx context.Context, db DBTX, arg IsConnectionInAccountParams) (int64, error) {
 	ret := _m.Called(ctx, db, arg)
@@ -4084,6 +4602,54 @@ func (_c *MockQuerier_RemoveAccountApiKey_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
+// RemoveAccountHookById provides a mock function with given fields: ctx, db, id
+func (_m *MockQuerier) RemoveAccountHookById(ctx context.Context, db DBTX, id pgtype.UUID) error {
+	ret := _m.Called(ctx, db, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveAccountHookById")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r0 = rf(ctx, db, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockQuerier_RemoveAccountHookById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveAccountHookById'
+type MockQuerier_RemoveAccountHookById_Call struct {
+	*mock.Call
+}
+
+// RemoveAccountHookById is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - id pgtype.UUID
+func (_e *MockQuerier_Expecter) RemoveAccountHookById(ctx interface{}, db interface{}, id interface{}) *MockQuerier_RemoveAccountHookById_Call {
+	return &MockQuerier_RemoveAccountHookById_Call{Call: _e.mock.On("RemoveAccountHookById", ctx, db, id)}
+}
+
+func (_c *MockQuerier_RemoveAccountHookById_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_RemoveAccountHookById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_RemoveAccountHookById_Call) Return(_a0 error) *MockQuerier_RemoveAccountHookById_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockQuerier_RemoveAccountHookById_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) error) *MockQuerier_RemoveAccountHookById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveAccountInvite provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) RemoveAccountInvite(ctx context.Context, db DBTX, id pgtype.UUID) error {
 	ret := _m.Called(ctx, db, id)
@@ -4526,6 +5092,64 @@ func (_c *MockQuerier_SetAccountCreatedAt_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
+// SetAccountHookEnabled provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) SetAccountHookEnabled(ctx context.Context, db DBTX, arg SetAccountHookEnabledParams) (NeosyncApiAccountHook, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetAccountHookEnabled")
+	}
+
+	var r0 NeosyncApiAccountHook
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetAccountHookEnabledParams) (NeosyncApiAccountHook, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetAccountHookEnabledParams) NeosyncApiAccountHook); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiAccountHook)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, SetAccountHookEnabledParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_SetAccountHookEnabled_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetAccountHookEnabled'
+type MockQuerier_SetAccountHookEnabled_Call struct {
+	*mock.Call
+}
+
+// SetAccountHookEnabled is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg SetAccountHookEnabledParams
+func (_e *MockQuerier_Expecter) SetAccountHookEnabled(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_SetAccountHookEnabled_Call {
+	return &MockQuerier_SetAccountHookEnabled_Call{Call: _e.mock.On("SetAccountHookEnabled", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_SetAccountHookEnabled_Call) Run(run func(ctx context.Context, db DBTX, arg SetAccountHookEnabledParams)) *MockQuerier_SetAccountHookEnabled_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(SetAccountHookEnabledParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_SetAccountHookEnabled_Call) Return(_a0 NeosyncApiAccountHook, _a1 error) *MockQuerier_SetAccountHookEnabled_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_SetAccountHookEnabled_Call) RunAndReturn(run func(context.Context, DBTX, SetAccountHookEnabledParams) (NeosyncApiAccountHook, error)) *MockQuerier_SetAccountHookEnabled_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetAnonymousUser provides a mock function with given fields: ctx, db
 func (_m *MockQuerier) SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
 	ret := _m.Called(ctx, db)
@@ -4917,6 +5541,64 @@ func (_c *MockQuerier_UpdateAccountApiKeyValue_Call) Return(_a0 NeosyncApiAccoun
 }
 
 func (_c *MockQuerier_UpdateAccountApiKeyValue_Call) RunAndReturn(run func(context.Context, DBTX, UpdateAccountApiKeyValueParams) (NeosyncApiAccountApiKey, error)) *MockQuerier_UpdateAccountApiKeyValue_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateAccountHook provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) UpdateAccountHook(ctx context.Context, db DBTX, arg UpdateAccountHookParams) (NeosyncApiAccountHook, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateAccountHook")
+	}
+
+	var r0 NeosyncApiAccountHook
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateAccountHookParams) (NeosyncApiAccountHook, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateAccountHookParams) NeosyncApiAccountHook); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiAccountHook)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, UpdateAccountHookParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_UpdateAccountHook_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAccountHook'
+type MockQuerier_UpdateAccountHook_Call struct {
+	*mock.Call
+}
+
+// UpdateAccountHook is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg UpdateAccountHookParams
+func (_e *MockQuerier_Expecter) UpdateAccountHook(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_UpdateAccountHook_Call {
+	return &MockQuerier_UpdateAccountHook_Call{Call: _e.mock.On("UpdateAccountHook", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_UpdateAccountHook_Call) Run(run func(ctx context.Context, db DBTX, arg UpdateAccountHookParams)) *MockQuerier_UpdateAccountHook_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(UpdateAccountHookParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_UpdateAccountHook_Call) Return(_a0 NeosyncApiAccountHook, _a1 error) *MockQuerier_UpdateAccountHook_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_UpdateAccountHook_Call) RunAndReturn(run func(context.Context, DBTX, UpdateAccountHookParams) (NeosyncApiAccountHook, error)) *MockQuerier_UpdateAccountHook_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -5439,6 +6121,64 @@ func (_c *MockQuerier_UpdateJobSource_Call) Return(_a0 NeosyncApiJob, _a1 error)
 }
 
 func (_c *MockQuerier_UpdateJobSource_Call) RunAndReturn(run func(context.Context, DBTX, UpdateJobSourceParams) (NeosyncApiJob, error)) *MockQuerier_UpdateJobSource_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateJobTypeConfig provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) UpdateJobTypeConfig(ctx context.Context, db DBTX, arg UpdateJobTypeConfigParams) (NeosyncApiJob, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateJobTypeConfig")
+	}
+
+	var r0 NeosyncApiJob
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateJobTypeConfigParams) (NeosyncApiJob, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateJobTypeConfigParams) NeosyncApiJob); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiJob)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, UpdateJobTypeConfigParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_UpdateJobTypeConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateJobTypeConfig'
+type MockQuerier_UpdateJobTypeConfig_Call struct {
+	*mock.Call
+}
+
+// UpdateJobTypeConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg UpdateJobTypeConfigParams
+func (_e *MockQuerier_Expecter) UpdateJobTypeConfig(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_UpdateJobTypeConfig_Call {
+	return &MockQuerier_UpdateJobTypeConfig_Call{Call: _e.mock.On("UpdateJobTypeConfig", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_UpdateJobTypeConfig_Call) Run(run func(ctx context.Context, db DBTX, arg UpdateJobTypeConfigParams)) *MockQuerier_UpdateJobTypeConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(UpdateJobTypeConfigParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_UpdateJobTypeConfig_Call) Return(_a0 NeosyncApiJob, _a1 error) *MockQuerier_UpdateJobTypeConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_UpdateJobTypeConfig_Call) RunAndReturn(run func(context.Context, DBTX, UpdateJobTypeConfigParams) (NeosyncApiJob, error)) *MockQuerier_UpdateJobTypeConfig_Call {
 	_c.Call.Return(run)
 	return _c
 }

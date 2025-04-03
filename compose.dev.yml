@@ -40,6 +40,7 @@ services:
       - neosync_app_nodemodules:/app/node_modules
       - neosync_web_nodemodules:/app/apps/web/node_modules
       - neosync_sdk_nodemodules:/app/packages/sdk/node_modules
+      - neosync_next_cache:/app/apps/web/.next
 
   db:
     container_name: neosync-db
@@ -51,7 +52,7 @@ services:
       - POSTGRES_PASSWORD=foofar
       - PGUSER=postgres
     healthcheck:
-      test: ["CMD", "pg_isready"]
+      test: ['CMD', 'pg_isready']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -72,6 +73,7 @@ services:
       - HOST=0.0.0.0
       - PORT=8080
       - NUCLEUS_ENV=dev
+      - APP_BASEURL=http://localhost:3000
       - TEMPORAL_URL=temporal:7233
       - DB_AUTO_MIGRATE=true
       - DB_SCHEMA_DIR=/workspace/backend/sql/postgresql/schema
@@ -122,6 +124,7 @@ services:
       - TEMPORAL_TASK_QUEUE=sync-job
       - NEOSYNC_URL=http://api:8080
       - REDIS_URL=redis://default:foofar@redis:6379
+      - TABLESYNC_MAX_CONCURRENCY=3
       - LOG_LEVEL=DEBUG
       - DB_LOG_LEVEL=ERROR
     env_file:
@@ -167,6 +170,7 @@ volumes:
   neosync_app_nodemodules:
   neosync_web_nodemodules:
   neosync_sdk_nodemodules:
+  neosync_next_cache:
 
 networks:
   neosync-network:

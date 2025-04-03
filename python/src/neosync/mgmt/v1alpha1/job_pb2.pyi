@@ -1,5 +1,6 @@
 from buf.validate import validate_pb2 as _validate_pb2
 from google.protobuf import timestamp_pb2 as _timestamp_pb2
+from mgmt.v1alpha1 import connection_data_pb2 as _connection_data_pb2
 from mgmt.v1alpha1 import transformer_pb2 as _transformer_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
@@ -231,18 +232,23 @@ class DynamoDBSourceTableOption(_message.Message):
 class PostgresSourceConnectionOptions(_message.Message):
     __slots__ = ("schemas", "connection_id", "subset_by_foreign_key_constraints", "new_column_addition_strategy", "column_removal_strategy")
     class NewColumnAdditionStrategy(_message.Message):
-        __slots__ = ("halt_job", "auto_map")
+        __slots__ = ("halt_job", "auto_map", "passthrough")
         class HaltJob(_message.Message):
             __slots__ = ()
             def __init__(self) -> None: ...
         class AutoMap(_message.Message):
             __slots__ = ()
             def __init__(self) -> None: ...
+        class Passthrough(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
         HALT_JOB_FIELD_NUMBER: _ClassVar[int]
         AUTO_MAP_FIELD_NUMBER: _ClassVar[int]
+        PASSTHROUGH_FIELD_NUMBER: _ClassVar[int]
         halt_job: PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
         auto_map: PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
-        def __init__(self, halt_job: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob, _Mapping]] = ..., auto_map: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap, _Mapping]] = ...) -> None: ...
+        passthrough: PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough
+        def __init__(self, halt_job: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob, _Mapping]] = ..., auto_map: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap, _Mapping]] = ..., passthrough: _Optional[_Union[PostgresSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough, _Mapping]] = ...) -> None: ...
     class ColumnRemovalStrategy(_message.Message):
         __slots__ = ("halt_job", "continue_job")
         class HaltJob(_message.Message):
@@ -285,7 +291,7 @@ class PostgresSourceTableOption(_message.Message):
     def __init__(self, table: _Optional[str] = ..., where_clause: _Optional[str] = ...) -> None: ...
 
 class MysqlSourceConnectionOptions(_message.Message):
-    __slots__ = ("halt_on_new_column_addition", "schemas", "connection_id", "subset_by_foreign_key_constraints", "column_removal_strategy")
+    __slots__ = ("halt_on_new_column_addition", "schemas", "connection_id", "subset_by_foreign_key_constraints", "column_removal_strategy", "new_column_addition_strategy")
     class ColumnRemovalStrategy(_message.Message):
         __slots__ = ("halt_job", "continue_job")
         class HaltJob(_message.Message):
@@ -299,17 +305,37 @@ class MysqlSourceConnectionOptions(_message.Message):
         halt_job: MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob
         continue_job: MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob
         def __init__(self, halt_job: _Optional[_Union[MysqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob, _Mapping]] = ..., continue_job: _Optional[_Union[MysqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob, _Mapping]] = ...) -> None: ...
+    class NewColumnAdditionStrategy(_message.Message):
+        __slots__ = ("halt_job", "auto_map", "passthrough")
+        class HaltJob(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        class AutoMap(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        class Passthrough(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        HALT_JOB_FIELD_NUMBER: _ClassVar[int]
+        AUTO_MAP_FIELD_NUMBER: _ClassVar[int]
+        PASSTHROUGH_FIELD_NUMBER: _ClassVar[int]
+        halt_job: MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
+        auto_map: MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap
+        passthrough: MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough
+        def __init__(self, halt_job: _Optional[_Union[MysqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob, _Mapping]] = ..., auto_map: _Optional[_Union[MysqlSourceConnectionOptions.NewColumnAdditionStrategy.AutoMap, _Mapping]] = ..., passthrough: _Optional[_Union[MysqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough, _Mapping]] = ...) -> None: ...
     HALT_ON_NEW_COLUMN_ADDITION_FIELD_NUMBER: _ClassVar[int]
     SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
     SUBSET_BY_FOREIGN_KEY_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
     COLUMN_REMOVAL_STRATEGY_FIELD_NUMBER: _ClassVar[int]
+    NEW_COLUMN_ADDITION_STRATEGY_FIELD_NUMBER: _ClassVar[int]
     halt_on_new_column_addition: bool
     schemas: _containers.RepeatedCompositeFieldContainer[MysqlSourceSchemaOption]
     connection_id: str
     subset_by_foreign_key_constraints: bool
     column_removal_strategy: MysqlSourceConnectionOptions.ColumnRemovalStrategy
-    def __init__(self, halt_on_new_column_addition: bool = ..., schemas: _Optional[_Iterable[_Union[MysqlSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ..., column_removal_strategy: _Optional[_Union[MysqlSourceConnectionOptions.ColumnRemovalStrategy, _Mapping]] = ...) -> None: ...
+    new_column_addition_strategy: MysqlSourceConnectionOptions.NewColumnAdditionStrategy
+    def __init__(self, halt_on_new_column_addition: bool = ..., schemas: _Optional[_Iterable[_Union[MysqlSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ..., column_removal_strategy: _Optional[_Union[MysqlSourceConnectionOptions.ColumnRemovalStrategy, _Mapping]] = ..., new_column_addition_strategy: _Optional[_Union[MysqlSourceConnectionOptions.NewColumnAdditionStrategy, _Mapping]] = ...) -> None: ...
 
 class MysqlSourceSchemaOption(_message.Message):
     __slots__ = ("schema", "tables")
@@ -328,7 +354,7 @@ class MysqlSourceTableOption(_message.Message):
     def __init__(self, table: _Optional[str] = ..., where_clause: _Optional[str] = ...) -> None: ...
 
 class MssqlSourceConnectionOptions(_message.Message):
-    __slots__ = ("halt_on_new_column_addition", "schemas", "connection_id", "subset_by_foreign_key_constraints", "column_removal_strategy")
+    __slots__ = ("halt_on_new_column_addition", "schemas", "connection_id", "subset_by_foreign_key_constraints", "column_removal_strategy", "new_column_addition_strategy")
     class ColumnRemovalStrategy(_message.Message):
         __slots__ = ("halt_job", "continue_job")
         class HaltJob(_message.Message):
@@ -342,17 +368,32 @@ class MssqlSourceConnectionOptions(_message.Message):
         halt_job: MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob
         continue_job: MssqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob
         def __init__(self, halt_job: _Optional[_Union[MssqlSourceConnectionOptions.ColumnRemovalStrategy.HaltJob, _Mapping]] = ..., continue_job: _Optional[_Union[MssqlSourceConnectionOptions.ColumnRemovalStrategy.ContinueJob, _Mapping]] = ...) -> None: ...
+    class NewColumnAdditionStrategy(_message.Message):
+        __slots__ = ("halt_job", "passthrough")
+        class HaltJob(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        class Passthrough(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        HALT_JOB_FIELD_NUMBER: _ClassVar[int]
+        PASSTHROUGH_FIELD_NUMBER: _ClassVar[int]
+        halt_job: MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob
+        passthrough: MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough
+        def __init__(self, halt_job: _Optional[_Union[MssqlSourceConnectionOptions.NewColumnAdditionStrategy.HaltJob, _Mapping]] = ..., passthrough: _Optional[_Union[MssqlSourceConnectionOptions.NewColumnAdditionStrategy.Passthrough, _Mapping]] = ...) -> None: ...
     HALT_ON_NEW_COLUMN_ADDITION_FIELD_NUMBER: _ClassVar[int]
     SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
     SUBSET_BY_FOREIGN_KEY_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
     COLUMN_REMOVAL_STRATEGY_FIELD_NUMBER: _ClassVar[int]
+    NEW_COLUMN_ADDITION_STRATEGY_FIELD_NUMBER: _ClassVar[int]
     halt_on_new_column_addition: bool
     schemas: _containers.RepeatedCompositeFieldContainer[MssqlSourceSchemaOption]
     connection_id: str
     subset_by_foreign_key_constraints: bool
     column_removal_strategy: MssqlSourceConnectionOptions.ColumnRemovalStrategy
-    def __init__(self, halt_on_new_column_addition: bool = ..., schemas: _Optional[_Iterable[_Union[MssqlSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ..., column_removal_strategy: _Optional[_Union[MssqlSourceConnectionOptions.ColumnRemovalStrategy, _Mapping]] = ...) -> None: ...
+    new_column_addition_strategy: MssqlSourceConnectionOptions.NewColumnAdditionStrategy
+    def __init__(self, halt_on_new_column_addition: bool = ..., schemas: _Optional[_Iterable[_Union[MssqlSourceSchemaOption, _Mapping]]] = ..., connection_id: _Optional[str] = ..., subset_by_foreign_key_constraints: bool = ..., column_removal_strategy: _Optional[_Union[MssqlSourceConnectionOptions.ColumnRemovalStrategy, _Mapping]] = ..., new_column_addition_strategy: _Optional[_Union[MssqlSourceConnectionOptions.NewColumnAdditionStrategy, _Mapping]] = ...) -> None: ...
 
 class MssqlSourceSchemaOption(_message.Message):
     __slots__ = ("schema", "tables")
@@ -561,7 +602,7 @@ class BatchConfig(_message.Message):
     def __init__(self, count: _Optional[int] = ..., period: _Optional[str] = ...) -> None: ...
 
 class CreateJobRequest(_message.Message):
-    __slots__ = ("account_id", "job_name", "cron_schedule", "mappings", "source", "destinations", "initiate_job_run", "workflow_options", "sync_options", "virtual_foreign_keys")
+    __slots__ = ("account_id", "job_name", "cron_schedule", "mappings", "source", "destinations", "initiate_job_run", "workflow_options", "sync_options", "virtual_foreign_keys", "job_type")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     JOB_NAME_FIELD_NUMBER: _ClassVar[int]
     CRON_SCHEDULE_FIELD_NUMBER: _ClassVar[int]
@@ -572,6 +613,7 @@ class CreateJobRequest(_message.Message):
     WORKFLOW_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     SYNC_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     VIRTUAL_FOREIGN_KEYS_FIELD_NUMBER: _ClassVar[int]
+    JOB_TYPE_FIELD_NUMBER: _ClassVar[int]
     account_id: str
     job_name: str
     cron_schedule: str
@@ -582,7 +624,66 @@ class CreateJobRequest(_message.Message):
     workflow_options: WorkflowOptions
     sync_options: ActivityOptions
     virtual_foreign_keys: _containers.RepeatedCompositeFieldContainer[VirtualForeignConstraint]
-    def __init__(self, account_id: _Optional[str] = ..., job_name: _Optional[str] = ..., cron_schedule: _Optional[str] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[CreateJobDestination, _Mapping]]] = ..., initiate_job_run: bool = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ...) -> None: ...
+    job_type: JobTypeConfig
+    def __init__(self, account_id: _Optional[str] = ..., job_name: _Optional[str] = ..., cron_schedule: _Optional[str] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[CreateJobDestination, _Mapping]]] = ..., initiate_job_run: bool = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ..., job_type: _Optional[_Union[JobTypeConfig, _Mapping]] = ...) -> None: ...
+
+class JobTypeConfig(_message.Message):
+    __slots__ = ("sync", "pii_detect")
+    class JobTypeSync(_message.Message):
+        __slots__ = ()
+        def __init__(self) -> None: ...
+    class JobTypePiiDetect(_message.Message):
+        __slots__ = ("data_sampling", "table_scan_filter", "user_prompt", "incremental")
+        class Incremental(_message.Message):
+            __slots__ = ("is_enabled",)
+            IS_ENABLED_FIELD_NUMBER: _ClassVar[int]
+            is_enabled: bool
+            def __init__(self, is_enabled: bool = ...) -> None: ...
+        class DataSampling(_message.Message):
+            __slots__ = ("is_enabled",)
+            IS_ENABLED_FIELD_NUMBER: _ClassVar[int]
+            is_enabled: bool
+            def __init__(self, is_enabled: bool = ...) -> None: ...
+        class TableScanFilter(_message.Message):
+            __slots__ = ("include_all", "include", "exclude")
+            INCLUDE_ALL_FIELD_NUMBER: _ClassVar[int]
+            INCLUDE_FIELD_NUMBER: _ClassVar[int]
+            EXCLUDE_FIELD_NUMBER: _ClassVar[int]
+            include_all: JobTypeConfig.JobTypePiiDetect.IncludeAll
+            include: JobTypeConfig.JobTypePiiDetect.TablePatterns
+            exclude: JobTypeConfig.JobTypePiiDetect.TablePatterns
+            def __init__(self, include_all: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.IncludeAll, _Mapping]] = ..., include: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.TablePatterns, _Mapping]] = ..., exclude: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.TablePatterns, _Mapping]] = ...) -> None: ...
+        class IncludeAll(_message.Message):
+            __slots__ = ()
+            def __init__(self) -> None: ...
+        class TablePatterns(_message.Message):
+            __slots__ = ("schemas", "tables")
+            SCHEMAS_FIELD_NUMBER: _ClassVar[int]
+            TABLES_FIELD_NUMBER: _ClassVar[int]
+            schemas: _containers.RepeatedScalarFieldContainer[str]
+            tables: _containers.RepeatedCompositeFieldContainer[JobTypeConfig.JobTypePiiDetect.TableIdentifier]
+            def __init__(self, schemas: _Optional[_Iterable[str]] = ..., tables: _Optional[_Iterable[_Union[JobTypeConfig.JobTypePiiDetect.TableIdentifier, _Mapping]]] = ...) -> None: ...
+        class TableIdentifier(_message.Message):
+            __slots__ = ("schema", "table")
+            SCHEMA_FIELD_NUMBER: _ClassVar[int]
+            TABLE_FIELD_NUMBER: _ClassVar[int]
+            schema: str
+            table: str
+            def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ...) -> None: ...
+        DATA_SAMPLING_FIELD_NUMBER: _ClassVar[int]
+        TABLE_SCAN_FILTER_FIELD_NUMBER: _ClassVar[int]
+        USER_PROMPT_FIELD_NUMBER: _ClassVar[int]
+        INCREMENTAL_FIELD_NUMBER: _ClassVar[int]
+        data_sampling: JobTypeConfig.JobTypePiiDetect.DataSampling
+        table_scan_filter: JobTypeConfig.JobTypePiiDetect.TableScanFilter
+        user_prompt: str
+        incremental: JobTypeConfig.JobTypePiiDetect.Incremental
+        def __init__(self, data_sampling: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.DataSampling, _Mapping]] = ..., table_scan_filter: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.TableScanFilter, _Mapping]] = ..., user_prompt: _Optional[str] = ..., incremental: _Optional[_Union[JobTypeConfig.JobTypePiiDetect.Incremental, _Mapping]] = ...) -> None: ...
+    SYNC_FIELD_NUMBER: _ClassVar[int]
+    PII_DETECT_FIELD_NUMBER: _ClassVar[int]
+    sync: JobTypeConfig.JobTypeSync
+    pii_detect: JobTypeConfig.JobTypePiiDetect
+    def __init__(self, sync: _Optional[_Union[JobTypeConfig.JobTypeSync, _Mapping]] = ..., pii_detect: _Optional[_Union[JobTypeConfig.JobTypePiiDetect, _Mapping]] = ...) -> None: ...
 
 class WorkflowOptions(_message.Message):
     __slots__ = ("run_timeout",)
@@ -673,16 +774,18 @@ class PauseJobResponse(_message.Message):
     def __init__(self, job: _Optional[_Union[Job, _Mapping]] = ...) -> None: ...
 
 class UpdateJobSourceConnectionRequest(_message.Message):
-    __slots__ = ("id", "source", "mappings", "virtual_foreign_keys")
+    __slots__ = ("id", "source", "mappings", "virtual_foreign_keys", "job_type")
     ID_FIELD_NUMBER: _ClassVar[int]
     SOURCE_FIELD_NUMBER: _ClassVar[int]
     MAPPINGS_FIELD_NUMBER: _ClassVar[int]
     VIRTUAL_FOREIGN_KEYS_FIELD_NUMBER: _ClassVar[int]
+    JOB_TYPE_FIELD_NUMBER: _ClassVar[int]
     id: str
     source: JobSource
     mappings: _containers.RepeatedCompositeFieldContainer[JobMapping]
     virtual_foreign_keys: _containers.RepeatedCompositeFieldContainer[VirtualForeignConstraint]
-    def __init__(self, id: _Optional[str] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ...) -> None: ...
+    job_type: JobTypeConfig
+    def __init__(self, id: _Optional[str] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ..., job_type: _Optional[_Union[JobTypeConfig, _Mapping]] = ...) -> None: ...
 
 class UpdateJobSourceConnectionResponse(_message.Message):
     __slots__ = ("job",)
@@ -859,7 +962,7 @@ class CancelJobRunResponse(_message.Message):
     def __init__(self) -> None: ...
 
 class Job(_message.Message):
-    __slots__ = ("id", "created_by_user_id", "created_at", "updated_by_user_id", "updated_at", "name", "source", "destinations", "mappings", "cron_schedule", "account_id", "sync_options", "workflow_options", "virtual_foreign_keys")
+    __slots__ = ("id", "created_by_user_id", "created_at", "updated_by_user_id", "updated_at", "name", "source", "destinations", "mappings", "cron_schedule", "account_id", "sync_options", "workflow_options", "virtual_foreign_keys", "job_type")
     ID_FIELD_NUMBER: _ClassVar[int]
     CREATED_BY_USER_ID_FIELD_NUMBER: _ClassVar[int]
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
@@ -874,6 +977,7 @@ class Job(_message.Message):
     SYNC_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     WORKFLOW_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     VIRTUAL_FOREIGN_KEYS_FIELD_NUMBER: _ClassVar[int]
+    JOB_TYPE_FIELD_NUMBER: _ClassVar[int]
     id: str
     created_by_user_id: str
     created_at: _timestamp_pb2.Timestamp
@@ -888,7 +992,8 @@ class Job(_message.Message):
     sync_options: ActivityOptions
     workflow_options: WorkflowOptions
     virtual_foreign_keys: _containers.RepeatedCompositeFieldContainer[VirtualForeignConstraint]
-    def __init__(self, id: _Optional[str] = ..., created_by_user_id: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., updated_by_user_id: _Optional[str] = ..., updated_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., name: _Optional[str] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[JobDestination, _Mapping]]] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., cron_schedule: _Optional[str] = ..., account_id: _Optional[str] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ...) -> None: ...
+    job_type: JobTypeConfig
+    def __init__(self, id: _Optional[str] = ..., created_by_user_id: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., updated_by_user_id: _Optional[str] = ..., updated_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., name: _Optional[str] = ..., source: _Optional[_Union[JobSource, _Mapping]] = ..., destinations: _Optional[_Iterable[_Union[JobDestination, _Mapping]]] = ..., mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., cron_schedule: _Optional[str] = ..., account_id: _Optional[str] = ..., sync_options: _Optional[_Union[ActivityOptions, _Mapping]] = ..., workflow_options: _Optional[_Union[WorkflowOptions, _Mapping]] = ..., virtual_foreign_keys: _Optional[_Iterable[_Union[VirtualForeignConstraint, _Mapping]]] = ..., job_type: _Optional[_Union[JobTypeConfig, _Mapping]] = ...) -> None: ...
 
 class JobRecentRun(_message.Message):
     __slots__ = ("start_time", "job_run_id")
@@ -1337,6 +1442,33 @@ class ValidateJobMappingsResponse(_message.Message):
     table_errors: _containers.RepeatedCompositeFieldContainer[TableError]
     def __init__(self, column_errors: _Optional[_Iterable[_Union[ColumnError, _Mapping]]] = ..., database_errors: _Optional[_Union[DatabaseError, _Mapping]] = ..., column_warnings: _Optional[_Iterable[_Union[ColumnWarning, _Mapping]]] = ..., table_errors: _Optional[_Iterable[_Union[TableError, _Mapping]]] = ...) -> None: ...
 
+class ValidateSchemaRequest(_message.Message):
+    __slots__ = ("mappings", "connection_id")
+    MAPPINGS_FIELD_NUMBER: _ClassVar[int]
+    CONNECTION_ID_FIELD_NUMBER: _ClassVar[int]
+    mappings: _containers.RepeatedCompositeFieldContainer[JobMapping]
+    connection_id: str
+    def __init__(self, mappings: _Optional[_Iterable[_Union[JobMapping, _Mapping]]] = ..., connection_id: _Optional[str] = ...) -> None: ...
+
+class ValidateSchemaResponse(_message.Message):
+    __slots__ = ("missing_columns", "extra_columns", "missing_tables", "missing_schemas")
+    class Table(_message.Message):
+        __slots__ = ("schema", "table")
+        SCHEMA_FIELD_NUMBER: _ClassVar[int]
+        TABLE_FIELD_NUMBER: _ClassVar[int]
+        schema: str
+        table: str
+        def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ...) -> None: ...
+    MISSING_COLUMNS_FIELD_NUMBER: _ClassVar[int]
+    EXTRA_COLUMNS_FIELD_NUMBER: _ClassVar[int]
+    MISSING_TABLES_FIELD_NUMBER: _ClassVar[int]
+    MISSING_SCHEMAS_FIELD_NUMBER: _ClassVar[int]
+    missing_columns: _containers.RepeatedCompositeFieldContainer[_connection_data_pb2.DatabaseColumn]
+    extra_columns: _containers.RepeatedCompositeFieldContainer[_connection_data_pb2.DatabaseColumn]
+    missing_tables: _containers.RepeatedCompositeFieldContainer[ValidateSchemaResponse.Table]
+    missing_schemas: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, missing_columns: _Optional[_Iterable[_Union[_connection_data_pb2.DatabaseColumn, _Mapping]]] = ..., extra_columns: _Optional[_Iterable[_Union[_connection_data_pb2.DatabaseColumn, _Mapping]]] = ..., missing_tables: _Optional[_Iterable[_Union[ValidateSchemaResponse.Table, _Mapping]]] = ..., missing_schemas: _Optional[_Iterable[str]] = ...) -> None: ...
+
 class VirtualForeignKey(_message.Message):
     __slots__ = ("schema", "table", "columns")
     SCHEMA_FIELD_NUMBER: _ClassVar[int]
@@ -1594,3 +1726,53 @@ class GetActiveJobHooksByTimingResponse(_message.Message):
     HOOKS_FIELD_NUMBER: _ClassVar[int]
     hooks: _containers.RepeatedCompositeFieldContainer[JobHook]
     def __init__(self, hooks: _Optional[_Iterable[_Union[JobHook, _Mapping]]] = ...) -> None: ...
+
+class GetPiiDetectionReportRequest(_message.Message):
+    __slots__ = ("job_run_id", "account_id")
+    JOB_RUN_ID_FIELD_NUMBER: _ClassVar[int]
+    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    job_run_id: str
+    account_id: str
+    def __init__(self, job_run_id: _Optional[str] = ..., account_id: _Optional[str] = ...) -> None: ...
+
+class GetPiiDetectionReportResponse(_message.Message):
+    __slots__ = ("report",)
+    REPORT_FIELD_NUMBER: _ClassVar[int]
+    report: PiiDetectionReport
+    def __init__(self, report: _Optional[_Union[PiiDetectionReport, _Mapping]] = ...) -> None: ...
+
+class PiiDetectionReport(_message.Message):
+    __slots__ = ("tables",)
+    class TableReport(_message.Message):
+        __slots__ = ("schema", "table", "columns")
+        class ColumnReport(_message.Message):
+            __slots__ = ("column", "regex_report", "llm_report")
+            class Regex(_message.Message):
+                __slots__ = ("category",)
+                CATEGORY_FIELD_NUMBER: _ClassVar[int]
+                category: str
+                def __init__(self, category: _Optional[str] = ...) -> None: ...
+            class LLM(_message.Message):
+                __slots__ = ("category", "confidence")
+                CATEGORY_FIELD_NUMBER: _ClassVar[int]
+                CONFIDENCE_FIELD_NUMBER: _ClassVar[int]
+                category: str
+                confidence: float
+                def __init__(self, category: _Optional[str] = ..., confidence: _Optional[float] = ...) -> None: ...
+            COLUMN_FIELD_NUMBER: _ClassVar[int]
+            REGEX_REPORT_FIELD_NUMBER: _ClassVar[int]
+            LLM_REPORT_FIELD_NUMBER: _ClassVar[int]
+            column: str
+            regex_report: PiiDetectionReport.TableReport.ColumnReport.Regex
+            llm_report: PiiDetectionReport.TableReport.ColumnReport.LLM
+            def __init__(self, column: _Optional[str] = ..., regex_report: _Optional[_Union[PiiDetectionReport.TableReport.ColumnReport.Regex, _Mapping]] = ..., llm_report: _Optional[_Union[PiiDetectionReport.TableReport.ColumnReport.LLM, _Mapping]] = ...) -> None: ...
+        SCHEMA_FIELD_NUMBER: _ClassVar[int]
+        TABLE_FIELD_NUMBER: _ClassVar[int]
+        COLUMNS_FIELD_NUMBER: _ClassVar[int]
+        schema: str
+        table: str
+        columns: _containers.RepeatedCompositeFieldContainer[PiiDetectionReport.TableReport.ColumnReport]
+        def __init__(self, schema: _Optional[str] = ..., table: _Optional[str] = ..., columns: _Optional[_Iterable[_Union[PiiDetectionReport.TableReport.ColumnReport, _Mapping]]] = ...) -> None: ...
+    TABLES_FIELD_NUMBER: _ClassVar[int]
+    tables: _containers.RepeatedCompositeFieldContainer[PiiDetectionReport.TableReport]
+    def __init__(self, tables: _Optional[_Iterable[_Union[PiiDetectionReport.TableReport, _Mapping]]] = ...) -> None: ...

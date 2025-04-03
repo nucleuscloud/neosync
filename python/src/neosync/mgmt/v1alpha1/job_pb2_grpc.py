@@ -155,6 +155,11 @@ class JobServiceStub(object):
                 request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateJobMappingsRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateJobMappingsResponse.FromString,
                 _registered_method=True)
+        self.ValidateSchema = channel.unary_unary(
+                '/mgmt.v1alpha1.JobService/ValidateSchema',
+                request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateSchemaRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateSchemaResponse.FromString,
+                _registered_method=True)
         self.GetRunContext = channel.unary_unary(
                 '/mgmt.v1alpha1.JobService/GetRunContext',
                 request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.GetRunContextRequest.SerializeToString,
@@ -209,6 +214,11 @@ class JobServiceStub(object):
                 '/mgmt.v1alpha1.JobService/GetActiveJobHooksByTiming',
                 request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.GetActiveJobHooksByTimingRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.GetActiveJobHooksByTimingResponse.FromString,
+                _registered_method=True)
+        self.GetPiiDetectionReport = channel.unary_unary(
+                '/mgmt.v1alpha1.JobService/GetPiiDetectionReport',
+                request_serializer=mgmt_dot_v1alpha1_dot_job__pb2.GetPiiDetectionReportRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.GetPiiDetectionReportResponse.FromString,
                 _registered_method=True)
 
 
@@ -413,6 +423,13 @@ class JobServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ValidateSchema(self, request, context):
+        """Validates that the schema is compatible with the job mappings
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def GetRunContext(self, request, context):
         """Gets a run context to be used by a workflow run
         """
@@ -486,6 +503,12 @@ class JobServiceServicer(object):
     def GetActiveJobHooksByTiming(self, request, context):
         """Returns job hooks that are enabled by a specific timing. They will be sorted by priority, created_at, and id ascending.
         """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetPiiDetectionReport(self, request, context):
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -633,6 +656,11 @@ def add_JobServiceServicer_to_server(servicer, server):
                     request_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateJobMappingsRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateJobMappingsResponse.SerializeToString,
             ),
+            'ValidateSchema': grpc.unary_unary_rpc_method_handler(
+                    servicer.ValidateSchema,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateSchemaRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_job__pb2.ValidateSchemaResponse.SerializeToString,
+            ),
             'GetRunContext': grpc.unary_unary_rpc_method_handler(
                     servicer.GetRunContext,
                     request_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.GetRunContextRequest.FromString,
@@ -687,6 +715,11 @@ def add_JobServiceServicer_to_server(servicer, server):
                     servicer.GetActiveJobHooksByTiming,
                     request_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.GetActiveJobHooksByTimingRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_job__pb2.GetActiveJobHooksByTimingResponse.SerializeToString,
+            ),
+            'GetPiiDetectionReport': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetPiiDetectionReport,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_job__pb2.GetPiiDetectionReportRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_job__pb2.GetPiiDetectionReportResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1457,6 +1490,33 @@ class JobService(object):
             _registered_method=True)
 
     @staticmethod
+    def ValidateSchema(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/mgmt.v1alpha1.JobService/ValidateSchema',
+            mgmt_dot_v1alpha1_dot_job__pb2.ValidateSchemaRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_job__pb2.ValidateSchemaResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
     def GetRunContext(request,
             target,
             options=(),
@@ -1743,6 +1803,33 @@ class JobService(object):
             '/mgmt.v1alpha1.JobService/GetActiveJobHooksByTiming',
             mgmt_dot_v1alpha1_dot_job__pb2.GetActiveJobHooksByTimingRequest.SerializeToString,
             mgmt_dot_v1alpha1_dot_job__pb2.GetActiveJobHooksByTimingResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetPiiDetectionReport(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/mgmt.v1alpha1.JobService/GetPiiDetectionReport',
+            mgmt_dot_v1alpha1_dot_job__pb2.GetPiiDetectionReportRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_job__pb2.GetPiiDetectionReportResponse.FromString,
             options,
             channel_credentials,
             insecure,

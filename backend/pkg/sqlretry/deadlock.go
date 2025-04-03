@@ -1,9 +1,11 @@
 package sqlretry
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lib/pq"
 )
 
@@ -29,8 +31,8 @@ func isMysqlDeadlockError(err error) bool {
 	if err == nil {
 		return false
 	}
-	mysqlErr, ok := err.(*mysql.MySQLError)
-	if ok {
+	var mysqlErr *mysql.MySQLError
+	if errors.As(err, &mysqlErr) {
 		return mysqlErr.Number == mysqlDeadlock || mysqlErr.Number == mysqlLockTimeout
 	}
 	return false
@@ -40,10 +42,17 @@ func isPostgresDeadlock(err error) bool {
 	if err == nil {
 		return false
 	}
-	pqErr, ok := err.(*pq.Error)
-	if ok {
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == pqDeadlockDetected
+	}
+
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) {
 		return pqErr.Code == pqDeadlockDetected
 	}
+
 	return false
 }
 

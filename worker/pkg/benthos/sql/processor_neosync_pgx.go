@@ -43,7 +43,10 @@ type neosyncToPgxProcessor struct {
 	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
 }
 
-func newNeosyncToPgxProcessor(conf *service.ParsedConfig, mgr *service.Resources) (*neosyncToPgxProcessor, error) {
+func newNeosyncToPgxProcessor(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+) (*neosyncToPgxProcessor, error) {
 	columnDataTypes, err := conf.FieldStringMap("column_data_types")
 	if err != nil {
 		return nil, err
@@ -72,14 +75,22 @@ func newNeosyncToPgxProcessor(conf *service.ParsedConfig, mgr *service.Resources
 	}, nil
 }
 
-func (p *neosyncToPgxProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
+func (p *neosyncToPgxProcessor) ProcessBatch(
+	ctx context.Context,
+	batch service.MessageBatch,
+) ([]service.MessageBatch, error) {
 	newBatch := make(service.MessageBatch, 0, len(batch))
 	for _, msg := range batch {
 		root, err := msg.AsStructuredMut()
 		if err != nil {
 			return nil, err
 		}
-		newRoot, err := transformNeosyncToPgx(root, p.columns, p.columnDataTypes, p.columnDefaultProperties)
+		newRoot, err := transformNeosyncToPgx(
+			root,
+			p.columns,
+			p.columnDataTypes,
+			p.columnDefaultProperties,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -126,7 +137,11 @@ func transformNeosyncToPgx(
 	return newMap, nil
 }
 
-func getPgxValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties, datatype string) (any, error) {
+func getPgxValue(
+	value any,
+	colDefaults *neosync_benthos.ColumnDefaultProperties,
+	datatype string,
+) (any, error) {
 	value, isNeosyncValue, err := getPgxNeosyncValue(value)
 	if err != nil {
 		return nil, err
@@ -145,6 +160,9 @@ func getPgxValue(value any, colDefaults *neosync_benthos.ColumnDefaultProperties
 
 	switch {
 	case strings.EqualFold(datatype, "json") || strings.EqualFold(datatype, "jsonb"):
+		if value == "null" {
+			return value, nil
+		}
 		bits, err := json.Marshal(value)
 		if err != nil {
 			return nil, fmt.Errorf("unable to marshal postgres json to bits: %w", err)
@@ -238,7 +256,9 @@ func isColumnInList(column string, columns []string) bool {
 	return slices.Contains(columns, column)
 }
 
-func getColumnDefaultProperties(columnDefaultPropertiesConfig map[string]*service.ParsedConfig) (map[string]*neosync_benthos.ColumnDefaultProperties, error) {
+func getColumnDefaultProperties(
+	columnDefaultPropertiesConfig map[string]*service.ParsedConfig,
+) (map[string]*neosync_benthos.ColumnDefaultProperties, error) {
 	columnDefaultProperties := map[string]*neosync_benthos.ColumnDefaultProperties{}
 	for key, properties := range columnDefaultPropertiesConfig {
 		props, err := properties.FieldAny()

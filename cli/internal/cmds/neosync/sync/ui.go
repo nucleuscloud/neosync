@@ -40,13 +40,22 @@ var (
 	printlog            = lipgloss.NewStyle().PaddingLeft(2)
 	currentPkgNameStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("211"))
 	doneStyle           = lipgloss.NewStyle().Margin(1, 2)
-	checkMark           = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("42")).SetString("✓")
-	helpStyle           = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Margin(1, 0)
-	dotStyle            = helpStyle.UnsetMargins()
-	durationStyle       = dotStyle
+	checkMark           = lipgloss.NewStyle().
+				PaddingLeft(2).
+				Foreground(lipgloss.Color("42")).
+				SetString("✓")
+	helpStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Margin(1, 0)
+	dotStyle      = helpStyle.UnsetMargins()
+	durationStyle = dotStyle
 )
 
-func newModel(ctx context.Context, benv *service.Environment, groupedConfigs [][]*benthosbuilder.BenthosConfigResponse, logger *slog.Logger, outputType output.OutputType) *model {
+func newModel(
+	ctx context.Context,
+	benv *service.Environment,
+	groupedConfigs [][]*benthosbuilder.BenthosConfigResponse,
+	logger *slog.Logger,
+	outputType output.OutputType,
+) *model {
 	s := spinner.New()
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
 	return &model{
@@ -122,7 +131,13 @@ func (m *model) View() string {
 
 	var pkgName string
 	if len(processingTables) > 5 {
-		pkgName = currentPkgNameStyle.Render(fmt.Sprintf("%s \n + %d others...", strings.Join(processingTables[:5], "\n"), len(processingTables)))
+		pkgName = currentPkgNameStyle.Render(
+			fmt.Sprintf(
+				"%s \n + %d others...",
+				strings.Join(processingTables[:5], "\n"),
+				len(processingTables),
+			),
+		)
 	} else {
 		pkgName = currentPkgNameStyle.Render(strings.Join(processingTables, "\n"))
 	}
@@ -132,7 +147,10 @@ func (m *model) View() string {
 
 type syncedDataMsg map[string]string
 
-func (m *model) syncConfigs(ctx context.Context, configs []*benthosbuilder.BenthosConfigResponse) tea.Cmd {
+func (m *model) syncConfigs(
+	ctx context.Context,
+	configs []*benthosbuilder.BenthosConfigResponse,
+) tea.Cmd {
 	return func() tea.Msg {
 		messageMap := syncmap.Map{}
 		errgrp, errctx := errgroup.WithContext(ctx)
@@ -149,7 +167,9 @@ func (m *model) syncConfigs(ctx context.Context, configs []*benthosbuilder.Benth
 				}
 				duration := time.Since(start)
 				messageMap.Store(cfg.Name, duration)
-				m.logger.Info(fmt.Sprintf("Finished syncing table %s %s", cfg.Name, duration.String()))
+				m.logger.Info(
+					fmt.Sprintf("Finished syncing table %s %s", cfg.Name, duration.String()),
+				)
 				return nil
 			})
 		}
@@ -160,8 +180,7 @@ func (m *model) syncConfigs(ctx context.Context, configs []*benthosbuilder.Benth
 		}
 
 		results := map[string]string{}
-		//nolint:gofmt
-		messageMap.Range(func(key, value interface{}) bool {
+		messageMap.Range(func(key, value any) bool {
 			d := value.(time.Duration)
 			results[key.(string)] = fmt.Sprintf("%s %s %s", checkMark, key,
 				durationStyle.Render(d.String()))
@@ -187,7 +206,13 @@ func getConfigCount(groupedConfigs [][]*benthosbuilder.BenthosConfigResponse) in
 	return count
 }
 
-func runSync(ctx context.Context, outputType output.OutputType, benv *service.Environment, groupedConfigs [][]*benthosbuilder.BenthosConfigResponse, logger *slog.Logger) error {
+func runSync(
+	ctx context.Context,
+	outputType output.OutputType,
+	benv *service.Environment,
+	groupedConfigs [][]*benthosbuilder.BenthosConfigResponse,
+	logger *slog.Logger,
+) error {
 	var opts []tea.ProgramOption
 	var synclogger = logger
 	if outputType == output.PlainOutput {

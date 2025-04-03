@@ -30,7 +30,7 @@ export default function HookCard(props: Props): ReactElement {
       <Card>
         <CardContent className="p-4">
           <div className="flex justify-between">
-            <div className="flex flex-grow flex-col gap-2">
+            <div className="flex grow flex-col gap-2">
               {/* Header Section */}
               <div className="flex items-center justify-between">
                 <h3 className="font-medium text-lg">{hook.name}</h3>
@@ -42,7 +42,7 @@ export default function HookCard(props: Props): ReactElement {
 
               <div className="flex items-center gap-4 pt-2 flex-wrap">
                 <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-                  <ClockIcon className="flex-shrink-0" />
+                  <ClockIcon className="shrink-0" />
                   <p>{hookTiming}</p>
                 </div>
 

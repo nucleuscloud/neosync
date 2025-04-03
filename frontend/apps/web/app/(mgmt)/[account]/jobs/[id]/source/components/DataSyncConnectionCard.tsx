@@ -43,9 +43,12 @@ import {
   convertJobMappingTransformerToForm,
   toColumnRemovalStrategy,
   toJobSourceMssqlColumnRemovalStrategy,
+  toJobSourceMssqlNewColumnAdditionStrategy,
   toJobSourceMysqlColumnRemovalStrategy,
+  toJobSourceMysqlNewColumnAdditionStrategy,
   toJobSourcePostgresColumnRemovalStrategy,
   toJobSourcePostgresNewColumnAdditionStrategy,
+  toMssqlNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
 } from '@/yup-validations/jobs';
 import { create } from '@bufbuild/protobuf';
@@ -56,6 +59,7 @@ import {
 } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  ColumnWarning_ColumnWarningCode,
   Connection,
   ConnectionDataService,
   ConnectionSchema,
@@ -83,6 +87,8 @@ import {
   MssqlSourceConnectionOptionsSchema,
   MysqlSourceConnectionOptions,
   MysqlSourceConnectionOptionsSchema,
+  MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
+  MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
   PostgresSourceConnectionOptions,
   PostgresSourceConnectionOptionsSchema,
   ValidateJobMappingsResponse,
@@ -602,6 +608,51 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     },
   });
 
+  const missingSourceColumns = useMemo(() => {
+    if (!validateMappingsResponse?.columnWarnings) {
+      return [];
+    }
+    return (
+      validateMappingsResponse?.columnWarnings
+        .map((w) => {
+          const isNotFoundInSource = w.warningReports.some(
+            (wr) =>
+              wr.code === ColumnWarning_ColumnWarningCode.NOT_FOUND_IN_SOURCE
+          );
+          return isNotFoundInSource
+            ? {
+                schema: w.schema,
+                table: w.table,
+                column: w.column,
+              }
+            : null;
+        })
+        .filter((x) => !!x) ?? []
+    );
+  }, [validateMappingsResponse?.columnWarnings]);
+
+  function onRemoveMissingSourceColumns(): void {
+    if (missingSourceColumns.length === 0) {
+      return;
+    }
+    // this will be slow for large datasets
+    const colsMap = new Map(
+      formMappings.map((fm, idx) => [
+        `${fm.schema}.${fm.table}.${fm.column}`,
+        idx,
+      ])
+    );
+    const indicesToRemove = missingSourceColumns
+      .map((c) => colsMap.get(`${c.schema}.${c.table}.${c.column}`))
+      .filter((x) => x != null);
+    if (indicesToRemove.length > 0) {
+      remove(indicesToRemove);
+      setTimeout(() => {
+        validateMappings(form.getValues('mappings')); // using form.getValues as it's more up to date for some reason (bug?)
+      }, 0);
+    }
+  }
+
   if (
     isConnectionsLoading ||
     isSchemaDataMapLoading ||
@@ -866,6 +917,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
               }}
               onApplyDefaultClick={onApplyDefaultClick}
               onTransformerBulkUpdate={onTransformerBulkUpdate}
+              hasMissingSourceColumnMappings={missingSourceColumns.length > 0}
+              onRemoveMissingSourceColumnMappings={onRemoveMissingSourceColumns}
             />
           )}
 
@@ -911,6 +964,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
               }}
               onApplyDefaultClick={onApplyDefaultClick}
               onTransformerBulkUpdate={onTransformerBulkUpdate}
+              hasMissingSourceColumnMappings={missingSourceColumns.length > 0}
+              onRemoveMissingSourceColumnMappings={onRemoveMissingSourceColumns}
             />
           )}
           <div className="flex flex-row items-center justify-end w-full mt-4">
@@ -954,8 +1009,10 @@ function toJobSourceOptions(
           value: create(MysqlSourceConnectionOptionsSchema, {
             ...getExistingMysqlSourceConnectionOptions(job),
             connectionId: newSourceId,
-            haltOnNewColumnAddition:
-              values.sourceOptions.mysql?.haltOnNewColumnAddition ?? false,
+            newColumnAdditionStrategy:
+              toJobSourceMysqlNewColumnAdditionStrategy(
+                values.sourceOptions.mysql?.newColumnAdditionStrategy
+              ),
             columnRemovalStrategy: toJobSourceMysqlColumnRemovalStrategy(
               values.sourceOptions.mysql?.columnRemovalStrategy
             ),
@@ -1019,11 +1076,13 @@ function toJobSourceOptions(
           value: create(MssqlSourceConnectionOptionsSchema, {
             ...getExistingMssqlSourceConnectionOptions(job),
             connectionId: newSourceId,
-            haltOnNewColumnAddition:
-              values.sourceOptions.mssql?.haltOnNewColumnAddition ?? false,
             columnRemovalStrategy: toJobSourceMssqlColumnRemovalStrategy(
               values.sourceOptions.mssql?.columnRemovalStrategy
             ),
+            newColumnAdditionStrategy:
+              toJobSourceMssqlNewColumnAdditionStrategy(
+                values.sourceOptions.mssql?.newColumnAdditionStrategy
+              ),
           }),
         },
       });
@@ -1176,13 +1235,30 @@ function getJobSource(
         },
       };
     case 'mysql':
+      if (
+        job.source.options.config.value.haltOnNewColumnAddition &&
+        !job.source.options.config.value.newColumnAdditionStrategy?.strategy
+      ) {
+        job.source.options.config.value.newColumnAdditionStrategy = create(
+          MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
+          {
+            strategy: {
+              case: 'haltJob',
+              value: create(
+                MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema
+              ),
+            },
+          }
+        );
+      }
       return {
         ...yupValidationValues,
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
           mysql: {
-            haltOnNewColumnAddition:
-              job?.source?.options?.config.value.haltOnNewColumnAddition,
+            newColumnAdditionStrategy: toNewColumnAdditionStrategy(
+              job.source.options.config.value.newColumnAdditionStrategy
+            ),
             columnRemovalStrategy: toColumnRemovalStrategy(
               job.source.options.config.value.columnRemovalStrategy
             ),
@@ -1229,10 +1305,11 @@ function getJobSource(
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
           mssql: {
-            haltOnNewColumnAddition:
-              job?.source?.options?.config.value.haltOnNewColumnAddition,
             columnRemovalStrategy: toColumnRemovalStrategy(
               job.source.options.config.value.columnRemovalStrategy
+            ),
+            newColumnAdditionStrategy: toMssqlNewColumnAdditionStrategy(
+              job.source.options.config.value.newColumnAdditionStrategy
             ),
           },
         },
@@ -1297,7 +1374,7 @@ async function getUpdatedValues(
         ...values,
         sourceOptions: {
           mysql: {
-            haltOnNewColumnAddition: false,
+            newColumnAdditionStrategy: 'halt',
             columnRemovalStrategy: 'continue',
           },
         },
@@ -1319,7 +1396,7 @@ async function getUpdatedValues(
         ...values,
         sourceOptions: {
           mssql: {
-            haltOnNewColumnAddition: false,
+            newColumnAdditionStrategy: 'halt',
             columnRemovalStrategy: 'continue',
           },
         },

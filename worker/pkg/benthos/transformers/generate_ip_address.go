@@ -49,39 +49,46 @@ func init() {
 		Param(bloblang.NewStringParam("ip_type").Default(string(IpV4_Public)).Description("IP type to generate.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("Optional seed for deterministic generation"))
 
-	err := bloblang.RegisterFunctionV2("generate_ip", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		maxLength, err := args.GetInt64("max_length")
-		if err != nil {
-			return nil, err
-		}
-		ipType, err := args.GetString("ip_type")
-		if err != nil {
-			return nil, err
-		}
+	err := bloblang.RegisterFunctionV2(
+		"generate_ip",
+		spec,
+		func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+			maxLength, err := args.GetInt64("max_length")
+			if err != nil {
+				return nil, err
+			}
+			ipType, err := args.GetString("ip_type")
+			if err != nil {
+				return nil, err
+			}
 
-		seedArg, err := args.GetOptionalInt64("seed")
-		if err != nil {
-			return nil, err
-		}
+			seedArg, err := args.GetOptionalInt64("seed")
+			if err != nil {
+				return nil, err
+			}
 
-		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
-		if err != nil {
-			return nil, err
-		}
+			seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+			if err != nil {
+				return nil, err
+			}
 
-		randomizer := rng.New(seed)
+			randomizer := rng.New(seed)
 
-		return func() (any, error) {
-			return generateIpAddress(randomizer, IpType(ipType), maxLength)
-		}, nil
-	})
+			return func() (any, error) {
+				return generateIpAddress(randomizer, IpType(ipType), maxLength)
+			}, nil
+		},
+	)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func NewGenerateIpAddressOptsFromConfig(config *mgmtv1alpha1.GenerateIpAddress, maxlength *int64) (*GenerateIpAddressOpts, error) {
+func NewGenerateIpAddressOptsFromConfig(
+	config *mgmtv1alpha1.GenerateIpAddress,
+	maxlength *int64,
+) (*GenerateIpAddressOpts, error) {
 	if config == nil {
 		return NewGenerateIpAddressOpts(nil, nil, nil)
 	}

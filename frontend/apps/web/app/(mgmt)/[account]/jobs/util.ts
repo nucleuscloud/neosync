@@ -4,19 +4,26 @@ import {
   convertNanosecondsToMinutes,
 } from '@/util/util';
 import {
+  AwsS3DestinationOptionsFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
   DestinationOptionsFormValues,
   DynamoDBSourceUnmappedTransformConfigFormValues,
   JobMappingFormValues,
+  MssqlDbDestinationOptionsFormValues,
+  MysqlDbDestinationOptionsFormValues,
   NewDestinationFormValues,
+  PostgresDbDestinationOptionsFormValues,
   SchemaFormValues,
   SchemaFormValuesDestinationOptions,
   toColumnRemovalStrategy,
   toJobSourceMssqlColumnRemovalStrategy,
+  toJobSourceMssqlNewColumnAdditionStrategy,
   toJobSourceMysqlColumnRemovalStrategy,
+  toJobSourceMysqlNewColumnAdditionStrategy,
   toJobSourcePostgresColumnRemovalStrategy,
   toJobSourcePostgresNewColumnAdditionStrategy,
+  toMssqlNewColumnAdditionStrategy,
   toNewColumnAdditionStrategy,
   VirtualForeignConstraintFormValues,
 } from '@/yup-validations/jobs';
@@ -67,6 +74,12 @@ import {
   JobSourceSchema,
   JobSourceSqlSubetSchemas,
   JobSourceSqlSubetSchemasSchema,
+  JobTypeConfig_JobTypePiiDetect,
+  JobTypeConfig_JobTypePiiDetect_IncludeAllSchema,
+  JobTypeConfig_JobTypePiiDetect_TablePatternsSchema,
+  JobTypeConfig_JobTypePiiDetect_TableScanFilter,
+  JobTypeConfig_JobTypePiiDetect_TableScanFilterSchema,
+  JobTypeConfig_JobTypePiiDetectSchema,
   MongoDBDestinationConnectionOptionsSchema,
   MongoDBSourceConnectionOptionsSchema,
   MssqlDestinationConnectionOptionsSchema,
@@ -81,6 +94,8 @@ import {
   MysqlOnConflictConfig_MysqlOnConflictDoNothingSchema,
   MysqlOnConflictConfig_MysqlOnConflictUpdateSchema,
   MysqlOnConflictConfigSchema,
+  MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
+  MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
   MysqlSourceConnectionOptionsSchema,
   MysqlSourceSchemaOption,
   MysqlSourceSchemaOptionSchema,
@@ -114,9 +129,12 @@ import {
   ActivityOptionsFormValues,
   ConnectFormValues,
   CreateJobFormValues,
+  CreatePiiDetectionJobFormValues,
   CreateSingleTableAiGenerateJobFormValues,
   CreateSingleTableGenerateJobFormValues,
   DefineFormValues,
+  PiiDetectionConnectFormValues,
+  PiiDetectionSchemaFormValues,
   SingleTableAiConnectFormValues,
   SingleTableAiSchemaFormValues,
   SingleTableConnectFormValues,
@@ -124,8 +142,10 @@ import {
   SingleTableEditSourceFormValues,
   SingleTableSchemaFormValues,
   SubsetFormValues,
+  TableScanFilterFormValue,
   WorkflowSettingsSchema,
 } from '../new/job/job-form-validations';
+import { setInitialFormStateFromJob } from '../new/job/piidetect/schema/stores';
 import { getConnectionIdFromSource } from './[id]/source/components/util';
 
 type GetConnectionById = (id: string) => Connection | undefined;
@@ -367,9 +387,95 @@ export function getCreateNewSyncJobRequest(
     ),
     workflowOptions: toWorkflowOptions(values.define.workflowSettings),
     syncOptions: toSyncOptions(values),
+    jobType: {
+      jobType: {
+        case: 'sync',
+        value: {},
+      },
+    },
   });
 }
 
+export function getCreateNewPiiDetectJobRequest(
+  values: CreatePiiDetectionJobFormValues,
+  accountId: string,
+  getConnectionById: GetConnectionById
+): CreateJobRequest {
+  return create(CreateJobRequestSchema, {
+    accountId,
+    jobName: values.define.jobName,
+    cronSchedule: values.define.cronSchedule,
+    initiateJobRun: values.define.initiateJobRun,
+    mappings: [],
+    source: toJobSource(
+      {
+        connect: {
+          sourceId: values.connect.sourceId,
+          destinations: [],
+          sourceOptions: {},
+        },
+        subset: undefined,
+      },
+      getConnectionById
+    ),
+    destinations: [],
+    syncOptions: toSyncOptions(values),
+    workflowOptions: toWorkflowOptions(values.define.workflowSettings),
+    jobType: {
+      jobType: {
+        case: 'piiDetect',
+        value: toPiiDetectJobTypeConfig(values.schema),
+      },
+    },
+  });
+}
+
+export function toPiiDetectJobTypeConfig(
+  values: PiiDetectionSchemaFormValues
+): JobTypeConfig_JobTypePiiDetect {
+  return create(JobTypeConfig_JobTypePiiDetectSchema, {
+    dataSampling: values.dataSampling,
+    userPrompt: values.userPrompt,
+    tableScanFilter: toPiiDetectTableScanFilter(values.tableScanFilter),
+    incremental: values.incremental,
+  });
+}
+
+function toPiiDetectTableScanFilter(
+  values: TableScanFilterFormValue
+): JobTypeConfig_JobTypePiiDetect_TableScanFilter | undefined {
+  if (values.mode === 'include_all') {
+    return create(JobTypeConfig_JobTypePiiDetect_TableScanFilterSchema, {
+      mode: {
+        case: 'includeAll',
+        value: create(JobTypeConfig_JobTypePiiDetect_IncludeAllSchema, {}),
+      },
+    });
+  }
+  if (values.mode === 'include') {
+    return create(JobTypeConfig_JobTypePiiDetect_TableScanFilterSchema, {
+      mode: {
+        case: 'include',
+        value: create(JobTypeConfig_JobTypePiiDetect_TablePatternsSchema, {
+          schemas: values.patterns.schemas,
+          tables: values.patterns.tables,
+        }),
+      },
+    });
+  }
+  if (values.mode === 'exclude') {
+    return create(JobTypeConfig_JobTypePiiDetect_TableScanFilterSchema, {
+      mode: {
+        case: 'exclude',
+        value: create(JobTypeConfig_JobTypePiiDetect_TablePatternsSchema, {
+          schemas: values.patterns.schemas,
+          tables: values.patterns.tables,
+        }),
+      },
+    });
+  }
+  return undefined;
+}
 export function toWorkflowOptions(
   values?: WorkflowSettingsSchema
 ): WorkflowOptions | undefined {
@@ -697,9 +803,10 @@ function toJobSourceOptions(
           case: 'mysql',
           value: create(MysqlSourceConnectionOptionsSchema, {
             connectionId: values.connect.sourceId,
-            haltOnNewColumnAddition:
-              values.connect.sourceOptions.mysql?.haltOnNewColumnAddition ??
-              false,
+            newColumnAdditionStrategy:
+              toJobSourceMysqlNewColumnAdditionStrategy(
+                values.connect.sourceOptions.mysql?.newColumnAdditionStrategy
+              ),
             columnRemovalStrategy: toJobSourceMysqlColumnRemovalStrategy(
               values.connect.sourceOptions.mysql?.columnRemovalStrategy
             ),
@@ -744,9 +851,10 @@ function toJobSourceOptions(
           case: 'mssql',
           value: create(MssqlSourceConnectionOptionsSchema, {
             connectionId: values.connect.sourceId,
-            haltOnNewColumnAddition:
-              values.connect.sourceOptions.mssql?.haltOnNewColumnAddition ??
-              false,
+            newColumnAdditionStrategy:
+              toJobSourceMssqlNewColumnAdditionStrategy(
+                values.connect.sourceOptions.mssql?.newColumnAdditionStrategy
+              ),
             columnRemovalStrategy: toJobSourceMssqlColumnRemovalStrategy(
               values.connect.sourceOptions.mssql?.columnRemovalStrategy
             ),
@@ -1186,12 +1294,37 @@ function setDefaultConnectFormValues(
       return;
     }
     case 'mysql': {
+      if (job.jobType?.jobType.case === 'piiDetect') {
+        const values: PiiDetectionConnectFormValues = {
+          sourceId: job.source.options.config.value.connectionId,
+        };
+        storage.setItem(sessionKeys.piidetect.connect, JSON.stringify(values));
+        return;
+      }
+      if (
+        job.source.options.config.value.haltOnNewColumnAddition &&
+        !job.source.options.config.value.newColumnAdditionStrategy
+      ) {
+        job.source.options.config.value.newColumnAdditionStrategy = create(
+          MysqlSourceConnectionOptions_NewColumnAdditionStrategySchema,
+          {
+            strategy: {
+              case: 'haltJob',
+              value: create(
+                MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJobSchema,
+                {}
+              ),
+            },
+          }
+        );
+      }
       const values: ConnectFormValues = {
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {
           mysql: {
-            haltOnNewColumnAddition:
-              job.source.options.config.value.haltOnNewColumnAddition,
+            newColumnAdditionStrategy: toNewColumnAdditionStrategy(
+              job.source.options.config.value.newColumnAdditionStrategy
+            ),
             columnRemovalStrategy: toColumnRemovalStrategy(
               job.source.options.config.value.columnRemovalStrategy
             ),
@@ -1206,6 +1339,13 @@ function setDefaultConnectFormValues(
       return;
     }
     case 'postgres': {
+      if (job.jobType?.jobType.case === 'piiDetect') {
+        const values: PiiDetectionConnectFormValues = {
+          sourceId: job.source.options.config.value.connectionId,
+        };
+        storage.setItem(sessionKeys.piidetect.connect, JSON.stringify(values));
+        return;
+      }
       const values: ConnectFormValues = {
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {
@@ -1227,12 +1367,20 @@ function setDefaultConnectFormValues(
       return;
     }
     case 'mssql': {
+      if (job.jobType?.jobType.case === 'piiDetect') {
+        const values: PiiDetectionConnectFormValues = {
+          sourceId: job.source.options.config.value.connectionId,
+        };
+        storage.setItem(sessionKeys.piidetect.connect, JSON.stringify(values));
+        return;
+      }
       const values: ConnectFormValues = {
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {
           mssql: {
-            haltOnNewColumnAddition:
-              job.source.options.config.value.haltOnNewColumnAddition,
+            newColumnAdditionStrategy: toMssqlNewColumnAdditionStrategy(
+              job.source.options.config.value.newColumnAdditionStrategy
+            ),
             columnRemovalStrategy: toColumnRemovalStrategy(
               job.source.options.config.value.columnRemovalStrategy
             ),
@@ -1303,6 +1451,10 @@ function setDefaultSchemaFormValues(
     case 'mongodb':
     case 'postgres':
     case 'mssql': {
+      if (job.jobType?.jobType.case === 'piiDetect') {
+        setInitialFormStateFromJob(storage, sessionKeys.piidetect.schema, job);
+        return;
+      }
       const values: SchemaFormValues = {
         destinationOptions: [],
         connectionId: job.source.options.config.value.connectionId,
@@ -1383,6 +1535,9 @@ function setDefaultSubsetFormValues(
   job: Job,
   sessionPrefix: string
 ): void {
+  if (job.jobType?.jobType.case === 'piiDetect') {
+    return;
+  }
   switch (job.source?.options?.config.case) {
     case 'postgres':
     case 'mysql':
@@ -1456,6 +1611,71 @@ export function getSingleTableGenerateNumRows(
   return 0;
 }
 
+const DEFAULT_MAX_FLIGHT = 10;
+const DEFAULT_BATCH_COUNT = 100;
+const DEFAULT_BATCH_PERIOD = '5s';
+
+export function getDefaultPostgresDestinationFormValueOptions(): PostgresDbDestinationOptionsFormValues {
+  return {
+    initTableSchema: false,
+    conflictStrategy: {
+      onConflictDoNothing: false,
+      onConflictDoUpdate: false,
+    },
+    skipForeignKeyViolations: false,
+    truncateBeforeInsert: false,
+    truncateCascade: false,
+    batch: {
+      count: DEFAULT_BATCH_COUNT,
+      period: DEFAULT_BATCH_PERIOD,
+    },
+    maxInFlight: DEFAULT_MAX_FLIGHT,
+  };
+}
+
+export function getDefaultMysqlDestinationFormValueOptions(): MysqlDbDestinationOptionsFormValues {
+  return {
+    initTableSchema: false,
+    conflictStrategy: {
+      onConflictDoNothing: false,
+      onConflictDoUpdate: false,
+    },
+    skipForeignKeyViolations: false,
+    truncateBeforeInsert: false,
+    batch: {
+      count: DEFAULT_BATCH_COUNT,
+      period: DEFAULT_BATCH_PERIOD,
+    },
+    maxInFlight: DEFAULT_MAX_FLIGHT,
+  };
+}
+
+export function getDefaultMssqlDestinationFormValueOptions(): MssqlDbDestinationOptionsFormValues {
+  return {
+    initTableSchema: false,
+    onConflictDoNothing: false,
+    skipForeignKeyViolations: false,
+    truncateBeforeInsert: false,
+    batch: {
+      count: DEFAULT_BATCH_COUNT,
+      period: DEFAULT_BATCH_PERIOD,
+    },
+    maxInFlight: DEFAULT_MAX_FLIGHT,
+  };
+}
+
+export function getDefaultAwsS3DestinationFormValueOptions(): AwsS3DestinationOptionsFormValues {
+  return {
+    storageClass: AwsS3DestinationConnectionOptions_StorageClass.STANDARD,
+    timeout: '5s',
+    batch: {
+      count: DEFAULT_BATCH_COUNT,
+      period: DEFAULT_BATCH_PERIOD,
+    },
+    maxInFlight: DEFAULT_MAX_FLIGHT,
+  };
+}
+
 export function getDefaultDestinationFormValueOptionsFromConnectionCase(
   destCase: ConnectionConfigCase | null | undefined,
   getUniqueTables: () => Set<string>
@@ -1463,67 +1683,22 @@ export function getDefaultDestinationFormValueOptionsFromConnectionCase(
   switch (destCase) {
     case 'pgConfig': {
       return {
-        postgres: {
-          initTableSchema: false,
-          conflictStrategy: {
-            onConflictDoNothing: false,
-            onConflictDoUpdate: false,
-          },
-          skipForeignKeyViolations: false,
-          truncateBeforeInsert: false,
-          truncateCascade: false,
-          batch: {
-            count: 100,
-            period: '5s',
-          },
-          maxInFlight: 64,
-        },
+        postgres: getDefaultPostgresDestinationFormValueOptions(),
       };
     }
     case 'mysqlConfig': {
       return {
-        mysql: {
-          initTableSchema: false,
-          conflictStrategy: {
-            onConflictDoNothing: false,
-            onConflictDoUpdate: false,
-          },
-          skipForeignKeyViolations: false,
-          truncateBeforeInsert: false,
-          batch: {
-            count: 100,
-            period: '5s',
-          },
-          maxInFlight: 64,
-        },
+        mysql: getDefaultMysqlDestinationFormValueOptions(),
       };
     }
     case 'mssqlConfig': {
       return {
-        mssql: {
-          initTableSchema: false,
-          onConflictDoNothing: false,
-          skipForeignKeyViolations: false,
-          truncateBeforeInsert: false,
-          batch: {
-            count: 100,
-            period: '5s',
-          },
-          maxInFlight: 64,
-        },
+        mssql: getDefaultMssqlDestinationFormValueOptions(),
       };
     }
     case 'awsS3Config': {
       return {
-        awss3: {
-          storageClass: AwsS3DestinationConnectionOptions_StorageClass.STANDARD,
-          timeout: '5s',
-          batch: {
-            count: 100,
-            period: '5s',
-          },
-          maxInFlight: 64,
-        },
+        awss3: getDefaultAwsS3DestinationFormValueOptions(),
       };
     }
     case 'dynamodbConfig': {
@@ -1685,6 +1860,7 @@ interface NewJobSessionKeys {
   dataSync: { connect: string; schema: string; subset: string };
   generate: { connect: string; schema: string };
   aigenerate: { connect: string; schema: string };
+  piidetect: { connect: string; schema: string };
 }
 
 export function getNewJobSessionKeys(sessionId: string): NewJobSessionKeys {
@@ -1704,6 +1880,10 @@ export function getNewJobSessionKeys(sessionId: string): NewJobSessionKeys {
     aigenerate: {
       connect: `${sessionId}-new-job-single-table-ai-connect`,
       schema: `${sessionId}-new-job-single-table-ai-schema`,
+    },
+    piidetect: {
+      connect: `${sessionId}-new-job-pii-detect-connect`,
+      schema: `${sessionId}-new-job-pii-detect-schema`,
     },
   };
 }

@@ -18,11 +18,12 @@ import { InfoCircledIcon, ReloadIcon } from '@radix-ui/react-icons';
 import Error from 'next/error';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, use, useEffect, useState } from 'react';
 import { useSessionStorage } from 'usehooks-ts';
 import RemoveAccountApiKeyButton from './components/RemoveAccountApiKeyButton';
 
-export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
+export default function AccountApiKeyPage(props: PageProps): ReactElement {
+  const params = use(props.params);
   const id = params?.id ?? '';
   const router = useRouter();
   const { account } = useAccount();

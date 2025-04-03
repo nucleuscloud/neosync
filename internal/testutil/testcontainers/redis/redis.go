@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/redis"
 	testredis "github.com/testcontainers/testcontainers-go/modules/redis"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -29,11 +28,11 @@ func NewRedisTestContainer(ctx context.Context, opts ...Option) (*RedisTestConta
 
 // Creates and starts a Redis test container
 func (r *RedisTestContainer) Setup(ctx context.Context) (*RedisTestContainer, error) {
-	redisContainer, err := redis.Run(
+	redisContainer, err := testredis.Run(
 		ctx,
 		"docker.io/redis:7",
-		redis.WithSnapshotting(10, 1),
-		redis.WithLogLevel(redis.LogLevelVerbose),
+		testredis.WithSnapshotting(10, 1),
+		testredis.WithLogLevel(testredis.LogLevelVerbose),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("* Ready to accept connections"),
 			wait.ForExposedPort(),

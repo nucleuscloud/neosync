@@ -20,29 +20,32 @@ func ToJobRunDto(
 	logger *slog.Logger,
 	input *workflowservice.DescribeWorkflowExecutionResponse,
 ) *mgmtv1alpha1.JobRun {
-	jr := ToJobRunDtoFromWorkflowExecutionInfo(input.WorkflowExecutionInfo, logger)
+	jr := ToJobRunDtoFromWorkflowExecutionInfo(input.GetWorkflowExecutionInfo(), logger)
 	jr.PendingActivities = toPendingActivitiesDto(input.GetPendingActivities())
 	return jr
 }
 
 // returns a job run without any pending activities
-func ToJobRunDtoFromWorkflowExecutionInfo(workflow *workflowpb.WorkflowExecutionInfo, logger *slog.Logger) *mgmtv1alpha1.JobRun {
+func ToJobRunDtoFromWorkflowExecutionInfo(
+	workflow *workflowpb.WorkflowExecutionInfo,
+	logger *slog.Logger,
+) *mgmtv1alpha1.JobRun {
 	var completedTime *timestamppb.Timestamp
 	if workflow.GetCloseTime() != nil {
 		completedTime = workflow.GetCloseTime()
 	}
 	return &mgmtv1alpha1.JobRun{
-		Id:          workflow.Execution.WorkflowId,
+		Id:          workflow.GetExecution().GetWorkflowId(),
 		JobId:       GetJobIdFromWorkflow(logger, workflow.GetSearchAttributes()),
-		Name:        workflow.Type.Name,
-		Status:      toWorfklowStatus(workflow.Status),
-		StartedAt:   workflow.StartTime,
+		Name:        workflow.GetType().GetName(),
+		Status:      toWorfklowStatus(workflow.GetStatus()),
+		StartedAt:   workflow.GetStartTime(),
 		CompletedAt: completedTime,
 	}
 }
 
 func GetJobIdFromWorkflow(logger *slog.Logger, searchAttributes *commonpb.SearchAttributes) string {
-	scheduledByIDPayload := searchAttributes.IndexedFields["TemporalScheduledById"]
+	scheduledByIDPayload := searchAttributes.GetIndexedFields()["TemporalScheduledById"]
 	var scheduledByID string
 	err := converter.GetDefaultDataConverter().FromPayload(scheduledByIDPayload, &scheduledByID)
 	if err != nil {
@@ -53,23 +56,35 @@ func GetJobIdFromWorkflow(logger *slog.Logger, searchAttributes *commonpb.Search
 	return scheduledByID
 }
 
-func ToJobRunEventTaskDto(event *history.HistoryEvent, taskError *mgmtv1alpha1.JobRunEventTaskError) *mgmtv1alpha1.JobRunEventTask {
+func ToJobRunEventTaskDto(
+	event *history.HistoryEvent,
+	taskError *mgmtv1alpha1.JobRunEventTaskError,
+) *mgmtv1alpha1.JobRunEventTask {
 	return &mgmtv1alpha1.JobRunEventTask{
-		Id:        event.EventId,
-		Type:      event.EventType.String(),
-		EventTime: event.EventTime,
+		Id:        event.GetEventId(),
+		Type:      event.GetEventType().String(),
+		EventTime: event.GetEventTime(),
 		Error:     taskError,
 	}
 }
 
-func ToJobRunEventTaskErrorDto(failure *temporalfailure.Failure, retryState enums.RetryState) *mgmtv1alpha1.JobRunEventTaskError {
+func ToJobRunEventTaskErrorDto(
+	failure *temporalfailure.Failure,
+	retryState enums.RetryState,
+) *mgmtv1alpha1.JobRunEventTaskError {
+	msg := failure.Message
+	if failure.GetCause() != nil {
+		msg = fmt.Sprintf("%s: %s", failure.GetMessage(), failure.GetCause().GetMessage())
+	}
 	return &mgmtv1alpha1.JobRunEventTaskError{
-		Message:    failure.Message,
+		Message:    msg,
 		RetryState: retryState.String(),
 	}
 }
 
-func toPendingActivitiesDto(activities []*workflowpb.PendingActivityInfo) []*mgmtv1alpha1.PendingActivity {
+func toPendingActivitiesDto(
+	activities []*workflowpb.PendingActivityInfo,
+) []*mgmtv1alpha1.PendingActivity {
 	dtos := []*mgmtv1alpha1.PendingActivity{}
 	for _, activity := range activities {
 		var lastFailure *mgmtv1alpha1.ActivityFailure

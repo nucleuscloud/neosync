@@ -145,6 +145,7 @@ components:
         - TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME
         - TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS
         - TRANSFORMER_SOURCE_TRANSFORM_UUID
+        - TRANSFORMER_SOURCE_TRANSFORM_SCRAMBLE_IDENTITY
         - TRANSFORMER_SOURCE_TRANSFORM_HASH
     google.protobuf.Timestamp:
       type: string
@@ -1533,6 +1534,13 @@ components:
           title: value
       title: EntityAnonymizersEntry
       additionalProperties: false
+    mgmt.v1alpha1.TransformScrambleIdentity:
+      type: object
+      title: TransformScrambleIdentity
+      additionalProperties: false
+      description: |-
+        Takes an input integer and scrambles it, effectively outputing another integer that is not the same as the input.
+         This is effectively a random integer generator that has unique properties.
     mgmt.v1alpha1.TransformString:
       type: object
       allOf:
@@ -1656,6 +1664,8 @@ components:
             - required:
                 - transformPiiTextConfig
             - required:
+                - transformScrambleIdentityConfig
+            - required:
                 - transformStringConfig
             - required:
                 - transformUuidConfig
@@ -1754,6 +1764,8 @@ components:
                   - required:
                       - transformPiiTextConfig
                   - required:
+                      - transformScrambleIdentityConfig
+                  - required:
                       - transformStringConfig
                   - required:
                       - transformUuidConfig
@@ -1850,6 +1862,8 @@ components:
             - transformPhoneNumberConfig
         - required:
             - transformPiiTextConfig
+        - required:
+            - transformScrambleIdentityConfig
         - required:
             - transformStringConfig
         - required:
@@ -1948,6 +1962,8 @@ components:
                   - transformPhoneNumberConfig
               - required:
                   - transformPiiTextConfig
+              - required:
+                  - transformScrambleIdentityConfig
               - required:
                   - transformStringConfig
               - required:
@@ -2144,6 +2160,11 @@ components:
           allOf:
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformUuid'
           title: transform_uuid_config
+        transformScrambleIdentityConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformScrambleIdentity'
+          title: transform_scramble_identity_config
+          description: Scrambles an integer while keeping it unique.
         transformHashConfig:
           allOf:
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformHash'

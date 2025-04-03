@@ -1,2 +1,3 @@
 CREATE SCHEMA IF NOT EXISTS "CaPiTaL";
 CREATE SCHEMA IF NOT EXISTS "sqlmanagerpostgres@special";
+CREATE SCHEMA IF NOT EXISTS "bookings";

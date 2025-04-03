@@ -8,9 +8,185 @@ package pg_queries
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 
 	"github.com/lib/pq"
 )
+
+const getAllSchemas = `-- name: GetAllSchemas :many
+SELECT
+    nspname AS schema_name
+FROM
+    pg_catalog.pg_namespace
+WHERE
+    nspname NOT IN ('information_schema')
+    AND nspname NOT LIKE 'pg_%'
+ORDER BY
+    schema_name
+`
+
+func (q *Queries) GetAllSchemas(ctx context.Context, db DBTX) ([]string, error) {
+	rows, err := db.QueryContext(ctx, getAllSchemas)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var schema_name string
+		if err := rows.Scan(&schema_name); err != nil {
+			return nil, err
+		}
+		items = append(items, schema_name)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllTables = `-- name: GetAllTables :many
+SELECT
+    n.nspname AS table_schema,
+    c.relname AS table_name
+FROM
+    pg_catalog.pg_class c
+JOIN
+    pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+WHERE
+    c.relkind IN ('r', 'p')
+    AND c.relispartition = FALSE
+    AND n.nspname NOT IN ('information_schema')
+    AND n.nspname NOT LIKE 'pg_%'
+ORDER BY
+    table_schema,
+    table_name
+`
+
+type GetAllTablesRow struct {
+	TableSchema string
+	TableName   string
+}
+
+func (q *Queries) GetAllTables(ctx context.Context, db DBTX) ([]*GetAllTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getAllTables)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetAllTablesRow
+	for rows.Next() {
+		var i GetAllTablesRow
+		if err := rows.Scan(&i.TableSchema, &i.TableName); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCompositeTypesByTables = `-- name: GetCompositeTypesByTables :many
+WITH custom_types AS (
+    SELECT
+        n.nspname AS schema_name,
+        t.typname AS type_name,
+        t.oid AS type_oid
+    FROM
+        pg_catalog.pg_type t
+    JOIN
+        pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+    WHERE
+        n.nspname NOT IN('pg_catalog', 'pg_toast', 'information_schema')
+        AND t.typtype = 'c'
+),
+table_columns AS (
+    SELECT
+        c.oid AS table_oid,
+       CASE
+            WHEN t.typtype = 'b' THEN t.typelem  -- If it's an array, use the element type
+            ELSE a.atttypid                      -- Otherwise use the type directly
+        END AS type_oid
+    FROM
+        pg_catalog.pg_class c
+    JOIN
+        pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    JOIN
+        pg_catalog.pg_attribute a ON a.attrelid = c.oid
+    JOIN
+        pg_catalog.pg_type t ON t.oid = a.atttypid
+    WHERE
+        (n.nspname || '.' || c.relname) = ANY($1::TEXT[])
+        AND a.attnum > 0
+        AND NOT a.attisdropped
+),
+relevant_custom_types AS (
+    SELECT DISTINCT
+        ct.schema_name,
+        ct.type_name,
+        ct.type_oid
+    FROM
+        custom_types ct
+    JOIN
+        table_columns tc ON ct.type_oid = tc.type_oid
+)
+SELECT
+    rct.schema_name as schema,
+    rct.type_name as name,
+    JSON_AGG(
+        JSON_BUILD_OBJECT(
+            'name', a.attname,
+            'datatype', pg_catalog.format_type(a.atttypid, a.atttypmod),
+            'id', a.attnum
+        ) ORDER BY a.attnum
+    )::JSONB AS attributes
+FROM relevant_custom_types rct
+JOIN pg_catalog.pg_type t ON rct.type_oid = t.oid
+JOIN pg_catalog.pg_class c ON c.oid = t.typrelid
+JOIN pg_catalog.pg_attribute a ON a.attrelid = c.oid
+WHERE
+     a.attnum > 0
+    AND NOT a.attisdropped
+GROUP BY
+    rct.schema_name, rct.type_name
+`
+
+type GetCompositeTypesByTablesRow struct {
+	Schema     string
+	Name       string
+	Attributes json.RawMessage
+}
+
+func (q *Queries) GetCompositeTypesByTables(ctx context.Context, db DBTX, schematables []string) ([]*GetCompositeTypesByTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getCompositeTypesByTables, pq.Array(schematables))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetCompositeTypesByTablesRow
+	for rows.Next() {
+		var i GetCompositeTypesByTablesRow
+		if err := rows.Scan(&i.Schema, &i.Name, &i.Attributes); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const getCustomFunctionsBySchemaAndTables = `-- name: GetCustomFunctionsBySchemaAndTables :many
 WITH relevant_schemas_tables AS (
@@ -454,7 +630,7 @@ WITH linked_to_serial AS (
     JOIN
         pg_catalog.pg_attrdef ad ON dep.refobjid = ad.adrelid AND dep.refobjsubid = ad.adnum
     WHERE
-        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%'
+        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%' AND cl.relkind = 'S'
 ),
 column_defaults AS (
     SELECT
@@ -512,7 +688,9 @@ column_defaults AS (
         n.nspname NOT IN('pg_catalog', 'pg_toast', 'information_schema')
         AND a.attnum > 0
         AND NOT a.attisdropped
-        AND c.relkind = 'r'
+        AND c.relkind IN ('r', 'p')
+        -- exclude child partitions
+        AND c.relispartition = FALSE
 ),
 identity_columns AS (
     SELECT
@@ -553,7 +731,8 @@ SELECT
     ic.max_value as seq_max_value,
     ic.start_value as seq_start_value,
     ic.cache_value as seq_cache_value,
-    ic.cycle_option as seq_cycle_option
+    ic.cycle_option as seq_cycle_option,
+    COALESCE(pg_catalog.col_description(cd.table_oid, cd.ordinal_position), '')::text AS column_comment
 FROM
     column_defaults cd
 LEFT JOIN linked_to_serial ls
@@ -588,6 +767,7 @@ type GetDatabaseSchemaRow struct {
 	SeqStartValue          sql.NullInt64
 	SeqCacheValue          sql.NullInt64
 	SeqCycleOption         sql.NullBool
+	ColumnComment          string
 }
 
 func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error) {
@@ -620,6 +800,7 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabas
 			&i.SeqStartValue,
 			&i.SeqCacheValue,
 			&i.SeqCycleOption,
+			&i.ColumnComment,
 		); err != nil {
 			return nil, err
 		}
@@ -652,7 +833,7 @@ WITH linked_to_serial AS (
     JOIN
         pg_catalog.pg_attrdef ad ON dep.refobjid = ad.adrelid AND dep.refobjsubid = ad.adnum
     WHERE
-        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%'
+        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%' AND cl.relkind = 'S'
 ),
 column_defaults AS (
     SELECT
@@ -710,7 +891,9 @@ column_defaults AS (
         (n.nspname || '.' || c.relname) = ANY($1::TEXT[])
         AND a.attnum > 0
         AND NOT a.attisdropped
-        AND c.relkind = 'r'
+        AND c.relkind IN ('r', 'p')
+        -- exclude child partitions
+        AND c.relispartition = FALSE
 ),
 identity_columns AS (
     SELECT
@@ -751,7 +934,8 @@ SELECT
     ic.max_value as seq_max_value,
     ic.start_value as seq_start_value,
     ic.cache_value as seq_cache_value,
-    ic.cycle_option as seq_cycle_option
+    ic.cycle_option as seq_cycle_option,
+    COALESCE(pg_catalog.col_description(cd.table_oid, cd.ordinal_position), '')::text AS column_comment
 FROM
     column_defaults cd
 LEFT JOIN linked_to_serial ls
@@ -786,6 +970,7 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	SeqStartValue          sql.NullInt64
 	SeqCacheValue          sql.NullInt64
 	SeqCycleOption         sql.NullBool
+	ColumnComment          string
 }
 
 func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
@@ -818,6 +1003,7 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.SeqStartValue,
 			&i.SeqCacheValue,
 			&i.SeqCycleOption,
+			&i.ColumnComment,
 		); err != nil {
 			return nil, err
 		}
@@ -832,7 +1018,197 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 	return items, nil
 }
 
-const getExtensions = `-- name: GetExtensions :many
+const getDomainsByTables = `-- name: GetDomainsByTables :many
+WITH custom_types AS (
+	SELECT
+		n.nspname AS schema_name,
+		t.typname AS type_name,
+		t.oid AS type_oid
+	FROM
+		pg_catalog.pg_type t
+		JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+	WHERE
+		n.nspname NOT IN('pg_catalog',
+			'pg_toast',
+			'information_schema')
+		AND t.typtype = 'd'
+),
+table_columns AS (
+	SELECT
+		c.oid AS table_oid,
+		CASE WHEN t.typtype = 'b' THEN
+			t.typelem -- If it's an array, use the element type
+		ELSE
+			a.atttypid -- Otherwise use the type directly
+		END AS type_oid
+	FROM
+		pg_catalog.pg_class c
+		JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+		JOIN pg_catalog.pg_attribute a ON a.attrelid = c.oid
+		JOIN pg_catalog.pg_type t ON t.oid = a.atttypid
+	WHERE
+        (n.nspname || '.' || c.relname) = ANY($1::TEXT[])
+		AND a.attnum > 0
+		AND NOT a.attisdropped
+),
+relevant_custom_types AS (
+	SELECT DISTINCT
+		ct.schema_name,
+		ct.type_name,
+		ct.type_oid
+	FROM
+		custom_types ct
+		JOIN table_columns tc ON ct.type_oid = tc.type_oid
+)
+SELECT
+	rct.schema_name as schema,
+	rct.type_name as name,
+	pg_catalog.format_type(t.typbasetype, t.typtypmod) AS type,
+	t.typnotnull AS is_nullable,
+	COALESCE(pg_get_expr(t.typdefaultbin, t.typnamespace), t.typdefault) AS default,
+	CASE 
+        WHEN COUNT(c.oid) = 0 THEN NULL
+        ELSE JSON_AGG(
+            JSON_BUILD_OBJECT(
+                'name',       conname,
+                'definition', pg_catalog.pg_get_constraintdef(c.oid)
+            )
+        )
+    END::JSONB AS constraints
+FROM
+	relevant_custom_types rct
+	JOIN pg_catalog.pg_type t ON rct.type_oid = t.oid
+	LEFT JOIN pg_catalog.pg_constraint c ON t.oid = c.contypid
+GROUP BY rct.schema_name, rct.type_name, t.typbasetype, t.typtypmod, t.typnotnull, t.typdefaultbin, t.typnamespace, t.typdefault
+`
+
+type GetDomainsByTablesRow struct {
+	Schema      string
+	Name        string
+	Type        string
+	IsNullable  bool
+	Default     sql.NullString
+	Constraints json.RawMessage
+}
+
+func (q *Queries) GetDomainsByTables(ctx context.Context, db DBTX, schematables []string) ([]*GetDomainsByTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getDomainsByTables, pq.Array(schematables))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetDomainsByTablesRow
+	for rows.Next() {
+		var i GetDomainsByTablesRow
+		if err := rows.Scan(
+			&i.Schema,
+			&i.Name,
+			&i.Type,
+			&i.IsNullable,
+			&i.Default,
+			&i.Constraints,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEnumTypesByTables = `-- name: GetEnumTypesByTables :many
+WITH custom_types AS (
+    SELECT
+        n.nspname AS schema_name,
+        t.typname AS type_name,
+        t.oid AS type_oid
+    FROM
+        pg_catalog.pg_type t
+    JOIN
+        pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+    WHERE
+        n.nspname NOT IN('pg_catalog', 'pg_toast', 'information_schema')
+        AND t.typtype = 'e'
+),
+table_columns AS (
+    SELECT
+        c.oid AS table_oid,
+       CASE
+            WHEN t.typtype = 'b' THEN t.typelem  -- If it's an array, use the element type
+            ELSE a.atttypid                      -- Otherwise use the type directly
+        END AS type_oid
+    FROM
+        pg_catalog.pg_class c
+    JOIN
+        pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    JOIN
+        pg_catalog.pg_attribute a ON a.attrelid = c.oid
+    JOIN
+        pg_catalog.pg_type t ON t.oid = a.atttypid
+    WHERE
+        (n.nspname || '.' || c.relname) = ANY($1::TEXT[])
+        AND a.attnum > 0
+        AND NOT a.attisdropped
+),
+relevant_custom_types AS (
+    SELECT DISTINCT
+        ct.schema_name,
+        ct.type_name,
+        ct.type_oid
+    FROM
+        custom_types ct
+    JOIN
+        table_columns tc ON ct.type_oid = tc.type_oid
+)
+  SELECT
+        rct.schema_name as schema,
+        rct.type_name as name,
+        ARRAY_AGG(e.enumlabel ORDER BY e.enumsortorder)::TEXT [] as values
+    FROM
+        relevant_custom_types rct
+    JOIN
+        pg_catalog.pg_type t ON rct.type_oid = t.oid
+    JOIN
+        pg_catalog.pg_enum e ON t.oid = e.enumtypid
+    GROUP BY
+        rct.schema_name, rct.type_name
+`
+
+type GetEnumTypesByTablesRow struct {
+	Schema string
+	Name   string
+	Values []string
+}
+
+func (q *Queries) GetEnumTypesByTables(ctx context.Context, db DBTX, schematables []string) ([]*GetEnumTypesByTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getEnumTypesByTables, pq.Array(schematables))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetEnumTypesByTablesRow
+	for rows.Next() {
+		var i GetEnumTypesByTablesRow
+		if err := rows.Scan(&i.Schema, &i.Name, pq.Array(&i.Values)); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getExtensionsBySchemas = `-- name: GetExtensionsBySchemas :many
 SELECT
     e.extname AS extension_name,
     e.extversion AS installed_version,
@@ -840,27 +1216,261 @@ SELECT
 FROM
     pg_catalog.pg_extension e
 LEFT JOIN pg_catalog.pg_namespace n ON e.extnamespace = n.oid
-WHERE extname != 'plpgsql'
+WHERE extname != 'plpgsql' AND (n.nspname = ANY($1::TEXT[]) OR n.nspname = 'public')
 ORDER BY
     extname
 `
 
-type GetExtensionsRow struct {
+type GetExtensionsBySchemasRow struct {
 	ExtensionName    string
 	InstalledVersion string
 	SchemaName       sql.NullString
 }
 
-func (q *Queries) GetExtensions(ctx context.Context, db DBTX) ([]*GetExtensionsRow, error) {
-	rows, err := db.QueryContext(ctx, getExtensions)
+func (q *Queries) GetExtensionsBySchemas(ctx context.Context, db DBTX, schema []string) ([]*GetExtensionsBySchemasRow, error) {
+	rows, err := db.QueryContext(ctx, getExtensionsBySchemas, pq.Array(schema))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetExtensionsRow
+	var items []*GetExtensionsBySchemasRow
 	for rows.Next() {
-		var i GetExtensionsRow
+		var i GetExtensionsBySchemasRow
 		if err := rows.Scan(&i.ExtensionName, &i.InstalledVersion, &i.SchemaName); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getForeignKeyConstraintsBySchemas = `-- name: GetForeignKeyConstraintsBySchemas :many
+SELECT
+    -- Name of the foreign key constraint
+    constraint_def.conname AS constraint_name,
+
+    -- Schema of the table that contains the foreign key constraint
+    referencing_schema.nspname AS referencing_schema,
+
+    -- Name of the table that holds the foreign key constraint
+    referencing_tbl.relname AS referencing_table,
+
+    -- Array of column names in the referencing table involved in the constraint,
+    -- ordered by the column's ordinal position (attnum) to maintain the defined column order.
+    array_agg(referencing_attr.attname ORDER BY referencing_attr.attnum)::TEXT[] AS referencing_columns,
+
+    -- Array of boolean values indicating whether each referencing column is NOT NULL,
+    -- ordered to correspond with the column names.
+    array_agg(referencing_attr.attnotnull ORDER BY referencing_attr.attnum)::BOOL[] AS not_nullable,
+
+    -- Schema of the referenced table (the table that the foreign key points to)
+    referenced_schema.nspname::TEXT AS referenced_schema,
+
+    -- Name of the referenced table
+    referenced_tbl.relname::TEXT AS referenced_table,
+
+    -- Array of column names in the referenced table involved in the foreign key constraint
+    ref_columns.foreign_column_names::TEXT[] AS referenced_columns
+FROM
+    pg_catalog.pg_constraint AS constraint_def
+    -- Join to retrieve attributes (columns) for the referencing table based on the constraint definition
+    JOIN pg_catalog.pg_attribute AS referencing_attr
+      ON referencing_attr.attrelid = constraint_def.conrelid
+     AND referencing_attr.attnum = ANY(constraint_def.conkey)
+    -- Join to retrieve the referencing table details
+    JOIN pg_catalog.pg_class AS referencing_tbl
+      ON constraint_def.conrelid = referencing_tbl.oid
+    -- Join to retrieve the schema details of the referencing table
+    JOIN pg_catalog.pg_namespace AS referencing_schema
+      ON referencing_tbl.relnamespace = referencing_schema.oid
+    -- Left join to retrieve the referenced table details (if the constraint is a foreign key)
+    LEFT JOIN pg_catalog.pg_class AS referenced_tbl
+      ON referenced_tbl.oid = constraint_def.confrelid
+    -- Left join to retrieve the schema details of the referenced table
+    LEFT JOIN pg_catalog.pg_namespace AS referenced_schema
+      ON referenced_tbl.relnamespace = referenced_schema.oid
+    -- Lateral join to aggregate the names of the columns in the referenced table
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(referenced_attr.attname) AS foreign_column_names
+        FROM
+            pg_catalog.pg_attribute AS referenced_attr
+        WHERE
+            referenced_attr.attrelid = constraint_def.confrelid
+            AND referenced_attr.attnum = ANY(constraint_def.confkey)
+    ) AS ref_columns ON TRUE
+WHERE
+    -- Filter to include only constraints from the provided schemas
+    referencing_schema.nspname = ANY($1::TEXT[])
+    -- Limit results to FOREIGN KEY constraints
+    AND constraint_def.contype = 'f'
+GROUP BY
+    constraint_def.oid,
+    referencing_schema.nspname,
+    constraint_def.conname,
+    referencing_tbl.relname,
+    constraint_def.contype,
+    referenced_schema.nspname,
+    referenced_tbl.relname,
+    ref_columns.foreign_column_names
+`
+
+type GetForeignKeyConstraintsBySchemasRow struct {
+	ConstraintName     string
+	ReferencingSchema  string
+	ReferencingTable   string
+	ReferencingColumns []string
+	NotNullable        []bool
+	ReferencedSchema   string
+	ReferencedTable    string
+	ReferencedColumns  []string
+}
+
+func (q *Queries) GetForeignKeyConstraintsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetForeignKeyConstraintsBySchemasRow, error) {
+	rows, err := db.QueryContext(ctx, getForeignKeyConstraintsBySchemas, pq.Array(schemas))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetForeignKeyConstraintsBySchemasRow
+	for rows.Next() {
+		var i GetForeignKeyConstraintsBySchemasRow
+		if err := rows.Scan(
+			&i.ConstraintName,
+			&i.ReferencingSchema,
+			&i.ReferencingTable,
+			pq.Array(&i.ReferencingColumns),
+			pq.Array(&i.NotNullable),
+			&i.ReferencedSchema,
+			&i.ReferencedTable,
+			pq.Array(&i.ReferencedColumns),
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getForeignKeyConstraintsBySchemasAndTables = `-- name: GetForeignKeyConstraintsBySchemasAndTables :many
+SELECT
+    -- Name of the foreign key constraint
+    constraint_def.conname AS constraint_name,
+
+    -- Schema of the table that contains the foreign key constraint
+    referencing_schema.nspname AS referencing_schema,
+
+    -- Name of the table that holds the foreign key constraint
+    referencing_tbl.relname AS referencing_table,
+
+    -- Array of column names in the referencing table involved in the constraint,
+    -- ordered by the column's ordinal position (attnum) to maintain the defined column order.
+    array_agg(referencing_attr.attname ORDER BY referencing_attr.attnum)::TEXT[] AS referencing_columns,
+
+    -- Array of boolean values indicating whether each referencing column is NOT NULL,
+    -- ordered to correspond with the column names.
+    array_agg(referencing_attr.attnotnull ORDER BY referencing_attr.attnum)::BOOL[] AS not_nullable,
+
+    -- Schema of the referenced table (the table that the foreign key points to)
+    referenced_schema.nspname::TEXT AS referenced_schema,
+
+    -- Name of the referenced table
+    referenced_tbl.relname::TEXT AS referenced_table,
+
+    -- Array of column names in the referenced table involved in the foreign key constraint
+    ref_columns.foreign_column_names::TEXT[] AS referenced_columns
+FROM
+    pg_catalog.pg_constraint AS constraint_def
+    -- Join to retrieve attributes (columns) for the referencing table based on the constraint definition
+    JOIN pg_catalog.pg_attribute AS referencing_attr
+      ON referencing_attr.attrelid = constraint_def.conrelid
+     AND referencing_attr.attnum = ANY(constraint_def.conkey)
+    -- Join to retrieve the referencing table details
+    JOIN pg_catalog.pg_class AS referencing_tbl
+      ON constraint_def.conrelid = referencing_tbl.oid
+    -- Join to retrieve the schema details of the referencing table
+    JOIN pg_catalog.pg_namespace AS referencing_schema
+      ON referencing_tbl.relnamespace = referencing_schema.oid
+    -- Left join to retrieve the referenced table details (if the constraint is a foreign key)
+    LEFT JOIN pg_catalog.pg_class AS referenced_tbl
+      ON referenced_tbl.oid = constraint_def.confrelid
+    -- Left join to retrieve the schema details of the referenced table
+    LEFT JOIN pg_catalog.pg_namespace AS referenced_schema
+      ON referenced_tbl.relnamespace = referenced_schema.oid
+    -- Lateral join to aggregate the names of the columns in the referenced table
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(referenced_attr.attname) AS foreign_column_names
+        FROM
+            pg_catalog.pg_attribute AS referenced_attr
+        WHERE
+            referenced_attr.attrelid = constraint_def.confrelid
+            AND referenced_attr.attnum = ANY(constraint_def.confkey)
+    ) AS ref_columns ON TRUE
+WHERE
+    -- Filter to include only constraints from the provided tables
+    referencing_schema.nspname = $1
+    AND referencing_tbl.relname = ANY($2::TEXT[])
+    -- Limit results to FOREIGN KEY constraints
+    AND constraint_def.contype = 'f'
+GROUP BY
+    constraint_def.oid,
+    referencing_schema.nspname,
+    constraint_def.conname,
+    referencing_tbl.relname,
+    constraint_def.contype,
+    referenced_schema.nspname,
+    referenced_tbl.relname,
+    ref_columns.foreign_column_names
+`
+
+type GetForeignKeyConstraintsBySchemasAndTablesParams struct {
+	Schema string
+	Tables []string
+}
+
+type GetForeignKeyConstraintsBySchemasAndTablesRow struct {
+	ConstraintName     string
+	ReferencingSchema  string
+	ReferencingTable   string
+	ReferencingColumns []string
+	NotNullable        []bool
+	ReferencedSchema   string
+	ReferencedTable    string
+	ReferencedColumns  []string
+}
+
+func (q *Queries) GetForeignKeyConstraintsBySchemasAndTables(ctx context.Context, db DBTX, arg *GetForeignKeyConstraintsBySchemasAndTablesParams) ([]*GetForeignKeyConstraintsBySchemasAndTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getForeignKeyConstraintsBySchemasAndTables, arg.Schema, pq.Array(arg.Tables))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetForeignKeyConstraintsBySchemasAndTablesRow
+	for rows.Next() {
+		var i GetForeignKeyConstraintsBySchemasAndTablesRow
+		if err := rows.Scan(
+			&i.ConstraintName,
+			&i.ReferencingSchema,
+			&i.ReferencingTable,
+			pq.Array(&i.ReferencingColumns),
+			pq.Array(&i.NotNullable),
+			&i.ReferencedSchema,
+			&i.ReferencedTable,
+			pq.Array(&i.ReferencedColumns),
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
@@ -887,8 +1497,7 @@ FROM
     JOIN pg_catalog.pg_namespace ns ON t.relnamespace = ns.oid
 LEFT JOIN pg_catalog.pg_constraint con ON con.conindid = ix.indexrelid
 WHERE
-    con.conindid IS NULL -- Excludes indexes created as part of constraints
-    AND (ns.nspname || '.' || t.relname) = ANY($1::TEXT[])
+    (ns.nspname || '.' || t.relname) = ANY($1::TEXT[])
 GROUP BY
     ns.nspname, t.relname, i.relname, ix.indexrelid
 ORDER BY
@@ -918,6 +1527,253 @@ func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, sch
 			&i.TableName,
 			&i.IndexName,
 			&i.IndexDefinition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getNonForeignKeyTableConstraintsBySchema = `-- name: GetNonForeignKeyTableConstraintsBySchema :many
+SELECT
+	pn.nspname AS schema_name,
+	c.relname AS table_name,
+	pgcon.conname AS constraint_name,
+	pgcon.contype::TEXT AS constraint_type,
+    -- Collect all columns associated with this constraint, if any
+	ARRAY_AGG(kcu.column_name ORDER BY kcu.ordinal_position) FILTER (WHERE kcu.column_name IS NOT NULL)::TEXT [] AS constraint_columns,
+	pg_get_constraintdef(pgcon.oid)::TEXT AS constraint_definition
+FROM
+	pg_catalog.pg_constraint pgcon
+	JOIN pg_catalog.pg_namespace pn ON pn.oid = pgcon.connamespace /* schema info */
+	JOIN pg_catalog.pg_class c ON c.oid = pgcon.conrelid /* table info */
+	LEFT JOIN information_schema.key_column_usage AS kcu ON pgcon.conname = kcu.constraint_name /* column info */
+		AND pn.nspname = kcu.table_schema
+		AND c.relname = kcu.table_name
+WHERE
+	pn.nspname = ANY($1::TEXT[])
+	-- Exclude foreign keys, and partition tables
+	AND pgcon.contype != 'f' AND c.relispartition = FALSE
+GROUP BY
+	pgcon.oid,
+	pgcon.conname,
+	pgcon.contype,
+	pn.nspname,
+	c.relname
+`
+
+type GetNonForeignKeyTableConstraintsBySchemaRow struct {
+	SchemaName           string
+	TableName            string
+	ConstraintName       string
+	ConstraintType       string
+	ConstraintColumns    []string
+	ConstraintDefinition string
+}
+
+func (q *Queries) GetNonForeignKeyTableConstraintsBySchema(ctx context.Context, db DBTX, schemas []string) ([]*GetNonForeignKeyTableConstraintsBySchemaRow, error) {
+	rows, err := db.QueryContext(ctx, getNonForeignKeyTableConstraintsBySchema, pq.Array(schemas))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetNonForeignKeyTableConstraintsBySchemaRow
+	for rows.Next() {
+		var i GetNonForeignKeyTableConstraintsBySchemaRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ConstraintName,
+			&i.ConstraintType,
+			pq.Array(&i.ConstraintColumns),
+			&i.ConstraintDefinition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getNonForeignKeyTableConstraintsBySchemaAndTables = `-- name: GetNonForeignKeyTableConstraintsBySchemaAndTables :many
+SELECT
+	pn.nspname AS schema_name,
+	c.relname AS table_name,
+	pgcon.conname AS constraint_name,
+	pgcon.contype::TEXT AS constraint_type,
+    -- Collect all columns associated with this constraint, if any
+	ARRAY_AGG(kcu.column_name ORDER BY kcu.ordinal_position) FILTER (WHERE kcu.column_name IS NOT NULL)::TEXT [] AS constraint_columns,
+	pg_get_constraintdef(pgcon.oid)::TEXT AS constraint_definition
+FROM
+	pg_catalog.pg_constraint pgcon
+	JOIN pg_catalog.pg_namespace pn ON pn.oid = pgcon.connamespace /* schema info */
+	JOIN pg_catalog.pg_class c ON c.oid = pgcon.conrelid /* table info */
+	LEFT JOIN information_schema.key_column_usage AS kcu ON pgcon.conname = kcu.constraint_name /* column info */
+		AND pn.nspname = kcu.table_schema
+		AND c.relname = kcu.table_name
+WHERE
+    pn.nspname = $1
+    AND c.relname = ANY($2::TEXT[])
+	-- Exclude foreign keys, and partition tables
+	AND pgcon.contype != 'f' AND c.relispartition = FALSE
+GROUP BY
+	pgcon.oid,
+	pgcon.conname,
+	pgcon.contype,
+	pn.nspname,
+	c.relname
+`
+
+type GetNonForeignKeyTableConstraintsBySchemaAndTablesParams struct {
+	Schema string
+	Tables []string
+}
+
+type GetNonForeignKeyTableConstraintsBySchemaAndTablesRow struct {
+	SchemaName           string
+	TableName            string
+	ConstraintName       string
+	ConstraintType       string
+	ConstraintColumns    []string
+	ConstraintDefinition string
+}
+
+func (q *Queries) GetNonForeignKeyTableConstraintsBySchemaAndTables(ctx context.Context, db DBTX, arg *GetNonForeignKeyTableConstraintsBySchemaAndTablesParams) ([]*GetNonForeignKeyTableConstraintsBySchemaAndTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getNonForeignKeyTableConstraintsBySchemaAndTables, arg.Schema, pq.Array(arg.Tables))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetNonForeignKeyTableConstraintsBySchemaAndTablesRow
+	for rows.Next() {
+		var i GetNonForeignKeyTableConstraintsBySchemaAndTablesRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ConstraintName,
+			&i.ConstraintType,
+			pq.Array(&i.ConstraintColumns),
+			&i.ConstraintDefinition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPartitionHierarchyByTable = `-- name: GetPartitionHierarchyByTable :many
+SELECT
+    child_ns.nspname          AS schema_name,
+    child_cls.relname         AS table_name,
+    parent_ns.nspname         AS parent_schema_name,
+    parent_cls.relname        AS parent_table_name,
+    COALESCE(
+        pg_get_expr(child_cls.relpartbound, child_cls.oid),
+        ''
+    )::TEXT AS partition_bound
+FROM pg_partition_tree($1::TEXT) AS t
+JOIN pg_catalog.pg_class child_cls
+    ON child_cls.oid = t.relid
+JOIN pg_catalog.pg_namespace child_ns
+    ON child_ns.oid = child_cls.relnamespace
+LEFT JOIN pg_catalog.pg_class parent_cls
+    ON parent_cls.oid = t.parentrelid
+LEFT JOIN pg_catalog.pg_namespace parent_ns
+    ON parent_ns.oid = parent_cls.relnamespace
+`
+
+type GetPartitionHierarchyByTableRow struct {
+	SchemaName       string
+	TableName        string
+	ParentSchemaName sql.NullString
+	ParentTableName  sql.NullString
+	PartitionBound   string
+}
+
+func (q *Queries) GetPartitionHierarchyByTable(ctx context.Context, db DBTX, table string) ([]*GetPartitionHierarchyByTableRow, error) {
+	rows, err := db.QueryContext(ctx, getPartitionHierarchyByTable, table)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetPartitionHierarchyByTableRow
+	for rows.Next() {
+		var i GetPartitionHierarchyByTableRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ParentSchemaName,
+			&i.ParentTableName,
+			&i.PartitionBound,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPartitionedTablesBySchema = `-- name: GetPartitionedTablesBySchema :many
+SELECT
+	n.nspname AS schema_name,
+	c.relname AS table_name,
+	c.relispartition AS is_partitioned, -- false for partitioned tables, true for child partitions
+	pg_get_partkeydef (c.oid) AS partition_key
+FROM
+	pg_catalog.pg_class c
+	JOIN pg_catalog.pg_namespace n ON c.relnamespace = n.oid
+WHERE
+	c.relkind = 'p' -- 'p' indicates a partitioned table
+	AND n.nspname = ANY($1::TEXT[])
+`
+
+type GetPartitionedTablesBySchemaRow struct {
+	SchemaName    string
+	TableName     string
+	IsPartitioned bool
+	PartitionKey  string
+}
+
+func (q *Queries) GetPartitionedTablesBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetPartitionedTablesBySchemaRow, error) {
+	rows, err := db.QueryContext(ctx, getPartitionedTablesBySchema, pq.Array(schema))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetPartitionedTablesBySchemaRow
+	for rows.Next() {
+		var i GetPartitionedTablesBySchemaRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.IsPartitioned,
+			&i.PartitionKey,
 		); err != nil {
 			return nil, err
 		}
@@ -976,107 +1832,50 @@ func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX) ([]*G
 	return items, nil
 }
 
-const getTableConstraints = `-- name: GetTableConstraints :many
+const getSequencesOwnedByTables = `-- name: GetSequencesOwnedByTables :many
 SELECT
-    con.conname AS constraint_name,
-    con.contype::TEXT AS constraint_type,
-    nsp.nspname AS schema_name,
-    cls.relname AS table_name,
-    array_agg(att.attname)::TEXT[] AS constraint_columns,
-    array_agg(att.attnotnull)::BOOL[] AS notnullable,
-    CASE
-        WHEN con.contype = 'f' THEN fk_nsp.nspname
-        ELSE ''
-    END AS foreign_schema_name,
-    CASE
-        WHEN con.contype = 'f' THEN fn_cl.relname
-        ELSE ''
-    END AS foreign_table_name,
-    CASE
-        WHEN con.contype = 'f' THEN fk_columns.foreign_column_names
-        ELSE NULL::text[]
-    END as foreign_column_names,
-    pg_get_constraintdef(con.oid)::TEXT AS constraint_definition
+	s.relname AS sequence_name,
+	seq_ns.nspname AS sequence_schema,
+	tbl_ns.nspname AS table_schema,
+	t.relname AS table_name,
+	a.attname AS column_name
 FROM
-    pg_catalog.pg_constraint con
-JOIN
-    pg_catalog.pg_attribute att ON
-    att.attrelid = con.conrelid
-    AND att.attnum = ANY(con.conkey)
-JOIN
-    pg_catalog.pg_class cls ON
-    con.conrelid = cls.oid
-JOIN
-    pg_catalog.pg_namespace nsp ON
-    cls.relnamespace = nsp.oid
-LEFT JOIN
-    pg_catalog.pg_class fn_cl ON
-    fn_cl.oid = con.confrelid
-LEFT JOIN
-    pg_catalog.pg_namespace fk_nsp ON
-    fn_cl.relnamespace = fk_nsp.oid
-LEFT JOIN LATERAL (
-        SELECT
-            array_agg(fk_att.attname) AS foreign_column_names
-        FROM
-            pg_catalog.pg_attribute fk_att
-        WHERE
-            fk_att.attrelid = con.confrelid
-            AND fk_att.attnum = ANY(con.confkey)
-    ) AS fk_columns ON
-    TRUE
+	pg_catalog.pg_class s
+	JOIN pg_catalog.pg_namespace seq_ns ON s.relnamespace = seq_ns.oid
+	JOIN pg_catalog.pg_depend d ON d.objid = s.oid
+	JOIN pg_catalog.pg_class t ON d.refobjid = t.oid
+	JOIN pg_catalog.pg_namespace tbl_ns ON t.relnamespace = tbl_ns.oid
+	JOIN pg_catalog.pg_attribute a ON a.attrelid = t.oid
+		AND a.attnum = d.refobjsubid
 WHERE
-    nsp.nspname = $1
-    AND cls.relname = $2
-GROUP BY
-    con.oid,
-    nsp.nspname,
-    con.conname,
-    cls.relname,
-    con.contype,
-    fk_nsp.nspname,
-    fn_cl.relname,
-    fk_columns.foreign_column_names
+	s.relkind = 'S'       -- 'S' means sequence
+	AND d.deptype = 'a'   -- 'a' means "auto" dependency (owned by)
+	AND(tbl_ns.nspname || '.' || t.relname) = ANY ($1::TEXT [])
 `
 
-type GetTableConstraintsParams struct {
-	Schema string
-	Table  string
+type GetSequencesOwnedByTablesRow struct {
+	SequenceName   string
+	SequenceSchema string
+	TableSchema    string
+	TableName      string
+	ColumnName     string
 }
 
-type GetTableConstraintsRow struct {
-	ConstraintName       string
-	ConstraintType       string
-	SchemaName           string
-	TableName            string
-	ConstraintColumns    []string
-	Notnullable          []bool
-	ForeignSchemaName    string
-	ForeignTableName     string
-	ForeignColumnNames   []string
-	ConstraintDefinition string
-}
-
-func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTableConstraintsParams) ([]*GetTableConstraintsRow, error) {
-	rows, err := db.QueryContext(ctx, getTableConstraints, arg.Schema, arg.Table)
+func (q *Queries) GetSequencesOwnedByTables(ctx context.Context, db DBTX, schematables []string) ([]*GetSequencesOwnedByTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getSequencesOwnedByTables, pq.Array(schematables))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetTableConstraintsRow
+	var items []*GetSequencesOwnedByTablesRow
 	for rows.Next() {
-		var i GetTableConstraintsRow
+		var i GetSequencesOwnedByTablesRow
 		if err := rows.Scan(
-			&i.ConstraintName,
-			&i.ConstraintType,
-			&i.SchemaName,
+			&i.SequenceName,
+			&i.SequenceSchema,
+			&i.TableSchema,
 			&i.TableName,
-			pq.Array(&i.ConstraintColumns),
-			pq.Array(&i.Notnullable),
-			&i.ForeignSchemaName,
-			&i.ForeignTableName,
-			pq.Array(&i.ForeignColumnNames),
-			&i.ConstraintDefinition,
+			&i.ColumnName,
 		); err != nil {
 			return nil, err
 		}
@@ -1091,103 +1890,49 @@ func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTabl
 	return items, nil
 }
 
-const getTableConstraintsBySchema = `-- name: GetTableConstraintsBySchema :many
+const getUniqueIndexesBySchema = `-- name: GetUniqueIndexesBySchema :many
 SELECT
-    con.conname AS constraint_name,
-    con.contype::TEXT AS constraint_type,
-    nsp.nspname AS schema_name,
-    cls.relname AS table_name,
-    array_agg(att.attname)::TEXT[] AS constraint_columns,
-    array_agg(att.attnotnull)::BOOL[] AS notnullable,
-    CASE
-        WHEN con.contype = 'f' THEN fk_nsp.nspname
-        ELSE ''
-    END AS foreign_schema_name,
-    CASE
-        WHEN con.contype = 'f' THEN fn_cl.relname
-        ELSE ''
-    END AS foreign_table_name,
-    CASE
-        WHEN con.contype = 'f' THEN fk_columns.foreign_column_names
-        ELSE NULL::text[]
-    END as foreign_column_names,
-    pg_get_constraintdef(con.oid)::TEXT AS constraint_definition
-FROM
-    pg_catalog.pg_constraint con
-JOIN
-    pg_catalog.pg_attribute att ON
-    att.attrelid = con.conrelid
-    AND att.attnum = ANY(con.conkey)
-JOIN
-    pg_catalog.pg_class cls ON
-    con.conrelid = cls.oid
-JOIN
-    pg_catalog.pg_namespace nsp ON
-    cls.relnamespace = nsp.oid
-LEFT JOIN
-    pg_catalog.pg_class fn_cl ON
-    fn_cl.oid = con.confrelid
-LEFT JOIN
-    pg_catalog.pg_namespace fk_nsp ON
-    fn_cl.relnamespace = fk_nsp.oid
-LEFT JOIN LATERAL (
-        SELECT
-            array_agg(fk_att.attname) AS foreign_column_names
-        FROM
-            pg_catalog.pg_attribute fk_att
-        WHERE
-            fk_att.attrelid = con.confrelid
-            AND fk_att.attnum = ANY(con.confkey)
-    ) AS fk_columns ON
-    TRUE
-WHERE
-    nsp.nspname = ANY(
-        $1::TEXT[]
-    )
-GROUP BY
-    con.oid,
-    nsp.nspname,
-    con.conname,
-    cls.relname,
-    con.contype,
-    fk_nsp.nspname,
-    fn_cl.relname,
-    fk_columns.foreign_column_names
+  ns.nspname AS table_schema,                      -- Schema name for the table
+  tbl.relname AS table_name,                         -- Name of the table the index belongs to
+  idx.relname AS index_name,                         -- Name of the index
+  array_agg(col.attname ORDER BY key_info.ordinality)::TEXT[] AS index_columns  -- Comma-separated list of index columns
+FROM pg_catalog.pg_class AS tbl
+  -- Join to get the schema information for the table
+  JOIN pg_catalog.pg_namespace AS ns ON tbl.relnamespace = ns.oid
+  -- Join to retrieve index metadata for the table
+  JOIN pg_catalog.pg_index AS idx_meta ON tbl.oid = idx_meta.indrelid
+  -- Join to get the index object details
+  JOIN pg_catalog.pg_class AS idx ON idx_meta.indexrelid = idx.oid
+  -- Unnest the index key attribute numbers along with their ordinal positions
+  JOIN unnest(idx_meta.indkey) WITH ORDINALITY AS key_info(attnum, ordinality) ON true
+  -- Join to get the column attributes corresponding to the index keys
+  JOIN pg_catalog.pg_attribute AS col ON col.attrelid = tbl.oid AND col.attnum = key_info.attnum
+WHERE ns.nspname = ANY($1::TEXT[])
+  AND idx_meta.indisunique = true
+GROUP BY ns.nspname, tbl.relname, idx.relname
 `
 
-type GetTableConstraintsBySchemaRow struct {
-	ConstraintName       string
-	ConstraintType       string
-	SchemaName           string
-	TableName            string
-	ConstraintColumns    []string
-	Notnullable          []bool
-	ForeignSchemaName    string
-	ForeignTableName     string
-	ForeignColumnNames   []string
-	ConstraintDefinition string
+type GetUniqueIndexesBySchemaRow struct {
+	TableSchema  string
+	TableName    string
+	IndexName    string
+	IndexColumns []string
 }
 
-func (q *Queries) GetTableConstraintsBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetTableConstraintsBySchemaRow, error) {
-	rows, err := db.QueryContext(ctx, getTableConstraintsBySchema, pq.Array(schema))
+func (q *Queries) GetUniqueIndexesBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetUniqueIndexesBySchemaRow, error) {
+	rows, err := db.QueryContext(ctx, getUniqueIndexesBySchema, pq.Array(schema))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetTableConstraintsBySchemaRow
+	var items []*GetUniqueIndexesBySchemaRow
 	for rows.Next() {
-		var i GetTableConstraintsBySchemaRow
+		var i GetUniqueIndexesBySchemaRow
 		if err := rows.Scan(
-			&i.ConstraintName,
-			&i.ConstraintType,
-			&i.SchemaName,
+			&i.TableSchema,
 			&i.TableName,
-			pq.Array(&i.ConstraintColumns),
-			pq.Array(&i.Notnullable),
-			&i.ForeignSchemaName,
-			&i.ForeignTableName,
-			pq.Array(&i.ForeignColumnNames),
-			&i.ConstraintDefinition,
+			&i.IndexName,
+			pq.Array(&i.IndexColumns),
 		); err != nil {
 			return nil, err
 		}

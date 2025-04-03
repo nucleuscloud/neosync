@@ -8,8 +8,8 @@ import (
 	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -20,15 +20,21 @@ func NewAwsS3SyncBuilder() bb_internal.BenthosBuilder {
 	return &awsS3SyncBuilder{}
 }
 
-func (b *awsS3SyncBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
+func (b *awsS3SyncBuilder) BuildSourceConfigs(
+	ctx context.Context,
+	params *bb_internal.SourceParams,
+) ([]*bb_internal.BenthosSourceConfig, error) {
 	return nil, errors.ErrUnsupported
 }
 
-func (b *awsS3SyncBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
+func (b *awsS3SyncBuilder) BuildDestinationConfig(
+	ctx context.Context,
+	params *bb_internal.DestinationParams,
+) (*bb_internal.BenthosDestinationConfig, error) {
 	config := &bb_internal.BenthosDestinationConfig{}
 
 	benthosConfig := params.SourceConfig
-	if benthosConfig.RunType == tabledependency.RunTypeUpdate {
+	if benthosConfig.RunType == runconfigs.RunTypeUpdate {
 		return config, nil
 	}
 	destinationOpts := params.DestinationOpts.GetAwsS3Options()
@@ -49,7 +55,7 @@ func (b *awsS3SyncBuilder) BuildDestinationConfig(ctx context.Context, params *b
 	s3pathpieces = append(
 		s3pathpieces,
 		"workflows",
-		params.WorkflowId,
+		params.JobRunId,
 		"activities",
 		neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName),
 		"data",
@@ -139,7 +145,9 @@ func (s S3StorageClass) String() string {
 	}[s]
 }
 
-func convertToS3StorageClass(protoStorageClass mgmtv1alpha1.AwsS3DestinationConnectionOptions_StorageClass) S3StorageClass {
+func convertToS3StorageClass(
+	protoStorageClass mgmtv1alpha1.AwsS3DestinationConnectionOptions_StorageClass,
+) S3StorageClass {
 	switch protoStorageClass {
 	case mgmtv1alpha1.AwsS3DestinationConnectionOptions_STORAGE_CLASS_STANDARD:
 		return S3StorageClass_STANDARD

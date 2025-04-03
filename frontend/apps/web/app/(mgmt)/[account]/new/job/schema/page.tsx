@@ -47,7 +47,14 @@ import {
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ReactElement,
+  use,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
@@ -79,7 +86,8 @@ export interface ColumnMetadata {
   isNullable: DatabaseColumn[];
 }
 
-export default function Page({ searchParams }: PageProps): ReactElement {
+export default function Page(props: PageProps): ReactElement {
+  const searchParams = use(props.searchParams);
   const { account } = useAccount();
   const router = useRouter();
   const posthog = usePostHog();
@@ -339,14 +347,23 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   useEffect(() => {
-    if (!connectFormValues.sourceId || !account?.id) {
+    if (
+      !connectFormValues.sourceId ||
+      !account?.id ||
+      Object.keys(connectionsRecord).length === 0
+    ) {
       return;
     }
     const validateJobMappings = async () => {
       await validateMappings();
     };
     validateJobMappings();
-  }, [selectedTables, connectFormValues.sourceId, account?.id]);
+  }, [
+    selectedTables,
+    connectFormValues.sourceId,
+    account?.id,
+    Object.keys(connectionsRecord).length,
+  ]);
 
   useEffect(() => {
     if (
@@ -700,6 +717,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               }}
               onApplyDefaultClick={onApplyDefaultClick}
               onTransformerBulkUpdate={onTransformerBulkUpdate}
+              hasMissingSourceColumnMappings={false}
+              onRemoveMissingSourceColumnMappings={() => {}}
             />
           )}
 
@@ -745,6 +764,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               }}
               onApplyDefaultClick={onApplyDefaultClick}
               onTransformerBulkUpdate={onTransformerBulkUpdate}
+              hasMissingSourceColumnMappings={false}
+              onRemoveMissingSourceColumnMappings={() => {}}
             />
           )}
           <div className="flex flex-row gap-1 justify-between">

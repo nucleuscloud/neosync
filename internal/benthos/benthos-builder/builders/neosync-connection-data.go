@@ -3,15 +3,14 @@ package benthosbuilder_builders
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
@@ -19,7 +18,7 @@ type neosyncConnectionDataBuilder struct {
 	connectiondataclient  mgmtv1alpha1connect.ConnectionDataServiceClient
 	sqlmanagerclient      sqlmanager.SqlManagerClient
 	sourceJobRunId        *string
-	syncConfigs           []*tabledependency.RunConfig
+	syncConfigs           []*runconfigs.RunConfig
 	destinationConnection *mgmtv1alpha1.Connection
 	sourceConnectionType  bb_shared.ConnectionType
 }
@@ -28,7 +27,7 @@ func NewNeosyncConnectionDataSyncBuilder(
 	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	sourceJobRunId *string,
-	syncConfigs []*tabledependency.RunConfig,
+	syncConfigs []*runconfigs.RunConfig,
 	destinationConnection *mgmtv1alpha1.Connection,
 	sourceConnectionType bb_shared.ConnectionType,
 ) bb_internal.BenthosBuilder {
@@ -42,7 +41,10 @@ func NewNeosyncConnectionDataSyncBuilder(
 	}
 }
 
-func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(ctx context.Context, params *bb_internal.SourceParams) ([]*bb_internal.BenthosSourceConfig, error) {
+func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(
+	ctx context.Context,
+	params *bb_internal.SourceParams,
+) ([]*bb_internal.BenthosSourceConfig, error) {
 	sourceConnection := params.SourceConnection
 	job := params.Job
 	configs := []*bb_internal.BenthosSourceConfig{}
@@ -80,7 +82,7 @@ func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(ctx context.Context, p
 			},
 		}
 		configs = append(configs, &bb_internal.BenthosSourceConfig{
-			Name:      fmt.Sprintf("%s.%s", config.Table(), config.RunType()),
+			Name:      config.Id(),
 			Config:    bc,
 			DependsOn: config.DependsOn(),
 			RunType:   config.RunType(),
@@ -97,6 +99,9 @@ func (b *neosyncConnectionDataBuilder) BuildSourceConfigs(ctx context.Context, p
 	return configs, nil
 }
 
-func (b *neosyncConnectionDataBuilder) BuildDestinationConfig(ctx context.Context, params *bb_internal.DestinationParams) (*bb_internal.BenthosDestinationConfig, error) {
+func (b *neosyncConnectionDataBuilder) BuildDestinationConfig(
+	ctx context.Context,
+	params *bb_internal.DestinationParams,
+) (*bb_internal.BenthosDestinationConfig, error) {
 	return nil, errors.ErrUnsupported
 }

@@ -2,7 +2,6 @@ package transformers
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 	"time"
 
@@ -30,7 +29,7 @@ func Test_TransformUuidSeeded(t *testing.T) {
 
 	//checks that the output UUID is the same everytime for given the same input since we're assigning it a specific seed value
 	for i := 0; i < 5; i++ {
-		randomizer := rand.New(rand.NewSource(1))
+		randomizer := rng.New(1)
 		res := transformUuid(randomizer, randomUuid)
 		checkVars = append(checkVars, *res)
 	}

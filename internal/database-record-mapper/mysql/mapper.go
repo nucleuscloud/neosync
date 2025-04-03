@@ -21,7 +21,9 @@ func NewMySQLBuilder() *builder.Builder[*sql.Rows] {
 	}
 }
 
-func (m *MySQLMapper) MapRecordWithKeyType(rows *sql.Rows) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
+func (m *MySQLMapper) MapRecordWithKeyType(
+	rows *sql.Rows,
+) (valuemap map[string]any, typemap map[string]neosync_types.KeyType, err error) {
 	return nil, nil, errors.ErrUnsupported
 }
 
@@ -55,12 +57,17 @@ func (m *MySQLMapper) MapRecord(rows *sql.Rows) (map[string]any, error) {
 	return jObj, nil
 }
 
-func parseMysqlRowValues(values []any, columnNames, columnDbTypes []string) (map[string]any, error) {
+func parseMysqlRowValues(
+	values []any,
+	columnNames, columnDbTypes []string,
+) (map[string]any, error) {
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]
 		colDataType := columnDbTypes[i]
 		switch t := v.(type) {
+		case nil:
+			jObj[col] = t
 		case time.Time:
 			dt, err := neosynctypes.NewDateTimeFromMysql(t)
 			if err != nil {
@@ -69,6 +76,10 @@ func parseMysqlRowValues(values []any, columnNames, columnDbTypes []string) (map
 			jObj[col] = dt
 		case []byte:
 			if strings.EqualFold(colDataType, "json") {
+				if string(t) == "null" {
+					jObj[col] = string(t)
+					continue
+				}
 				var js any
 				if err := json.Unmarshal(t, &js); err != nil {
 					return nil, err

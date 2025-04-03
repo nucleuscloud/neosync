@@ -61,6 +61,16 @@ class ConnectionServiceStub(object):
                 request_serializer=mgmt_dot_v1alpha1_dot_connection__pb2.CheckSqlQueryRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_connection__pb2.CheckSqlQueryResponse.FromString,
                 _registered_method=True)
+        self.CheckSSHConnection = channel.unary_unary(
+                '/mgmt.v1alpha1.ConnectionService/CheckSSHConnection',
+                request_serializer=mgmt_dot_v1alpha1_dot_connection__pb2.CheckSSHConnectionRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_connection__pb2.CheckSSHConnectionResponse.FromString,
+                _registered_method=True)
+        self.CheckSSHConnectionById = channel.unary_unary(
+                '/mgmt.v1alpha1.ConnectionService/CheckSSHConnectionById',
+                request_serializer=mgmt_dot_v1alpha1_dot_connection__pb2.CheckSSHConnectionByIdRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_connection__pb2.CheckSSHConnectionByIdResponse.FromString,
+                _registered_method=True)
 
 
 class ConnectionServiceServicer(object):
@@ -134,6 +144,20 @@ class ConnectionServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def CheckSSHConnection(self, request, context):
+        """Checks if the SSH server is reachable and accessible with the given credentials
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CheckSSHConnectionById(self, request, context):
+        """Checks if the SSH server is reachable and accessible with the given credentials
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ConnectionServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -181,6 +205,16 @@ def add_ConnectionServiceServicer_to_server(servicer, server):
                     servicer.CheckSqlQuery,
                     request_deserializer=mgmt_dot_v1alpha1_dot_connection__pb2.CheckSqlQueryRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_connection__pb2.CheckSqlQueryResponse.SerializeToString,
+            ),
+            'CheckSSHConnection': grpc.unary_unary_rpc_method_handler(
+                    servicer.CheckSSHConnection,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_connection__pb2.CheckSSHConnectionRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_connection__pb2.CheckSSHConnectionResponse.SerializeToString,
+            ),
+            'CheckSSHConnectionById': grpc.unary_unary_rpc_method_handler(
+                    servicer.CheckSSHConnectionById,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_connection__pb2.CheckSSHConnectionByIdRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_connection__pb2.CheckSSHConnectionByIdResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -428,6 +462,60 @@ class ConnectionService(object):
             '/mgmt.v1alpha1.ConnectionService/CheckSqlQuery',
             mgmt_dot_v1alpha1_dot_connection__pb2.CheckSqlQueryRequest.SerializeToString,
             mgmt_dot_v1alpha1_dot_connection__pb2.CheckSqlQueryResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CheckSSHConnection(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/mgmt.v1alpha1.ConnectionService/CheckSSHConnection',
+            mgmt_dot_v1alpha1_dot_connection__pb2.CheckSSHConnectionRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_connection__pb2.CheckSSHConnectionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CheckSSHConnectionById(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/mgmt.v1alpha1.ConnectionService/CheckSSHConnectionById',
+            mgmt_dot_v1alpha1_dot_connection__pb2.CheckSSHConnectionByIdRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_connection__pb2.CheckSSHConnectionByIdResponse.FromString,
             options,
             channel_credentials,
             insecure,

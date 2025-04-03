@@ -44,7 +44,15 @@ export function useOnExportMappings<T>(
               convertJobMappingTransformerFormToJobMappingTransformer(
                 d.transformer
               ),
-          })
+          }),
+          {
+            // Forces the proto field names to be snake_case instead of lowerCamelCase.
+            // This is because the ES format changes it to be lowerCamelCase, but this means that the mappings
+            // can't be used natively by any of the other SDKs.
+            // Using this format makes it uniformly accepted by all of our SDKs.
+            // This does not affect the import as it can natively handle both scenarios.
+            useProtoFieldName: true,
+          }
         );
       });
       await downloadFile({

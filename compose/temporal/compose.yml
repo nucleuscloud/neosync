@@ -34,7 +34,7 @@ services:
       - postgresql
       - elasticsearch
     environment:
-      - DB=postgresql
+      - DB=postgres12
       - DB_PORT=5432
       - POSTGRES_USER=temporal
       - POSTGRES_PWD=temporal
@@ -48,8 +48,6 @@ services:
       - temporal-network
     ports:
       - 7233:7233
-    labels:
-      kompose.volume.type: configMap
     volumes:
       - ./dynamicconfig:/etc/temporal/config/dynamicconfig
     healthcheck:
@@ -75,7 +73,7 @@ services:
   #   environment:
   #     - TEMPORAL_ADDRESS=temporal:7233
   #     - TEMPORAL_CLI_ADDRESS=temporal:7233
-  #   image: temporalio/admin-tools:${TEMPORAL_VERSION}
+  #   image: temporalio/admin-tools:${TEMPORAL_ADMINTOOLS_VERSION}
   #   networks:
   #     - temporal-network
   #   stdin_open: true

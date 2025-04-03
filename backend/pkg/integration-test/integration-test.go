@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -15,22 +16,31 @@ import (
 	"github.com/nucleuscloud/neosync/internal/billing"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	ee_slack "github.com/nucleuscloud/neosync/internal/ee/slack"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	clientmanager "github.com/nucleuscloud/neosync/internal/temporal/clientmanager"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	"github.com/stretchr/testify/mock"
+	"go.temporal.io/api/common/v1"
+	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/workflow/v1"
+	"go.temporal.io/api/workflowservice/v1"
+	tmprl_mocks "go.temporal.io/sdk/mocks"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Mocks struct {
 	TemporalClientManager  *clientmanager.MockInterface
 	TemporalConfigProvider *clientmanager.MockConfigProvider
+	TemporalClient         *tmprl_mocks.Client
 	Authclient             *auth_client.MockInterface
 	Authmanagerclient      *authmgmt.MockInterface
 	Prometheusclient       *promapiv1mock.MockAPI
 	Billingclient          *billing.MockInterface
 	Presidio               Presidiomocks
+	Slackclient            *ee_slack.MockInterface
 }
 
 type Presidiomocks struct {
@@ -63,7 +73,11 @@ type NeosyncApiTestClient struct {
 // Option is a functional option for configuring Neosync Api Test Client
 type Option func(*NeosyncApiTestClient)
 
-func NewNeosyncApiTestClient(ctx context.Context, t testing.TB, opts ...Option) (*NeosyncApiTestClient, error) {
+func NewNeosyncApiTestClient(
+	ctx context.Context,
+	t testing.TB,
+	opts ...Option,
+) (*NeosyncApiTestClient, error) {
 	neoApi := &NeosyncApiTestClient{
 		migrationsDir: "../../../../sql/postgresql/schema",
 	}
@@ -97,6 +111,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 	s.Mocks = &Mocks{
 		TemporalClientManager:  clientmanager.NewMockInterface(t),
 		TemporalConfigProvider: clientmanager.NewMockConfigProvider(t),
+		TemporalClient:         tmprl_mocks.NewClient(t),
 		Authclient:             auth_client.NewMockInterface(t),
 		Authmanagerclient:      authmgmt.NewMockInterface(t),
 		Prometheusclient:       promapiv1mock.NewMockAPI(t),
@@ -106,6 +121,7 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 			Anonymizer: presidioapi.NewMockAnonymizeInterface(t),
 			Entities:   presidioapi.NewMockEntityInterface(t),
 		},
+		Slackclient: ee_slack.NewMockInterface(t),
 	}
 
 	err = s.InitializeTest(ctx, t)
@@ -121,25 +137,37 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 	if err != nil {
 		return fmt.Errorf("unable to setup oss unauthenticated licensed mux: %w", err)
 	}
-	rootmux.Handle(openSourceUnauthenticatedLicensedPostfix+"/", http.StripPrefix(openSourceUnauthenticatedLicensedPostfix, ossUnauthLicensedMux))
+	rootmux.Handle(
+		openSourceUnauthenticatedLicensedPostfix+"/",
+		http.StripPrefix(openSourceUnauthenticatedLicensedPostfix, ossUnauthLicensedMux),
+	)
 
 	ossAuthLicensedMux, err := s.setupOssLicensedAuthMux(ctx, pgcontainer, logger)
 	if err != nil {
 		return fmt.Errorf("unable to setup oss authenticated licensed mux: %w", err)
 	}
-	rootmux.Handle(openSourceAuthenticatedLicensedPostfix+"/", http.StripPrefix(openSourceAuthenticatedLicensedPostfix, ossAuthLicensedMux))
+	rootmux.Handle(
+		openSourceAuthenticatedLicensedPostfix+"/",
+		http.StripPrefix(openSourceAuthenticatedLicensedPostfix, ossAuthLicensedMux),
+	)
 
 	ossUnauthUnlicensedMux, err := s.setupOssUnlicensedMux(pgcontainer, logger)
 	if err != nil {
 		return fmt.Errorf("unable to setup oss unauthenticated unlicensed mux: %w", err)
 	}
-	rootmux.Handle(openSourceUnauthenticatedUnlicensedPostfix+"/", http.StripPrefix(openSourceUnauthenticatedUnlicensedPostfix, ossUnauthUnlicensedMux))
+	rootmux.Handle(
+		openSourceUnauthenticatedUnlicensedPostfix+"/",
+		http.StripPrefix(openSourceUnauthenticatedUnlicensedPostfix, ossUnauthUnlicensedMux),
+	)
 
 	neoCloudAuthdMux, err := s.setupNeoCloudMux(ctx, pgcontainer, logger)
 	if err != nil {
 		return fmt.Errorf("unable to setup neo cloud authenticated mux: %w", err)
 	}
-	rootmux.Handle(neoCloudAuthenticatedLicensedPostfix+"/", http.StripPrefix(neoCloudAuthenticatedLicensedPostfix, neoCloudAuthdMux))
+	rootmux.Handle(
+		neoCloudAuthenticatedLicensedPostfix+"/",
+		http.StripPrefix(neoCloudAuthenticatedLicensedPostfix, neoCloudAuthdMux),
+	)
 
 	s.httpsrv = startHTTPServer(t, rootmux)
 	rootmux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -147,10 +175,18 @@ func (s *NeosyncApiTestClient) Setup(ctx context.Context, t testing.TB) error {
 		http.NotFound(w, r)
 	})
 
-	s.OSSUnauthenticatedLicensedClients = newNeosyncClients(s.httpsrv.URL + openSourceUnauthenticatedLicensedPostfix)
-	s.OSSAuthenticatedLicensedClients = newNeosyncClients(s.httpsrv.URL + openSourceAuthenticatedLicensedPostfix)
-	s.OSSUnauthenticatedUnlicensedClients = newNeosyncClients(s.httpsrv.URL + openSourceUnauthenticatedUnlicensedPostfix)
-	s.NeosyncCloudAuthenticatedLicensedClients = newNeosyncClients(s.httpsrv.URL + neoCloudAuthenticatedLicensedPostfix)
+	s.OSSUnauthenticatedLicensedClients = newNeosyncClients(
+		s.httpsrv.URL + openSourceUnauthenticatedLicensedPostfix,
+	)
+	s.OSSAuthenticatedLicensedClients = newNeosyncClients(
+		s.httpsrv.URL + openSourceAuthenticatedLicensedPostfix,
+	)
+	s.OSSUnauthenticatedUnlicensedClients = newNeosyncClients(
+		s.httpsrv.URL + openSourceUnauthenticatedUnlicensedPostfix,
+	)
+	s.NeosyncCloudAuthenticatedLicensedClients = newNeosyncClients(
+		s.httpsrv.URL + neoCloudAuthenticatedLicensedPostfix,
+	)
 
 	return nil
 }
@@ -176,6 +212,37 @@ func (s *NeosyncApiTestClient) MockTemporalForCreateJob(returnId string) {
 		Once()
 }
 
+// Used for any API call that uses GetJobRun() as this mocks the response from Temporal for that execution
+func (s *NeosyncApiTestClient) MockTemporalForDescribeWorkflowExecution(
+	accountId, jobId, jobRunId, workflowName string,
+) {
+	s.Mocks.TemporalClientManager.EXPECT().
+		DescribeWorklowExecution(mock.Anything, accountId, jobRunId, mock.Anything).
+		Return(&workflowservice.DescribeWorkflowExecutionResponse{
+			WorkflowExecutionInfo: &workflow.WorkflowExecutionInfo{
+				Execution: &common.WorkflowExecution{
+					WorkflowId: jobRunId,
+				},
+				CloseTime: timestamppb.New(time.Now()),
+				StartTime: timestamppb.New(time.Now().Add(-time.Minute)),
+				Status:    enums.WORKFLOW_EXECUTION_STATUS_COMPLETED,
+				Type: &common.WorkflowType{
+					Name: workflowName,
+				},
+				SearchAttributes: &common.SearchAttributes{
+					IndexedFields: map[string]*common.Payload{
+						"TemporalScheduledById": {
+							Data: []byte(jobId),
+							Metadata: map[string][]byte{
+								"jobId": []byte(jobId),
+							}, // this doesnt seem to work as it's not the correct format for what temporal expects
+						},
+					},
+				},
+			},
+		}, nil).
+		Once()
+}
 func (s *NeosyncApiTestClient) InitializeTest(ctx context.Context, t testing.TB) error {
 	err := neomigrate.Up(ctx, s.Pgcontainer.URL, s.migrationsDir, testutil.GetTestLogger(t))
 	if err != nil {

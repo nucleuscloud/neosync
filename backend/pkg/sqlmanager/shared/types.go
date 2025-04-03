@@ -5,7 +5,21 @@ import (
 )
 
 const (
-	DisableForeignKeyChecks = "SET FOREIGN_KEY_CHECKS = 0;"
+	DisableForeignKeyChecks           = "SET FOREIGN_KEY_CHECKS = 0;"
+	ExtensionsLabel                   = "extensions"
+	SchemasLabel                      = "schemas"
+	CreateTablesLabel                 = "create table"
+	AddColumnsLabel                   = "add columns"
+	DropColumnsLabel                  = "drop columns"
+	DropTriggersLabel                 = "drop triggers"
+	DropFunctionsLabel                = "drop functions"
+	DropNonForeignKeyConstraintsLabel = "drop non-foreign key constraints"
+	DropForeignKeyConstraintsLabel    = "drop foreign key constraints"
+	UpdateColumnsLabel                = "update columns"
+	RenameColumnsLabel                = "rename columns"
+	UpdateFunctionsLabel              = "update functions"
+	DropDatatypesLabel                = "drop datatypes"
+	UpdateDatatypesLabel              = "update datatypes"
 )
 
 type DatabaseSchemaRow struct {
@@ -13,6 +27,7 @@ type DatabaseSchemaRow struct {
 	TableName              string
 	ColumnName             string
 	DataType               string
+	MysqlColumnType        string // will only be populated for mysql. Same as the DataType but includes length, etc. varchar(255), enum('a', 'b'), etc.
 	ColumnDefault          string
 	ColumnDefaultType      *string
 	IsNullable             bool
@@ -21,9 +36,14 @@ type DatabaseSchemaRow struct {
 	NumericScale           int
 	OrdinalPosition        int
 	GeneratedType          *string
+	GeneratedExpression    *string
 	IdentityGeneration     *string
 	IdentitySeed           *int
 	IdentityIncrement      *int
+	// UpdateAllowed indicates whether updates are permitted for this column.
+	// generated columns are an example of columns that do not allow updates.
+	UpdateAllowed bool
+	Comment       *string
 }
 
 func (d *DatabaseSchemaRow) NullableString() string {
@@ -31,6 +51,41 @@ func (d *DatabaseSchemaRow) NullableString() string {
 		return "YES"
 	}
 	return "NO"
+}
+
+type DatabaseSchemaNameRow struct {
+	SchemaName string
+}
+
+type DatabaseTableRow struct {
+	SchemaName string
+	TableName  string
+}
+
+// Fingerprinter is implemented by any type that exposes a Fingerprint via GetFingerprint().
+type Fingerprinter interface {
+	GetFingerprint() string
+}
+
+type TableColumn struct {
+	Fingerprint         string
+	Schema              string
+	Table               string
+	Name                string
+	DataType            string
+	IsNullable          bool
+	ColumnDefault       string
+	ColumnDefaultType   *string
+	GeneratedType       *string
+	GeneratedExpression *string
+	IdentityGeneration  *string
+	SequenceDefinition  *string
+	OrdinalPosition     int
+	Comment             *string
+}
+
+func (c *TableColumn) GetFingerprint() string {
+	return c.Fingerprint
 }
 
 type ForeignKeyConstraintsRow struct {
@@ -60,21 +115,119 @@ func (s SchemaTable) String() string {
 }
 
 type TableTrigger struct {
+	Fingerprint   string
+	Schema        string
+	Table         string
+	TriggerSchema *string
+	TriggerName   string
+	Definition    string
+}
+
+func (t *TableTrigger) GetFingerprint() string {
+	return t.Fingerprint
+}
+
+type DomainConstraint struct {
+	Name       string `json:"name"`
+	Definition string `json:"definition"`
+}
+
+type DomainDataType struct {
+	Fingerprint string
 	Schema      string
-	Table       string
-	TriggerName string
-	Definition  string
+	Name        string
+	IsNullable  bool
+	Default     string
+	Constraints []*DomainConstraint
+}
+
+func (d *DomainDataType) GetFingerprint() string {
+	return d.Fingerprint
+}
+
+type EnumDataType struct {
+	Fingerprint string
+	Schema      string
+	Name        string
+	Values      []string
+}
+
+func (e *EnumDataType) GetFingerprint() string {
+	return e.Fingerprint
+}
+
+type CompositeDataType struct {
+	Fingerprint string
+	Schema      string
+	Name        string
+	Attributes  []*CompositeAttribute
+}
+
+type CompositeAttribute struct {
+	Name     string `json:"name"`
+	Datatype string `json:"datatype"`
+	Id       int    `json:"id"` // helps track when attributes are added or removed
+}
+
+func (c *CompositeDataType) GetFingerprint() string {
+	return c.Fingerprint
+}
+
+type AllTableDataTypes struct {
+	Functions  []*DataType
+	Domains    []*DomainDataType
+	Enums      []*EnumDataType
+	Composites []*CompositeDataType
 }
 
 type TableInitStatement struct {
 	CreateTableStatement string
 	AlterTableStatements []*AlterTableStatement
 	IndexStatements      []string
+	PartitionStatements  []string
 }
 
 type AlterTableStatement struct {
 	Statement      string
 	ConstraintType ConstraintType
+}
+
+type ForeignKeyConstraint struct {
+	Fingerprint        string
+	ConstraintName     string
+	ConstraintType     string
+	ReferencingSchema  string
+	ReferencingTable   string
+	ReferencingColumns []string
+	ReferencedSchema   string
+	ReferencedTable    string
+	ReferencedColumns  []string
+	NotNullable        []bool
+	UpdateRule         *string
+	DeleteRule         *string
+}
+
+func (f *ForeignKeyConstraint) GetFingerprint() string {
+	return f.Fingerprint
+}
+
+type NonForeignKeyConstraint struct {
+	Fingerprint    string
+	ConstraintName string
+	ConstraintType string
+	SchemaName     string
+	TableName      string
+	Columns        []string
+	Definition     string
+}
+
+func (n *NonForeignKeyConstraint) GetFingerprint() string {
+	return n.Fingerprint
+}
+
+type AllTableConstraints struct {
+	ForeignKeyConstraints    []*ForeignKeyConstraint
+	NonForeignKeyConstraints []*NonForeignKeyConstraint
 }
 
 type ConstraintType int
@@ -84,6 +237,7 @@ const (
 	ForeignConstraintType
 	UniqueConstraintType
 	CheckConstraintType
+	ExclusionConstraintType
 )
 
 func ToConstraintType(constraintType string) (ConstraintType, error) {
@@ -96,6 +250,8 @@ func ToConstraintType(constraintType string) (ConstraintType, error) {
 		return ForeignConstraintType, nil
 	case "c":
 		return CheckConstraintType, nil
+	case "x":
+		return ExclusionConstraintType, nil
 	}
 	return -1, errors.ErrUnsupported
 }
@@ -125,12 +281,18 @@ type TableConstraints struct {
 	ForeignKeyConstraints map[string][]*ForeignConstraint
 	PrimaryKeyConstraints map[string][]string
 	UniqueConstraints     map[string][][]string
+	UniqueIndexes         map[string][][]string
 }
 
 type DataType struct {
-	Schema     string
-	Name       string
-	Definition string
+	Fingerprint string
+	Schema      string
+	Name        string
+	Definition  string
+}
+
+func (d *DataType) GetFingerprint() string {
+	return d.Fingerprint
 }
 
 type ExtensionDataType struct {
@@ -183,7 +345,11 @@ type InitSchemaStatements struct {
 }
 
 type SelectQuery struct {
+	// Query is the query used to get all data
 	Query string
+	// PageQuery is the query used to get a page of data based on a unique identifier like a primary key in the WHERE clause
+	PageQuery string
+	PageLimit int
 
 	// If true, this query could return rows that violate foreign key constraints
 	IsNotForeignKeySafeSubset bool

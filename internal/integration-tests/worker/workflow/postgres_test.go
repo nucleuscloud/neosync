@@ -8,21 +8,26 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
+	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	tcredis "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/redis"
 	testutil_testdata "github.com/nucleuscloud/neosync/internal/testutil/testdata"
 	pg_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/alltypes"
+	pg_complex "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/complex"
 	pg_edgecases "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/edgecases"
 	pg_foreignkey_violations "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/foreignkey-violations"
 	pg_humanresources "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/humanresources"
+	pg_schema_init "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/schema-init"
 	pg_subsetting "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/subsetting"
 	pg_transformers "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/transformers"
 	pg_uuids "github.com/nucleuscloud/neosync/internal/testutil/testdata/postgres/uuids"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 )
@@ -79,6 +84,19 @@ func createPostgresSyncJob(
 		if config.JobOptions.SubsetByForeignKeyConstraints {
 			subsetByForeignKeyConstraints = true
 		}
+		var batchSize, maxInFlight *uint32
+		if config.JobOptions.BatchSize != nil {
+			batchSize = config.JobOptions.BatchSize
+		}
+		if config.JobOptions.MaxInFlight != nil {
+			maxInFlight = config.JobOptions.MaxInFlight
+		}
+		onConflict := &mgmtv1alpha1.PostgresOnConflictConfig{}
+		if config.JobOptions.OnConflictDoUpdate {
+			onConflict.Strategy = &mgmtv1alpha1.PostgresOnConflictConfig_Update{}
+		} else if config.JobOptions.OnConflictDoNothing {
+			onConflict.Strategy = &mgmtv1alpha1.PostgresOnConflictConfig_Nothing{}
+		}
 		destinationOptions = &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
 				PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
@@ -87,11 +105,20 @@ func createPostgresSyncJob(
 						TruncateBeforeInsert: config.JobOptions.Truncate,
 					},
 					SkipForeignKeyViolations: config.JobOptions.SkipForeignKeyViolations,
+					Batch: &mgmtv1alpha1.BatchConfig{
+						Count: batchSize,
+					},
+					MaxInFlight: maxInFlight,
+					OnConflict:  onConflict,
 				},
 			},
 		}
 	}
 
+	newColumnAdditionStrategy := &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy{}
+	if config.JobOptions.PassthroughOnNewColumnAddition {
+		newColumnAdditionStrategy.Strategy = &mgmtv1alpha1.PostgresSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_{}
+	}
 	job, err := jobclient.CreateJob(ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobRequest{
 		AccountId: config.AccountId,
 		JobName:   config.JobName,
@@ -102,6 +129,7 @@ func createPostgresSyncJob(
 						ConnectionId:                  config.SourceConn.Id,
 						Schemas:                       schemas,
 						SubsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
+						NewColumnAdditionStrategy:     newColumnAdditionStrategy,
 					},
 				},
 			},
@@ -188,11 +216,104 @@ func test_postgres_types(
 	require.NoError(t, err)
 	defer target.Close()
 
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "all_data_types", "postgres", "id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "json_data", "postgres", "id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "array_types", "postgres", "id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "generated_table", "postgres", "id")
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "time_time", "postgres", "id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "all_data_types", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "json_data", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "array_types", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "generated_table", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "time_time", "postgres", []string{"id"})
+
+	// tear down
+	err = cleanupPostgresSchemas(ctx, postgres, []string{alltypesSchema})
+	require.NoError(t, err)
+}
+
+func test_postgres_passthrough_on_new_column_addition(
+	t *testing.T,
+	ctx context.Context,
+	postgres *tcpostgres.PostgresTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	alltypesSchema := "alltypes_passthrough"
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.Go(func() error {
+		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"alltypes/create-tables.sql"}, alltypesSchema)
+	})
+	errgrp.Go(func() error { return postgres.Target.CreateSchemas(errctx, []string{alltypesSchema}) })
+	err := errgrp.Wait()
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: alltypesSchema, table: "all_data_types", rowCount: 2},
+		{schema: alltypesSchema, table: "array_types", rowCount: 1},
+		{schema: alltypesSchema, table: "time_time", rowCount: 3},
+		{schema: alltypesSchema, table: "json_data", rowCount: 12},
+		{schema: alltypesSchema, table: "generated_table", rowCount: 4},
+	}
+	mappings := []*mgmtv1alpha1.JobMapping{}
+	for _, expected := range expectedResults {
+		mappings = append(mappings, &mgmtv1alpha1.JobMapping{
+			Schema: expected.schema,
+			Table:  expected.table,
+			Column: "id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
+			},
+		})
+	}
+
+	job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     "all_types_passthrough",
+		JobMappings: mappings,
+		JobOptions: &TestJobOptions{
+			Truncate:                       true,
+			TruncateCascade:                true,
+			InitSchema:                     true,
+			PassthroughOnNewColumnAddition: true,
+		},
+	})
+
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: all_types")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: all_types")
+
+	for _, expected := range expectedResults {
+		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: all_types Table: %s", expected.table))
+	}
+
+	source, err := sql.Open("postgres", postgres.Source.URL)
+	require.NoError(t, err)
+	defer source.Close()
+
+	target, err := sql.Open("postgres", postgres.Target.URL)
+	require.NoError(t, err)
+	defer target.Close()
+
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "all_data_types", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "json_data", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "array_types", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "generated_table", "postgres", []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, alltypesSchema, "time_time", "postgres", []string{"id"})
 
 	// tear down
 	err = cleanupPostgresSchemas(ctx, postgres, []string{alltypesSchema})
@@ -325,8 +446,6 @@ func test_postgres_edgecases(
 ) {
 	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
 	schema := "CaPiTaL"
-	_, err := postgres.Source.DB.Exec(ctx, fmt.Sprintf(`CREATE SCHEMA %q; CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA %q;`, schema, schema))
-	require.NoError(t, err)
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.Go(func() error {
 		return postgres.Source.RunCreateStmtsInSchema(errctx, testdataFolder, []string{"edgecases/create-tables.sql"}, schema)
@@ -334,7 +453,7 @@ func test_postgres_edgecases(
 	errgrp.Go(func() error {
 		return postgres.Target.CreateSchemas(errctx, []string{schema})
 	})
-	err = errgrp.Wait()
+	err := errgrp.Wait()
 	require.NoError(t, err)
 	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
 
@@ -681,8 +800,8 @@ func test_postgres_skip_foreign_keys_violations(
 		rowCount int
 	}{
 		{schema: schema, table: "countries", rowCount: 24},
-		{schema: schema, table: "dependents", rowCount: 7},
-		{schema: schema, table: "employees", rowCount: 10},
+		{schema: schema, table: "dependents", rowCount: 28},
+		{schema: schema, table: "employees", rowCount: 40},
 		{schema: schema, table: "locations", rowCount: 4},
 		{schema: schema, table: "departments", rowCount: 4},
 		{schema: schema, table: "jobs", rowCount: 19},
@@ -692,7 +811,7 @@ func test_postgres_skip_foreign_keys_violations(
 	for _, expected := range expectedResults {
 		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)
-		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
+		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
 	}
 
 	// tear down
@@ -797,7 +916,7 @@ func test_postgres_subsetting(
 		},
 	})
 
-	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers)
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(2), WithPageLimit(3))
 	testworkflow.RequireActivitiesCompletedSuccessfully(t)
 	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
 	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: skip-foreign-keys-violations")
@@ -809,11 +928,11 @@ func test_postgres_subsetting(
 		table    string
 		rowCount int
 	}{
-		{schema: schema, table: "attachments", rowCount: 2},
-		{schema: schema, table: "comments", rowCount: 4},
-		{schema: schema, table: "initiatives", rowCount: 4},
+		{schema: schema, table: "attachments", rowCount: 6},
+		{schema: schema, table: "comments", rowCount: 12},
+		{schema: schema, table: "initiatives", rowCount: 6},
 		{schema: schema, table: "skills", rowCount: 10},
-		{schema: schema, table: "tasks", rowCount: 2},
+		{schema: schema, table: "tasks", rowCount: 6},
 		{schema: schema, table: "user_skills", rowCount: 6},
 		{schema: schema, table: "users", rowCount: 6},
 		{schema: schema, table: "test_2_x", rowCount: 3},
@@ -836,7 +955,7 @@ func test_postgres_subsetting(
 	for _, expected := range expectedResults {
 		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)
-		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
+		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: skip-foreign-keys-violations Table: %s", expected.table))
 	}
 
 	// tear down
@@ -945,4 +1064,588 @@ func cleanupPostgresSchemas(ctx context.Context, postgres *tcpostgres.PostgresTe
 	errgrp.Go(func() error { return postgres.Source.DropSchemas(errctx, schemas) })
 	errgrp.Go(func() error { return postgres.Target.DropSchemas(errctx, schemas) })
 	return errgrp.Wait()
+}
+
+func test_postgres_small_batch_size(
+	t *testing.T,
+	ctx context.Context,
+	postgres *tcpostgres.PostgresTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	schema := "small_batch"
+	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"uuids/create-tables.sql", "humanresources/create-tables.sql", "humanresources/create-constraints.sql"}, schema)
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
+	defaultMappings := pg_uuids.GetDefaultSyncJobMappings(schema)
+	transformHumanresourcesMappings := pg_humanresources.GetDefaultSyncJobMappings(schema)
+
+	limit := uint32(1)
+	job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     "tablesync_pages",
+		JobMappings: slices.Concat(defaultMappings, transformHumanresourcesMappings),
+		JobOptions: &TestJobOptions{
+			Truncate:        true,
+			TruncateCascade: true,
+			InitSchema:      true,
+			BatchSize:       &limit,
+			MaxInFlight:     &limit,
+		},
+	})
+
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithPageLimit(5), WithMaxIterations(2))
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: tablesync_pages")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: tablesync_pages")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: schema, table: "store_notifications", rowCount: 20},
+		{schema: schema, table: "stores", rowCount: 20},
+		{schema: schema, table: "store_customers", rowCount: 20},
+		{schema: schema, table: "referral_codes", rowCount: 20},
+		{schema: schema, table: "regions", rowCount: 4},
+		{schema: schema, table: "countries", rowCount: 25},
+		{schema: schema, table: "locations", rowCount: 7},
+		{schema: schema, table: "departments", rowCount: 11},
+		{schema: schema, table: "jobs", rowCount: 19},
+		{schema: schema, table: "employees", rowCount: 40},
+		{schema: schema, table: "dependents", rowCount: 30},
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: tablesync_pages Table: %s", expected.table))
+	}
+
+	source, err := sql.Open("postgres", postgres.Source.URL)
+	require.NoError(t, err)
+	defer source.Close()
+
+	target, err := sql.Open("postgres", postgres.Target.URL)
+	require.NoError(t, err)
+	defer target.Close()
+
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "employees", sqlmanager_shared.PostgresDriver, []string{"employee_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "jobs", sqlmanager_shared.PostgresDriver, []string{"job_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "departments", sqlmanager_shared.PostgresDriver, []string{"department_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "dependents", sqlmanager_shared.PostgresDriver, []string{"dependent_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "countries", sqlmanager_shared.PostgresDriver, []string{"country_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "locations", sqlmanager_shared.PostgresDriver, []string{"location_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "regions", sqlmanager_shared.PostgresDriver, []string{"region_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "referral_codes", sqlmanager_shared.PostgresDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "store_customers", sqlmanager_shared.PostgresDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "store_notifications", sqlmanager_shared.PostgresDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "stores", sqlmanager_shared.PostgresDriver, []string{"id"})
+
+	// tear down
+	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
+	require.NoError(t, err)
+}
+
+func test_postgres_complex(
+	t *testing.T,
+	ctx context.Context,
+	postgres *tcpostgres.PostgresTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+) {
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	folder := testdataFolder + "/complex"
+	err := postgres.Source.RunSqlFiles(ctx, &folder, []string{"create-tables.sql", "inserts.sql"})
+	require.NoError(t, err)
+
+	jobmappings := pg_complex.GetDefaultSyncJobMappings()
+
+	t.Run("sync", func(t *testing.T) {
+		neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
+		job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
+			AccountId:   accountId,
+			SourceConn:  sourceConn,
+			DestConn:    destConn,
+			JobName:     "space-mission",
+			JobMappings: jobmappings,
+			JobOptions: &TestJobOptions{
+				Truncate:                      true,
+				TruncateCascade:               true,
+				InitSchema:                    true,
+				SubsetByForeignKeyConstraints: true,
+			},
+		})
+
+		testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(10), WithPageLimit(100))
+		testworkflow.RequireActivitiesCompletedSuccessfully(t)
+		testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+		require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: space-mission")
+		err = testworkflow.TestEnv.GetWorkflowError()
+		require.NoError(t, err, "Received Temporal Workflow Error: space-mission")
+
+		expectedResults := []struct {
+			schema    string
+			table     string
+			rowCount  int
+			idColumns []string
+		}{
+			{schema: "space_mission", table: "astronauts", rowCount: 10, idColumns: []string{"astronaut_id"}},
+			{schema: "space_mission", table: "missions", rowCount: 10, idColumns: []string{"mission_id"}},
+			{schema: "space_mission", table: "objectives", rowCount: 10, idColumns: []string{"objective_id"}},
+			{schema: "space_mission", table: "capabilities", rowCount: 10, idColumns: []string{"capability_id"}},
+			{schema: "space_mission", table: "astronaut_capabilities", rowCount: 10, idColumns: []string{"astronaut_capability_id"}},
+			{schema: "space_mission", table: "transmissions", rowCount: 20, idColumns: []string{"transmission_id"}},
+			{schema: "space_mission", table: "payloads", rowCount: 10, idColumns: []string{"payload_id"}},
+			{schema: "space_mission", table: "crew_assignments", rowCount: 10, idColumns: []string{"crew_assignment_id"}},
+			{schema: "space_mission", table: "mission_logs", rowCount: 6, idColumns: []string{"log_id"}},
+			{schema: "space_mission", table: "crews", rowCount: 5, idColumns: []string{"crew_id"}},
+			{schema: "space_mission", table: "crew_missions", rowCount: 4, idColumns: []string{"crew_mission_id"}},
+			{schema: "space_mission", table: "supplies", rowCount: 10, idColumns: []string{"supply_id"}},
+			{schema: "space_mission", table: "supply_items", rowCount: 5, idColumns: []string{"supply_item_id"}},
+			{schema: "space_mission", table: "spacecraft_class", rowCount: 3, idColumns: []string{"class_id"}},
+			{schema: "space_mission", table: "spacecraft", rowCount: 3, idColumns: []string{"spacecraft_id"}},
+			{schema: "space_mission", table: "spacecraft_module", rowCount: 3, idColumns: []string{"module_id"}},
+			{schema: "space_mission", table: "module_component", rowCount: 3, idColumns: []string{"component_id"}},
+			{schema: "space_mission", table: "equipment", rowCount: 3, idColumns: []string{"equipment_id"}},
+			{schema: "space_mission", table: "mission_equipment", rowCount: 3, idColumns: []string{"mission_id", "equipment_id"}},
+			{schema: "space_mission", table: "equipment_maintenance", rowCount: 3, idColumns: []string{"maintenance_id"}},
+			{schema: "space_mission", table: "training_courses", rowCount: 3, idColumns: []string{"course_id"}},
+			{schema: "space_mission", table: "course_prerequisites", rowCount: 3, idColumns: []string{"prerequisite_id"}},
+			{schema: "space_mission", table: "certifications", rowCount: 3, idColumns: []string{"certification_id"}},
+			{schema: "space_mission", table: "astronaut_certifications", rowCount: 4, idColumns: []string{"astronaut_id", "certification_id"}},
+			{schema: "space_mission", table: "certification_requirements", rowCount: 3, idColumns: []string{"requirement_id"}},
+			{schema: "space_mission", table: "mission_logs_extended", rowCount: 3, idColumns: []string{"log_id"}},
+			{schema: "space_mission", table: "communication_channels", rowCount: 3, idColumns: []string{"channel_id"}},
+			{schema: "space_mission", table: "mission_communications", rowCount: 3, idColumns: []string{"mission_id", "channel_id"}},
+			{schema: "space_mission", table: "message_logs", rowCount: 3, idColumns: []string{"log_id"}},
+			{schema: "space_mission", table: "events", rowCount: 9, idColumns: []string{"event_id"}},
+			// {schema: "space_mission", table: "system_events", rowCount: 3},
+			// {schema: "space_mission", table: "astronaut_events", rowCount: 3},
+			// {schema: "space_mission", table: "mission_events", rowCount: 3},
+			{schema: "space_mission", table: "telemetry", rowCount: 6, idColumns: []string{"telemetry_id"}},
+			{schema: "space_mission", table: "telemetry_2023", rowCount: 2, idColumns: []string{"telemetry_id"}},
+			{schema: "space_mission", table: "telemetry_2024", rowCount: 2, idColumns: []string{"telemetry_id"}},
+			{schema: "space_mission", table: "telemetry_2025", rowCount: 2, idColumns: []string{"telemetry_id"}},
+			{schema: "space_mission", table: "comments", rowCount: 4, idColumns: []string{"comment_id"}},
+			{schema: "space_mission", table: "tags", rowCount: 4, idColumns: []string{"tag_id"}},
+			{schema: "space_mission", table: "taggables", rowCount: 4, idColumns: []string{"tag_id"}},
+			{schema: "space_mission", table: "mission_experiments", rowCount: 9, idColumns: []string{"mission_id", "experiment_id"}},
+			{schema: "space_mission", table: "mission_parameters", rowCount: 3, idColumns: []string{"parameter_id"}},
+			{schema: "space_mission", table: "skill_groups", rowCount: 6, idColumns: []string{"group_id"}},
+			{schema: "space_mission", table: "capability_skill_groups", rowCount: 8, idColumns: []string{"capability_id", "group_id"}},
+			{schema: "space_mission", table: "mission_required_skill_groups", rowCount: 7, idColumns: []string{"mission_id", "group_id", "role"}},
+			{schema: "space_mission", table: "equipment_compatibility", rowCount: 5, idColumns: []string{"primary_equipment_id", "compatible_equipment_id"}},
+			{schema: "space_mission", table: "mission_status_history", rowCount: 8, idColumns: []string{"history_id"}},
+			{schema: "space_mission", table: "equipment_status_history", rowCount: 8, idColumns: []string{"history_id"}},
+			{schema: "space_mission", table: "astronaut_role_history", rowCount: 5, idColumns: []string{"history_id"}},
+			{schema: "space_mission", table: "astronaut_vitals", rowCount: 4, idColumns: []string{"vital_id"}},
+			{schema: "scientific_data", table: "experiments", rowCount: 9, idColumns: []string{"experiment_id"}},
+			{schema: "scientific_data", table: "samples", rowCount: 9, idColumns: []string{"sample_id"}},
+			{schema: "scientific_data", table: "measurements", rowCount: 9, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2022", rowCount: 4, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2022_digital_microscope", rowCount: 2, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2022_mass_spectrometer", rowCount: 1, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2022_other", rowCount: 1, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2023", rowCount: 5, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2023_digital_microscope", rowCount: 2, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2023_mass_spectrometer", rowCount: 2, idColumns: []string{"measurement_id"}},
+			{schema: "scientific_data", table: "measurement_2023_other", rowCount: 1, idColumns: []string{"measurement_id"}},
+		}
+
+		for _, expected := range expectedResults {
+			rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+			require.NoError(t, err)
+			assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: %s Table: %s", "space-mission", expected.table))
+		}
+
+		source, err := sql.Open("postgres", postgres.Source.URL)
+		require.NoError(t, err)
+		defer source.Close()
+
+		target, err := sql.Open("postgres", postgres.Target.URL)
+		require.NoError(t, err)
+		defer target.Close()
+
+		for _, e := range expectedResults {
+			testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, e.schema, e.table, "postgres", e.idColumns)
+		}
+	})
+
+	t.Run("subset", func(t *testing.T) {
+		subsetMappings := map[string]string{
+			"space_mission.astronauts":    "astronaut_id in (1,2,3,4,5)",
+			"space_mission.missions":      "mission_id < 6",
+			"scientific_data.experiments": "experiment_id < 5",
+		}
+
+		neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+		job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
+			AccountId:   accountId,
+			SourceConn:  sourceConn,
+			DestConn:    destConn,
+			JobName:     "space-mission-subset",
+			JobMappings: jobmappings,
+			SubsetMap:   subsetMappings,
+			JobOptions: &TestJobOptions{
+				Truncate:                      true,
+				TruncateCascade:               true,
+				InitSchema:                    true,
+				SubsetByForeignKeyConstraints: true,
+			},
+		})
+
+		testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithMaxIterations(10), WithPageLimit(100))
+		testworkflow.RequireActivitiesCompletedSuccessfully(t)
+		testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+		require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: space-mission-subset")
+		err = testworkflow.TestEnv.GetWorkflowError()
+		require.NoError(t, err, "Received Temporal Workflow Error: space-mission-subset")
+		expectedResults := []struct {
+			schema   string
+			table    string
+			rowCount int
+		}{
+			{schema: "space_mission", table: "astronauts", rowCount: 5},
+			{schema: "space_mission", table: "missions", rowCount: 4},
+			{schema: "space_mission", table: "objectives", rowCount: 3},
+			{schema: "space_mission", table: "capabilities", rowCount: 10},
+			{schema: "space_mission", table: "astronaut_capabilities", rowCount: 5},
+			{schema: "space_mission", table: "transmissions", rowCount: 8},
+			{schema: "space_mission", table: "payloads", rowCount: 3},
+			{schema: "space_mission", table: "crew_assignments", rowCount: 3},
+			{schema: "space_mission", table: "mission_logs", rowCount: 6},
+			{schema: "space_mission", table: "crews", rowCount: 4},
+			{schema: "space_mission", table: "crew_missions", rowCount: 3},
+			{schema: "space_mission", table: "supplies", rowCount: 3},
+			{schema: "space_mission", table: "supply_items", rowCount: 2},
+			{schema: "space_mission", table: "spacecraft_class", rowCount: 3},
+			{schema: "space_mission", table: "spacecraft", rowCount: 3},
+			{schema: "space_mission", table: "spacecraft_module", rowCount: 3},
+			{schema: "space_mission", table: "module_component", rowCount: 3},
+			{schema: "space_mission", table: "equipment", rowCount: 3},
+			{schema: "space_mission", table: "mission_equipment", rowCount: 3},
+			{schema: "space_mission", table: "equipment_maintenance", rowCount: 3},
+			{schema: "space_mission", table: "training_courses", rowCount: 3},
+			{schema: "space_mission", table: "course_prerequisites", rowCount: 3},
+			{schema: "space_mission", table: "certifications", rowCount: 3},
+			{schema: "space_mission", table: "astronaut_certifications", rowCount: 4},
+			{schema: "space_mission", table: "certification_requirements", rowCount: 3},
+			{schema: "space_mission", table: "mission_logs_extended", rowCount: 2},
+			{schema: "space_mission", table: "communication_channels", rowCount: 3},
+			{schema: "space_mission", table: "mission_communications", rowCount: 3},
+			{schema: "space_mission", table: "message_logs", rowCount: 2},
+			{schema: "space_mission", table: "events", rowCount: 9},
+			// {schema: "space_mission", table: "system_events", rowCount: 3},
+			// {schema: "space_mission", table: "astronaut_events", rowCount: 3},
+			// {schema: "space_mission", table: "mission_events", rowCount: 3},
+			{schema: "space_mission", table: "telemetry", rowCount: 6},
+			{schema: "space_mission", table: "telemetry_2023", rowCount: 2},
+			{schema: "space_mission", table: "telemetry_2024", rowCount: 2},
+			{schema: "space_mission", table: "telemetry_2025", rowCount: 2},
+			{schema: "space_mission", table: "comments", rowCount: 4},
+			{schema: "space_mission", table: "tags", rowCount: 4},
+			{schema: "space_mission", table: "taggables", rowCount: 4},
+			{schema: "space_mission", table: "mission_experiments", rowCount: 2},
+			{schema: "space_mission", table: "mission_parameters", rowCount: 3},
+			{schema: "space_mission", table: "skill_groups", rowCount: 6},
+			{schema: "space_mission", table: "capability_skill_groups", rowCount: 8},
+			{schema: "space_mission", table: "mission_required_skill_groups", rowCount: 7},
+			{schema: "space_mission", table: "equipment_compatibility", rowCount: 5},
+			{schema: "space_mission", table: "mission_status_history", rowCount: 8},
+			{schema: "space_mission", table: "equipment_status_history", rowCount: 8},
+			{schema: "space_mission", table: "astronaut_role_history", rowCount: 5},
+			{schema: "space_mission", table: "astronaut_vitals", rowCount: 4},
+			{schema: "scientific_data", table: "experiments", rowCount: 3},
+			{schema: "scientific_data", table: "samples", rowCount: 4},
+			{schema: "scientific_data", table: "measurements", rowCount: 4},
+			{schema: "scientific_data", table: "measurement_2022", rowCount: 2},
+			{schema: "scientific_data", table: "measurement_2022_digital_microscope", rowCount: 1},
+			{schema: "scientific_data", table: "measurement_2022_mass_spectrometer", rowCount: 1},
+			{schema: "scientific_data", table: "measurement_2022_other", rowCount: 0},
+			{schema: "scientific_data", table: "measurement_2023", rowCount: 2},
+			{schema: "scientific_data", table: "measurement_2023_digital_microscope", rowCount: 1},
+			{schema: "scientific_data", table: "measurement_2023_mass_spectrometer", rowCount: 1},
+			{schema: "scientific_data", table: "measurement_2023_other", rowCount: 0},
+		}
+		for _, expected := range expectedResults {
+			rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+			require.NoError(t, err)
+			assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: space-mission-subset Table: %s", expected.table))
+		}
+	})
+
+	// tear down
+	err = cleanupPostgresSchemas(ctx, postgres, []string{"space_mission", "scientific_data"})
+	require.NoError(t, err)
+}
+
+func test_postgres_schema_reconciliation(
+	t *testing.T,
+	ctx context.Context,
+	postgres *tcpostgres.PostgresTestSyncContainer,
+	neosyncApi *tcneosyncapi.NeosyncApiTestClient,
+	dbManagers *TestDatabaseManagers,
+	accountId string,
+	sourceConn, destConn *mgmtv1alpha1.Connection,
+	shouldTruncate bool,
+) {
+	jobclient := neosyncApi.OSSUnauthenticatedLicensedClients.Jobs()
+	schema := fmt.Sprintf("schema_drift_%t", shouldTruncate)
+	err := postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"schema-init/create-tables.sql"}, schema)
+	require.NoError(t, err)
+	neosyncApi.MockTemporalForCreateJob("test-postgres-sync")
+
+	job := createPostgresSyncJob(t, ctx, jobclient, &createJobConfig{
+		AccountId:   accountId,
+		SourceConn:  sourceConn,
+		DestConn:    destConn,
+		JobName:     schema,
+		JobMappings: pg_schema_init.GetDefaultSyncJobMappings(schema),
+		JobOptions: &TestJobOptions{
+			Truncate:           shouldTruncate,
+			TruncateCascade:    shouldTruncate,
+			InitSchema:         true,
+			OnConflictDoUpdate: !shouldTruncate,
+		},
+	})
+	destinationId := job.GetDestinations()[0].GetId()
+
+	testworkflow := NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithPostgresSchemaDrift(), WithMaxIterations(100), WithPageLimit(10000))
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: schema_drift")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: schema_drift")
+
+	expectedResults := []struct {
+		schema   string
+		table    string
+		rowCount int
+	}{
+		{schema: schema, table: "regions", rowCount: 4},
+		{schema: schema, table: "countries", rowCount: 25},
+		{schema: schema, table: "locations", rowCount: 7},
+		{schema: schema, table: "departments", rowCount: 11},
+		{schema: schema, table: "jobs", rowCount: 19},
+		{schema: schema, table: "employees", rowCount: 40},
+		{schema: schema, table: "dependents", rowCount: 30},
+		{schema: schema, table: "dummy_table", rowCount: 4},
+		{schema: schema, table: "office_locations", rowCount: 0},
+		{schema: schema, table: "dummy_comp_table", rowCount: 0},
+		{schema: schema, table: "example_table", rowCount: 0},
+		{schema: schema, table: "test_table_single_col", rowCount: 1},
+	}
+
+	tables := []string{}
+	for _, expected := range expectedResults {
+		tables = append(tables, expected.table)
+	}
+
+	for _, expected := range expectedResults {
+		rowCount, err := postgres.Target.GetTableRowCount(ctx, expected.schema, expected.table)
+		require.NoError(t, err)
+		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: schema_drift Table: %s Truncated: %t", expected.table, shouldTruncate))
+	}
+	test_schema_reconciliation_run_context(t, ctx, jobclient, job.GetId(), destinationId, accountId)
+
+	t.Logf("running alter statements")
+	err = postgres.Source.RunCreateStmtsInSchema(ctx, testdataFolder, []string{"schema-init/alter-statements.sql"}, schema)
+	require.NoError(t, err)
+	t.Logf("finished running alter statements")
+
+	updatedMappings := job.GetMappings()
+	updatedMappings = append(updatedMappings, pg_schema_init.GetAlteredSyncJobMappings(schema)...)
+	job = updateJobMappings(t, ctx, jobclient, job.GetId(), updatedMappings, job.GetSource())
+
+	testworkflow = NewTestDataSyncWorkflowEnv(t, neosyncApi, dbManagers, WithPostgresSchemaDrift(), WithMaxIterations(100), WithPageLimit(1000))
+	testworkflow.RequireActivitiesCompletedSuccessfully(t)
+	testworkflow.ExecuteTestDataSyncWorkflow(job.GetId())
+	require.Truef(t, testworkflow.TestEnv.IsWorkflowCompleted(), "Workflow did not complete. Test: postgres-schema-reconciliation-run-2")
+	err = testworkflow.TestEnv.GetWorkflowError()
+	require.NoError(t, err, "Received Temporal Workflow Error: postgres-schema-reconciliation-run-2")
+
+	source, err := sql.Open("postgres", postgres.Source.URL)
+	require.NoError(t, err)
+	defer source.Close()
+
+	target, err := sql.Open("postgres", postgres.Target.URL)
+	require.NoError(t, err)
+	defer target.Close()
+
+	verify_postgres_schemas(t, ctx, source, target, schema, tables)
+
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "regions", sqlmanager_shared.PostgresDriver, []string{"region_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "employees", sqlmanager_shared.PostgresDriver, []string{"employee_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "dependents", sqlmanager_shared.PostgresDriver, []string{"dependent_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "jobs", sqlmanager_shared.PostgresDriver, []string{"job_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "departments", sqlmanager_shared.PostgresDriver, []string{"department_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "countries", sqlmanager_shared.PostgresDriver, []string{"country_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "locations", sqlmanager_shared.PostgresDriver, []string{"location_id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "dummy_table", sqlmanager_shared.PostgresDriver, []string{"id"})
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "test_table_single_col", sqlmanager_shared.PostgresDriver, []string{"name"})
+
+	test_schema_reconciliation_run_context(t, ctx, jobclient, job.GetId(), destinationId, accountId)
+
+	// tear down
+	err = cleanupPostgresSchemas(ctx, postgres, []string{schema})
+	require.NoError(t, err)
+}
+
+func verify_postgres_schemas(
+	t *testing.T,
+	ctx context.Context,
+	source, target *sql.DB,
+	schema string,
+	tables []string,
+) {
+	srcManager := sqlmanager_postgres.NewManager(pg_queries.New(), source, func() {})
+	destManager := sqlmanager_postgres.NewManager(pg_queries.New(), target, func() {})
+
+	schematables := []*sqlmanager_shared.SchemaTable{}
+	for _, table := range tables {
+		schematables = append(schematables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
+	}
+
+	t.Logf("checking columns are the same in source and destination")
+	srcColumns, err := srcManager.GetColumnsByTables(ctx, schematables)
+	require.NoError(t, err, "failed to get source columns")
+	destColumns, err := destManager.GetColumnsByTables(ctx, schematables)
+	require.NoError(t, err, "failed to get destination columns")
+
+	srcColumnsMap := make(map[string]*sqlmanager_shared.TableColumn)
+	for _, column := range srcColumns {
+		key := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
+		srcColumnsMap[key] = column
+	}
+
+	destColumnsMap := make(map[string]*sqlmanager_shared.TableColumn)
+	for _, column := range destColumns {
+		key := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
+		destColumnsMap[key] = column
+	}
+
+	for _, column := range srcColumns {
+		srcKey := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
+		destColumn, exists := destColumnsMap[srcKey]
+		require.True(t, exists, "source column %s not found in destination", srcKey)
+		verify_postgres_column_spec(t, column, destColumn)
+	}
+	for _, column := range destColumns {
+		destKey := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
+		_, exists := srcColumnsMap[destKey]
+		require.True(t, exists, "destination column %s not found in source", destKey)
+	}
+
+	t.Logf("checking table constraints are the same in source and destination")
+	srcConstraints, err := srcManager.GetTableConstraintsByTables(ctx, schema, tables)
+	require.NoError(t, err, "failed to get source table constraints")
+	destConstraints, err := destManager.GetTableConstraintsByTables(ctx, schema, tables)
+	require.NoError(t, err, "failed to get destination table constraints")
+
+	require.Len(t, srcConstraints, len(destConstraints), "source and destination have different number of tables with constraints")
+	for table, constraint := range srcConstraints {
+		srcfk := constraint.ForeignKeyConstraints
+		srcNonFk := constraint.NonForeignKeyConstraints
+		destfk := destConstraints[table].ForeignKeyConstraints
+		destNonFk := destConstraints[table].NonForeignKeyConstraints
+		require.Equal(t, srcfk, destfk, "foreign key constraints do not match for table %s", table)
+		require.Equal(t, srcNonFk, destNonFk, "non-foreign key constraints do not match for table %s", table)
+
+		for _, fk := range srcfk {
+			require.Contains(t, destfk, fk, "destination missing foreign key constraint in table %s", table)
+		}
+		for _, fk := range destfk {
+			require.Contains(t, srcfk, fk, "source missing foreign key constraint in table %s", table)
+		}
+
+		for _, nonFk := range srcNonFk {
+			require.Contains(t, destNonFk, nonFk, "destination missing non-foreign key constraint in table %s", table)
+		}
+		for _, nonFk := range destNonFk {
+			require.Contains(t, srcNonFk, nonFk, "source missing non-foreign key constraint in table %s", table)
+		}
+	}
+
+	t.Logf("checking triggers are the same in source and destination")
+	srcTriggers, err := srcManager.GetSchemaTableTriggers(ctx, schematables)
+	require.NoError(t, err, "failed to get source triggers")
+	destTriggers, err := destManager.GetSchemaTableTriggers(ctx, schematables)
+	require.NoError(t, err, "failed to get destination triggers")
+
+	destTriggersMap := make(map[string]*sqlmanager_shared.TableTrigger)
+	for _, trigger := range destTriggers {
+		destTriggersMap[trigger.Fingerprint] = trigger
+	}
+	for _, trigger := range srcTriggers {
+		destTrigger, ok := destTriggersMap[trigger.Fingerprint]
+		require.True(t, ok, "destination missing trigger with fingerprint %s", trigger.Fingerprint)
+		require.Equal(t, trigger.Definition, destTrigger.Definition, "trigger definitions do not match for fingerprint %s", trigger.Fingerprint)
+	}
+
+	srcDatatypes, err := srcManager.GetDataTypesByTables(ctx, schematables)
+	require.NoError(t, err, "failed to get source datatypes")
+	destDatatypes, err := destManager.GetDataTypesByTables(ctx, schematables)
+	require.NoError(t, err, "failed to get destination datatypes")
+
+	t.Logf("checking functions are the same in source and destination")
+	for _, function := range srcDatatypes.Functions {
+		assert.Contains(t, destDatatypes.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
+	}
+	for _, function := range destDatatypes.Functions {
+		assert.Contains(t, srcDatatypes.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
+	}
+
+	t.Logf("checking enum are the same in source and destination")
+	for _, enum := range srcDatatypes.Enums {
+		assert.Contains(t, destDatatypes.Enums, enum, "destination missing enum with fingerprint %s", enum.Fingerprint)
+	}
+	for _, enum := range destDatatypes.Enums {
+		assert.Contains(t, srcDatatypes.Enums, enum, "source missing enum with fingerprint %s", enum.Fingerprint)
+	}
+
+	t.Logf("checking composite types are the same in source and destination")
+	for _, composite := range srcDatatypes.Composites {
+		assert.Contains(t, destDatatypes.Composites, composite, "destination missing composite with fingerprint %s", composite.Fingerprint)
+	}
+	for _, composite := range destDatatypes.Composites {
+		assert.Contains(t, srcDatatypes.Composites, composite, "source missing composite with fingerprint %s", composite.Fingerprint)
+	}
+
+	t.Logf("checking domains are the same in source and destination")
+	for _, domain := range srcDatatypes.Domains {
+		assert.Contains(t, destDatatypes.Domains, domain, "destination missing domain with fingerprint %s", domain.Fingerprint)
+	}
+	for _, domain := range destDatatypes.Domains {
+		assert.Contains(t, srcDatatypes.Domains, domain, "source missing domain with fingerprint %s", domain.Fingerprint)
+	}
+}
+
+func verify_postgres_column_spec(
+	t *testing.T,
+	source, target *sqlmanager_shared.TableColumn,
+) {
+	columnName := fmt.Sprintf("%s.%s.%s", source.Schema, source.Table, source.Name)
+	assert.Equal(t, source.Name, target.Name, fmt.Sprintf("column names do not match for column %s", columnName))
+	assert.Equal(t, source.Comment, target.Comment, fmt.Sprintf("column comments do not match for column %s", columnName))
+	assert.Equal(t, source.DataType, target.DataType, fmt.Sprintf("column data types do not match for column %s", columnName))
+	assert.Equal(t, source.IsNullable, target.IsNullable, fmt.Sprintf("column nullability does not match for column %s", columnName))
+	assert.Equal(t, source.IdentityGeneration, target.IdentityGeneration, fmt.Sprintf("column identity generation does not match for column %s", columnName))
+	assert.Equal(t, source.GeneratedType, target.GeneratedType, fmt.Sprintf("column generated types do not match for column %s", columnName))
+	assert.Equal(t, source.GeneratedExpression, target.GeneratedExpression, fmt.Sprintf("column generated expressions do not match for column %s", columnName))
+	assert.Equal(t, source.ColumnDefaultType, target.ColumnDefaultType, fmt.Sprintf("column default types do not match for column %s", columnName))
+	assert.Equal(t, source.SequenceDefinition, target.SequenceDefinition, fmt.Sprintf("column sequence definitions do not match for column %s", columnName))
+	assert.Equal(t, source.ColumnDefault, target.ColumnDefault, fmt.Sprintf("column default values do not match for column %s", columnName))
 }

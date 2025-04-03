@@ -15,13 +15,13 @@ import (
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
-	"github.com/nucleuscloud/neosync/backend/internal/connectiondata"
+	accounthooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/accounts"
 	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
-	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	v1alpha1_accounthookservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/account-hooks-service"
 	v1alpha_anonymizationservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/anonymization-service"
 	v1alpha1_connectiondataservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-data-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
@@ -32,9 +32,11 @@ import (
 	"github.com/nucleuscloud/neosync/internal/authmgmt"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	"github.com/nucleuscloud/neosync/internal/connectiondata"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	"github.com/nucleuscloud/neosync/internal/ee/rbac/enforcer"
+	neosync_gcp "github.com/nucleuscloud/neosync/internal/gcp"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/internal/testutil"
@@ -44,24 +46,26 @@ import (
 var (
 	validAuthUser = &authmgmt.User{Name: "foo", Email: "bar", Picture: "baz"}
 
-	authinterceptor = auth_interceptor.NewInterceptor(func(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
-		// will need to further fill this out as the tests grow
-		authuserid, err := utils.GetBearerTokenFromHeader(header, "Authorization")
-		if err != nil {
-			return nil, err
-		}
-		if apikey.IsValidV1WorkerKey(authuserid) {
-			return auth_apikey.SetTokenData(ctx, &auth_apikey.TokenContextData{
-				RawToken:   authuserid,
-				ApiKey:     nil,
-				ApiKeyType: apikey.WorkerApiKey,
+	authinterceptor = auth_interceptor.NewInterceptor(
+		func(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
+			// will need to further fill this out as the tests grow
+			authuserid, err := utils.GetBearerTokenFromHeader(header, "Authorization")
+			if err != nil {
+				return nil, err
+			}
+			if apikey.IsValidV1WorkerKey(authuserid) {
+				return auth_apikey.SetTokenData(ctx, &auth_apikey.TokenContextData{
+					RawToken:   authuserid,
+					ApiKey:     nil,
+					ApiKeyType: apikey.WorkerApiKey,
+				}), nil
+			}
+			return auth_jwt.SetTokenData(ctx, &auth_jwt.TokenContextData{
+				AuthUserId: authuserid,
+				Claims:     &auth_jwt.CustomClaims{Email: &validAuthUser.Email},
 			}), nil
-		}
-		return auth_jwt.SetTokenData(ctx, &auth_jwt.TokenContextData{
-			AuthUserId: authuserid,
-			Claims:     &auth_jwt.CustomClaims{Email: &validAuthUser.Email},
-		}), nil
-	})
+		},
+	)
 )
 
 const (
@@ -75,7 +79,11 @@ const (
 	neoCloudAuthenticatedLicensedPostfix = "/neosynccloud-authenticated"
 )
 
-func (s *NeosyncApiTestClient) setupOssUnauthenticatedLicensedMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer, logger *slog.Logger) (*http.ServeMux, error) {
+func (s *NeosyncApiTestClient) setupOssUnauthenticatedLicensedMux(
+	ctx context.Context,
+	pgcontainer *tcpostgres.PostgresTestContainer,
+	logger *slog.Logger,
+) (*http.ServeMux, error) {
 	isLicensed := true
 	isAuthEnabled := false
 	isNeosyncCloud := false
@@ -83,10 +91,21 @@ func (s *NeosyncApiTestClient) setupOssUnauthenticatedLicensedMux(ctx context.Co
 	if err != nil {
 		return nil, fmt.Errorf("unable to get enforced rbac client: %w", err)
 	}
-	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient, logger)
+	return s.setupMux(
+		pgcontainer,
+		isAuthEnabled,
+		isLicensed,
+		isNeosyncCloud,
+		enforcedRbacClient,
+		logger,
+	)
 }
 
-func (s *NeosyncApiTestClient) setupOssLicensedAuthMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer, logger *slog.Logger) (*http.ServeMux, error) {
+func (s *NeosyncApiTestClient) setupOssLicensedAuthMux(
+	ctx context.Context,
+	pgcontainer *tcpostgres.PostgresTestContainer,
+	logger *slog.Logger,
+) (*http.ServeMux, error) {
 	isLicensed := true
 	isAuthEnabled := true
 	isNeosyncCloud := false
@@ -94,18 +113,39 @@ func (s *NeosyncApiTestClient) setupOssLicensedAuthMux(ctx context.Context, pgco
 	if err != nil {
 		return nil, fmt.Errorf("unable to get enforced rbac client: %w", err)
 	}
-	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient, logger)
+	return s.setupMux(
+		pgcontainer,
+		isAuthEnabled,
+		isLicensed,
+		isNeosyncCloud,
+		enforcedRbacClient,
+		logger,
+	)
 }
 
-func (s *NeosyncApiTestClient) setupOssUnlicensedMux(pgcontainer *tcpostgres.PostgresTestContainer, logger *slog.Logger) (*http.ServeMux, error) {
+func (s *NeosyncApiTestClient) setupOssUnlicensedMux(
+	pgcontainer *tcpostgres.PostgresTestContainer,
+	logger *slog.Logger,
+) (*http.ServeMux, error) {
 	isLicensed := false
 	isAuthEnabled := false
 	isNeosyncCloud := false
 	permissiveRbacClient := rbac.NewAllowAllClient()
-	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, permissiveRbacClient, logger)
+	return s.setupMux(
+		pgcontainer,
+		isAuthEnabled,
+		isLicensed,
+		isNeosyncCloud,
+		permissiveRbacClient,
+		logger,
+	)
 }
 
-func (s *NeosyncApiTestClient) setupNeoCloudMux(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer, logger *slog.Logger) (*http.ServeMux, error) {
+func (s *NeosyncApiTestClient) setupNeoCloudMux(
+	ctx context.Context,
+	pgcontainer *tcpostgres.PostgresTestContainer,
+	logger *slog.Logger,
+) (*http.ServeMux, error) {
 	isLicensed := true
 	isAuthEnabled := true
 	isNeosyncCloud := true
@@ -113,7 +153,14 @@ func (s *NeosyncApiTestClient) setupNeoCloudMux(ctx context.Context, pgcontainer
 	if err != nil {
 		return nil, fmt.Errorf("unable to get enforced rbac client: %w", err)
 	}
-	return s.setupMux(pgcontainer, isAuthEnabled, isLicensed, isNeosyncCloud, enforcedRbacClient, logger)
+	return s.setupMux(
+		pgcontainer,
+		isAuthEnabled,
+		isLicensed,
+		isNeosyncCloud,
+		enforcedRbacClient,
+		logger,
+	)
 }
 
 func (s *NeosyncApiTestClient) setupMux(
@@ -124,10 +171,7 @@ func (s *NeosyncApiTestClient) setupMux(
 	rbacClient rbac.Interface,
 	logger *slog.Logger,
 ) (*http.ServeMux, error) {
-	isPresidioEnabled := false
-	if isLicensed || isNeosyncCloud {
-		isPresidioEnabled = true
-	}
+	isPresidioEnabled := isLicensed || isNeosyncCloud
 
 	maxAllowed := int64(10000)
 	var license *testutil.FakeEELicense
@@ -147,7 +191,11 @@ func (s *NeosyncApiTestClient) setupMux(
 	}
 
 	userService := v1alpha1_useraccountservice.New(
-		&v1alpha1_useraccountservice.Config{IsAuthEnabled: isAuthEnabled, IsNeosyncCloud: isNeosyncCloud, DefaultMaxAllowedRecords: &maxAllowed},
+		&v1alpha1_useraccountservice.Config{
+			IsAuthEnabled:            isAuthEnabled,
+			IsNeosyncCloud:           isNeosyncCloud,
+			DefaultMaxAllowedRecords: &maxAllowed,
+		},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		s.Mocks.TemporalConfigProvider,
 		s.Mocks.Authclient,
@@ -161,11 +209,11 @@ func (s *NeosyncApiTestClient) setupMux(
 	transformerService := v1alpha1_transformersservice.New(
 		&v1alpha1_transformersservice.Config{
 			IsPresidioEnabled: isPresidioEnabled,
-			IsNeosyncCloud:    isNeosyncCloud,
 		},
 		neosyncdb.New(pgcontainer.DB, db_queries.New()),
 		s.Mocks.Presidio.Entities,
 		userclient,
+		license,
 	)
 
 	sqlmanagerclient := NewTestSqlManagerClient()
@@ -194,29 +242,6 @@ func (s *NeosyncApiTestClient) setupMux(
 		)
 	}
 
-	jobService := v1alpha1_jobservice.New(
-		&v1alpha1_jobservice.Config{IsAuthEnabled: isAuthEnabled, IsNeosyncCloud: isNeosyncCloud},
-		neosyncDb,
-		s.Mocks.TemporalClientManager,
-		connectionService,
-		sqlmanagerclient,
-		jobhookService,
-		userclient,
-	)
-
-	var presAnalyzeClient presidioapi.AnalyzeInterface
-	var presAnonClient presidioapi.AnonymizeInterface
-
-	anonymizationService := v1alpha_anonymizationservice.New(
-		&v1alpha_anonymizationservice.Config{IsPresidioEnabled: isPresidioEnabled, IsAuthEnabled: isAuthEnabled, IsNeosyncCloud: isNeosyncCloud},
-		nil, // meter
-		userclient,
-		userService,
-		transformerService,
-		presAnalyzeClient, presAnonClient,
-		neosyncDb,
-	)
-
 	awsManager := awsmanager.New()
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
 	pgquerier := pg_queries.New()
@@ -235,12 +260,50 @@ func (s *NeosyncApiTestClient) setupMux(
 		gcpmanager,
 		mongoconnector,
 		neosynctyperegistry,
-		jobService,
 	)
+
+	jobService := v1alpha1_jobservice.New(
+		&v1alpha1_jobservice.Config{IsAuthEnabled: isAuthEnabled, IsNeosyncCloud: isNeosyncCloud},
+		neosyncDb,
+		s.Mocks.TemporalClientManager,
+		connectionService,
+		sqlmanagerclient,
+		jobhookService,
+		userclient,
+		connectiondatabuilder,
+	)
+
+	var presAnalyzeClient presidioapi.AnalyzeInterface
+	var presAnonClient presidioapi.AnonymizeInterface
+
+	anonymizationService := v1alpha_anonymizationservice.New(
+		&v1alpha_anonymizationservice.Config{
+			IsPresidioEnabled: isPresidioEnabled,
+			IsAuthEnabled:     isAuthEnabled,
+			IsNeosyncCloud:    isNeosyncCloud,
+		},
+		nil, // meter
+		userclient,
+		userService,
+		transformerService,
+		presAnalyzeClient,
+		presAnonClient,
+		neosyncDb,
+		license,
+	)
+
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
 		connectionService,
 		connectiondatabuilder,
+	)
+
+	accountHookService := v1alpha1_accounthookservice.New(
+		accounthooks.New(
+			neosyncDb,
+			userclient,
+			accounthooks.WithSlackClient(s.Mocks.Slackclient),
+		),
 	)
 
 	mux := http.NewServeMux()
@@ -276,11 +339,30 @@ func (s *NeosyncApiTestClient) setupMux(
 		connect.WithInterceptors(interceptors...),
 	))
 
+	if isLicensed {
+		mux.Handle(mgmtv1alpha1connect.NewAccountHookServiceHandler(
+			accountHookService,
+			connect.WithInterceptors(interceptors...),
+		))
+	} else {
+		mux.Handle(mgmtv1alpha1connect.NewAccountHookServiceHandler(
+			mgmtv1alpha1connect.UnimplementedAccountHookServiceHandler{},
+			connect.WithInterceptors(interceptors...),
+		))
+	}
+
 	return mux, nil
 }
 
-func (s *NeosyncApiTestClient) getEnforcedRbacClient(ctx context.Context, pgcontainer *tcpostgres.PostgresTestContainer) (rbac.Interface, error) {
-	rbacenforcer, err := enforcer.NewActiveEnforcer(ctx, stdlib.OpenDBFromPool(pgcontainer.DB), "neosync_api.casbin_rule")
+func (s *NeosyncApiTestClient) getEnforcedRbacClient(
+	ctx context.Context,
+	pgcontainer *tcpostgres.PostgresTestContainer,
+) (rbac.Interface, error) {
+	rbacenforcer, err := enforcer.NewActiveEnforcer(
+		ctx,
+		stdlib.OpenDBFromPool(pgcontainer.DB),
+		"neosync_api.casbin_rule",
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create rbac enforcer: %w", err)
 	}

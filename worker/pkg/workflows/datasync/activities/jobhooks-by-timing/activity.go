@@ -34,7 +34,12 @@ func New(
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	license License,
 ) *Activity {
-	return &Activity{jobclient: jobclient, connclient: connclient, sqlmanagerclient: sqlmanagerclient, license: license}
+	return &Activity{
+		jobclient:        jobclient,
+		connclient:       connclient,
+		sqlmanagerclient: sqlmanagerclient,
+		license:          license,
+	}
 }
 
 type RunJobHooksByTimingRequest struct {
@@ -85,10 +90,13 @@ func (a *Activity) RunJobHooksByTiming(
 
 	logger.Debug(fmt.Sprintf("retrieving job hooks by timing %q", req.Timing))
 
-	resp, err := a.jobclient.GetActiveJobHooksByTiming(ctx, connect.NewRequest(&mgmtv1alpha1.GetActiveJobHooksByTimingRequest{
-		JobId:  req.JobId,
-		Timing: req.Timing,
-	}))
+	resp, err := a.jobclient.GetActiveJobHooksByTiming(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.GetActiveJobHooksByTimingRequest{
+			JobId:  req.JobId,
+			Timing: req.Timing,
+		}),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve active hooks by timing: %w", err)
 	}
@@ -102,7 +110,9 @@ func (a *Activity) RunJobHooksByTiming(
 		}
 	}()
 
-	session := connectionmanager.NewUniqueSession(connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.ID))
+	session := connectionmanager.NewUniqueSession(
+		connectionmanager.WithSessionGroup(activityInfo.WorkflowExecution.ID),
+	)
 	execCount := uint(0)
 
 	for _, hook := range hooks {
@@ -147,9 +157,12 @@ func (a *Activity) getCachedConnectionFn(
 			return conn.Db(), nil
 		}
 		logger.Debug("initializing connection for hook")
-		connectionResp, err := a.connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: connectionId,
-		}))
+		connectionResp, err := a.connclient.GetConnection(
+			ctx,
+			connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+				Id: connectionId,
+			}),
+		)
 		if err != nil {
 			return nil, err
 		}

@@ -7,10 +7,12 @@ SELECT
     IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.COLUMN_DEFAULT, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS column_default, -- hack to fix this bug https://bugs.mysql.com/bug.php?
 	c.is_nullable,
 	c.data_type,
+    c.column_type, -- same as data_type but includes things like the length, or set/enum information
 	c.character_maximum_length,
     c.numeric_precision,
     c.numeric_scale,
-	c.extra
+	c.extra,
+    c.column_comment as comment
 FROM
 	information_schema.columns AS c
 	JOIN information_schema.tables AS t ON c.table_schema = t.table_schema
@@ -18,6 +20,31 @@ FROM
 WHERE
 	c.table_schema NOT IN('sys', 'performance_schema', 'mysql')
 	AND t.table_type = 'BASE TABLE';
+
+-- name: GetAllSchemas :many
+SELECT
+    schema_name
+FROM
+    information_schema.schemata
+WHERE
+    schema_name NOT IN ('mysql', 'information_schema', 'performance_schema', 'sys')
+    AND schema_name NOT LIKE 'innodb%'
+ORDER BY
+    schema_name;
+
+-- name: GetAllTables :many
+SELECT
+    table_schema,
+    table_name
+FROM
+    information_schema.tables
+WHERE
+    table_type = 'BASE TABLE'
+    AND table_schema NOT IN ('mysql', 'information_schema', 'performance_schema', 'sys')
+    AND table_schema NOT LIKE 'innodb%'
+ORDER BY
+    table_schema,
+    table_name;
 
 -- name: GetTableConstraintsBySchemas :many
 SELECT
@@ -188,6 +215,7 @@ SELECT
    c.TABLE_NAME AS table_name,
    c.COLUMN_NAME AS column_name,
    c.COLUMN_TYPE AS data_type,
+   c.COLUMN_TYPE AS column_type, -- same as data_type but includes things like the length, or set/enum information
    IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.COLUMN_DEFAULT, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS column_default, -- hack to fix this bug https://bugs.mysql.com/bug.php?
    CASE WHEN c.IS_NULLABLE = 'YES' THEN 1 ELSE 0 END AS is_nullable,
    CAST(IF(c.DATA_TYPE IN ('varchar', 'char'), c.CHARACTER_MAXIMUM_LENGTH, -1) AS SIGNED) AS character_maximum_length,
@@ -199,7 +227,8 @@ SELECT
    c.ORDINAL_POSITION AS ordinal_position,
    c.EXTRA AS identity_generation,
    IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.GENERATION_EXPRESSION, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS generation_exp, -- hack to fix this bug https://bugs.mysql.com/
-   t.AUTO_INCREMENT as auto_increment_start_value
+   t.AUTO_INCREMENT as auto_increment_start_value,
+   c.COLUMN_COMMENT as comment
 FROM
     information_schema.COLUMNS as c
     join information_schema.TABLES as t on t.TABLE_SCHEMA = c.TABLE_SCHEMA and t.TABLE_NAME = c.TABLE_NAME
@@ -220,32 +249,44 @@ SELECT
     s.INDEX_TYPE as index_type,
     s.SEQ_IN_INDEX as seq_in_index,
     s.NULLABLE as nullable
-FROM
-    INFORMATION_SCHEMA.STATISTICS s
-LEFT JOIN
-    INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-    ON s.TABLE_SCHEMA = kcu.CONSTRAINT_SCHEMA
-    AND s.TABLE_NAME = kcu.TABLE_NAME
-    AND s.COLUMN_NAME = kcu.COLUMN_NAME
+FROM information_schema.statistics s
+LEFT JOIN information_schema.table_constraints tc
+       ON  s.TABLE_SCHEMA = tc.TABLE_SCHEMA
+       AND s.TABLE_NAME   = tc.TABLE_NAME
+       AND s.INDEX_NAME   = tc.CONSTRAINT_NAME
 WHERE
-    s.TABLE_SCHEMA = sqlc.arg('schema') AND s.TABLE_NAME in (sqlc.slice('tables'))
-    AND s.INDEX_NAME != 'PRIMARY'
-    AND kcu.CONSTRAINT_NAME IS NULL
+      s.TABLE_SCHEMA = sqlc.arg('schema')
+  AND s.TABLE_NAME in (sqlc.slice('tables'))
+  AND tc.CONSTRAINT_NAME IS NULL -- filters out other constraints (foreign keys, unique, primary keys, etc)
 ORDER BY
     s.TABLE_NAME,
     s.INDEX_NAME,
     s.SEQ_IN_INDEX;
 
 
+
 -- name: GetCustomFunctionsBySchemas :many
 SELECT
-    ROUTINE_NAME as function_name,
-    ROUTINE_SCHEMA as schema_name,
-    DTD_IDENTIFIER as return_data_type,
-    ROUTINE_DEFINITION as definition,
-    CASE WHEN IS_DETERMINISTIC = 'YES' THEN 1 ELSE 0 END as is_deterministic
-FROM
-    INFORMATION_SCHEMA.ROUTINES
+    r.ROUTINE_NAME AS function_name,
+    r.ROUTINE_SCHEMA AS schema_name,
+    r.DTD_IDENTIFIER AS return_data_type,
+    r.ROUTINE_DEFINITION AS definition,
+    CASE WHEN IS_DETERMINISTIC = 'YES' THEN 1 ELSE 0 END as is_deterministic,
+    IFNULL(GROUP_CONCAT(CONCAT_WS(' ', p.PARAMETER_NAME, IFNULL(p.DTD_IDENTIFIER, p.DATA_TYPE))
+		ORDER BY
+			p.ORDINAL_POSITION SEPARATOR ', '), '') AS function_signature
+FROM INFORMATION_SCHEMA.ROUTINES r
+LEFT JOIN INFORMATION_SCHEMA.PARAMETERS p
+    ON  r.ROUTINE_SCHEMA = p.SPECIFIC_SCHEMA
+    AND r.ROUTINE_NAME   = p.SPECIFIC_NAME
+    AND p.PARAMETER_MODE = 'IN'
 WHERE
-    ROUTINE_TYPE = 'FUNCTION'
-    AND ROUTINE_SCHEMA in (sqlc.slice('schemas'));
+    r.ROUTINE_TYPE = 'FUNCTION'
+    AND r.ROUTINE_SCHEMA IN (sqlc.slice('schemas'))
+GROUP BY
+    r.ROUTINE_NAME,
+    r.ROUTINE_SCHEMA,
+    r.DTD_IDENTIFIER,
+    r.ROUTINE_DEFINITION,
+    r.IS_DETERMINISTIC
+ORDER BY r.ROUTINE_NAME;

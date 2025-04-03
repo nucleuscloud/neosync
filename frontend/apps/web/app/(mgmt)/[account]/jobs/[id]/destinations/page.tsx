@@ -15,7 +15,7 @@ import {
 } from '@neosync/sdk';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
-import { ReactElement } from 'react';
+import { ReactElement, use } from 'react';
 import { isValidConnectionPair } from '../../../connections/util';
 import {
   getConnectionIdFromSource,
@@ -24,7 +24,8 @@ import {
 import { isAiDataGenJob, isDataGenJob } from '../util';
 import DestinationConnectionCard from './components/DestinationConnectionCard';
 
-export default function Page({ params }: PageProps): ReactElement {
+export default function Page(props: PageProps): ReactElement {
+  const params = use(props.params);
   const id = params?.id ?? '';
   const { account } = useAccount();
   const { data, isLoading, refetch } = useQuery(

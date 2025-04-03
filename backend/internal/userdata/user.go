@@ -15,7 +15,10 @@ import (
 )
 
 type UserAccountServiceClient interface {
-	IsUserInAccount(ctx context.Context, req *connect.Request[mgmtv1alpha1.IsUserInAccountRequest]) (*connect.Response[mgmtv1alpha1.IsUserInAccountResponse], error)
+	IsUserInAccount(
+		ctx context.Context,
+		req *connect.Request[mgmtv1alpha1.IsUserInAccountRequest],
+	) (*connect.Response[mgmtv1alpha1.IsUserInAccountResponse], error)
 }
 
 type User struct {
@@ -84,13 +87,17 @@ func enforceAccountAccess(ctx context.Context, user *User, accountId string) err
 		}
 		// We first want to check to make sure the api key is valid and that it says it's in the account
 		// However, we still want to make a DB request to ensure the DB still says it's in the account
-		if user.apiKeyData.ApiKey == nil || neosyncdb.UUIDString(user.apiKeyData.ApiKey.AccountID) != accountId {
+		if user.apiKeyData.ApiKey == nil ||
+			neosyncdb.UUIDString(user.apiKeyData.ApiKey.AccountID) != accountId {
 			return nucleuserrors.NewUnauthorized("api key is not valid for account")
 		}
 	}
 
 	// Note: because we are calling to the user account service here, the ctx must still contain the user data
-	inAccountResp, err := user.userAccountServiceClient.IsUserInAccount(ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{AccountId: accountId}))
+	inAccountResp, err := user.userAccountServiceClient.IsUserInAccount(
+		ctx,
+		connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{AccountId: accountId}),
+	)
 	if err != nil {
 		return fmt.Errorf("unable to check if user is in account: %w", err)
 	}

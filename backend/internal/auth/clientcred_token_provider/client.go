@@ -25,7 +25,9 @@ type tokenProviderClient struct {
 	clientSecret string
 }
 
-func (c *tokenProviderClient) GetToken(ctx context.Context) (*auth_client.AuthTokenResponse, error) {
+func (c *tokenProviderClient) GetToken(
+	ctx context.Context,
+) (*auth_client.AuthTokenResponse, error) {
 	values := url.Values{
 		"grant_type":    []string{"client_credentials"},
 		"client_id":     []string{c.clientId},
@@ -87,9 +89,17 @@ type ClientCredentialsTokenProvider struct {
 	expiresAt   *time.Time
 }
 
-func New(tokenurl, clientId, clientSecret string, tokenExpirationBuffer time.Duration, logger *slog.Logger) *ClientCredentialsTokenProvider {
+func New(
+	tokenurl, clientId, clientSecret string,
+	tokenExpirationBuffer time.Duration,
+	logger *slog.Logger,
+) *ClientCredentialsTokenProvider {
 	return &ClientCredentialsTokenProvider{
-		tokenprovider:  &tokenProviderClient{tokenurl: tokenurl, clientId: clientId, clientSecret: clientSecret},
+		tokenprovider: &tokenProviderClient{
+			tokenurl:     tokenurl,
+			clientId:     clientId,
+			clientSecret: clientSecret,
+		},
 		tokenExpBuffer: tokenExpirationBuffer,
 		logger:         logger,
 	}

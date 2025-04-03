@@ -38,7 +38,10 @@ type neosyncToMssqlProcessor struct {
 	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
 }
 
-func newNeosyncToMssqlProcessor(conf *service.ParsedConfig, mgr *service.Resources) (*neosyncToMssqlProcessor, error) {
+func newNeosyncToMssqlProcessor(
+	conf *service.ParsedConfig,
+	mgr *service.Resources,
+) (*neosyncToMssqlProcessor, error) {
 	columns, err := conf.FieldStringList("columns")
 	if err != nil {
 		return nil, err
@@ -67,7 +70,10 @@ func newNeosyncToMssqlProcessor(conf *service.ParsedConfig, mgr *service.Resourc
 	}, nil
 }
 
-func (p *neosyncToMssqlProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
+func (p *neosyncToMssqlProcessor) ProcessBatch(
+	ctx context.Context,
+	batch service.MessageBatch,
+) ([]service.MessageBatch, error) {
 	newBatch := make(service.MessageBatch, 0, len(batch))
 	for _, msg := range batch {
 		root, err := msg.AsStructuredMut()
@@ -149,7 +155,10 @@ func getMssqlNeosyncValue(root any) (value any, isNeosyncValue bool, err error) 
 	if valuer, ok := root.(neosynctypes.NeosyncMssqlValuer); ok {
 		value, err := valuer.ValueMssql()
 		if err != nil {
-			return nil, false, fmt.Errorf("unable to get MSSQL value from NeosyncMssqlValuer: %w", err)
+			return nil, false, fmt.Errorf(
+				"unable to get MSSQL value from NeosyncMssqlValuer: %w",
+				err,
+			)
 		}
 		return value, true, nil
 	}

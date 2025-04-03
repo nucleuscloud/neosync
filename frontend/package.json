@@ -15,15 +15,17 @@
     "knip:production": "knip --production --strict"
   },
   "devDependencies": {
-    "knip": "^5.43.6",
-    "prettier": "^3.4.2",
-    "turbo": "^2.4.0",
-    "typescript": "^5.7.3"
+    "knip": "^5.46.5",
+    "prettier": "^3.5.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "turbo": "^2.4.4",
+    "typescript": "^5.8.2"
   },
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
-  "packageManager": "npm@10.8.2",
+  "packageManager": "npm@10.9.2",
   "name": "frontend"
 }

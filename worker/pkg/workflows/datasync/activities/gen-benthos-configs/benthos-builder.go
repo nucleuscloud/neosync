@@ -13,11 +13,10 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	benthosbuilder "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
-	neosync_redis "github.com/nucleuscloud/neosync/internal/redis"
-	querybuilder2 "github.com/nucleuscloud/neosync/worker/pkg/query-builder2"
+	"github.com/nucleuscloud/neosync/internal/runconfigs"
+	selectquerybuilder "github.com/nucleuscloud/neosync/worker/pkg/select-query-builder"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 
 	"gopkg.in/yaml.v3"
@@ -30,13 +29,13 @@ type benthosBuilder struct {
 	connclient        mgmtv1alpha1connect.ConnectionServiceClient
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient
 
-	jobId      string
-	workflowId string
-	runId      string
-
-	redisConfig *neosync_redis.RedisConfig
+	jobId    string
+	jobRunId string
+	runId    string
 
 	metricsEnabled bool
+
+	pageLimit int
 }
 
 func newBenthosBuilder(
@@ -46,11 +45,11 @@ func newBenthosBuilder(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 
-	jobId, workflowId string, runId string,
-
-	redisConfig *neosync_redis.RedisConfig,
+	jobId, jobRunId string, runId string,
 
 	metricsEnabled bool,
+
+	pageLimit int,
 ) *benthosBuilder {
 	return &benthosBuilder{
 		sqlmanagerclient:  sqlmanagerclient,
@@ -58,10 +57,10 @@ func newBenthosBuilder(
 		connclient:        connclient,
 		transformerclient: transformerclient,
 		jobId:             jobId,
-		workflowId:        workflowId,
+		jobRunId:          jobRunId,
 		runId:             runId,
-		redisConfig:       redisConfig,
 		metricsEnabled:    metricsEnabled,
+		pageLimit:         pageLimit,
 	}
 }
 
@@ -87,9 +86,17 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 
 	destConnections := []*mgmtv1alpha1.Connection{}
 	for _, destination := range job.Destinations {
-		destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
+		destinationConnection, err := shared.GetConnectionById(
+			ctx,
+			b.connclient,
+			destination.ConnectionId,
+		)
 		if err != nil {
-			return nil, fmt.Errorf("unable to get destination connection (%s) by id: %w", destination.ConnectionId, err)
+			return nil, fmt.Errorf(
+				"unable to get destination connection (%s) by id: %w",
+				destination.ConnectionId,
+				err,
+			)
 		}
 		destConnections = append(destConnections, destinationConnection)
 	}
@@ -98,18 +105,20 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		Job:                    job,
 		SourceConnection:       sourceConnection,
 		DestinationConnections: destConnections,
-		WorkflowId:             wfmetadata.WorkflowId,
+		JobRunId:               b.jobRunId,
 		Logger:                 slogger,
 		Sqlmanagerclient:       b.sqlmanagerclient,
 		Transformerclient:      b.transformerclient,
 		Connectionclient:       b.connclient,
-		RedisConfig:            b.redisConfig,
-		SelectQueryBuilder:     &querybuilder2.QueryMapBuilderWrapper{},
+		SelectQueryBuilder:     &selectquerybuilder.QueryMapBuilderWrapper{},
 		MetricsEnabled:         b.metricsEnabled,
 		MetricLabelKeyVals: map[string]string{
-			metrics.TemporalWorkflowId: bb_shared.WithEnvInterpolation(metrics.TemporalWorkflowIdEnvKey),
-			metrics.TemporalRunId:      bb_shared.WithEnvInterpolation(metrics.TemporalRunIdEnvKey),
+			metrics.TemporalWorkflowId: bb_shared.WithEnvInterpolation(
+				metrics.TemporalWorkflowIdEnvKey,
+			),
+			metrics.TemporalRunId: bb_shared.WithEnvInterpolation(metrics.TemporalRunIdEnvKey),
 		},
+		PageLimit: &b.pageLimit,
 	}
 	benthosManager, err := benthosbuilder.NewWorkerBenthosConfigManager(benthosManagerConfig)
 	if err != nil {
@@ -120,11 +129,19 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		return nil, err
 	}
 
+	err = b.setConnectionIdsRunContext(ctx, responses, job.GetAccountId())
+	if err != nil {
+		return nil, fmt.Errorf("unable to set connection ids run context: %w", err)
+	}
+
 	// TODO move run context logic into benthos builder
 	postTableSyncRunCtx := buildPostTableSyncRunCtx(responses, job.Destinations)
 	err = b.setPostTableSyncRunCtx(ctx, postTableSyncRunCtx, job.GetAccountId())
 	if err != nil {
-		return nil, fmt.Errorf("unable to set all run contexts for post table sync configs: %w", err)
+		return nil, fmt.Errorf(
+			"unable to set all run contexts for post table sync configs: %w",
+			err,
+		)
 	}
 
 	outputConfigs, err := b.setRunContexts(ctx, responses, job.GetAccountId())
@@ -135,6 +152,39 @@ func (b *benthosBuilder) GenerateBenthosConfigsNew(
 		AccountId:      job.AccountId,
 		BenthosConfigs: outputConfigs,
 	}, nil
+}
+
+func (b *benthosBuilder) setConnectionIdsRunContext(
+	ctx context.Context,
+	responses []*benthosbuilder.BenthosConfigResponse,
+	accountId string,
+) error {
+	connectionIds := map[string]struct{}{}
+	for _, config := range responses {
+		for _, dsn := range config.BenthosDsns {
+			connectionIds[dsn.ConnectionId] = struct{}{}
+		}
+	}
+	connectionIdsList := []string{}
+	for id := range connectionIds {
+		connectionIdsList = append(connectionIdsList, id)
+	}
+	bits, err := json.Marshal(connectionIdsList)
+	if err != nil {
+		return fmt.Errorf("failed to marshal connection ids: %w", err)
+	}
+	_, err = b.jobclient.SetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.SetRunContextRequest{
+		Id: &mgmtv1alpha1.RunContextKey{
+			JobRunId:   b.jobRunId,
+			ExternalId: shared.GetConnectionIdsExternalId(),
+			AccountId:  accountId,
+		},
+		Value: bits,
+	}))
+	if err != nil {
+		return fmt.Errorf("failed to send connection ids run context: %w", err)
+	}
+	return nil
 }
 
 // this method modifies the input responses by nilling out the benthos config. it returns the same slice for convenience
@@ -152,7 +202,7 @@ func (b *benthosBuilder) setRunContexts(
 		}
 		err = rcstream.Send(&mgmtv1alpha1.SetRunContextsRequest{
 			Id: &mgmtv1alpha1.RunContextKey{
-				JobRunId:   b.workflowId,
+				JobRunId:   b.jobRunId,
 				ExternalId: shared.GetBenthosConfigExternalId(config.Name),
 				AccountId:  accountId,
 			},
@@ -166,7 +216,10 @@ func (b *benthosBuilder) setRunContexts(
 
 	_, err := rcstream.CloseAndReceive()
 	if err != nil {
-		return nil, fmt.Errorf("unable to receive response from benthos runcontext request: %w", err)
+		return nil, fmt.Errorf(
+			"unable to receive response from benthos runcontext request: %w",
+			err,
+		)
 	}
 	return responses, nil
 }
@@ -185,7 +238,7 @@ func (b *benthosBuilder) setPostTableSyncRunCtx(
 		}
 		err = rcstream.Send(&mgmtv1alpha1.SetRunContextsRequest{
 			Id: &mgmtv1alpha1.RunContextKey{
-				JobRunId:   b.workflowId,
+				JobRunId:   b.jobRunId,
 				ExternalId: shared.GetPostTableSyncConfigExternalId(name),
 				AccountId:  accountId,
 			},
@@ -198,7 +251,10 @@ func (b *benthosBuilder) setPostTableSyncRunCtx(
 
 	_, err := rcstream.CloseAndReceive()
 	if err != nil {
-		return fmt.Errorf("unable to receive response from post table sync runcontext request: %w", err)
+		return fmt.Errorf(
+			"unable to receive response from post table sync runcontext request: %w",
+			err,
+		)
 	}
 	return nil
 }
@@ -217,7 +273,10 @@ func (b *benthosBuilder) getJobById(
 	return getjobResp.Msg.Job, nil
 }
 
-func buildPostTableSyncRunCtx(benthosConfigs []*benthosbuilder.BenthosConfigResponse, destinations []*mgmtv1alpha1.JobDestination) map[string]*shared.PostTableSyncConfig {
+func buildPostTableSyncRunCtx(
+	benthosConfigs []*benthosbuilder.BenthosConfigResponse,
+	destinations []*mgmtv1alpha1.JobDestination,
+) map[string]*shared.PostTableSyncConfig {
 	postTableSyncRunCtx := map[string]*shared.PostTableSyncConfig{} // benthos_config_name -> config
 	for _, bc := range benthosConfigs {
 		destConfigs := map[string]*shared.PostTableSyncDestConfig{}
@@ -246,14 +305,18 @@ func buildPostTableSyncRunCtx(benthosConfigs []*benthosbuilder.BenthosConfigResp
 
 func buildPgPostTableSyncStatement(bc *benthosbuilder.BenthosConfigResponse) []string {
 	statements := []string{}
-	if bc.RunType == tabledependency.RunTypeUpdate {
+	if bc.RunType == runconfigs.RunTypeUpdate {
 		return statements
 	}
 	colDefaultProps := bc.ColumnDefaultProperties
 	for colName, p := range colDefaultProps {
 		if p.NeedsReset && !p.HasDefaultTransformer {
 			// resets sequences and identities
-			resetSql := sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(bc.TableSchema, bc.TableName, colName)
+			resetSql := sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(
+				bc.TableSchema,
+				bc.TableName,
+				colName,
+			)
 			statements = append(statements, resetSql)
 		}
 	}
@@ -262,14 +325,17 @@ func buildPgPostTableSyncStatement(bc *benthosbuilder.BenthosConfigResponse) []s
 
 func buildMssqlPostTableSyncStatement(bc *benthosbuilder.BenthosConfigResponse) []string {
 	statements := []string{}
-	if bc.RunType == tabledependency.RunTypeUpdate {
+	if bc.RunType == runconfigs.RunTypeUpdate {
 		return statements
 	}
 	colDefaultProps := bc.ColumnDefaultProperties
 	for _, p := range colDefaultProps {
 		if p.NeedsOverride {
 			// reset identity
-			resetSql := sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent(bc.TableSchema, bc.TableName)
+			resetSql := sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent(
+				bc.TableSchema,
+				bc.TableName,
+			)
 			statements = append(statements, resetSql)
 		}
 	}

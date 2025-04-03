@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"runtime/debug"
 	"strconv"
 	"time"
 
@@ -23,7 +24,9 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
 	"github.com/nucleuscloud/neosync/internal/connectrpc/validate"
+	sym_encrypt "github.com/nucleuscloud/neosync/internal/encrypt/sym"
 	http_client "github.com/nucleuscloud/neosync/internal/http/client"
+	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	pyroscope_env "github.com/nucleuscloud/neosync/internal/pyroscope"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -43,15 +46,15 @@ import (
 	authlogging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth_logging"
 	bookend_logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/bookend"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	"github.com/nucleuscloud/neosync/backend/internal/connectiondata"
+	accounthooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/accounts"
 	jobhooks "github.com/nucleuscloud/neosync/backend/internal/ee/hooks/jobs"
-	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/userdata"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	v1alpha1_accounthookservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/account-hooks-service"
 	v1alpha1_anonymizationservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/anonymization-service"
 	v1alpha1_apikeyservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/api-key-service"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
@@ -66,13 +69,15 @@ import (
 	"github.com/nucleuscloud/neosync/internal/authmgmt/keycloak"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	"github.com/nucleuscloud/neosync/internal/connectiondata"
 	cloudlicense "github.com/nucleuscloud/neosync/internal/ee/cloud-license"
 	"github.com/nucleuscloud/neosync/internal/ee/license"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	"github.com/nucleuscloud/neosync/internal/ee/rbac"
 	"github.com/nucleuscloud/neosync/internal/ee/rbac/enforcer"
+	ee_slack "github.com/nucleuscloud/neosync/internal/ee/slack"
+	neosync_gcp "github.com/nucleuscloud/neosync/internal/gcp"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
-	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 	"github.com/nucleuscloud/neosync/internal/temporal/clientmanager"
@@ -117,7 +122,9 @@ func serve(ctx context.Context) error {
 		slogger = slogger.With("nucleusEnv", neoEnv)
 	}
 
-	slog.SetDefault(slogger) // set default logger for methods that can't easily access the configured logger
+	slog.SetDefault(
+		slogger,
+	) // set default logger for methods that can't easily access the configured logger
 
 	eelicense, err := license.NewFromEnv()
 	if err != nil {
@@ -169,6 +176,10 @@ func serve(ctx context.Context) error {
 		services = append(services, mgmtv1alpha1connect.MetricsServiceName)
 	}
 
+	if cascadelicense.IsValid() {
+		services = append(services, mgmtv1alpha1connect.AccountHookServiceName)
+	}
+
 	checker := grpchealth.NewStaticChecker(services...)
 	mux.Handle(grpchealth.NewHandler(checker))
 
@@ -181,6 +192,7 @@ func serve(ctx context.Context) error {
 
 	// prevents the server from crashing on panics and returns a valid error response to the user
 	recoverHandler := func(_ context.Context, _ connect.Spec, _ http.Header, r any) error {
+		slogger.Error(fmt.Sprintf("panic recovered: %v", r), "stack", string(debug.Stack()))
 		return connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("panic: %v", r))
 	}
 
@@ -206,7 +218,11 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		slogger.Debug("DB_AUTO_MIGRATE is enabled, running migrations...", "migrationDir", schemaDir)
+		slogger.Debug(
+			"DB_AUTO_MIGRATE is enabled, running migrations...",
+			"migrationDir",
+			schemaDir,
+		)
 		if err := neomigrate.Up(
 			ctx,
 			neosyncdb.GetDbUrl(dbMigConfig),
@@ -250,7 +266,10 @@ func serve(ctx context.Context) error {
 	if otelconfig.IsEnabled {
 		slogger.Debug("otel is enabled")
 		tmPropagator := neosyncotel.NewDefaultPropagator()
-		otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes(), otelconnect.WithPropagator(tmPropagator)}
+		otelconnopts := []otelconnect.Option{
+			otelconnect.WithoutServerPeerAttributes(),
+			otelconnect.WithPropagator(tmPropagator),
+		}
 		traceProviders := []neosyncotel.TracerProvider{}
 		meterProviders := []neosyncotel.MeterProvider{}
 
@@ -273,14 +292,19 @@ func serve(ctx context.Context) error {
 			otelconnopts = append(otelconnopts, otelconnect.WithoutMetrics())
 		}
 
-		anonymizeMeterProvider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
-			Exporter:   otelconfig.MeterExporter,
-			AppVersion: otelconfig.ServiceVersion,
-			Opts: neosyncotel.MeterExporterOpts{
-				Otlp:    []otlpmetricgrpc.Option{neosyncotel.WithDefaultDeltaTemporalitySelector()},
-				Console: []stdoutmetric.Option{stdoutmetric.WithPrettyPrint()},
+		anonymizeMeterProvider, err := neosyncotel.NewMeterProvider(
+			ctx,
+			&neosyncotel.MeterProviderConfig{
+				Exporter:   otelconfig.MeterExporter,
+				AppVersion: otelconfig.ServiceVersion,
+				Opts: neosyncotel.MeterExporterOpts{
+					Otlp: []otlpmetricgrpc.Option{
+						neosyncotel.WithDefaultDeltaTemporalitySelector(),
+					},
+					Console: []stdoutmetric.Option{stdoutmetric.WithPrettyPrint()},
+				},
 			},
-		})
+		)
 		if err != nil {
 			return err
 		}
@@ -322,7 +346,9 @@ func serve(ctx context.Context) error {
 		})
 		defer func() {
 			if err := otelshutdown(context.Background()); err != nil {
-				slogger.Error(fmt.Errorf("unable to gracefully shutdown otel providers: %w", err).Error())
+				slogger.Error(
+					fmt.Errorf("unable to gracefully shutdown otel providers: %w", err).Error(),
+				)
 			}
 		}()
 	}
@@ -367,21 +393,29 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		apikeyClient := auth_apikey.New(db.Q, db.Db, getAllowedWorkerApiKeys(ncloudlicense.IsValid()), []string{
-			mgmtv1alpha1connect.JobServiceGetJobProcedure,
-			mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
-			mgmtv1alpha1connect.JobServiceSetRunContextProcedure,
-			mgmtv1alpha1connect.JobServiceSetRunContextsProcedure,
-			mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
-			mgmtv1alpha1connect.TransformersServiceGetUserDefinedTransformerByIdProcedure,
-			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionInitStatementsProcedure,
-			mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
-			mgmtv1alpha1connect.UserAccountServiceGetBillingAccountsProcedure,
-			mgmtv1alpha1connect.UserAccountServiceSetBillingMeterEventProcedure,
-			mgmtv1alpha1connect.MetricsServiceGetDailyMetricCountProcedure,
-			mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure,
-			mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure,
-		})
+		apikeyClient := auth_apikey.New(
+			db.Q,
+			db.Db,
+			getAllowedWorkerApiKeys(ncloudlicense.IsValid()),
+			[]string{
+				mgmtv1alpha1connect.JobServiceGetJobProcedure,
+				mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
+				mgmtv1alpha1connect.JobServiceSetRunContextProcedure,
+				mgmtv1alpha1connect.JobServiceSetRunContextsProcedure,
+				mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+				mgmtv1alpha1connect.TransformersServiceGetUserDefinedTransformerByIdProcedure,
+				mgmtv1alpha1connect.ConnectionDataServiceGetConnectionInitStatementsProcedure,
+				mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+				mgmtv1alpha1connect.UserAccountServiceGetBillingAccountsProcedure,
+				mgmtv1alpha1connect.UserAccountServiceSetBillingMeterEventProcedure,
+				mgmtv1alpha1connect.MetricsServiceGetDailyMetricCountProcedure,
+				mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure,
+				mgmtv1alpha1connect.JobServiceGetActiveJobHooksByTimingProcedure,
+				mgmtv1alpha1connect.AccountHookServiceGetActiveAccountHooksByEventProcedure,
+				mgmtv1alpha1connect.AccountHookServiceGetAccountHookProcedure,
+				mgmtv1alpha1connect.AccountHookServiceSendSlackMessageProcedure,
+			},
+		)
 		stdAuthInterceptors = append(
 			stdAuthInterceptors,
 			auth_interceptor.NewInterceptor(
@@ -508,6 +542,58 @@ func serve(ctx context.Context) error {
 	)
 	userdataclient := userdata.NewClient(useraccountService, rbacclient, cascadelicense)
 
+	if cascadelicense.IsValid() {
+		slogger.Debug("enabling account hooks service")
+
+		accountHookOptions := []accounthooks.Option{accounthooks.WithAppBaseUrl(getAppBaseUrl())}
+		var slackClient ee_slack.Interface
+		if viper.GetBool("SLACK_ACCOUNT_HOOKS_ENABLED") {
+			encryptor, err := sym_encrypt.NewEncryptor(
+				viper.GetString("NEOSYNC_SYM_ENCRYPTION_PASSWORD"),
+			)
+			if err != nil {
+				return err
+			}
+			slackClient = ee_slack.NewClient(
+				encryptor,
+				ee_slack.WithAuthClientCreds(
+					viper.GetString("SLACK_AUTH_CLIENT_ID"),
+					viper.GetString("SLACK_AUTH_CLIENT_SECRET"),
+				),
+				ee_slack.WithScope(viper.GetString("SLACK_SCOPE")),
+				ee_slack.WithRedirectUrl(viper.GetString("SLACK_REDIRECT_URL")),
+			)
+			accountHookOptions = append(
+				accountHookOptions,
+				accounthooks.WithSlackClient(slackClient),
+			)
+		}
+
+		accountHookService := v1alpha1_accounthookservice.New(
+			accounthooks.New(db, userdataclient, accountHookOptions...),
+		)
+
+		api.Handle(
+			mgmtv1alpha1connect.NewAccountHookServiceHandler(
+				accountHookService,
+				connect.WithInterceptors(stdInterceptors...),
+				connect.WithInterceptors(stdAuthInterceptors...),
+				connect.WithInterceptors(handlerBookendInterceptor),
+				connect.WithRecover(recoverHandler),
+			),
+		)
+	} else {
+		api.Handle(
+			mgmtv1alpha1connect.NewAccountHookServiceHandler(
+				mgmtv1alpha1connect.UnimplementedAccountHookServiceHandler{},
+				connect.WithInterceptors(stdInterceptors...),
+				connect.WithInterceptors(stdAuthInterceptors...),
+				connect.WithInterceptors(handlerBookendInterceptor),
+				connect.WithRecover(recoverHandler),
+			),
+		)
+	}
+
 	apiKeyService := v1alpha1_apikeyservice.New(&v1alpha1_apikeyservice.Config{
 		IsAuthEnabled: isAuthEnabled,
 	}, db, userdataclient)
@@ -534,6 +620,18 @@ func serve(ctx context.Context) error {
 		sql_manager.WithConnectionManagerOpts(connectionmanager.WithCloseOnRelease()),
 	)
 	mongoconnector := mongoconnect.NewConnector()
+	neosynctyperegistry := neosynctypes.NewTypeRegistry(slogger)
+	gcpmanager := neosync_gcp.NewManager()
+	connectiondatabuilder := connectiondata.NewConnectionDataBuilder(
+		sqlConnector,
+		sqlmanager,
+		pgquerier,
+		mysqlquerier,
+		awsManager,
+		gcpmanager,
+		mongoconnector,
+		neosynctyperegistry,
+	)
 
 	connectionService := v1alpha1_connectionservice.New(
 		&v1alpha1_connectionservice.Config{IsNeosyncCloud: ncloudlicense.IsValid()},
@@ -586,6 +684,7 @@ func serve(ctx context.Context) error {
 		sqlmanager,
 		jobhookService,
 		userdataclient,
+		connectiondatabuilder,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
@@ -600,7 +699,7 @@ func serve(ctx context.Context) error {
 	var presAnalyzeClient presidioapi.AnalyzeInterface
 	var presAnonClient presidioapi.AnonymizeInterface
 	var presEntityClient presidioapi.EntityInterface
-	if ncloudlicense.IsValid() {
+	if cascadelicense.IsValid() {
 		analyzeClient, ok, err := getPresidioAnalyzeClient()
 		if err != nil {
 			return fmt.Errorf("unable to initialize presidio analyze client: %w", err)
@@ -620,10 +719,11 @@ func serve(ctx context.Context) error {
 		}
 	}
 
+	isPresidioEnabled := cascadelicense.IsValid() && presAnalyzeClient != nil && presAnonClient != nil
+
 	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{
-		IsPresidioEnabled: ncloudlicense.IsValid(),
-		IsNeosyncCloud:    ncloudlicense.IsValid(),
-	}, db, presEntityClient, userdataclient)
+		IsPresidioEnabled: isPresidioEnabled,
+	}, db, presEntityClient, userdataclient, cascadelicense)
 	api.Handle(
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
 			transformerService,
@@ -635,11 +735,11 @@ func serve(ctx context.Context) error {
 	)
 
 	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{
-		IsPresidioEnabled:       ncloudlicense.IsValid(),
+		IsPresidioEnabled:       isPresidioEnabled,
 		PresidioDefaultLanguage: getPresidioDefaultLanguage(),
 		IsAuthEnabled:           isAuthEnabled,
 		IsNeosyncCloud:          ncloudlicense.IsValid(),
-	}, anonymizerMeter, userdataclient, useraccountService, transformerService, presAnalyzeClient, presAnonClient, db)
+	}, anonymizerMeter, userdataclient, useraccountService, transformerService, presAnalyzeClient, presAnonClient, db, cascadelicense)
 	api.Handle(
 		mgmtv1alpha1connect.NewAnonymizationServiceHandler(
 			anonymizationService,
@@ -650,19 +750,6 @@ func serve(ctx context.Context) error {
 		),
 	)
 
-	neosynctyperegistry := neosynctypes.NewTypeRegistry(slogger)
-	gcpmanager := neosync_gcp.NewManager()
-	connectiondatabuilder := connectiondata.NewConnectionDataBuilder(
-		sqlConnector,
-		sqlmanager,
-		pgquerier,
-		mysqlquerier,
-		awsManager,
-		gcpmanager,
-		mongoconnector,
-		neosynctyperegistry,
-		jobService,
-	)
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
 		connectionService,
@@ -724,7 +811,11 @@ func getPromClientFromEnvironment() (promapi.Client, error) {
 	roundTripper := promapi.DefaultRoundTripper
 	promApiKey := getPromApiKey()
 	if promApiKey != nil {
-		roundTripper = promconfig.NewAuthorizationCredentialsRoundTripper("Bearer", promconfig.NewInlineSecret(*promApiKey), promapi.DefaultRoundTripper)
+		roundTripper = promconfig.NewAuthorizationCredentialsRoundTripper(
+			"Bearer",
+			promconfig.NewInlineSecret(*promApiKey),
+			promapi.DefaultRoundTripper,
+		)
 	}
 	return promapi.NewClient(promapi.Config{
 		Address:      getPromApiUrl(),
@@ -989,22 +1080,38 @@ func getAllowedWorkerApiKeys(isNeosyncCloud bool) []string {
 	return []string{}
 }
 
-func getAuthAdminClient(ctx context.Context, authclient auth_client.Interface, logger *slog.Logger) (authmgmt.Interface, error) {
+func getAuthAdminClient(
+	ctx context.Context,
+	authclient auth_client.Interface,
+	logger *slog.Logger,
+) (authmgmt.Interface, error) {
 	authApiBaseUrl := getAuthApiBaseUrl()
 	authApiClientId := getAuthApiClientId()
 	authApiClientSecret := getAuthApiClientSecret()
 	provider := getAuthApiProvider()
-	if provider == "" || provider == "auth0" {
+	switch provider {
+	case "", "auth0":
 		return auth0.New(authApiBaseUrl, authApiClientId, authApiClientSecret)
-	} else if provider == "keycloak" {
+	case "keycloak":
 		tokenurl, err := authclient.GetTokenEndpoint(ctx)
 		if err != nil {
 			return nil, err
 		}
-		tokenProvider := clientcredtokenprovider.New(tokenurl, authApiClientId, authApiClientSecret, keycloak.DefaultTokenExpirationBuffer, logger)
+		tokenProvider := clientcredtokenprovider.New(
+			tokenurl,
+			authApiClientId,
+			authApiClientSecret,
+			keycloak.DefaultTokenExpirationBuffer,
+			logger,
+		)
 		return keycloak.New(authApiBaseUrl, tokenProvider, logger)
 	}
-	logger.Warn(fmt.Sprintf("unable to initialize auth admin client due to unsupported provider: %q", provider))
+	logger.Warn(
+		fmt.Sprintf(
+			"unable to initialize auth admin client due to unsupported provider: %q",
+			provider,
+		),
+	)
 	return &authmgmt.UnimplementedClient{}, nil
 }
 
@@ -1067,7 +1174,9 @@ func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
 	case v1alpha1_jobservice.LokiRunLogType:
 		lokibaseurl := viper.GetString("RUN_LOGS_LOKICONFIG_BASEURL")
 		if lokibaseurl == "" {
-			return nil, errors.New("must provide loki baseurl when loki run log type has been configured")
+			return nil, errors.New(
+				"must provide loki baseurl when loki run log type has been configured",
+			)
 		}
 		labelsQuery := viper.GetString("RUN_LOGS_LOKICONFIG_LABELSQUERY")
 		if labelsQuery == "" {
@@ -1084,7 +1193,9 @@ func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
 			},
 		}, nil
 	default:
-		return nil, errors.New("unsupported or no run log type configured, but run logs are enabled.")
+		return nil, errors.New(
+			"unsupported or no run log type configured, but run logs are enabled",
+		)
 	}
 }
 
@@ -1153,7 +1264,11 @@ func getStripePriceLookupMap() (billing.PriceQuantity, error) {
 		}
 		quantity, err := strconv.Atoi(v)
 		if err != nil {
-			return nil, fmt.Errorf("unable to parse value as int for billing quantity %q: %w", v, err)
+			return nil, fmt.Errorf(
+				"unable to parse value as int for billing quantity %q: %w",
+				v,
+				err,
+			)
 		}
 		output[k] = quantity
 	}
@@ -1183,7 +1298,10 @@ func getPresidioAnonymizeClient() (*presidioapi.ClientWithResponses, bool, error
 func getPresidioClient(endpoint string) (*presidioapi.ClientWithResponses, bool, error) {
 	httpclient := http_client.WithHeaders(&http.Client{}, getPresidioHttpHeaders())
 
-	client, err := presidioapi.NewClientWithResponses(endpoint, presidioapi.WithHTTPClient(httpclient))
+	client, err := presidioapi.NewClientWithResponses(
+		endpoint,
+		presidioapi.WithHTTPClient(httpclient),
+	)
 	if err != nil {
 		return nil, false, err
 	}

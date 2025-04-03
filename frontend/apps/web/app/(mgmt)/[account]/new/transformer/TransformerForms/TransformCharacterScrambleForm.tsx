@@ -49,6 +49,7 @@ export default function TransformCharacterScrambleForm(
         setIsRegexValid('invalid');
       }
     } catch (err) {
+      console.error(err);
       setIsValidatingRegex(false);
       setIsRegexValid('invalid');
     }
@@ -81,7 +82,7 @@ export default function TransformCharacterScrambleForm(
           />
         </Button>
       </div>
-      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-xs">
         <div className="space-y-0.5 w-[70%]">
           <FormLabel>Regular Expression</FormLabel>
           <FormDescription>

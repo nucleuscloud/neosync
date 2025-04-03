@@ -16,6 +16,7 @@ import (
 	testutil_testdata "github.com/nucleuscloud/neosync/internal/testutil/testdata"
 	mssql_alltypes "github.com/nucleuscloud/neosync/internal/testutil/testdata/mssql/alltypes"
 	mssql_commerce "github.com/nucleuscloud/neosync/internal/testutil/testdata/mssql/commerce"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -119,6 +120,11 @@ func test_mssql_types(
 	neosyncApi.MockTemporalForCreateJob("test-mssql-sync")
 
 	alltypesMappings := mssql_alltypes.GetDefaultSyncJobMappings(schema)
+	for _, mapping := range alltypesMappings {
+		if mapping.Table == "temporal_table" && (mapping.Column == "valid_from" || mapping.Column == "valid_to") {
+			mapping.Transformer = getDefaultTransformerConfig()
+		}
+	}
 
 	job := createMssqlSyncJob(t, ctx, jobclient, &createJobConfig{
 		AccountId:   accountId,
@@ -153,7 +159,7 @@ func test_mssql_types(
 		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mssql_all_types Table: %s", expected.table))
 	}
 
-	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mssql.Source.DB, mssql.Target.DB, schema, "alldatatypes", sqlmanager_shared.MssqlDriver, "id")
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, mssql.Source.DB, mssql.Target.DB, schema, "alldatatypes", sqlmanager_shared.MssqlDriver, []string{"id"})
 
 	// TODO: Tear down, fix schema dropping issue. No way to force drop schemas in MSSQL.
 	// err = mssql.Source.DropSchemas(ctx, []string{schema})
@@ -222,7 +228,7 @@ func test_mssql_cross_schema_foreign_keys(
 	for _, expected := range expectedResults {
 		rowCount, err := mssql.Target.GetTableRowCount(ctx, expected.schema, expected.table)
 		require.NoError(t, err)
-		require.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mssql_cross_schema_foreign_keys Table: %s", expected.table))
+		assert.Equalf(t, expected.rowCount, rowCount, fmt.Sprintf("Test: mssql_cross_schema_foreign_keys Table: %s", expected.table))
 	}
 
 	// TODO: Tear down, fix schema dropping issue. No way to force drop schemas in MSSQL.

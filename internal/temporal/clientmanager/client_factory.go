@@ -8,8 +8,16 @@ import (
 )
 
 type ClientFactory interface {
-	CreateNamespaceClient(ctx context.Context, config *TemporalConfig, logger *slog.Logger) (temporalclient.NamespaceClient, error)
-	CreateWorkflowClient(ctx context.Context, config *TemporalConfig, logger *slog.Logger) (temporalclient.Client, error)
+	CreateNamespaceClient(
+		ctx context.Context,
+		config *TemporalConfig,
+		logger *slog.Logger,
+	) (temporalclient.NamespaceClient, error)
+	CreateWorkflowClient(
+		ctx context.Context,
+		config *TemporalConfig,
+		logger *slog.Logger,
+	) (temporalclient.Client, error)
 }
 
 type TemporalClientFactory struct{}
@@ -34,7 +42,10 @@ func (f *TemporalClientFactory) CreateWorkflowClient(
 	return temporalclient.NewLazyClient(f.getClientOptions(config, logger))
 }
 
-func (f *TemporalClientFactory) getClientOptions(config *TemporalConfig, logger *slog.Logger) temporalclient.Options {
+func (f *TemporalClientFactory) getClientOptions(
+	config *TemporalConfig,
+	logger *slog.Logger,
+) temporalclient.Options {
 	opts := temporalclient.Options{
 		Logger:    logger,
 		HostPort:  config.Url,

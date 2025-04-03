@@ -168,8 +168,9 @@ enum TransformerSource {
   TRANSFORMER_SOURCE_GENERATE_BUSINESS_NAME = 48;
   TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS = 49;
   TRANSFORMER_SOURCE_TRANSFORM_UUID = 50;
+  TRANSFORMER_SOURCE_TRANSFORM_SCRAMBLE_IDENTITY = 51;
   // TransformHash is a transformer that hashes the input string using the specified hashing algorithm.
-  TRANSFORMER_SOURCE_TRANSFORM_HASH = 51;
+  TRANSFORMER_SOURCE_TRANSFORM_HASH = 52;
 }
 
 enum TransformerDataType {
@@ -263,10 +264,16 @@ message TransformerConfig {
     GenerateBusinessName generate_business_name_config = 45;
     GenerateIpAddress generate_ip_address_config = 46;
     TransformUuid transform_uuid_config = 47;
+    // Scrambles an integer while keeping it unique.
+    TransformScrambleIdentity transform_scramble_identity_config = 48;
     // TransformHash is a transformer that hashes the input string using the specified hashing algorithm.
-    TransformHash transform_hash_config = 48;
+    TransformHash transform_hash_config = 49;
   }
 }
+
+// Takes an input integer and scrambles it, effectively outputing another integer that is not the same as the input.
+// This is effectively a random integer generator that has unique properties.
+message TransformScrambleIdentity {}
 
 // NeosyncCloud/Enterprise only transformer for anonymizing PII Text
 message TransformPiiText {

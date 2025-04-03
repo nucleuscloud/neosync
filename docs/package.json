@@ -27,29 +27,29 @@
     "@docusaurus/preset-classic": "^3.7.0",
     "@mdx-js/react": "^3.1.0",
     "@radix-ui/react-icons": "^1.3.2",
-    "autoprefixer": "^10.4.20",
+    "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",
     "docusaurus-protobuffet": "^0.3.3",
-    "postcss": "^8.5.1",
-    "posthog-docusaurus": "^2.0.2",
+    "postcss": "^8.5.3",
+    "posthog-docusaurus": "^2.0.4",
     "prism-react-renderer": "^2.4.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-icons": "^5.4.0",
+    "react-icons": "^5.5.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.7.0",
     "@docusaurus/types": "^3.7.0",
-    "@redocly/cli": "^1.28.1",
+    "@redocly/cli": "^1.34.1",
     "@tsconfig/docusaurus": "^2.0.3",
-    "cspell": "^8.17.3",
-    "knip": "^5.43.6",
+    "cspell": "^8.18.1",
+    "knip": "^5.46.4",
     "postcss-import": "^16.1.0",
     "postcss-nesting": "^13.0.1",
-    "prettier": "^3.4.2",
-    "typescript": "^5.7.3"
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
   },
   "browserslist": {
     "production": [

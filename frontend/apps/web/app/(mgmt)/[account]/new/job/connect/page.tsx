@@ -39,7 +39,7 @@ import {
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, use, useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../../../components/jobs/Form/DestinationOptionsForm';
@@ -64,7 +64,8 @@ interface DestinationValidationState {
   response?: CheckConnectionConfigByIdResponse;
 }
 
-export default function Page({ searchParams }: PageProps): ReactElement {
+export default function Page(props: PageProps): ReactElement {
+  const searchParams = use(props.searchParams);
   const { account } = useAccount();
   const router = useRouter();
   useEffect(() => {
@@ -269,7 +270,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   'sourceOptions',
                                   {
                                     mysql: {
-                                      haltOnNewColumnAddition: false,
+                                      newColumnAdditionStrategy: 'halt',
                                       columnRemovalStrategy: 'continue',
                                     },
                                   },
@@ -300,7 +301,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   'sourceOptions',
                                   {
                                     mssql: {
-                                      haltOnNewColumnAddition: false,
+                                      newColumnAdditionStrategy: 'halt',
                                       columnRemovalStrategy: 'continue',
                                     },
                                   },

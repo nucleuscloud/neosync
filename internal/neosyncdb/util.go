@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/lib/pq"
 )
 
 const (
@@ -22,8 +23,17 @@ func IsConflict(err error) bool {
 		return false
 	}
 
-	pqErr, ok := err.(*pgconn.PgError)
-	return ok && pqErr.Code == PqUniqueViolationCode
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == PqUniqueViolationCode {
+		return true
+	}
+
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) && pqErr.Code == PqUniqueViolationCode {
+		return true
+	}
+
+	return false
 }
 
 func IsNoRows(err error) bool {
@@ -54,7 +64,9 @@ func GetDbUrl(cfg *ConnectConfig) string {
 		pgOpts["x-migrations-table"] = []string{*cfg.MigrationsTableName}
 	}
 	if cfg.MigrationsTableQuoted != nil {
-		pgOpts["x-migrations-table-quoted"] = []string{strconv.FormatBool(*cfg.MigrationsTableQuoted)}
+		pgOpts["x-migrations-table-quoted"] = []string{
+			strconv.FormatBool(*cfg.MigrationsTableQuoted),
+		}
 	}
 	if cfg.Options != nil {
 		pgOpts["options"] = []string{*cfg.Options}
@@ -66,7 +78,14 @@ func GetDbUrl(cfg *ConnectConfig) string {
 }
 
 func UUIDString(value pgtype.UUID) string {
-	return fmt.Sprintf("%x-%x-%x-%x-%x", value.Bytes[0:4], value.Bytes[4:6], value.Bytes[6:8], value.Bytes[8:10], value.Bytes[10:16])
+	return fmt.Sprintf(
+		"%x-%x-%x-%x-%x",
+		value.Bytes[0:4],
+		value.Bytes[4:6],
+		value.Bytes[6:8],
+		value.Bytes[8:10],
+		value.Bytes[10:16],
+	)
 }
 
 func UUIDStrings(values []pgtype.UUID) []string {

@@ -26,7 +26,7 @@ code: |
 `, nil)
 	require.NoError(t, err)
 
-	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources())
+	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources(), nil)
 	require.NoError(t, err)
 
 	bCtx, done := context.WithTimeout(context.Background(), time.Second*30)
@@ -57,7 +57,7 @@ code: 'benthos.v0_msg_set_string(benthos.v0_msg_as_string() + "hello world");'
 `, nil)
 	require.NoError(t, err)
 
-	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources())
+	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources(), nil)
 	require.NoError(t, err)
 
 	bCtx, done := context.WithTimeout(context.Background(), time.Second*30)
@@ -94,7 +94,7 @@ code: |
 `, nil)
 	require.NoError(t, err)
 
-	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources())
+	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources(), nil)
 	require.NoError(t, err)
 
 	bCtx, done := context.WithTimeout(context.Background(), time.Second*30)
@@ -144,7 +144,7 @@ code: |
 `, nil)
 	require.NoError(t, err)
 
-	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources())
+	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources(), nil)
 	require.NoError(t, err)
 
 	bCtx, done := context.WithTimeout(context.Background(), time.Second*30)
@@ -178,7 +178,7 @@ code: |
 `, nil)
 	require.NoError(t, err)
 
-	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources())
+	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources(), nil)
 	require.NoError(t, err)
 
 	bCtx, done := context.WithTimeout(context.Background(), time.Second*30)
@@ -221,7 +221,7 @@ code: |
 `, nil)
 	require.NoError(t, err)
 
-	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources())
+	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources(), nil)
 	require.NoError(t, err)
 
 	bCtx, done := context.WithTimeout(context.Background(), time.Second*30)
@@ -272,7 +272,7 @@ code: |
 `, testServer.URL), nil)
 	require.NoError(t, err)
 
-	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources())
+	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources(), nil)
 	require.NoError(t, err)
 
 	bCtx, done := context.WithTimeout(context.Background(), time.Second*30)
@@ -295,4 +295,27 @@ code: |
 	assert.Equal(t, "200: echo: SECOND", string(resBytes))
 
 	require.NoError(t, proc.Close(bCtx))
+}
+
+func Test_NeosyncProcessor_Ok(t *testing.T) {
+	conf, err := javascriptProcessorConfig().ParseYAML(fmt.Sprintf(`
+code: |
+  (() => {
+    let foo = neosync.transformCharacterScramble("123", null);
+    benthos.v0_msg_set_string(foo);
+  })();
+`), nil)
+	require.NoError(t, err)
+
+	proc, err := newJavascriptProcessorFromConfig(conf, service.MockResources(), nil)
+	require.NoError(t, err)
+
+	bCtx, done := context.WithTimeout(context.Background(), time.Second*30)
+	defer done()
+
+	resBatches, err := proc.ProcessBatch(bCtx, service.MessageBatch{
+		service.NewMessage([]byte("first")),
+	})
+	require.NoError(t, err)
+	require.Len(t, resBatches, 1)
 }

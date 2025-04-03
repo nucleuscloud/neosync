@@ -94,7 +94,10 @@ type TraceProviderConfig struct {
 	Opts     TraceExporterOpts
 }
 
-func NewTraceProvider(ctx context.Context, config *TraceProviderConfig) (*tracesdk.TracerProvider, error) {
+func NewTraceProvider(
+	ctx context.Context,
+	config *TraceProviderConfig,
+) (*tracesdk.TracerProvider, error) {
 	exporter, err := getTraceExporter(ctx, config.Exporter, config.Opts)
 	if err != nil {
 		return nil, err
@@ -119,7 +122,11 @@ const (
 	noneExporter    = "none"
 )
 
-func getTraceExporter(ctx context.Context, exporter string, opts TraceExporterOpts) (tracesdk.SpanExporter, error) {
+func getTraceExporter(
+	ctx context.Context,
+	exporter string,
+	opts TraceExporterOpts,
+) (tracesdk.SpanExporter, error) {
 	switch exporter {
 	case otlpExporter:
 		return otlptracegrpc.New(ctx, opts.Otlp...)
@@ -128,7 +135,11 @@ func getTraceExporter(ctx context.Context, exporter string, opts TraceExporterOp
 	case noneExporter:
 		return nil, nil
 	default:
-		return nil, fmt.Errorf("this tracer exporter is not currently supported %q: %w", exporter, errors.ErrUnsupported)
+		return nil, fmt.Errorf(
+			"this tracer exporter is not currently supported %q: %w",
+			exporter,
+			errors.ErrUnsupported,
+		)
 	}
 }
 
@@ -138,7 +149,10 @@ type MeterProviderConfig struct {
 	AppVersion string
 }
 
-func NewMeterProvider(ctx context.Context, config *MeterProviderConfig) (*metricsdk.MeterProvider, error) {
+func NewMeterProvider(
+	ctx context.Context,
+	config *MeterProviderConfig,
+) (*metricsdk.MeterProvider, error) {
 	exporter, err := getMeterExporter(ctx, config.Exporter, config.Opts)
 	if err != nil {
 		return nil, err
@@ -158,7 +172,11 @@ type MeterExporterOpts struct {
 	Console []stdoutmetric.Option
 }
 
-func getMeterExporter(ctx context.Context, exporter string, opts MeterExporterOpts) (metricsdk.Exporter, error) {
+func getMeterExporter(
+	ctx context.Context,
+	exporter string,
+	opts MeterExporterOpts,
+) (metricsdk.Exporter, error) {
 	switch exporter {
 	case otlpExporter:
 		return otlpmetricgrpc.New(ctx, opts.Otlp...)
@@ -167,22 +185,30 @@ func getMeterExporter(ctx context.Context, exporter string, opts MeterExporterOp
 	case noneExporter:
 		return nil, nil
 	default:
-		return nil, fmt.Errorf("this meter exporter is not currently supported %q: %w", exporter, errors.ErrUnsupported)
+		return nil, fmt.Errorf(
+			"this meter exporter is not currently supported %q: %w",
+			exporter,
+			errors.ErrUnsupported,
+		)
 	}
 }
 
 func WithDefaultDeltaTemporalitySelector() otlpmetricgrpc.Option {
-	return otlpmetricgrpc.WithTemporalitySelector(func(ik metricsdk.InstrumentKind) metricdata.Temporality {
-		// Delta Temporality causes metrics to be reset after some time.
-		// We are using this today for benthos metrics so that they don't persist indefinitely in the time series database
-		return metricdata.DeltaTemporality
-	})
+	return otlpmetricgrpc.WithTemporalitySelector(
+		func(ik metricsdk.InstrumentKind) metricdata.Temporality {
+			// Delta Temporality causes metrics to be reset after some time.
+			// We are using this today for benthos metrics so that they don't persist indefinitely in the time series database
+			return metricdata.DeltaTemporality
+		},
+	)
 }
 
 func withCumulativeTemporalitySelector() otlpmetricgrpc.Option {
-	return otlpmetricgrpc.WithTemporalitySelector(func(ik metricsdk.InstrumentKind) metricdata.Temporality {
-		return metricdata.CumulativeTemporality
-	})
+	return otlpmetricgrpc.WithTemporalitySelector(
+		func(ik metricsdk.InstrumentKind) metricdata.Temporality {
+			return metricdata.CumulativeTemporality
+		},
+	)
 }
 
 type OtelEnvConfig struct {

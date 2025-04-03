@@ -34,12 +34,17 @@ export function getSystemAppConfig(): SystemAppConfig {
       process.env.NEOSYNC_API_BASE_URL ?? 'http://localhost:8080',
     publicNeosyncApiBaseUrl: PUBLIC_PATHNAME, // ensures that this always points to the same domain
     isJobHooksEnabled: process.env.JOBHOOKS_ENABLED === 'true',
+    isAccountHooksEnabled:
+      isNeosyncCloud || process.env.ACCOUNT_HOOKS_ENABLED === 'true',
+    isSlackAccountHookEnabled:
+      process.env.SLACK_ACCOUNT_HOOKS_ENABLED === 'true',
     isRbacEnabled: isNeosyncCloud || process.env.RBAC_ENABLED === 'true',
     gtag: {
       enabled: isAnalyticsEnabled() && !!process.env.GTAG,
       key: process.env.GTAG,
       conversion: process.env.GTAG_CONVERSION,
     },
+    isPiiDetectionJobEnabled: process.env.PII_DETECTION_JOB_ENABLED === 'true',
   };
 }
 

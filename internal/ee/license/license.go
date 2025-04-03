@@ -124,7 +124,10 @@ func getLicense(licenseData string, publicKey ed25519.PublicKey) (*licenseConten
 	var lc licenseContents
 	err = json.Unmarshal(contents, &lc)
 	if err != nil {
-		return nil, fmt.Errorf("contents verified, but unable to unmarshal license contents from input: %w", err)
+		return nil, fmt.Errorf(
+			"contents verified, but unable to unmarshal license contents from input: %w",
+			err,
+		)
 	}
 
 	return &lc, nil

@@ -6,6 +6,9 @@ dir: "{{.InterfaceDir}}"
 mockname: "Mock{{.InterfaceName}}"
 outpkg: "{{.PackageName}}"
 inpackage: True
+resolve-type-alias: False
+issue-845-fix: True
+
 packages:
   github.com/nucleuscloud/neosync/backend/internal/auth/jwt:
     interfaces:
@@ -40,6 +43,7 @@ packages:
       ConnectionServiceClient:
       AuthServiceClient:
       TransformersServiceClient:
+      AccountHookServiceClient:
   github.com/nucleuscloud/neosync/internal/temporal/clientmanager:
     interfaces:
       DB:
@@ -71,10 +75,8 @@ packages:
     interfaces:
       NeosyncAwsManagerClient:
       dynamoDBAPIV2:
-  github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync:
+  github.com/nucleuscloud/neosync/internal/benthos-stream:
     interfaces:
-      sqlProvider:
-      sqlDbtx:
       BenthosStreamClient:
       BenthosStreamManagerClient:
   github.com/prometheus/client_golang/api/prometheus/v1:
@@ -91,7 +93,7 @@ packages:
     interfaces:
       Interface:
       DbContainer:
-  github.com/nucleuscloud/neosync/backend/internal/gcp:
+  github.com/nucleuscloud/neosync/internal/gcp:
     interfaces:
       ManagerInterface:
       ClientInterface:
@@ -129,3 +131,23 @@ packages:
   github.com/nucleuscloud/neosync/backend/pkg/sqldbtx:
     interfaces:
       DBTX:
+  github.com/nucleuscloud/neosync/internal/encrypt/sym:
+    interfaces:
+      Interface:
+  github.com/nucleuscloud/neosync/internal/ee/slack:
+    interfaces:
+      Interface:
+  github.com/nucleuscloud/neosync/internal/connectiondata:
+    interfaces:
+      ConnectionDataBuilder:
+      ConnectionDataService:
+      SampleDataStream:
+  github.com/nucleuscloud/neosync/worker/pkg/workflows/ee/piidetect/workflows/table/activities:
+    interfaces:
+      OpenAiCompletionsClient:
+  github.com/nucleuscloud/neosync/worker/pkg/workflows/tablesync/shared:
+    interfaces:
+      BlockAllocator:
+  github.com/nucleuscloud/neosync/worker/pkg/rng:
+    interfaces:
+      Rand:

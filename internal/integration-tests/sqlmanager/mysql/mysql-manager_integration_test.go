@@ -275,17 +275,6 @@ func Test_MysqlManager(t *testing.T) {
 		require.Contains(t, usersRecord, "TRIGGER")
 	})
 
-	t.Run("GetCreateTableStatement", func(t *testing.T) {
-		t.Parallel()
-		schema := "sqlmanagermysql3"
-
-		actual, err := manager.GetCreateTableStatement(context.Background(), schema, "users")
-		require.NoError(t, err)
-		require.NotEmpty(t, actual)
-		_, err = target.DB.ExecContext(context.Background(), actual)
-		require.NoError(t, err)
-	})
-
 	t.Run("GetTableInitStatements", func(t *testing.T) {
 		t.Parallel()
 		schema := "sqlmanagermysql4"
@@ -405,6 +394,47 @@ func Test_MysqlManager(t *testing.T) {
 		require.NotNil(t, resp)
 		require.NotEmptyf(t, resp.GetStatements(), "statements")
 		require.NotEmptyf(t, resp.Functions, "functions")
+	})
+
+	t.Run("GetAllSchemas", func(t *testing.T) {
+		t.Parallel()
+		schemas, err := manager.GetAllSchemas(ctx)
+		require.NoError(t, err)
+		require.NotEmpty(t, schemas)
+
+		// Check if schemas contain the expected values instead of exact matching
+		schemaNames := make([]string, len(schemas))
+		for i, s := range schemas {
+			schemaNames[i] = s.SchemaName
+		}
+		require.Contains(t, schemaNames, "sqlmanagermysql")
+		require.Contains(t, schemaNames, "sqlmanagermysql2")
+	})
+
+	t.Run("GetAllTables", func(t *testing.T) {
+		t.Parallel()
+		tables, err := manager.GetAllTables(ctx)
+		require.NoError(t, err)
+		require.NotEmpty(t, tables)
+		// Check table names
+		tableNames := make([]string, len(tables))
+		for i, t := range tables {
+			tableNames[i] = t.TableName
+		}
+		require.Contains(t, tableNames, "users")
+		require.Contains(t, tableNames, "unique_emails")
+		require.Contains(t, tableNames, "parent1")
+		require.Contains(t, tableNames, "child1")
+
+		// Check schemas
+		schemaTableMap := make(map[string]string)
+		for _, t := range tables {
+			schemaTableMap[t.TableName] = t.SchemaName
+		}
+		require.Equal(t, "sqlmanagermysql3", schemaTableMap["users"])
+		require.Equal(t, "sqlmanagermysql3", schemaTableMap["unique_emails"])
+		require.Equal(t, "sqlmanagermysql4", schemaTableMap["parent1"])
+		require.Equal(t, "sqlmanagermysql4", schemaTableMap["child1"])
 	})
 }
 
