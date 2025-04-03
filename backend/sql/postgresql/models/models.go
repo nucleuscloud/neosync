@@ -1003,8 +1003,7 @@ type MssqlContinueJobColumnRemovalStrategy struct{}
 
 func (m *MssqlSourceOptions) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions {
 	dto := &mgmtv1alpha1.MssqlSourceConnectionOptions{
-		HaltOnNewColumnAddition: m.HaltOnNewColumnAddition,
-		ConnectionId:            m.ConnectionId,
+		ConnectionId: m.ConnectionId,
 		Schemas: make(
 			[]*mgmtv1alpha1.MssqlSourceSchemaOption,
 			len(m.Schemas),
@@ -1027,7 +1026,6 @@ func (m *MssqlSourceOptions) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions 
 				HaltJob: &mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
 			},
 		}
-		dto.HaltOnNewColumnAddition = true //nolint:staticcheck
 	}
 
 	return dto
@@ -1037,7 +1035,6 @@ func (m *MssqlSourceOptions) FromDto(dto *mgmtv1alpha1.MssqlSourceConnectionOpti
 	if dto == nil {
 		dto = &mgmtv1alpha1.MssqlSourceConnectionOptions{}
 	}
-	m.HaltOnNewColumnAddition = dto.GetHaltOnNewColumnAddition() //nolint:staticcheck
 	m.ConnectionId = dto.GetConnectionId()
 	m.SubsetByForeignKeyConstraints = dto.GetSubsetByForeignKeyConstraints()
 	m.Schemas = FromDtoMssqlSourceSchemaOptions(dto.GetSchemas())
@@ -1054,7 +1051,6 @@ func (m *MssqlSourceOptions) FromDto(dto *mgmtv1alpha1.MssqlSourceConnectionOpti
 		m.NewColumnAdditionStrategy = &MssqlNewColumnAdditionStrategy{
 			HaltJob: &MssqlHaltJobNewColumnAdditionStrategy{},
 		}
-		m.HaltOnNewColumnAddition = true
 	}
 }
 
@@ -1578,7 +1574,6 @@ func FromDtoPostgresSourceSchemaOptions(
 
 func (s *MysqlSourceOptions) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions {
 	dto := &mgmtv1alpha1.MysqlSourceConnectionOptions{
-		HaltOnNewColumnAddition:       s.HaltOnNewColumnAddition,
 		SubsetByForeignKeyConstraints: s.SubsetByForeignKeyConstraints,
 		ConnectionId:                  s.ConnectionId,
 	}
@@ -1610,7 +1605,6 @@ func (s *MysqlSourceOptions) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions 
 				HaltJob: &mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_HaltJob{},
 			},
 		}
-		dto.HaltOnNewColumnAddition = true //nolint:staticcheck
 	}
 
 	return dto
@@ -1657,7 +1651,6 @@ func (s *MysqlNewColumnAdditionStrategy) FromDto(
 }
 
 func (s *MysqlSourceOptions) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOptions) {
-	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition //nolint:staticcheck
 	if dto.GetNewColumnAdditionStrategy().GetStrategy() != nil {
 		s.NewColumnAdditionStrategy = &MysqlNewColumnAdditionStrategy{}
 		s.NewColumnAdditionStrategy.FromDto(dto.GetNewColumnAdditionStrategy())
@@ -1665,7 +1658,6 @@ func (s *MysqlSourceOptions) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOpti
 		s.NewColumnAdditionStrategy = &MysqlNewColumnAdditionStrategy{
 			HaltJob: &MysqlHaltJobNewColumnAdditionStrategy{},
 		}
-		s.HaltOnNewColumnAddition = true
 	}
 	s.SubsetByForeignKeyConstraints = dto.SubsetByForeignKeyConstraints
 	s.Schemas = FromDtoMysqlSourceSchemaOptions(dto.Schemas)

@@ -104,9 +104,6 @@ func GetSqlJobSourceOpts(
 		case *mgmtv1alpha1.MysqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_:
 			shouldPassthrough = true
 		}
-		if !shouldHalt && jobSourceConfig.Mysql.GetHaltOnNewColumnAddition() { //nolint:staticcheck
-			shouldHalt = true
-		}
 		shouldHaltOnColumnRemoval := false
 		if jobSourceConfig.Mysql.GetColumnRemovalStrategy().GetHaltJob() != nil {
 			shouldHaltOnColumnRemoval = true
@@ -149,9 +146,6 @@ func GetSqlJobSourceOpts(
 			shouldHaltNewColumnAddition = true
 		case *mgmtv1alpha1.MssqlSourceConnectionOptions_NewColumnAdditionStrategy_Passthrough_:
 			shouldPassthrough = true
-		}
-		if !shouldHaltNewColumnAddition && jobSourceConfig.Mssql.GetHaltOnNewColumnAddition() { //nolint:staticcheck
-			shouldHaltNewColumnAddition = true
 		}
 		return &SqlJobSourceOpts{
 			HaltOnNewColumnAddition:        shouldHaltNewColumnAddition,
