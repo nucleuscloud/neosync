@@ -495,7 +495,7 @@ func runSchemaInitWorkflowByDestination(
 		HeartbeatTimeout: 1 * time.Minute,
 	}
 	for _, destination := range destinations {
-		// right now only mysql supports schema drift
+		// right now only mysql and postgres supports schema drift
 		schemaDrift := shouldUseSchemaDrift(destination)
 		logger.Info(
 			"scheduling Schema Initialization workflow for execution.",
