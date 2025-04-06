@@ -43,6 +43,9 @@ func IsCriticalError(errMsg string) bool {
 		"ON CONFLICT DO UPDATE requires inference specification or constraint name",
 		"transaction has already been committed or rolled back",
 		"missing redis client",
+		"violates check constraint",
+		"ON CONFLICT does not support deferrable unique constraints",
+		"ON CONFLICT",
 	}
 
 	for _, errStr := range criticalErrors {
