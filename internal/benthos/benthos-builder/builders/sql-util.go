@@ -1,6 +1,7 @@
 package benthosbuilder_builders
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -16,6 +17,7 @@ import (
 	job_util "github.com/nucleuscloud/neosync/internal/job"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -1576,4 +1578,47 @@ func getSqlBatchProcessors(
 			driver,
 		)
 	}
+}
+
+func getTableDeferrableMap(
+	ctx context.Context,
+	db *sqlmanager.SqlConnection,
+	connection *mgmtv1alpha1.Connection,
+	schemaTablesMap map[string][]string,
+) (map[string]bool, error) {
+	tableDeferrableMap := map[string]bool{}
+	if connection.ConnectionConfig.GetPgConfig() != nil {
+		errgrp, errctx := errgroup.WithContext(ctx)
+		for schema, tables := range schemaTablesMap {
+			errgrp.Go(func() error {
+				constraints, err := db.Db().GetTableConstraintsByTables(errctx, schema, tables)
+				if err != nil {
+					return err
+				}
+				for table, cons := range constraints {
+					hasDeferrableConstraint := false
+					for _, fk := range cons.ForeignKeyConstraints {
+						if fk.Deferrable {
+							tableDeferrableMap[table] = true
+							hasDeferrableConstraint = true
+							break
+						}
+					}
+					if !hasDeferrableConstraint {
+						for _, constraint := range cons.NonForeignKeyConstraints {
+							if constraint.Deferrable {
+								tableDeferrableMap[table] = true
+								break
+							}
+						}
+					}
+				}
+				return nil
+			})
+		}
+		if err := errgrp.Wait(); err != nil {
+			return nil, err
+		}
+	}
+	return tableDeferrableMap, nil
 }

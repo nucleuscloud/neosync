@@ -20,7 +20,6 @@ import (
 	rc "github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
-	"golang.org/x/sync/errgroup"
 )
 
 type sqlSyncBuilder struct {
@@ -38,6 +37,7 @@ type sqlSyncBuilder struct {
 	// merged source and destination schema. with preference given to destination schema
 	mergedSchemaColumnMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
 	configQueryMap        map[string]*sqlmanager_shared.SelectQuery                  // config id -> query info
+	tableDeferrableMap    map[string]bool                                            // schema.table -> true if table has at least one deferrable constraint
 }
 
 func NewSqlSyncBuilder(
@@ -151,6 +151,13 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(
 		existingSourceMappings = append(existingSourceMappings, extraMappings...)
 	}
 	uniqueSchemas := shared.GetUniqueSchemasFromMappings(existingSourceMappings)
+
+	schemaTablesMap := shared.GetSchemaTablesMapFromMappings(existingSourceMappings)
+	tableDeferrableMap, err := getTableDeferrableMap(ctx, db, sourceConnection, schemaTablesMap)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get table deferrable map: %w", err)
+	}
+	b.tableDeferrableMap = tableDeferrableMap
 
 	tableConstraints, err := db.Db().GetTableConstraintsBySchema(ctx, uniqueSchemas)
 	if err != nil {
@@ -535,6 +542,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(
 			return nil, err
 		}
 
+		hasDeferrableConstraint := b.tableDeferrableMap[tableKey]
 		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, columnDefaultProperties)
 		config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
@@ -548,6 +556,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(
 						ColumnUpdatesDisallowed:     columnUpdatesDisallowed,
 						OnConflictDoNothing:         destOpts.OnConflictDoNothing,
 						OnConflictDoUpdate:          destOpts.OnConflictDoUpdate,
+						HasDeferrableConstraint:     hasDeferrableConstraint, // postgres only
 						SkipForeignKeyViolations:    skipForeignKeyViolations,
 						ShouldOverrideColumnDefault: shouldOverrideColumnDefault(columnDefaultProperties),
 						TruncateOnRetry:             destOpts.Truncate,
@@ -634,44 +643,6 @@ func hasPassthroughIdentityColumn(
 		}
 	}
 	return false
-}
-
-// gets destination defferable constraints
-func getDestinationConstraints(
-	ctx context.Context,
-	session connectionmanager.SessionInterface,
-	destinationConnection *mgmtv1alpha1.Connection,
-	sqlmanagerclient sqlmanager.SqlManagerClient,
-	slogger *slog.Logger,
-	schemaTablesMap map[string][]string,
-) (map[string]*sqlmanager_shared.AllTableConstraints, error) {
-	tableConstraints := map[string]*sqlmanager_shared.AllTableConstraints{}
-	switch destinationConnection.ConnectionConfig.Config.(type) {
-	// only postgres has defferable constraints
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		destDb, err := sqlmanagerclient.NewSqlConnection(ctx, session, destinationConnection, slogger)
-		defer destDb.Db().Close()
-		if err != nil {
-			return nil, err
-		}
-		errgrp, errctx := errgroup.WithContext(ctx)
-		for schema, tables := range schemaTablesMap {
-			errgrp.Go(func() error {
-				constraints, err := destDb.Db().GetTableConstraintsByTables(errctx, schema, tables)
-				if err != nil {
-					return err
-				}
-				for table, cons := range constraints {
-					tableConstraints[table] = cons
-				}
-				return nil
-			})
-		}
-		if err := errgrp.Wait(); err != nil {
-			return nil, err
-		}
-	}
-	return tableConstraints, nil
 }
 
 // tries to get destination schema column info map

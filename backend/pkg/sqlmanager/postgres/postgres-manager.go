@@ -9,7 +9,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqldbtx"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/internal/neosyncdb"
 	"golang.org/x/sync/errgroup"
@@ -17,11 +16,11 @@ import (
 
 type PostgresManager struct {
 	querier pg_queries.Querier
-	db      sqldbtx.DBTX
+	db      pg_queries.DBTX
 	close   func()
 }
 
-func NewManager(querier pg_queries.Querier, db sqldbtx.DBTX, closer func()) *PostgresManager {
+func NewManager(querier pg_queries.Querier, db pg_queries.DBTX, closer func()) *PostgresManager {
 	return &PostgresManager{querier: querier, db: db, close: closer}
 }
 
