@@ -15,12 +15,12 @@
     "knip:production": "knip --production --strict"
   },
   "devDependencies": {
-    "knip": "^5.46.5",
+    "knip": "^5.47.0",
     "prettier": "^3.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "turbo": "^2.4.4",
-    "typescript": "^5.8.2"
+    "turbo": "^2.5.0",
+    "typescript": "^5.8.3"
   },
   "workspaces": [
     "apps/*",
