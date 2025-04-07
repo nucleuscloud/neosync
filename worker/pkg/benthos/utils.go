@@ -46,6 +46,7 @@ func IsCriticalError(errMsg string) bool {
 		"violates check constraint",
 		"ON CONFLICT does not support deferrable unique constraints",
 		"ON CONFLICT",
+		"SQLSTATE", // any sqlstate error should result in ending
 	}
 
 	for _, errStr := range criticalErrors {
