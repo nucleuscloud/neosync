@@ -2,16 +2,26 @@ package neosync_benthos_sql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
+	"strings"
 	"sync"
 
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/lib/pq"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"github.com/redpanda-data/benthos/v4/public/service"
+)
+
+const (
+	pgUniqueViolation = "23505"
 )
 
 func sqlInsertOutputSpec() *service.ConfigSpec {
@@ -23,6 +33,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringListField("column_updates_disallowed")).
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
 		Field(service.NewBoolField("on_conflict_do_update").Optional().Default(false)).
+		Field(service.NewBoolField("has_deferrable_constraint").Optional().Default(false)).
 		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
 		Field(service.NewBoolField("truncate_on_retry").Optional().Default(false).Deprecated()).
 		Field(service.NewBoolField("should_override_column_default").Optional().Default(false)).
@@ -72,12 +83,16 @@ type pooledInsertOutput struct {
 	logger       *service.Logger
 	slogger      *slog.Logger
 
-	schema                   string
-	table                    string
-	onConflictDoNothing      bool
-	skipForeignKeyViolations bool
-	queryBuilder             querybuilder.InsertQueryBuilder
-	isRetry                  bool
+	schema                     string
+	table                      string
+	onConflictDoUpdate         bool
+	onConflictDoNothing        bool
+	hasDeferrableConstraint    bool
+	primaryKeyColumns          []string
+	skipForeignKeyViolations   bool
+	columnUpdatesDisallowedMap map[string]struct{}
+	queryBuilder               querybuilder.InsertQueryBuilder
+	isRetry                    bool
 }
 
 func newInsertOutput(
@@ -122,6 +137,11 @@ func newInsertOutput(
 	}
 
 	onConflictDoUpdate, err := conf.FieldBool("on_conflict_do_update")
+	if err != nil {
+		return nil, err
+	}
+
+	hasDeferrableConstraint, err := conf.FieldBool("has_deferrable_constraint")
 	if err != nil {
 		return nil, err
 	}
@@ -172,6 +192,9 @@ func newInsertOutput(
 	if shouldOverrideColumnDefault {
 		options = append(options, querybuilder.WithShouldOverrideColumnDefault())
 	}
+	if hasDeferrableConstraint {
+		options = append(options, querybuilder.WithHasDeferrableConstraint())
+	}
 	builder, err := querybuilder.GetInsertBuilder(
 		logger,
 		driver,
@@ -185,17 +208,21 @@ func newInsertOutput(
 	}
 
 	output := &pooledInsertOutput{
-		connectionId:             connectionId,
-		driver:                   driver,
-		logger:                   mgr.Logger(),
-		slogger:                  logger,
-		provider:                 provider,
-		schema:                   schema,
-		table:                    table,
-		onConflictDoNothing:      onConflictDoNothing,
-		queryBuilder:             builder,
-		skipForeignKeyViolations: skipForeignKeyViolations,
-		isRetry:                  isRetry,
+		connectionId:               connectionId,
+		driver:                     driver,
+		logger:                     mgr.Logger(),
+		slogger:                    logger,
+		provider:                   provider,
+		schema:                     schema,
+		table:                      table,
+		queryBuilder:               builder,
+		onConflictDoUpdate:         onConflictDoUpdate,
+		onConflictDoNothing:        onConflictDoNothing,
+		hasDeferrableConstraint:    hasDeferrableConstraint,
+		columnUpdatesDisallowedMap: columnUpdatesDisallowedMap,
+		primaryKeyColumns:          primaryKeyColumns,
+		skipForeignKeyViolations:   skipForeignKeyViolations,
+		isRetry:                    isRetry,
 	}
 	return output, nil
 }
@@ -243,6 +270,12 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	if len(rows) == 0 {
 		s.logger.Debug("no rows to insert")
 		return nil
+	}
+
+	// postgres upsert for tables with deferrable constraints
+	// fixes ON CONFLICT does not support deferrable unique constraints/exclusion constraints as arbiters (SQLSTATE 55000)
+	if s.onConflictDoUpdate && s.hasDeferrableConstraint && s.driver == sqlmanager_shared.PostgresDriver {
+		return s.postgresUpsert(ctx, db, rows)
 	}
 
 	insertQuery, args, err := s.queryBuilder.BuildInsertQuery(rows)
@@ -312,6 +345,90 @@ func retryInsertRowByRow(
 		insertCount,
 	)
 	return nil
+}
+
+func (s *pooledInsertOutput) postgresUpsert(
+	ctx context.Context,
+	db mysql_queries.DBTX,
+	rows []map[string]any,
+) error {
+	s.logger.Debug("has deferrable constraint and on conflict do update, trying upsert")
+
+	// get columns to update, exclude primary key columns and columns that are not allowed to be updated
+	columns := make([]string, 0, len(rows[0]))
+	for col := range rows[0] {
+		if _, ok := s.columnUpdatesDisallowedMap[col]; ok {
+			continue
+		}
+		if slices.Contains(s.primaryKeyColumns, col) {
+			continue
+		}
+		columns = append(columns, col)
+	}
+	if len(columns) == 0 {
+		s.logger.Debug("no columns to update, skipping upsert")
+		return nil
+	}
+
+	for _, row := range rows {
+		insertQuery, args, err := s.queryBuilder.BuildInsertQuery([]map[string]any{row})
+		if err != nil {
+			return fmt.Errorf("failed to build insert query: %w", err)
+		}
+		_, err = db.ExecContext(ctx, insertQuery, args...)
+		if err != nil {
+			// skip foreign key violations
+			if s.skipForeignKeyViolations && neosync_benthos.IsForeignKeyViolationError(err.Error()) {
+				continue
+			}
+			if isPostgresUniqueViolation(err) {
+				// conflict error, do update
+				if s.onConflictDoUpdate {
+					s.logger.Debug("detected conflict, doing update")
+					updateQuery, err := querybuilder.BuildUpdateQuery(
+						s.driver,
+						s.schema,
+						s.table,
+						columns,
+						s.primaryKeyColumns,
+						row,
+					)
+					if err != nil {
+						return fmt.Errorf("failed to build update query: %w", err)
+					}
+					_, err = db.ExecContext(ctx, updateQuery)
+					if err != nil {
+						return fmt.Errorf("failed to execute pg update: %w", err)
+					}
+				}
+			} else {
+				return fmt.Errorf("failed to execute pg upsert: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+func isPostgresUniqueViolation(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == pgUniqueViolation
+	}
+
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) {
+		return pqErr.Code == pgUniqueViolation
+	}
+
+	if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+		return true
+	}
+
+	return false
 }
 
 func (s *pooledInsertOutput) Close(ctx context.Context) error {

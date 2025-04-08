@@ -1447,6 +1447,7 @@ func test_postgres_schema_reconciliation(
 		{schema: schema, table: "dummy_comp_table", rowCount: 0},
 		{schema: schema, table: "example_table", rowCount: 0},
 		{schema: schema, table: "test_table_single_col", rowCount: 1},
+		{schema: schema, table: "budget", rowCount: 4},
 	}
 
 	tables := []string{}
@@ -1496,7 +1497,7 @@ func test_postgres_schema_reconciliation(
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "locations", sqlmanager_shared.PostgresDriver, []string{"location_id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "dummy_table", sqlmanager_shared.PostgresDriver, []string{"id"})
 	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "test_table_single_col", sqlmanager_shared.PostgresDriver, []string{"name"})
-
+	testutil_testdata.VerifySQLTableColumnValues(t, ctx, source, target, schema, "budget", sqlmanager_shared.PostgresDriver, []string{"id"})
 	test_schema_reconciliation_run_context(t, ctx, jobclient, job.GetId(), destinationId, accountId)
 
 	// tear down

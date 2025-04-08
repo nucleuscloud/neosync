@@ -630,6 +630,7 @@ SELECT
 	c.relname AS table_name,
 	pgcon.conname AS constraint_name,
 	pgcon.contype::TEXT AS constraint_type,
+    pgcon.condeferrable::BOOL AS deferrable,
     -- Collect all columns associated with this constraint, if any
 	ARRAY_AGG(kcu.column_name ORDER BY kcu.ordinal_position) FILTER (WHERE kcu.column_name IS NOT NULL)::TEXT [] AS constraint_columns,
 	pg_get_constraintdef(pgcon.oid)::TEXT AS constraint_definition
@@ -657,6 +658,7 @@ SELECT
 	c.relname AS table_name,
 	pgcon.conname AS constraint_name,
 	pgcon.contype::TEXT AS constraint_type,
+    pgcon.condeferrable::BOOL AS deferrable,
     -- Collect all columns associated with this constraint, if any
 	ARRAY_AGG(kcu.column_name ORDER BY kcu.ordinal_position) FILTER (WHERE kcu.column_name IS NOT NULL)::TEXT [] AS constraint_columns,
 	pg_get_constraintdef(pgcon.oid)::TEXT AS constraint_definition
@@ -706,7 +708,8 @@ SELECT
     referenced_tbl.relname::TEXT AS referenced_table,
 
     -- Array of column names in the referenced table involved in the foreign key constraint
-    ref_columns.foreign_column_names::TEXT[] AS referenced_columns
+    ref_columns.foreign_column_names::TEXT[] AS referenced_columns,
+    constraint_def.condeferrable::BOOL AS deferrable
 FROM
     pg_catalog.pg_constraint AS constraint_def
     -- Join to retrieve attributes (columns) for the referencing table based on the constraint definition
@@ -776,7 +779,8 @@ SELECT
     referenced_tbl.relname::TEXT AS referenced_table,
 
     -- Array of column names in the referenced table involved in the foreign key constraint
-    ref_columns.foreign_column_names::TEXT[] AS referenced_columns
+    ref_columns.foreign_column_names::TEXT[] AS referenced_columns,
+    constraint_def.condeferrable::BOOL AS deferrable
 FROM
     pg_catalog.pg_constraint AS constraint_def
     -- Join to retrieve attributes (columns) for the referencing table based on the constraint definition

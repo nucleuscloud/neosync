@@ -81,6 +81,7 @@ type InsertOptions struct {
 	shouldOverrideColumnDefault bool
 	conflictConfig              *conflictConfig
 	prefix, suffix              *string
+	hasDeferrableConstraint     bool
 }
 
 func WithShouldOverrideColumnDefault() InsertOption {
@@ -125,6 +126,12 @@ func WithOnConflictDoUpdate(conflictColumns []string) InsertOption {
 	}
 }
 
+func WithHasDeferrableConstraint() InsertOption {
+	return func(opts *InsertOptions) {
+		opts.hasDeferrableConstraint = true
+	}
+}
+
 type PostgresDriver struct {
 	driver                  string
 	logger                  *slog.Logger
@@ -151,7 +158,8 @@ func (d *PostgresDriver) buildInsertQuery(
 	rows []map[string]any,
 ) (sql string, args []any, err error) {
 	goquRows := toGoquRecords(rows)
-	if d.options.conflictConfig.onConflictDoUpdate != nil {
+	// if the table has a deferrable constraint, we can't use on conflict do update
+	if d.options.conflictConfig.onConflictDoUpdate != nil && !d.options.hasDeferrableConstraint {
 		if len(rows) == 0 {
 			return "", []any{}, errors.New("no rows to insert")
 		}
@@ -166,7 +174,7 @@ func (d *PostgresDriver) buildInsertQuery(
 		}
 		if len(d.options.conflictConfig.onConflictDoUpdate.conflictColumns) == 0 ||
 			len(updateColumns) == 0 {
-			d.logger.Warn(
+			d.logger.Info(
 				"no conflict columns specified for on conflict do update, defaulting to on conflict do nothing",
 			)
 			onConflictDoNothing := true

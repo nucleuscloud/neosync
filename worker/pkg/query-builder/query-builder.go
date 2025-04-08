@@ -2,6 +2,7 @@ package querybuilder
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -115,6 +116,10 @@ func BuildInsertQuery(
 
 	query, args, err := insert.ToSQL()
 	if err != nil {
+		// check if it's a goqu encoding error and sanitize it
+		if strings.Contains(err.Error(), "goqu_encode_error") {
+			return "", nil, fmt.Errorf("goqu_encode_error: Unable to encode value")
+		}
 		return "", nil, err
 	}
 	return query, args, nil
@@ -147,6 +152,10 @@ func BuildUpdateQuery(
 
 	query, _, err := update.ToSQL()
 	if err != nil {
+		// check if it's a goqu encoding error and sanitize it
+		if strings.Contains(err.Error(), "goqu_encode_error") {
+			return "", fmt.Errorf("goqu_encode_error: Unable to encode value")
+		}
 		return "", err
 	}
 	return query, nil
