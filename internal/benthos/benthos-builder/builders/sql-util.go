@@ -8,6 +8,7 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -1587,9 +1588,11 @@ func getTableDeferrableMap(
 	schemaTablesMap map[string][]string,
 ) (map[string]bool, error) {
 	tableDeferrableMap := map[string]bool{}
+	var mutx sync.Mutex
 	if connection.ConnectionConfig.GetPgConfig() != nil {
 		errgrp, errctx := errgroup.WithContext(ctx)
 		for schema, tables := range schemaTablesMap {
+			schema, tables := schema, tables // capture range variables
 			errgrp.Go(func() error {
 				constraints, err := db.Db().GetTableConstraintsByTables(errctx, schema, tables)
 				if err != nil {
@@ -1599,7 +1602,9 @@ func getTableDeferrableMap(
 					hasDeferrableConstraint := false
 					for _, fk := range cons.ForeignKeyConstraints {
 						if fk.Deferrable {
+							mutx.Lock()
 							tableDeferrableMap[table] = true
+							mutx.Unlock()
 							hasDeferrableConstraint = true
 							break
 						}
@@ -1607,7 +1612,9 @@ func getTableDeferrableMap(
 					if !hasDeferrableConstraint {
 						for _, constraint := range cons.NonForeignKeyConstraints {
 							if constraint.Deferrable {
+								mutx.Lock()
 								tableDeferrableMap[table] = true
+								mutx.Unlock()
 								break
 							}
 						}
