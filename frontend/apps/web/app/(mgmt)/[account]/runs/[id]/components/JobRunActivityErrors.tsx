@@ -131,7 +131,6 @@ function JobRunInitSchemaErrorViewer(
   const runContext = runContextData?.value
     ? parseUint8ArrayToInitSchemaReport(runContextData.value)
     : null;
-  console.log('runContext', runContext);
 
   const filteredRunContext = runContext?.filter(
     (item) => item.Errors && item.Errors.length > 0
