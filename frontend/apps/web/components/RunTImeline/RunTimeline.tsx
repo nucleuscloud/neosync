@@ -450,7 +450,7 @@ function getCloseOrErrorOrCancelDate(
     if (jobRunEvent.startTime) {
       return convertTimestampToDate(jobRunEvent.startTime);
     }
-    return new Date();
+    return new Date(); // this will result in a constantly increasing time but the startTime should always be present
   }
 
   return errorTime
