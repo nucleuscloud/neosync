@@ -35,6 +35,20 @@ function parseUint8ArrayToInitSchemaReport(
     return null;
   }
 }
+
+function parseUint8ArrayToReconcileSchemaReport(
+  data: Uint8Array
+): InitSchemaReport[] | null {
+  try {
+    const jsonString = new TextDecoder().decode(data);
+    const parsedData: InitSchemaReport = JSON.parse(jsonString);
+    return [parsedData];
+  } catch (error) {
+    console.error('Error parsing JSON:', error);
+    return null;
+  }
+}
+
 export default function JobRunActivityErrors(
   props: JobRunActivityErrorsProps
 ): ReactElement {
@@ -51,6 +65,7 @@ export default function JobRunActivityErrors(
         jobRunId={props.jobRunId}
         accountId={props.accountId}
         externalId="init-schema-report"
+        parseUint8ArrayToInitSchemaReport={parseUint8ArrayToInitSchemaReport}
       />
       {job?.destinations?.map((destination) => (
         <JobRunInitSchemaErrorViewer
@@ -58,6 +73,18 @@ export default function JobRunActivityErrors(
           jobRunId={props.jobRunId}
           accountId={props.accountId}
           externalId={`init-schema-report-${destination.id}`}
+          parseUint8ArrayToInitSchemaReport={parseUint8ArrayToInitSchemaReport}
+        />
+      ))}
+      {job?.destinations?.map((destination) => (
+        <JobRunInitSchemaErrorViewer
+          key={destination.id}
+          jobRunId={props.jobRunId}
+          accountId={props.accountId}
+          externalId={`reconcile-schema-report-${destination.id}`}
+          parseUint8ArrayToInitSchemaReport={
+            parseUint8ArrayToReconcileSchemaReport
+          }
         />
       ))}
     </TanstackQueryProviderIgnore404Errors>
@@ -68,12 +95,16 @@ interface JobRunInitSchemaErrorViewerProps {
   jobRunId: string;
   accountId: string;
   externalId: string;
+  parseUint8ArrayToInitSchemaReport: (
+    data: Uint8Array
+  ) => InitSchemaReport[] | null;
 }
 
 function JobRunInitSchemaErrorViewer(
   props: JobRunInitSchemaErrorViewerProps
 ): ReactElement {
-  const { jobRunId, accountId, externalId } = props;
+  const { jobRunId, accountId, externalId, parseUint8ArrayToInitSchemaReport } =
+    props;
 
   const { data: runContextData, error: runContextError } = useQuery(
     JobService.method.getRunContext,
@@ -100,6 +131,7 @@ function JobRunInitSchemaErrorViewer(
   const runContext = runContextData?.value
     ? parseUint8ArrayToInitSchemaReport(runContextData.value)
     : null;
+  console.log('runContext', runContext);
 
   const filteredRunContext = runContext?.filter(
     (item) => item.Errors && item.Errors.length > 0
