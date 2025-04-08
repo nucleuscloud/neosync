@@ -272,7 +272,7 @@ function TimelineBar(props: TimelineBarProps) {
     isLastItem,
   } = props;
 
-  const scheduled = jobRunEvent.tasks.find(
+  const scheduled = jobRunEvent.tasks?.find(
     (st) =>
       st.type == 'ActivityTaskScheduled' ||
       st.type == 'StartChildWorkflowExecutionInitiated'
@@ -531,13 +531,13 @@ function StatusFilter({
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
             <DropdownMenuLabel
-              className="cursor-pointer"
+              className="cursor-default select-none px-8 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 rounded-sm"
               onClick={() => onReset()}
             >
               Select All
             </DropdownMenuLabel>
             <DropdownMenuLabel
-              className="cursor-pointer"
+              className="cursor-default select-none px-8 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 rounded-sm"
               onClick={() => onClear()}
             >
               Deselect All

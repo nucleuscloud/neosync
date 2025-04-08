@@ -75,56 +75,45 @@ function getColumnTooltip(title: string, canMultiSort: boolean): string {
   return `Sort by ${title}`;
 }
 
-interface SortButtonWithTooltipProps<TData, TValue>
-  extends SortButtonProps<TData, TValue> {
+interface SortButtonWithTooltipProps<TData, TValue> {
+  column: Column<TData, TValue>;
   tooltip: string;
 }
 
-function SortButtonWithTooltip<TData, TValue>({
+export function SortButtonWithTooltip<TData, TValue>({
   column,
   tooltip,
 }: SortButtonWithTooltipProps<TData, TValue>): ReactElement {
   return (
     <TooltipProvider>
       <Tooltip delayDuration={200}>
-        <TooltipTrigger type="button">
-          <SortButton column={column} />
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            onClick={(e) => {
+              const sorted = column.getIsSorted();
+              if (!sorted) {
+                column.toggleSorting(false, e.shiftKey);
+              } else if (sorted === 'asc') {
+                column.toggleSorting(true, e.shiftKey);
+              } else if (sorted === 'desc') {
+                column.clearSorting();
+              }
+            }}
+            variant="ghost"
+            className="px-1"
+          >
+            {column.getIsSorted() === 'desc' ? (
+              <ArrowDownIcon className="h-4 w-4" />
+            ) : column.getIsSorted() === 'asc' ? (
+              <ArrowUpIcon className="h-4 w-4" />
+            ) : (
+              <CaretSortIcon className="h-4 w-4" />
+            )}
+          </Button>
         </TooltipTrigger>
         <TooltipContent>{tooltip}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  );
-}
-
-interface SortButtonProps<TData, TValue> {
-  column: Column<TData, TValue>;
-}
-function SortButton<TData, TValue>({
-  column,
-}: SortButtonProps<TData, TValue>): ReactElement {
-  return (
-    <Button
-      type="button"
-      onClick={(e) => {
-        const sorted = column.getIsSorted();
-        if (!sorted) {
-          column.toggleSorting(false, e.shiftKey);
-        } else if (sorted === 'asc') {
-          column.toggleSorting(true, e.shiftKey);
-        } else if (sorted === 'desc') {
-          column.clearSorting();
-        }
-      }}
-      variant="ghost"
-      className="px-1"
-    >
-      {column.getIsSorted() === 'desc' ? (
-        <ArrowDownIcon className="h-4 w-4" />
-      ) : column.getIsSorted() === 'asc' ? (
-        <ArrowUpIcon className="h-4 w-4" />
-      ) : (
-        <CaretSortIcon className="h-4 w-4" />
-      )}
-    </Button>
   );
 }
