@@ -47,6 +47,8 @@ func IsCriticalError(errMsg string) bool {
 		"ON CONFLICT does not support deferrable unique constraints",
 		"ON CONFLICT",
 		"SQLSTATE", // any sqlstate error should result in ending
+		"doesn't have a default value",
+		"column does not allow nulls",
 	}
 
 	for _, errStr := range criticalErrors {
@@ -71,6 +73,8 @@ func IsGenerateJobCriticalError(errMsg string) bool {
 		"incorrect time value",
 		"does not exist",
 		"syntax error at or near",
+		"doesn't have a default value",
+		"column does not allow nulls",
 	}
 
 	for _, errStr := range criticalErrors {
