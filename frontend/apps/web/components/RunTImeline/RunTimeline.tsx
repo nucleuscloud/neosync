@@ -83,7 +83,10 @@ export default function RunTimeline(props: Props): ReactElement {
         convertTimestampToDate(scheduled).getTime()
       );
 
-      const closeTime = getCloseOrErrorOrCancelDate(t);
+      const closeTime = getCloseOrErrorOrCancelDate(
+        t,
+        getTaskStatus(t, jobStatus)
+      );
       endTime = Math.max(
         endTime,
         closeTime.getTime(),
@@ -284,7 +287,10 @@ function TimelineBar(props: TimelineBarProps) {
     timelineStart,
     totalDuration
   );
-  const endTime = getCloseOrErrorOrCancelDate(jobRunEvent);
+  const endTime = getCloseOrErrorOrCancelDate(
+    jobRunEvent,
+    getTaskStatus(jobRunEvent, jobStatus)
+  );
   const width =
     getPositionPercentage(endTime, timelineStart, totalDuration) - left;
   const status = getTaskStatus(jobRunEvent, jobStatus);
@@ -419,7 +425,10 @@ function convertTimestampToDate(timestamp: Timestamp | undefined): Date {
 
 // calculates the last time if the job is not successful so we can give the timeline an end date
 // TODO: this should be revisited
-function getCloseOrErrorOrCancelDate(jobRunEvent: JobRunEvent): Date {
+function getCloseOrErrorOrCancelDate(
+  jobRunEvent: JobRunEvent,
+  runStatus: RunStatus
+): Date {
   const errorTask = jobRunEvent.tasks.find((item) => item.error);
   const errorTime = errorTask ? errorTask.eventTime : undefined;
   const cancelTime = jobRunEvent.tasks.find(
@@ -432,6 +441,17 @@ function getCloseOrErrorOrCancelDate(jobRunEvent: JobRunEvent): Date {
       t.type === 'ChildWorkflowExecutionTerminated' ||
       t.type === 'ChildWorkflowExecutionTimedOut'
   )?.eventTime;
+  if (
+    !errorTime &&
+    !cancelTime &&
+    !jobRunEvent.closeTime &&
+    runStatus !== 'running'
+  ) {
+    if (jobRunEvent.startTime) {
+      return convertTimestampToDate(jobRunEvent.startTime);
+    }
+    return new Date();
+  }
 
   return errorTime
     ? convertTimestampToDate(errorTime)
