@@ -437,6 +437,7 @@ const TRANSFORMER_SCHEMA_CONFIGS = {
   generateIpAddressConfig: generateIpAddressConfig,
   transformUuidConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
   transformScrambleIdentityConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  transformHashConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
 
   transformPiiTextConfig: transformPiiTextConfig,
 } as const;
