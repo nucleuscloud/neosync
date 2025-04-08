@@ -55,6 +55,14 @@ The algorithm works as follows:
 3. Based on the data type, generate a proper value that will fit within that column.
 4. If an unsupported data type is detected, halt the run.
 
+## Passthrough
+
+Passthrough mode is a strategy that allows Neosync to handle new columns found in source tables by setting them to passthrough. This means that any new columns detected in the source database will be included in the table sync and their values will be directly copied from the source to the destination without any transformation.
+
+This strategy is useful when you want to reduce the need for manual updates to job mappings when new columns are added to the source database.
+
+**Note:** It is recommended to use the init schema destination option with the passthrough strategy to ensure that the destination schema is always updated to match the source schema.
+
 ### Postgres
 
 Postgres has many data types and not all of them are currently supported in the auto map mode. Support will continue to increase over time.
@@ -78,12 +86,12 @@ Postgres has many data types and not all of them are currently supported in the 
 | varchar          | ✅      | GenerateString  |
 | text             | ✅      | GenerateString  |
 | bytea            | ❌      |                 |
-| timestamp        | ❌      |                 |
-| timestamptz      | ❌      |                 |
-| date             | ❌      |                 |
-| time             | ❌      |                 |
-| timetz           | ❌      |                 |
-| interval         | ❌      |                 |
+| timestamp        | ✅      |                 |
+| timestamptz      | ✅      |                 |
+| date             | ✅      |                 |
+| time             | ✅      |                 |
+| timetz           | ✅      |                 |
+| interval         | ✅      |                 |
 | boolean          | ✅      | GenerateBool    |
 | point            | ❌      |                 |
 | line             | ❌      |                 |

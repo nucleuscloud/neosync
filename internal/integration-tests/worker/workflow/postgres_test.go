@@ -15,6 +15,7 @@ import (
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
+	schemamanager_shared "github.com/nucleuscloud/neosync/internal/schema-manager/shared"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	tcredis "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/redis"
 	testutil_testdata "github.com/nucleuscloud/neosync/internal/testutil/testdata"
@@ -1525,30 +1526,7 @@ func verify_postgres_schemas(
 	require.NoError(t, err, "failed to get source columns")
 	destColumns, err := destManager.GetColumnsByTables(ctx, schematables)
 	require.NoError(t, err, "failed to get destination columns")
-
-	srcColumnsMap := make(map[string]*sqlmanager_shared.TableColumn)
-	for _, column := range srcColumns {
-		key := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
-		srcColumnsMap[key] = column
-	}
-
-	destColumnsMap := make(map[string]*sqlmanager_shared.TableColumn)
-	for _, column := range destColumns {
-		key := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
-		destColumnsMap[key] = column
-	}
-
-	for _, column := range srcColumns {
-		srcKey := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
-		destColumn, exists := destColumnsMap[srcKey]
-		require.True(t, exists, "source column %s not found in destination", srcKey)
-		verify_postgres_column_spec(t, column, destColumn)
-	}
-	for _, column := range destColumns {
-		destKey := fmt.Sprintf("%s.%s.%s", column.Schema, column.Table, column.Name)
-		_, exists := srcColumnsMap[destKey]
-		require.True(t, exists, "destination column %s not found in source", destKey)
-	}
+	assert_fingerprints_match_in_source_and_target(t, srcColumns, destColumns, "columns")
 
 	t.Logf("checking table constraints are the same in source and destination")
 	srcConstraints, err := srcManager.GetTableConstraintsByTables(ctx, schema, tables)
@@ -1565,19 +1543,8 @@ func verify_postgres_schemas(
 		require.Equal(t, srcfk, destfk, "foreign key constraints do not match for table %s", table)
 		require.Equal(t, srcNonFk, destNonFk, "non-foreign key constraints do not match for table %s", table)
 
-		for _, fk := range srcfk {
-			require.Contains(t, destfk, fk, "destination missing foreign key constraint in table %s", table)
-		}
-		for _, fk := range destfk {
-			require.Contains(t, srcfk, fk, "source missing foreign key constraint in table %s", table)
-		}
-
-		for _, nonFk := range srcNonFk {
-			require.Contains(t, destNonFk, nonFk, "destination missing non-foreign key constraint in table %s", table)
-		}
-		for _, nonFk := range destNonFk {
-			require.Contains(t, srcNonFk, nonFk, "source missing non-foreign key constraint in table %s", table)
-		}
+		assert_fingerprints_match_in_source_and_target(t, srcfk, destfk, "foreign key constraints")
+		assert_fingerprints_match_in_source_and_target(t, srcNonFk, destNonFk, "non-foreign key constraints")
 	}
 
 	t.Logf("checking triggers are the same in source and destination")
@@ -1585,16 +1552,7 @@ func verify_postgres_schemas(
 	require.NoError(t, err, "failed to get source triggers")
 	destTriggers, err := destManager.GetSchemaTableTriggers(ctx, schematables)
 	require.NoError(t, err, "failed to get destination triggers")
-
-	destTriggersMap := make(map[string]*sqlmanager_shared.TableTrigger)
-	for _, trigger := range destTriggers {
-		destTriggersMap[trigger.Fingerprint] = trigger
-	}
-	for _, trigger := range srcTriggers {
-		destTrigger, ok := destTriggersMap[trigger.Fingerprint]
-		require.True(t, ok, "destination missing trigger with fingerprint %s", trigger.Fingerprint)
-		require.Equal(t, trigger.Definition, destTrigger.Definition, "trigger definitions do not match for fingerprint %s", trigger.Fingerprint)
-	}
+	assert_fingerprints_match_in_source_and_target(t, srcTriggers, destTriggers, "triggers")
 
 	srcDatatypes, err := srcManager.GetDataTypesByTables(ctx, schematables)
 	require.NoError(t, err, "failed to get source datatypes")
@@ -1602,51 +1560,32 @@ func verify_postgres_schemas(
 	require.NoError(t, err, "failed to get destination datatypes")
 
 	t.Logf("checking functions are the same in source and destination")
-	for _, function := range srcDatatypes.Functions {
-		assert.Contains(t, destDatatypes.Functions, function, "destination missing function with fingerprint %s", function.Fingerprint)
-	}
-	for _, function := range destDatatypes.Functions {
-		assert.Contains(t, srcDatatypes.Functions, function, "source missing function with fingerprint %s", function.Fingerprint)
-	}
+	assert_fingerprints_match_in_source_and_target(t, srcDatatypes.Functions, destDatatypes.Functions, "functions")
 
 	t.Logf("checking enum are the same in source and destination")
-	for _, enum := range srcDatatypes.Enums {
-		assert.Contains(t, destDatatypes.Enums, enum, "destination missing enum with fingerprint %s", enum.Fingerprint)
-	}
-	for _, enum := range destDatatypes.Enums {
-		assert.Contains(t, srcDatatypes.Enums, enum, "source missing enum with fingerprint %s", enum.Fingerprint)
-	}
+	assert_fingerprints_match_in_source_and_target(t, srcDatatypes.Enums, destDatatypes.Enums, "enums")
 
 	t.Logf("checking composite types are the same in source and destination")
-	for _, composite := range srcDatatypes.Composites {
-		assert.Contains(t, destDatatypes.Composites, composite, "destination missing composite with fingerprint %s", composite.Fingerprint)
-	}
-	for _, composite := range destDatatypes.Composites {
-		assert.Contains(t, srcDatatypes.Composites, composite, "source missing composite with fingerprint %s", composite.Fingerprint)
-	}
+	assert_fingerprints_match_in_source_and_target(t, srcDatatypes.Composites, destDatatypes.Composites, "composites")
 
 	t.Logf("checking domains are the same in source and destination")
-	for _, domain := range srcDatatypes.Domains {
-		assert.Contains(t, destDatatypes.Domains, domain, "destination missing domain with fingerprint %s", domain.Fingerprint)
-	}
-	for _, domain := range destDatatypes.Domains {
-		assert.Contains(t, srcDatatypes.Domains, domain, "source missing domain with fingerprint %s", domain.Fingerprint)
-	}
+	assert_fingerprints_match_in_source_and_target(t, srcDatatypes.Domains, destDatatypes.Domains, "domains")
 }
 
-func verify_postgres_column_spec(
-	t *testing.T,
-	source, target *sqlmanager_shared.TableColumn,
-) {
-	columnName := fmt.Sprintf("%s.%s.%s", source.Schema, source.Table, source.Name)
-	assert.Equal(t, source.Name, target.Name, fmt.Sprintf("column names do not match for column %s", columnName))
-	assert.Equal(t, source.Comment, target.Comment, fmt.Sprintf("column comments do not match for column %s", columnName))
-	assert.Equal(t, source.DataType, target.DataType, fmt.Sprintf("column data types do not match for column %s", columnName))
-	assert.Equal(t, source.IsNullable, target.IsNullable, fmt.Sprintf("column nullability does not match for column %s", columnName))
-	assert.Equal(t, source.IdentityGeneration, target.IdentityGeneration, fmt.Sprintf("column identity generation does not match for column %s", columnName))
-	assert.Equal(t, source.GeneratedType, target.GeneratedType, fmt.Sprintf("column generated types do not match for column %s", columnName))
-	assert.Equal(t, source.GeneratedExpression, target.GeneratedExpression, fmt.Sprintf("column generated expressions do not match for column %s", columnName))
-	assert.Equal(t, source.ColumnDefaultType, target.ColumnDefaultType, fmt.Sprintf("column default types do not match for column %s", columnName))
-	assert.Equal(t, source.SequenceDefinition, target.SequenceDefinition, fmt.Sprintf("column sequence definitions do not match for column %s", columnName))
-	assert.Equal(t, source.ColumnDefault, target.ColumnDefault, fmt.Sprintf("column default values do not match for column %s", columnName))
+func assert_fingerprints_match_in_source_and_target[T schemamanager_shared.FingerprintedType](t *testing.T, source, target []T, label string) {
+	sourceMap := map[string]T{}
+	for _, item := range source {
+		sourceMap[item.GetFingerprint()] = item
+	}
+	targetMap := map[string]T{}
+	for _, item := range target {
+		targetMap[item.GetFingerprint()] = item
+	}
+
+	for fingerprint, item := range sourceMap {
+		assert.Contains(t, targetMap, fingerprint, "%s fingerprint %s not found in target: %v", label, fingerprint, item)
+	}
+	for fingerprint, item := range targetMap {
+		assert.Contains(t, sourceMap, fingerprint, "%s fingerprint %s not found in source: %v", label, fingerprint, item)
+	}
 }

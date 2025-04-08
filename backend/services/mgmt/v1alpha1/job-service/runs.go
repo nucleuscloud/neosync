@@ -273,6 +273,10 @@ func (s *Service) getEventsByWorkflowId(
 			isRunComplete = true
 		case enums.EVENT_TYPE_WORKFLOW_EXECUTION_TIMED_OUT:
 			isRunComplete = true
+		case enums.EVENT_TYPE_WORKFLOW_EXECUTION_TERMINATED:
+			isRunComplete = true
+		case enums.EVENT_TYPE_WORKFLOW_EXECUTION_CANCELED:
+			isRunComplete = true
 
 		case enums.EVENT_TYPE_START_CHILD_WORKFLOW_EXECUTION_FAILED:
 			isRunComplete = true

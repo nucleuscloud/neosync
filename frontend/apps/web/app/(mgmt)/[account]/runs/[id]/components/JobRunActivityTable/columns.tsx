@@ -1,7 +1,8 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, Row } from '@tanstack/react-table';
 
+import { SchemaColumnHeader } from '@/components/jobs/SchemaTable/SchemaColumnHeader';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { formatDateTimeMilliseconds } from '@/util/util';
@@ -9,7 +10,6 @@ import { Timestamp, timestampDate } from '@bufbuild/protobuf/wkt';
 import { JobRunEvent, JobRunEventTaskError } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { getJobSyncMetadata } from './data-table';
-import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 interface GetColumnsProps {
   onViewSelectClicked(schema: string, table: string): void;
@@ -21,23 +21,21 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
   return [
     {
       accessorKey: 'id',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Id" />
-      ),
+      header: ({ column }) => <SchemaColumnHeader column={column} title="Id" />,
       cell: ({ row }) => <div>{row.getValue<number>('id').toString()}</div>,
-      enableSorting: false,
-      enableHiding: false,
+      filterFn: 'includesString',
     },
     {
       accessorKey: 'scheduleTime',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Scheduled" />
+        <SchemaColumnHeader column={column} title="Scheduled" />
       ),
+      enableColumnFilter: false,
       cell: ({ row }) => {
-        const scheduledTime = row.original.tasks.find(
+        const scheduledTime = row.original.tasks?.find(
           (item) =>
-            item.type == 'ActivityTaskScheduled' ||
-            item.type == 'StartChildWorkflowExecutionInitiated'
+            item.type === 'ActivityTaskScheduled' ||
+            item.type === 'StartChildWorkflowExecutionInitiated'
         )?.eventTime;
         return (
           <div className="flex space-x-2">
@@ -52,8 +50,9 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
     {
       accessorKey: 'startTime',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Start Time" />
+        <SchemaColumnHeader column={column} title="Start Time" />
       ),
+      enableColumnFilter: false,
       cell: ({ row }) => {
         const startTime = row.getValue<Timestamp>('startTime');
         return (
@@ -69,12 +68,13 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
     {
       accessorKey: 'closeTime',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Completed" />
+        <SchemaColumnHeader column={column} title="Completed" />
       ),
+      enableColumnFilter: false,
       cell: ({ row }) => {
         const closeTime =
           row.original.closeTime ??
-          row.original.tasks.find(
+          row.original.tasks?.find(
             (item) =>
               item.type === 'ActivityTaskCompleted' ||
               item.type === 'ActivityTaskFailed' ||
@@ -102,7 +102,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
     {
       accessorKey: 'type',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Type" />
+        <SchemaColumnHeader column={column} title="Type" />
       ),
       cell: ({ row }) => {
         return (
@@ -117,7 +117,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
     {
       accessorKey: 'schema',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Schema" />
+        <SchemaColumnHeader column={column} title="Schema" />
       ),
       cell: ({ row }) => {
         const metadata = getJobSyncMetadata(
@@ -134,11 +134,12 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
           </div>
         );
       },
+      filterFn: schemaColumnFilterFn,
     },
     {
       accessorKey: 'table',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Table" />
+        <SchemaColumnHeader column={column} title="Table" />
       ),
       cell: ({ row }) => {
         const metadata = getJobSyncMetadata(
@@ -155,6 +156,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
           </div>
         );
       },
+      filterFn: tableColumnFilterFn,
     },
 
     {
@@ -162,8 +164,9 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
       accessorFn: (originalRow, _) =>
         originalRow.tasks.find((t) => t.error)?.error,
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Error" />
+        <SchemaColumnHeader column={column} title="Error" />
       ),
+      enableColumnFilter: false,
       cell: ({ row }) => {
         const err = row.getValue<JobRunEventTaskError>('error');
         return (
@@ -204,4 +207,30 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
       },
     },
   ];
+}
+
+function schemaColumnFilterFn(
+  row: Row<JobRunEvent>,
+  columnId: string,
+  filterValue: any // eslint-disable-line @typescript-eslint/no-explicit-any
+): boolean {
+  const metadata = getJobSyncMetadata(row.original.metadata);
+  const value = metadata?.schema;
+  if (!value) {
+    return false;
+  }
+  return value.toLowerCase().includes(filterValue.toLowerCase());
+}
+
+function tableColumnFilterFn(
+  row: Row<JobRunEvent>,
+  columnId: string,
+  filterValue: any // eslint-disable-line @typescript-eslint/no-explicit-any
+): boolean {
+  const metadata = getJobSyncMetadata(row.original.metadata);
+  const value = metadata?.table;
+  if (!value) {
+    return false;
+  }
+  return value.toLowerCase().includes(filterValue.toLowerCase());
 }

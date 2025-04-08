@@ -26,7 +26,7 @@ A Helm chart for the Neosync App
 | datadog.enabled | bool | `false` | Whether or not to apply the default Datadog annotations/labels to the deployment |
 | deploymentAnnotations | object | `{}` | Provide a map of deployment annotations that will be attached to the deployment's annotations |
 | disableGcpCloudStorageConnections | bool | `false` | Feature flag that will disable GCP Cloud Storage Connections from being visible. Note: This only disables the new connections form and is a temporary flag until authentication in the multi-tenant environment is better understood. |
-| enableRunLogs | bool | `true` | Feature flag that enables the frontend to show the run logs on the Run [id] page. only enable this if the backend has been configured to surface run logs |
+| enableRunLogs | bool | `false` | Feature flag that enables the frontend to show the run logs on the Run [id] page. only enable this if the backend has been configured to surface run logs. Requires EE License |
 | extraEnvVars | list | `[]` | Provide extra environment variables that will be applied to the deployment. |
 | fullnameOverride | string | `nil` | Fully overrides the chart name |
 | host | string | `"0.0.0.0"` | Sets the host that the backend will listen on. 0.0.0.0 is common for Kubernetes workloads. |
