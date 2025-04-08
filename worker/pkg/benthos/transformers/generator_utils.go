@@ -190,7 +190,7 @@ func extractParamDescription(line string) string {
 	return regexExtract(line, regexp.MustCompile(`\.Description\("([^"]*)"\)`))
 }
 
-func extractParamTypeAndName(line string) (string, string) {
+func extractParamTypeAndName(line string) (typestr, name string) {
 	regex := regexp.MustCompile(`.New(\w+)Param\("(\w+)"\)`)
 	valueMatches := regex.FindStringSubmatch(line)
 	if len(valueMatches) == 3 {

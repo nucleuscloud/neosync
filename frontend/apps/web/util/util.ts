@@ -13,6 +13,7 @@ import {
   SystemTransformerSchema,
   TransformerDataType,
   TransformerSource,
+  TransformHash_HashType,
   UserDefinedTransformer,
 } from '@neosync/sdk';
 import { format } from 'date-fns';
@@ -152,6 +153,13 @@ export function getStorageClassString(
   storageclass: AwsS3DestinationConnectionOptions_StorageClass
 ): string {
   const value = AwsS3DestinationConnectionOptions_StorageClass[storageclass];
+  return value ? value.toLowerCase() : 'unknown';
+}
+
+export function getTransformHashTypeString(
+  hashType: TransformHash_HashType
+): string {
+  const value = TransformHash_HashType[hashType];
   return value ? value.toLowerCase() : 'unknown';
 }
 

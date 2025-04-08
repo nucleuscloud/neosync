@@ -1,8 +1,8 @@
 package transformers
 
 import (
-	"crypto/md5"
-	"crypto/sha1"
+	"crypto/md5"  //nolint:gosec
+	"crypto/sha1" //nolint:gosec
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
@@ -107,8 +107,12 @@ func NewTransformHashOptsFromConfig(config *mgmtv1alpha1.TransformHash) (*Transf
 	if config == nil {
 		return NewTransformHashOpts(&defaultAlgo)
 	}
-	algo := config.GetAlgo().String()
-	return NewTransformHashOpts(&algo)
+	var algo *string
+	if config.Algo != nil {
+		algoTypeStr := NewTransformHashAlgoFromDto(config.GetAlgo()).String()
+		algo = &algoTypeStr
+	}
+	return NewTransformHashOpts(algo)
 }
 
 func (t *TransformHash) Transform(value, opts any) (any, error) {

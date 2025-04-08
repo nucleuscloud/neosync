@@ -60,6 +60,11 @@ type TransformerConfig struct {
 	TransformUuid              *TransformUuidConfig             `json:"transformUuid,omitempty"`
 	TransformScrambleIdentity  *TransformScrambleIdentityConfig `json:"transformScrambleIdentity,omitempty"`
 	TransformPiiText           string                           `json:"transformPiiText,omitempty"`
+	TransformHash              *TransformHashConfig             `json:"transformHash,omitempty"`
+}
+
+type TransformHashConfig struct {
+	Algo *int32 `json:"algo,omitempty"`
 }
 
 type TransformScrambleIdentityConfig struct{}
@@ -410,6 +415,10 @@ func (t *TransformerConfig) FromTransformerConfigDto(tr *mgmtv1alpha1.Transforme
 			return fmt.Errorf("unable to marshal transform pii text config: %w", err)
 		}
 		t.TransformPiiText = string(bits)
+	case *mgmtv1alpha1.TransformerConfig_TransformHashConfig:
+		t.TransformHash = &TransformHashConfig{
+			Algo: (*int32)(tr.GetTransformHashConfig().Algo),
+		}
 	default:
 		t = &TransformerConfig{}
 	}
@@ -793,6 +802,14 @@ func (t *TransformerConfig) ToTransformerConfigDto() (*mgmtv1alpha1.TransformerC
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{
 				TransformPiiTextConfig: v,
+			},
+		}, nil
+	case t.TransformHash != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformHashConfig{
+				TransformHashConfig: &mgmtv1alpha1.TransformHash{
+					Algo: (*mgmtv1alpha1.TransformHash_HashType)(t.TransformHash.Algo),
+				},
 			},
 		}, nil
 	default:
