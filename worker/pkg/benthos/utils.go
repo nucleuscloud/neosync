@@ -47,6 +47,7 @@ func IsCriticalError(errMsg string) bool {
 		"ON CONFLICT does not support deferrable unique constraints",
 		"ON CONFLICT",
 		"SQLSTATE", // any sqlstate error should result in ending
+		"goqu_encode_error",
 		"doesn't have a default value",
 		"column does not allow nulls",
 	}

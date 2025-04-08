@@ -191,9 +191,15 @@ func getPgxValue(
 			return string(byteSlice), nil
 		}
 		return value, nil
-	default:
-		return value, nil
 	}
+	if gotypeutil.IsMap(value) {
+		bits, err := json.Marshal(value)
+		if err != nil {
+			return nil, fmt.Errorf("unable to marshal go map to json bits: %w", err)
+		}
+		return bits, nil
+	}
+	return value, nil
 }
 
 func getPgxNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
