@@ -23,6 +23,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
       accessorKey: 'id',
       header: ({ column }) => <SchemaColumnHeader column={column} title="Id" />,
       cell: ({ row }) => <div>{row.getValue<number>('id').toString()}</div>,
+      filterFn: 'includesString',
     },
     {
       accessorKey: 'scheduleTime',
@@ -155,7 +156,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
           </div>
         );
       },
-      filterFn: schemaColumnFilterFn,
+      filterFn: tableColumnFilterFn,
     },
 
     {
@@ -213,7 +214,21 @@ function schemaColumnFilterFn(
   columnId: string,
   filterValue: any // eslint-disable-line @typescript-eslint/no-explicit-any
 ): boolean {
-  const value = row.getValue<string>(columnId);
+  const metadata = getJobSyncMetadata(row.original.metadata);
+  const value = metadata?.schema;
+  if (!value) {
+    return false;
+  }
+  return value.toLowerCase().includes(filterValue.toLowerCase());
+}
+
+function tableColumnFilterFn(
+  row: Row<JobRunEvent>,
+  columnId: string,
+  filterValue: any // eslint-disable-line @typescript-eslint/no-explicit-any
+): boolean {
+  const metadata = getJobSyncMetadata(row.original.metadata);
+  const value = metadata?.table;
   if (!value) {
     return false;
   }
