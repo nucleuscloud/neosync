@@ -70,7 +70,11 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
   });
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-row items-center justify-between">
+        <div className="text-xl font-semibold">Activity Table</div>
+      </div>
+
       <div className="space-y-2 rounded-md border overflow-hidden dark:border-gray-700">
         <Table>
           <TableHeader className="bg-gray-100 dark:bg-gray-800">
@@ -127,7 +131,7 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
         setPagination={setPagination}
         setPageSize={setPageSize}
       />
-    </>
+    </div>
   );
 }
 
