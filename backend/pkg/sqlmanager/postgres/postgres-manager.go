@@ -229,6 +229,7 @@ func (p *PostgresManager) GetTableConstraintsByTables(
 			ConstraintType: row.ConstraintType,
 			Columns:        row.ConstraintColumns,
 			Definition:     row.ConstraintDefinition,
+			Deferrable:     row.Deferrable,
 		}
 		constraint.Fingerprint = sqlmanager_shared.BuildNonForeignKeyConstraintFingerprint(
 			constraint,
@@ -260,6 +261,7 @@ func (p *PostgresManager) GetTableConstraintsByTables(
 			ReferencedTable:    row.ReferencedTable,
 			ReferencedColumns:  row.ReferencedColumns,
 			NotNullable:        row.NotNullable,
+			Deferrable:         row.Deferrable,
 		}
 		constraint.Fingerprint = sqlmanager_shared.BuildForeignKeyConstraintFingerprint(constraint)
 		result[key].ForeignKeyConstraints = append(result[key].ForeignKeyConstraints, constraint)

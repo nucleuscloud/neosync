@@ -205,6 +205,7 @@ type ForeignKeyConstraint struct {
 	NotNullable        []bool
 	UpdateRule         *string
 	DeleteRule         *string
+	Deferrable         bool
 }
 
 func (f *ForeignKeyConstraint) GetFingerprint() string {
@@ -219,6 +220,7 @@ type NonForeignKeyConstraint struct {
 	TableName      string
 	Columns        []string
 	Definition     string
+	Deferrable     bool
 }
 
 func (n *NonForeignKeyConstraint) GetFingerprint() string {
