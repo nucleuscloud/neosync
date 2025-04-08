@@ -112,6 +112,17 @@ declare namespace neosync {
 	declare function transformFullName(value: any, options: TransformFullNameOptions): any;
 
 	
+	export interface TransformHashOptions {
+		/** The hashing algorithm to use. Oneof: md5, sha1, sha256, sha512. Defaults to md5. */
+		algo?: string;
+	}
+
+  /**
+   * Transforms input into a hash based on the configured algorithm
+   */
+	declare function transformHash(value: any, options: TransformHashOptions): any;
+
+	
 	export interface TransformInt64Options {
 		/** Specifies the minimum value for the range of the int. */
 		randomizationRangeMin?: number;

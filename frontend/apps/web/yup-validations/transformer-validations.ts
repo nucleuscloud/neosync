@@ -371,6 +371,10 @@ const generateIpAddressConfig = Yup.object({
   ipType: Yup.string().default('GENERATE_IP_ADDRESS_TYPE_V4_PUBLIC'),
 });
 
+const transfromHashConfig = Yup.object({
+  algo: Yup.string().default('TRANSFORM_HASH_ALGO_SHA256'),
+});
+
 type ConfigType = TransformerConfig['config'];
 
 // Helper function to extract the 'case' property from a config type
@@ -437,6 +441,7 @@ const TRANSFORMER_SCHEMA_CONFIGS = {
   generateIpAddressConfig: generateIpAddressConfig,
   transformUuidConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
   transformScrambleIdentityConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  transformHashConfig: transfromHashConfig,
 
   transformPiiTextConfig: transformPiiTextConfig,
 } as const;

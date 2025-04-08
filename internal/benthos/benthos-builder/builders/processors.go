@@ -832,6 +832,12 @@ func computeMutationFunction(
 			return "", fmt.Errorf("unable to build bloblang string for TransformPiiText: %w", err)
 		}
 		return bloblangString, nil
+	case *mgmtv1alpha1.TransformerConfig_TransformHashConfig:
+		opts, err := transformers.NewTransformHashOptsFromConfig(cfg.TransformHashConfig)
+		if err != nil {
+			return "", fmt.Errorf("error in TransformHashOptsFromConfig: %w", err)
+		}
+		return opts.BuildBloblangString(formattedColPath), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer: %T", cfg)
 	}
