@@ -6,7 +6,7 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"hash"
 
@@ -120,62 +120,69 @@ func (t *TransformHash) Transform(value, opts any) (any, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
-
-	valueStr, ok := value.(string)
-	if !ok {
-		return nil, errors.New("value is not a string")
-	}
 	hashFunc := hashToFunction(TransformHashAlgo(parsedOpts.algo))
-	return hashFunc(valueStr)
+	return hashFunc(value)
 }
 
-func hashToFunction(algo TransformHashAlgo) func(any) (string, error) {
+func hashToFunction(algo TransformHashAlgo) func(any) (*string, error) {
 	switch algo {
 	case TransformHashAlgo_Md5:
-		return func(a any) (string, error) {
+		return func(a any) (*string, error) {
 			return generateHash(md5.New(), a) //nolint:gosec
 		}
 	case TransformHashAlgo_Sha1:
-		return func(a any) (string, error) {
+		return func(a any) (*string, error) {
 			return generateHash(sha1.New(), a) //nolint:gosec
 		}
 	case TransformHashAlgo_Sha256:
-		return func(a any) (string, error) {
+		return func(a any) (*string, error) {
 			return generateHash(sha256.New(), a)
 		}
 	case TransformHashAlgo_Sha512:
-		return func(a any) (string, error) {
+		return func(a any) (*string, error) {
 			return generateHash(sha512.New(), a)
 		}
 	default:
-		return func(a any) (string, error) {
+		return func(a any) (*string, error) {
 			return generateHash(md5.New(), a) //nolint:gosec
 		}
 	}
 }
 
-func generateHash(hasher hash.Hash, value any) (string, error) {
-	valueStr, err := valueToStringForHash(value)
+func generateHash(hasher hash.Hash, value any) (*string, error) {
+	if value == nil {
+		return nil, nil
+	} else if value == "" {
+		emptyStr := ""
+		return &emptyStr, nil
+	}
+
+	bits, err := convertAnyToBytes(value)
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("failed to convert value to bytes: %w", err)
 	}
-	return hashToString(hasher, valueStr)
+	hashStr, err := hashToString(hasher, bits)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash value: %w", err)
+	}
+	return &hashStr, nil
 }
 
-func valueToStringForHash(value any) (string, error) {
-	switch v := value.(type) {
-	case string:
-		return v, nil
+func convertAnyToBytes(v any) ([]byte, error) {
+	switch x := v.(type) {
+	case nil:
+		return nil, nil
 	case []byte:
-		return string(v), nil
-	// todo: handle more types
+		return x, nil
+	case string:
+		return []byte(x), nil
 	default:
-		return "", fmt.Errorf("invalid value type: %T", value)
+		return json.Marshal(x)
 	}
 }
 
-func hashToString(hasher hash.Hash, input string) (string, error) {
-	_, err := hasher.Write([]byte(input))
+func hashToString(hasher hash.Hash, input []byte) (string, error) {
+	_, err := hasher.Write(input)
 	if err != nil {
 		return "", err
 	}
