@@ -1601,13 +1601,14 @@ func getTableDeferrableMap(
 				for table, cons := range constraints {
 					hasDeferrableConstraint := false
 					for _, fk := range cons.ForeignKeyConstraints {
-						if fk.Deferrable {
-							mutx.Lock()
-							tableDeferrableMap[table] = true
-							mutx.Unlock()
-							hasDeferrableConstraint = true
-							break
+						if !fk.Deferrable {
+							continue
 						}
+						mutx.Lock()
+						tableDeferrableMap[table] = true
+						mutx.Unlock()
+						hasDeferrableConstraint = true
+						break
 					}
 					if !hasDeferrableConstraint {
 						for _, constraint := range cons.NonForeignKeyConstraints {
