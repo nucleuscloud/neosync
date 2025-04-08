@@ -2,20 +2,25 @@ package neosync_benthos_sql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"slices"
-	"strings"
 	"sync"
 
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	"github.com/jackc/pgconn"
 	"github.com/lib/pq"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"github.com/redpanda-data/benthos/v4/public/service"
+)
+
+const (
+	pgUniqueViolation = "23505"
 )
 
 func sqlInsertOutputSpec() *service.ConfigSpec {
@@ -359,11 +364,15 @@ func (s *pooledInsertOutput) postgresUpsert(
 		}
 		columns = append(columns, col)
 	}
+	if len(columns) == 0 {
+		s.logger.Debug("no columns to update, skipping upsert")
+		return nil
+	}
 
 	for _, row := range rows {
 		insertQuery, args, err := s.queryBuilder.BuildInsertQuery([]map[string]any{row})
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to build insert query: %w", err)
 		}
 		_, err = db.ExecContext(ctx, insertQuery, args...)
 		if err != nil {
@@ -371,8 +380,7 @@ func (s *pooledInsertOutput) postgresUpsert(
 			if s.skipForeignKeyViolations && neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 				continue
 			}
-			pqErr, ok := err.(*pq.Error)
-			if (ok && pqErr.Code == "23505") || strings.Contains(err.Error(), "duplicate key value violates") {
+			if isPostgresUniqueViolation(err) {
 				// conflict error, do update
 				if s.onConflictDoUpdate {
 					s.logger.Debug("detected conflict, doing update")
@@ -385,19 +393,37 @@ func (s *pooledInsertOutput) postgresUpsert(
 						row,
 					)
 					if err != nil {
-						return err
+						return fmt.Errorf("failed to build update query: %w", err)
 					}
 					_, err = db.ExecContext(ctx, updateQuery)
 					if err != nil {
-						return err
+						return fmt.Errorf("failed to execute pg update: %w", err)
 					}
 				}
 			} else {
-				return fmt.Errorf("failed to execute pg update: %w", err)
+				return fmt.Errorf("failed to execute pg upsert: %w", err)
 			}
 		}
 	}
 	return nil
+}
+
+func isPostgresUniqueViolation(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == pgUniqueViolation
+	}
+
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) {
+		return pqErr.Code == pgUniqueViolation
+	}
+
+	return false
 }
 
 func (s *pooledInsertOutput) Close(ctx context.Context) error {
