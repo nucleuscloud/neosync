@@ -80,7 +80,7 @@ interface SortButtonWithTooltipProps<TData, TValue> {
   tooltip: string;
 }
 
-export function SortButtonWithTooltip<TData, TValue>({
+function SortButtonWithTooltip<TData, TValue>({
   column,
   tooltip,
 }: SortButtonWithTooltipProps<TData, TValue>): ReactElement {
