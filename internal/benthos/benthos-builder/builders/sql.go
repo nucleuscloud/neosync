@@ -39,7 +39,8 @@ type sqlSyncBuilder struct {
 	mergedSchemaColumnMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
 	configQueryMap        map[string]*sqlmanager_shared.SelectQuery                  // config id -> query info
 
-	jobMappings []*shared.JobTransformationMapping
+	jobMappings        []*shared.JobTransformationMapping
+	tableDeferrableMap map[string]bool // schema.table -> true if table has at least one deferrable constraint
 }
 
 func NewSqlSyncBuilder(
@@ -157,6 +158,13 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(
 	b.jobMappings = jobMappings // needed when building destination config
 
 	uniqueSchemas := shared.GetUniqueSchemasFromMappings(jobMappings)
+
+	schemaTablesMap := shared.GetSchemaTablesMapFromMappings(jobMappings)
+	tableDeferrableMap, err := getTableDeferrableMap(ctx, db, sourceConnection, schemaTablesMap)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get table deferrable map: %w", err)
+	}
+	b.tableDeferrableMap = tableDeferrableMap
 
 	tableConstraints, err := db.Db().GetTableConstraintsBySchema(ctx, uniqueSchemas)
 	if err != nil {
@@ -542,6 +550,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(
 			return nil, err
 		}
 
+		hasDeferrableConstraint := b.tableDeferrableMap[tableKey]
 		prefix, suffix := getInsertPrefixAndSuffix(b.driver, benthosConfig.TableSchema, benthosConfig.TableName, columnDefaultProperties)
 		config.Outputs = append(config.Outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
@@ -555,6 +564,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(
 						ColumnUpdatesDisallowed:     columnUpdatesDisallowed,
 						OnConflictDoNothing:         destOpts.OnConflictDoNothing,
 						OnConflictDoUpdate:          destOpts.OnConflictDoUpdate,
+						HasDeferrableConstraint:     hasDeferrableConstraint, // postgres only
 						SkipForeignKeyViolations:    skipForeignKeyViolations,
 						ShouldOverrideColumnDefault: shouldOverrideColumnDefault(columnDefaultProperties),
 						TruncateOnRetry:             destOpts.Truncate,

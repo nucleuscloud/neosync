@@ -161,6 +161,26 @@ func GetUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string
 	return filteredTables
 }
 
+func GetSchemaTablesMapFromMappings(mappings []*JobTransformationMapping) map[string][]string {
+	schemaTablesMap := map[string]map[string]struct{}{}
+	for _, mapping := range mappings {
+		_, ok := schemaTablesMap[mapping.Schema]
+		if !ok {
+			schemaTablesMap[mapping.Schema] = map[string]struct{}{}
+		}
+		schemaTablesMap[mapping.Schema][mapping.Table] = struct{}{}
+	}
+
+	output := map[string][]string{}
+	for schema, tables := range schemaTablesMap {
+		output[schema] = make([]string, 0, len(tables))
+		for table := range tables {
+			output[schema] = append(output[schema], table)
+		}
+	}
+	return output
+}
+
 func GetRedisConfig() *neosync_redis.RedisConfig {
 	redisUrl := viper.GetString("REDIS_URL")
 	if redisUrl == "" {

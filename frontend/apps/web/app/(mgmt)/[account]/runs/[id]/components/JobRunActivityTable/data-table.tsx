@@ -2,12 +2,12 @@
 
 import {
   ColumnDef,
-  SortingState,
   VisibilityState,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
@@ -40,7 +40,6 @@ interface DataTableProps {
 export function DataTable({ columns, data, isError }: DataTableProps) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({ error: isError, id: false });
-  const [sorting, setSorting] = React.useState<SortingState>([]);
   React.useEffect(() => {
     setColumnVisibility({ error: isError });
   }, [isError]);
@@ -55,22 +54,25 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
     data,
     columns,
     state: {
-      sorting,
       columnVisibility,
       pagination: { pageIndex: pagination, pageSize: pageSize },
     },
     getRowCanExpand: () => true,
-    onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFilteredRowModel: getFilteredRowModel(),
   });
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-row items-center justify-between">
+        <div className="text-xl font-semibold">Activity Table</div>
+      </div>
+
       <div className="space-y-2 rounded-md border overflow-hidden dark:border-gray-700">
         <Table>
           <TableHeader className="bg-gray-100 dark:bg-gray-800">
@@ -115,7 +117,7 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No active runs found
+                  No activities found
                 </TableCell>
               </TableRow>
             )}
@@ -127,7 +129,7 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
         setPagination={setPagination}
         setPageSize={setPageSize}
       />
-    </>
+    </div>
   );
 }
 

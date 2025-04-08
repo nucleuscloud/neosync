@@ -2,6 +2,8 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/libs/utils';
@@ -24,6 +26,7 @@ import {
   CheckCircledIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  Cross2Icon,
   CrossCircledIcon,
   MinusCircledIcon,
   MixerHorizontalIcon,
@@ -50,16 +53,19 @@ const defaultRowHeight = 40;
 
 type RunStatus = 'running' | 'completed' | 'failed' | 'canceled' | 'terminated';
 
+const INITIAL_STATUSES: RunStatus[] = [
+  'running',
+  'completed',
+  'failed',
+  'canceled',
+  'terminated',
+];
+
 export default function RunTimeline(props: Props): ReactElement {
   const { jobRunEvents, jobStatus } = props;
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
-  const [selectedStatuses, setSelectedStatuses] = useState<RunStatus[]>([
-    'running',
-    'completed',
-    'failed',
-    'canceled',
-    'terminated',
-  ]);
+  const [selectedStatuses, setSelectedStatuses] =
+    useState<RunStatus[]>(INITIAL_STATUSES);
 
   const { timelineStart, totalDuration, timeLabels } = useMemo(() => {
     // find earliest start date out of all of the activities
@@ -77,7 +83,10 @@ export default function RunTimeline(props: Props): ReactElement {
         convertTimestampToDate(scheduled).getTime()
       );
 
-      const closeTime = getCloseOrErrorOrCancelDate(t);
+      const closeTime = getCloseOrErrorOrCancelDate(
+        t,
+        getTaskStatus(t, jobStatus)
+      );
       endTime = Math.max(
         endTime,
         closeTime.getTime(),
@@ -135,6 +144,8 @@ export default function RunTimeline(props: Props): ReactElement {
         <StatusFilter
           selectedStatuses={selectedStatuses}
           onStatusChange={handleStatusFilterChange}
+          onReset={() => setSelectedStatuses(INITIAL_STATUSES)}
+          onClear={() => setSelectedStatuses([])}
         />
       </div>
       <div className="w-full relative border border-gray-200 dark:border-gray-700 rounded overflow-y-scroll max-h-[400px]">
@@ -264,7 +275,7 @@ function TimelineBar(props: TimelineBarProps) {
     isLastItem,
   } = props;
 
-  const scheduled = jobRunEvent.tasks.find(
+  const scheduled = jobRunEvent.tasks?.find(
     (st) =>
       st.type == 'ActivityTaskScheduled' ||
       st.type == 'StartChildWorkflowExecutionInitiated'
@@ -276,7 +287,10 @@ function TimelineBar(props: TimelineBarProps) {
     timelineStart,
     totalDuration
   );
-  const endTime = getCloseOrErrorOrCancelDate(jobRunEvent);
+  const endTime = getCloseOrErrorOrCancelDate(
+    jobRunEvent,
+    getTaskStatus(jobRunEvent, jobStatus)
+  );
   const width =
     getPositionPercentage(endTime, timelineStart, totalDuration) - left;
   const status = getTaskStatus(jobRunEvent, jobStatus);
@@ -411,7 +425,10 @@ function convertTimestampToDate(timestamp: Timestamp | undefined): Date {
 
 // calculates the last time if the job is not successful so we can give the timeline an end date
 // TODO: this should be revisited
-function getCloseOrErrorOrCancelDate(jobRunEvent: JobRunEvent): Date {
+function getCloseOrErrorOrCancelDate(
+  jobRunEvent: JobRunEvent,
+  runStatus: RunStatus
+): Date {
   const errorTask = jobRunEvent.tasks.find((item) => item.error);
   const errorTime = errorTask ? errorTask.eventTime : undefined;
   const cancelTime = jobRunEvent.tasks.find(
@@ -424,6 +441,17 @@ function getCloseOrErrorOrCancelDate(jobRunEvent: JobRunEvent): Date {
       t.type === 'ChildWorkflowExecutionTerminated' ||
       t.type === 'ChildWorkflowExecutionTimedOut'
   )?.eventTime;
+  if (
+    !errorTime &&
+    !cancelTime &&
+    !jobRunEvent.closeTime &&
+    runStatus !== 'running'
+  ) {
+    if (jobRunEvent.startTime) {
+      return convertTimestampToDate(jobRunEvent.startTime);
+    }
+    return new Date(); // this will result in a constantly increasing time but the startTime should always be present
+  }
 
   return errorTime
     ? convertTimestampToDate(errorTime)
@@ -485,54 +513,94 @@ function ActivityStatus({ status }: { status: RunStatus }) {
 interface StatusFilterProps {
   selectedStatuses: RunStatus[];
   onStatusChange: (status: RunStatus, checked: boolean) => void;
+  onReset(): void;
+  onClear(): void;
 }
 
 // would be nice to replace with a multi-select so you don't have to open/close it everytime you want to make a change
-function StatusFilter({ selectedStatuses, onStatusChange }: StatusFilterProps) {
+function StatusFilter({
+  selectedStatuses,
+  onStatusChange,
+  onReset,
+  onClear,
+}: StatusFilterProps) {
   const uniqueSelectedStatuses = new Set(selectedStatuses);
 
+  const isFiltered = selectedStatuses.length < INITIAL_STATUSES.length;
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline">
-          {' '}
-          <MixerHorizontalIcon className="mr-2 h-4 w-4" />
-          Status
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56">
-        <DropdownMenuCheckboxItem
-          checked={uniqueSelectedStatuses.has('running')}
-          onCheckedChange={(checked) => onStatusChange('running', checked)}
-        >
-          Running
-        </DropdownMenuCheckboxItem>
-        <DropdownMenuCheckboxItem
-          checked={uniqueSelectedStatuses.has('completed')}
-          onCheckedChange={(checked) => onStatusChange('completed', checked)}
-        >
-          Completed
-        </DropdownMenuCheckboxItem>
-        <DropdownMenuCheckboxItem
-          checked={uniqueSelectedStatuses.has('failed')}
-          onCheckedChange={(checked) => onStatusChange('failed', checked)}
-        >
-          Failed
-        </DropdownMenuCheckboxItem>
-        <DropdownMenuCheckboxItem
-          checked={uniqueSelectedStatuses.has('canceled')}
-          onCheckedChange={(checked) => onStatusChange('canceled', checked)}
-        >
-          Canceled
-        </DropdownMenuCheckboxItem>
-        <DropdownMenuCheckboxItem
-          checked={uniqueSelectedStatuses.has('terminated')}
-          onCheckedChange={(checked) => onStatusChange('terminated', checked)}
-        >
-          Terminated
-        </DropdownMenuCheckboxItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex flex-row gap-2 items-center">
+      {isFiltered && (
+        <div>
+          <Button
+            variant="outline"
+            onClick={onReset}
+            className="h-8 px-2 lg:px-3"
+          >
+            Reset
+            <Cross2Icon className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      )}
+      <div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" type="button">
+              <MixerHorizontalIcon className="mr-2 h-4 w-4" />
+              Status
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            <DropdownMenuLabel
+              className="cursor-default select-none px-8 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 rounded-sm"
+              onClick={() => onReset()}
+            >
+              Select All
+            </DropdownMenuLabel>
+            <DropdownMenuLabel
+              className="cursor-default select-none px-8 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 rounded-sm"
+              onClick={() => onClear()}
+            >
+              Deselect All
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuCheckboxItem
+              checked={uniqueSelectedStatuses.has('running')}
+              onCheckedChange={(checked) => onStatusChange('running', checked)}
+            >
+              Running
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={uniqueSelectedStatuses.has('completed')}
+              onCheckedChange={(checked) =>
+                onStatusChange('completed', checked)
+              }
+            >
+              Completed
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={uniqueSelectedStatuses.has('failed')}
+              onCheckedChange={(checked) => onStatusChange('failed', checked)}
+            >
+              Failed
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={uniqueSelectedStatuses.has('canceled')}
+              onCheckedChange={(checked) => onStatusChange('canceled', checked)}
+            >
+              Canceled
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={uniqueSelectedStatuses.has('terminated')}
+              onCheckedChange={(checked) =>
+                onStatusChange('terminated', checked)
+              }
+            >
+              Terminated
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
   );
 }
 
