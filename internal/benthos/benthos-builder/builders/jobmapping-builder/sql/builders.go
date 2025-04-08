@@ -31,17 +31,24 @@ type SqlJobMappingBuilder struct {
 
 	sourceSchemaRows map[string]map[string][]*sqlmanager_shared.DatabaseSchemaRow
 	destSchemaRows   map[string]map[string][]*sqlmanager_shared.DatabaseSchemaRow
+
+	driver string
+	logger *slog.Logger
 }
 
 func NewSqlJobMappingBuilder(
 	schemaSettings *cascade_settings.CascadeSchemaSettings,
 	sourceSchemaRows map[string]map[string][]*sqlmanager_shared.DatabaseSchemaRow,
 	destSchemaRows map[string]map[string][]*sqlmanager_shared.DatabaseSchemaRow,
+	driver string,
+	logger *slog.Logger,
 ) *SqlJobMappingBuilder {
 	return &SqlJobMappingBuilder{
 		schemaSettings:   schemaSettings,
 		sourceSchemaRows: sourceSchemaRows,
 		destSchemaRows:   destSchemaRows,
+		driver:           driver,
+		logger:           logger,
 	}
 }
 
@@ -156,24 +163,21 @@ func (c *SqlJobMappingBuilder) getColumnTransforms(
 			if _, ok := output[columnRow.ColumnName]; !ok {
 				switch colStrat.MapAllColumns.GetColumnInSourceNotMapped().GetStrategy().(type) {
 				case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_AutoMap_:
-					// todo: handle this, should not be passthrough
-					output[columnRow.ColumnName] = &mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
+					transformer, err := getTransformerConfigByDataType(c.driver, columnRow, c.logger)
+					if err != nil {
+						return nil, fmt.Errorf("unable to get transformer config for column %s: %w", columnRow.ColumnName, err)
 					}
+					output[columnRow.ColumnName] = transformer.GetConfig()
 				case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Passthrough_:
 					output[columnRow.ColumnName] = &mgmtv1alpha1.TransformerConfig{
 						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
 							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
 						},
 					}
-
 				case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Halt_:
-					// todo: handle this
 					return nil, fmt.Errorf("column %s in source but not mapped, and halt is set", columnRow.ColumnName)
 				case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInSourceNotMappedStrategy_Drop_:
-					// todo: handle this
+					delete(output, columnRow.ColumnName)
 				default:
 					output[columnRow.ColumnName] = &mgmtv1alpha1.TransformerConfig{
 						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
@@ -210,19 +214,28 @@ func (c *SqlJobMappingBuilder) getColumnTransforms(
 			}
 		}
 		if len(missingInSourceColumns) > 0 {
-			switch colStrat.MapAllColumns.GetColumnInDestinationNoLongerInSource().GetStrategy().(type) {
+			strat := colStrat.MapAllColumns.GetColumnInDestinationNoLongerInSource().GetStrategy()
+			if strat == nil {
+				strat = &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_AutoMap_{
+					AutoMap: &mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_AutoMap{},
+				}
+			}
+			switch strat.(type) {
 			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_Continue_:
 				// do nothing
 			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_Halt_:
 				return nil, fmt.Errorf("columns in destination but not in source: %s.%s.[%s]", schemaName, tableName, strings.Join(missingInSourceColumns, ", "))
 			case *mgmtv1alpha1.JobTypeConfig_JobTypeSync_ColumnStrategy_ColumnInDestinationNotInSourceStrategy_AutoMap_:
-				// todo: handle this, should not be passthrough
 				for _, colName := range missingInSourceColumns {
-					output[colName] = &mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-							PassthroughConfig: &mgmtv1alpha1.Passthrough{},
-						},
+					destColInfo, ok := destColumnMap[colName]
+					if !ok {
+						return nil, fmt.Errorf("column %s in destination but not in source, and auto map is set", colName)
 					}
+					transformer, err := getTransformerConfigByDataType(c.driver, destColInfo, c.logger)
+					if err != nil {
+						return nil, fmt.Errorf("unable to get transformer config for column %s: %w", colName, err)
+					}
+					output[colName] = transformer.GetConfig()
 				}
 			default:
 				// do nothing, should be the same as auto map
@@ -538,70 +551,59 @@ func getAdditionalJobMappings(
 				if err != nil {
 					return nil, err
 				}
-				// we found a column that is not present in the mappings, let's create a mapping for it
-				if info.ColumnDefault != "" || info.IdentityGeneration != nil ||
-					info.GeneratedType != nil {
-					output = append(output, &mgmtv1alpha1.JobMapping{
-						Schema: schema,
-						Table:  table,
-						Column: col,
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Config: &mgmtv1alpha1.TransformerConfig{
-								Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
-									GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
-								},
-							},
-						},
-					})
-				} else if info.IsNullable {
-					output = append(output, &mgmtv1alpha1.JobMapping{
-						Schema: schema,
-						Table:  table,
-						Column: col,
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Config: &mgmtv1alpha1.TransformerConfig{
-								Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
-									Nullconfig: &mgmtv1alpha1.Null{},
-								},
-							},
-						},
-					})
-				} else {
-					switch driver {
-					case sqlmanager_shared.PostgresDriver:
-						transformer, err := getJmTransformerByPostgresDataType(info)
-						if err != nil {
-							return nil, err
-						}
-						output = append(output, &mgmtv1alpha1.JobMapping{
-							Schema:      schema,
-							Table:       table,
-							Column:      col,
-							Transformer: transformer,
-						})
-					case sqlmanager_shared.MysqlDriver:
-						transformer, err := getJmTransformerByMysqlDataType(info)
-						if err != nil {
-							return nil, err
-						}
-						output = append(output, &mgmtv1alpha1.JobMapping{
-							Schema:      schema,
-							Table:       table,
-							Column:      col,
-							Transformer: transformer,
-						})
-					default:
-						logger.Warn("this driver is not currently supported for additional job mapping by data type")
-						return nil, fmt.Errorf("this driver %q does not currently support additional job mappings by data type. Please provide discrete job mappings for %q.%q.%q to continue: %w",
-							driver, info.TableSchema, info.TableName, info.ColumnName, errors.ErrUnsupported,
-						)
-					}
+				transformer, err := getTransformerConfigByDataType(driver, info, logger)
+				if err != nil {
+					return nil, err
 				}
+				output = append(output, &mgmtv1alpha1.JobMapping{
+					Schema:      schema,
+					Table:       table,
+					Column:      col,
+					Transformer: transformer,
+				})
 			}
 		}
 	}
-
 	return output, nil
+}
+
+// Automap configuration
+func getTransformerConfigByDataType(
+	driver string,
+	info *sqlmanager_shared.DatabaseSchemaRow,
+	logger *slog.Logger,
+) (*mgmtv1alpha1.JobMappingTransformer, error) {
+	// we found a column that is not present in the mappings, let's create a mapping for it
+	if info.ColumnDefault != "" || info.IdentityGeneration != nil ||
+		info.GeneratedType != nil {
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
+					GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
+				},
+			},
+		}, nil
+	} else if info.IsNullable {
+		return &mgmtv1alpha1.JobMappingTransformer{
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
+					Nullconfig: &mgmtv1alpha1.Null{},
+				},
+			},
+		}, nil
+	} else {
+		switch driver {
+		case sqlmanager_shared.PostgresDriver:
+			return getJmTransformerByPostgresDataType(info)
+		case sqlmanager_shared.MysqlDriver:
+			return getJmTransformerByMysqlDataType(info)
+		default:
+			logger.Warn("this driver is not currently supported for additional job mapping by data type")
+			return nil, fmt.Errorf("this driver %q does not currently support additional job mappings by data type. Please provide discrete job mappings for %q.%q.%q to continue: %w",
+				driver, info.TableSchema, info.TableName, info.ColumnName, errors.ErrUnsupported,
+			)
+		}
+	}
 }
 
 func getJmTransformerByPostgresDataType(
