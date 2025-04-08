@@ -26,7 +26,6 @@ export default function JobRunActivityTable(
   return (
     <div className="flex flex-col gap-4">
       <RunTimeline jobRunEvents={jobRunEvents} jobStatus={jobStatus} />
-      <div className="text-xl font-semibold">Activity Table</div>
       <DataTable
         columns={columns}
         data={jobRunEvents}
