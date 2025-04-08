@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	neosynctypes "github.com/nucleuscloud/neosync/internal/neosync-types"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/redpanda-data/benthos/v4/public/service"
@@ -154,8 +155,7 @@ func getMysqlValue(
 		return value, nil
 	}
 
-	switch datatype {
-	case "json":
+	if datatype == "json" {
 		if v, ok := value.([]byte); ok {
 			validJson, err := getValidJson(v)
 			if err != nil {
@@ -171,9 +171,17 @@ func getMysqlValue(
 			return nil, fmt.Errorf("unable to marshal mysql json to bits: %w", err)
 		}
 		return bits, nil
-	default:
-		return value, nil
 	}
+
+	if gotypeutil.IsMap(value) {
+		bits, err := json.Marshal(value)
+		if err != nil {
+			return nil, fmt.Errorf("unable to marshal go map to json bits: %w", err)
+		}
+		return bits, nil
+	}
+
+	return value, nil
 }
 
 func getMysqlNeosyncValue(root any) (value any, isNeosyncValue bool, err error) {
