@@ -174,7 +174,7 @@ func (d *PostgresDriver) buildInsertQuery(
 		}
 		if len(d.options.conflictConfig.onConflictDoUpdate.conflictColumns) == 0 ||
 			len(updateColumns) == 0 {
-			d.logger.Warn(
+			d.logger.Info(
 				"no conflict columns specified for on conflict do update, defaulting to on conflict do nothing",
 			)
 			onConflictDoNothing := true
