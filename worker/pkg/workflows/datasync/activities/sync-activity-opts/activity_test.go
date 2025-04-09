@@ -23,7 +23,7 @@ import (
 )
 
 func Test_New(t *testing.T) {
-	a := New(mgmtv1alpha1connect.NewMockJobServiceClient(t), false)
+	a := New(mgmtv1alpha1connect.NewMockJobServiceClient(t))
 	require.NotNil(t, a)
 }
 
@@ -145,7 +145,7 @@ func Test_Activity(t *testing.T) {
 	srv := startHTTPServer(t, mux)
 
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
-	activity := New(jobclient, false)
+	activity := New(jobclient)
 	env.RegisterActivity(activity.RetrieveActivityOptions)
 
 	t.Run("sync activity options", func(t *testing.T) {
