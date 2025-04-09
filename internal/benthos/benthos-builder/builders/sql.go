@@ -2,10 +2,8 @@ package benthosbuilder_builders
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -13,6 +11,9 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	cascade_settings "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders/jobmapping-builder/settings"
+	jobmapping_builder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders/jobmapping-builder/shared"
+	jobmapping_builder_sql "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders/jobmapping-builder/sql"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
@@ -37,7 +38,9 @@ type sqlSyncBuilder struct {
 	// merged source and destination schema. with preference given to destination schema
 	mergedSchemaColumnMap map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow // schema.table -> column -> column info struct
 	configQueryMap        map[string]*sqlmanager_shared.SelectQuery                  // config id -> query info
-	tableDeferrableMap    map[string]bool                                            // schema.table -> true if table has at least one deferrable constraint
+
+	jobMappings        []*shared.JobTransformationMapping
+	tableDeferrableMap map[string]bool // schema.table -> true if table has at least one deferrable constraint
 }
 
 func NewSqlSyncBuilder(
@@ -54,6 +57,63 @@ func NewSqlSyncBuilder(
 		selectQueryBuilder: selectQueryBuilder,
 		pageLimit:          pageLimit,
 	}
+}
+
+func isLegacyJob(job *mgmtv1alpha1.Job) bool {
+	return len(job.GetMappings()) > 0
+}
+
+func (b *sqlSyncBuilder) hydrateJobMappings(
+	job *mgmtv1alpha1.Job,
+	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+	logger *slog.Logger,
+) ([]*shared.JobTransformationMapping, error) {
+	if isLegacyJob(job) {
+		jmBuilder := jobmapping_builder_sql.NewLegacySqlJobMappingBuilder(job, groupedColumnInfo, b.driver, logger)
+		jobMappings, err := jmBuilder.BuildJobMappings()
+		if err != nil {
+			return nil, fmt.Errorf("unable to build legacy job mappings: %w", err)
+		}
+		return jobMappings, nil
+	}
+
+	syncConfig := job.GetJobType().GetSync()
+	if syncConfig == nil {
+		return nil, fmt.Errorf("unable to hydrate job mappings: sync config not found")
+	}
+
+	schemaTableColumnDbInfo := getSchemaTableColumnDbInfo(groupedColumnInfo)
+
+	jmBuilder := jobmapping_builder_sql.NewSqlJobMappingBuilder(
+		cascade_settings.NewCascadeSchemaSettings(syncConfig, logger),
+		schemaTableColumnDbInfo,
+		schemaTableColumnDbInfo,
+	) // todo: add dest db info
+	jobMappings, err := jmBuilder.BuildJobMappings()
+	if err != nil {
+		return nil, fmt.Errorf("unable to build job mappings: %w", err)
+	}
+	return jobMappings, nil
+}
+
+// outputs schema -> table -> []column info
+func getSchemaTableColumnDbInfo(
+	groupedColumnInfo map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow,
+) map[string]map[string][]*sqlmanager_shared.DatabaseSchemaRow {
+	output := map[string]map[string][]*sqlmanager_shared.DatabaseSchemaRow{}
+
+	for _, columnMap := range groupedColumnInfo {
+		for _, row := range columnMap {
+			tableMap, ok := output[row.TableSchema]
+			if !ok {
+				tableMap = map[string][]*sqlmanager_shared.DatabaseSchemaRow{}
+			}
+			tableMap[row.TableName] = append(tableMap[row.TableName], row)
+			output[row.TableSchema] = tableMap
+		}
+	}
+
+	return output
 }
 
 func (b *sqlSyncBuilder) BuildSourceConfigs(
@@ -89,70 +149,17 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(
 		return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}
 
+	jobMappings, err := b.hydrateJobMappings(job, groupedColumnInfo, logger)
+	if err != nil {
+		return nil, fmt.Errorf("unable to hydrate job mappings: %w", err)
+	}
+
 	b.sqlSourceSchemaColumnInfoMap = groupedColumnInfo
-	if sqlSourceOpts != nil && sqlSourceOpts.HaltOnNewColumnAddition {
-		newColumns, shouldHalt := shouldHaltOnSchemaAddition(groupedColumnInfo, job.Mappings)
-		if shouldHalt {
-			return nil, fmt.Errorf(
-				"%s: [%s]",
-				haltOnSchemaAdditionErrMsg,
-				strings.Join(newColumns, ", "),
-			)
-		}
-	}
+	b.jobMappings = jobMappings // needed when building destination config
 
-	if sqlSourceOpts != nil && sqlSourceOpts.HaltOnColumnRemoval {
-		missing, shouldHalt := isSourceMissingColumnsFoundInMappings(
-			groupedColumnInfo,
-			job.Mappings,
-		)
-		if shouldHalt {
-			return nil, fmt.Errorf(
-				"%s: [%s]",
-				haltOnSchemaAdditionErrMsg,
-				strings.Join(missing, ", "),
-			)
-		}
-	}
+	uniqueSchemas := shared.GetUniqueSchemasFromMappings(jobMappings)
 
-	// remove mappings that are not found in the source
-	existingSourceMappings := removeMappingsNotFoundInSource(job.Mappings, groupedColumnInfo)
-
-	if sqlSourceOpts != nil && sqlSourceOpts.PassthroughOnNewColumnAddition {
-		extraMappings, err := getAdditionalPassthroughJobMappings(
-			groupedColumnInfo,
-			existingSourceMappings,
-			splitKeyToTablePieces,
-			logger,
-		)
-		if err != nil {
-			return nil, err
-		}
-		logger.Debug(
-			fmt.Sprintf("adding %d extra passthrough mappings due to unmapped columns", len(extraMappings)),
-		)
-		existingSourceMappings = append(existingSourceMappings, extraMappings...)
-	}
-
-	if sqlSourceOpts != nil && sqlSourceOpts.GenerateNewColumnTransformers {
-		extraMappings, err := getAdditionalJobMappings(
-			b.driver,
-			groupedColumnInfo,
-			existingSourceMappings,
-			splitKeyToTablePieces,
-			logger,
-		)
-		if err != nil {
-			return nil, err
-		}
-		logger.Debug(
-			fmt.Sprintf("adding %d extra mappings due to unmapped columns", len(extraMappings)),
-		)
-		existingSourceMappings = append(existingSourceMappings, extraMappings...)
-	}
-	uniqueSchemas := shared.GetUniqueSchemasFromMappings(existingSourceMappings)
-
-	schemaTablesMap := shared.GetSchemaTablesMapFromMappings(existingSourceMappings)
+	schemaTablesMap := shared.GetSchemaTablesMapFromMappings(jobMappings)
 	tableDeferrableMap, err := getTableDeferrableMap(ctx, db, sourceConnection, schemaTablesMap)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get table deferrable map: %w", err)
@@ -186,7 +193,7 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(
 		),
 	)
 
-	groupedMappings := groupMappingsByTable(existingSourceMappings)
+	groupedMappings := groupMappingsByTable(jobMappings)
 	groupedTableMapping := getTableMappingsMap(groupedMappings)
 	colTransformerMap := getColumnTransformerMap(
 		groupedTableMapping,
@@ -245,14 +252,6 @@ func (b *sqlSyncBuilder) BuildSourceConfigs(
 	return configs, nil
 }
 
-func splitKeyToTablePieces(key string) (schema, table string, err error) {
-	pieces := strings.SplitN(key, ".", 2)
-	if len(pieces) != 2 {
-		return "", "", errors.New("unable to split key to get schema and table, not 2 pieces")
-	}
-	return pieces[0], pieces[1], nil
-}
-
 // TODO: remove tableDependencies and use runconfig's foreign keys
 func buildBenthosSqlSourceConfigResponses(
 	slogger *slog.Logger,
@@ -274,7 +273,7 @@ func buildBenthosSqlSourceConfigResponses(
 	transformedForeignKeyToSourceMap := getTransformedFksMap(tableDependencies, colTransformerMap)
 
 	for _, config := range runconfigs {
-		mappings, ok := groupedTableMapping[config.Table()]
+		tableMapping, ok := groupedTableMapping[config.Table()]
 		if !ok {
 			return nil, fmt.Errorf("missing column mappings for table: %s", config.Table())
 		}
@@ -325,7 +324,7 @@ func buildBenthosSqlSourceConfigResponses(
 			transformedFktoPkMap,
 			jobId,
 			runId,
-			mappings.Mappings,
+			tableMapping.Mappings,
 			colInfoMap,
 			nil,
 			[]string{},
@@ -337,7 +336,7 @@ func buildBenthosSqlSourceConfigResponses(
 			bc.Pipeline.Processors = append(bc.Pipeline.Processors, *pc)
 		}
 
-		cursors, err := buildIdentityCursors(ctx, transformerclient, mappings.Mappings)
+		cursors, err := buildIdentityCursors(ctx, transformerclient, tableMapping.Mappings)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build identity cursors: %w", err)
 		}
@@ -350,16 +349,16 @@ func buildBenthosSqlSourceConfigResponses(
 
 			BenthosDsns: []*bb_shared.BenthosDsn{{ConnectionId: dsnConnectionId}},
 
-			TableSchema: mappings.Schema,
-			TableName:   mappings.Table,
+			TableSchema: tableMapping.Schema,
+			TableName:   tableMapping.Table,
 			Columns:     config.InsertColumns(),
 			PrimaryKeys: config.PrimaryKeys(),
 
 			ColumnIdentityCursors: cursors,
 
 			Metriclabels: metrics.MetricLabels{
-				metrics.NewEqLabel(metrics.TableSchemaLabel, mappings.Schema),
-				metrics.NewEqLabel(metrics.TableNameLabel, mappings.Table),
+				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
+				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),
 				metrics.NewEqLabel(metrics.JobTypeLabel, "sync"),
 			},
 		})
@@ -372,6 +371,15 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(
 	params *bb_internal.DestinationParams,
 ) (*bb_internal.BenthosDestinationConfig, error) {
 	logger := params.Logger
+	// need to do this due to the CLI not actually calling BuildSource
+	// So we need to conditionally use the job mappings from the builder for the CLI to work properly
+	var jobMappings []*shared.JobTransformationMapping
+	if len(b.jobMappings) > 0 {
+		jobMappings = b.jobMappings
+	} else {
+		jobMappings = jobmapping_builder_shared.JobMappingsFromLegacyMappings(params.Job.GetMappings())
+	}
+
 	benthosConfig := params.SourceConfig
 	tableKey := neosync_benthos.BuildBenthosTable(
 		benthosConfig.TableSchema,
@@ -416,7 +424,7 @@ func (b *sqlSyncBuilder) BuildDestinationConfig(
 	colTransformerMap := b.colTransformerMap
 	// lazy load
 	if len(colTransformerMap) == 0 {
-		groupedMappings := groupMappingsByTable(params.Job.Mappings)
+		groupedMappings := groupMappingsByTable(jobMappings)
 		groupedTableMapping := getTableMappingsMap(groupedMappings)
 		colTMap := getColumnTransformerMap(
 			groupedTableMapping,
