@@ -9,7 +9,7 @@ const config = {
   outputFileTracingRoot: path.join(__dirname, '../../'),
   experimental: process.env.NEXTJS_PROXY_TIMEOUT
     ? {
-        proxyTimeout: parseInt(process.env.NODEJS_PROXY_TIMEOUT),
+        proxyTimeout: parseInt(process.env.NEXTJS_PROXY_TIMEOUT),
       }
     : undefined,
 };
