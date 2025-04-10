@@ -23,6 +23,11 @@ interface ErrorMessageResponse {
 export function withNeosyncContext<T = unknown>(
   handler: NeosyncApiHandler<T>
 ): (req: NextRequest) => Promise<NextResponse<T | ErrorMessageResponse>> {
+  const defaultTimeoutMs: number | undefined = process.env
+    .NEOSYNC_API_DEFAULT_TIMEOUT_MS
+    ? parseInt(process.env.NEOSYNC_API_DEFAULT_TIMEOUT_MS)
+    : undefined;
+
   const systemAppConfig = getSystemAppConfig();
   return async (_req) => {
     try {
@@ -33,6 +38,7 @@ export function withNeosyncContext<T = unknown>(
             baseUrl: getApiBaseUrlFromEnv(),
             httpVersion: '2',
             interceptors: interceptors,
+            defaultTimeoutMs,
           });
         },
       });
