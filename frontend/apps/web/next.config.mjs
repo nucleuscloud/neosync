@@ -7,7 +7,7 @@ const config = {
   reactStrictMode: true,
   output: 'standalone',
   outputFileTracingRoot: path.join(__dirname, '../../'),
-  experimental: process.env.NODEJS_PROXY_TIMEOUT
+  experimental: process.env.NEXTJS_PROXY_TIMEOUT
     ? {
         proxyTimeout: parseInt(process.env.NODEJS_PROXY_TIMEOUT),
       }
