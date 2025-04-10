@@ -7,6 +7,9 @@ const config = {
   reactStrictMode: true,
   output: 'standalone',
   outputFileTracingRoot: path.join(__dirname, '../../'),
+  experimental: {
+    proxyTimeout: 120_000,
+  },
 };
 
 export default config;
