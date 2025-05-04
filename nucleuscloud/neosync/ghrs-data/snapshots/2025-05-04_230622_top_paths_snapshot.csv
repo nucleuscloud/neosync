@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/nucleuscloud/neosync,410,218
+/nucleuscloud/neosync/issues,77,15
+/nucleuscloud/neosync/tree/main/backend,31,12
+/nucleuscloud/neosync/tree/main,21,9
+/nucleuscloud/neosync/blob/main/compose.yml,18,15
+/nucleuscloud/neosync/tree/main/worker,16,6
+/nucleuscloud/neosync/blob/main/backend/pkg/sqlconnect/sql-connector.go,12,2
+/nucleuscloud/neosync/tree/main/docs,11,4
+/nucleuscloud/neosync/blob/main/worker/internal/cmds/worker/serve/serve.go,11,2
+/nucleuscloud/neosync/blob/main/backend/sql/postgresql/models/models.go,11,1
