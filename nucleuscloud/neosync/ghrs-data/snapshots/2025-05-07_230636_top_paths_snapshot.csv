@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/nucleuscloud/neosync,418,231
+/nucleuscloud/neosync/issues,67,14
+/nucleuscloud/neosync/tree/main/backend,31,13
+/nucleuscloud/neosync/tree/main,24,11
+/nucleuscloud/neosync/blob/main/compose.yml,20,16
+/nucleuscloud/neosync/tree/main/worker,19,9
+/nucleuscloud/neosync/commits,17,8
+/nucleuscloud/neosync/blob/main/worker/pkg/workflows/ee/piidetect/workflows/table/activities/activities.go,14,1
+/nucleuscloud/neosync/blob/main/backend/pkg/sqlconnect/sql-connector.go,12,2
+/nucleuscloud/neosync/pulls,11,5
