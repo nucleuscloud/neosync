@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Patch sqlc.yaml with db-prepare lint
-        uses: mikefarah/yq@v4.45.2
+        uses: mikefarah/yq@v4.45.4
         with:
           cmd: sh ./backend/scripts/sqlc-prepare-patch.sh postgresql://postgres:postgres@localhost:5432/nucleus ./sqlc.yaml
 
