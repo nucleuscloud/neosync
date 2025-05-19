@@ -35,7 +35,7 @@
     "tsup": "^8.3.6"
   },
   "dependencies": {
-    "@bufbuild/protobuf": "^2.2.5",
+    "@bufbuild/protobuf": "^2.4.0",
     "@connectrpc/connect": "^2.0.1"
   },
   "repository": {
