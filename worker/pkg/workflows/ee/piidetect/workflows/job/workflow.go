@@ -254,9 +254,19 @@ func orchestrateTables(
 	mu := workflow.NewMutex(ctx)
 
 	processTable := func(table piidetect_job_activities.TableIdentifierWithFingerprint, previousReport *piidetect_job_activities.TableReport) error {
-		if err := inFlightLimiter.Acquire(ctx, 1); err != nil {
-			return fmt.Errorf("unable to acquire semaphore: %w", err)
+		// Try to acquire the semaphore, sleeping if not available, until success or ctx is done
+		for {
+			if ok := inFlightLimiter.TryAcquire(ctx, 1); ok {
+				break
+			}
+			// Check if context is done
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			// Sleep for 1 second before retrying
+			_ = workflow.Sleep(ctx, time.Second)
 		}
+
 		var previousResultsKey *mgmtv1alpha1.RunContextKey
 		if previousReport != nil {
 			previousResultsKey = previousReport.ReportKey
@@ -290,13 +300,15 @@ func orchestrateTables(
 				},
 			),
 			func(f workflow.Future) {
+				defer inFlightLimiter.Release(1)
 				var wfResult *piidetect_table_workflow.TablePiiDetectResponse
 				err := f.Get(ctx, &wfResult)
-				inFlightLimiter.Release(1)
+
 				if err != nil {
 					logger.Error("activity did not complete", "err", err)
 					return
 				}
+
 				logger.Debug(
 					"table pii detect completed",
 					"table",
@@ -304,8 +316,8 @@ func orchestrateTables(
 					"schema",
 					table.Schema,
 				)
-				err = mu.Lock(ctx)
-				if err != nil {
+
+				if err := mu.Lock(ctx); err != nil {
 					logger.Error(
 						"unable to lock mutex after table pii detect completed",
 						"err",
@@ -314,6 +326,7 @@ func orchestrateTables(
 					return
 				}
 				defer mu.Unlock()
+
 				tableResultKeys = append(tableResultKeys, &piidetect_job_activities.TableReport{
 					TableSchema:     table.Schema,
 					TableName:       table.Table,
@@ -354,7 +367,7 @@ func orchestrateTables(
 func getTablePiiDetectMaxConcurrency() int {
 	maxConcurrency := viper.GetInt("TABLE_PII_DETECT_MAX_CONCURRENCY")
 	if maxConcurrency <= 0 {
-		return 3 // default max concurrency
+		return 13 // default max concurrency
 	}
 	return maxConcurrency
 }
