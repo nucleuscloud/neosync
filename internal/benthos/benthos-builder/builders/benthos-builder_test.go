@@ -37,29 +37,38 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 	tableMappings := map[string]*tableMapping{
 		"public.users": {Schema: "public",
 			Table: "users",
-			Mappings: []*mgmtv1alpha1.JobMapping{
+			Mappings: []*shared.JobTransformationMapping{
 				{
-					Schema: "public",
-					Table:  "users",
-					Column: "id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Config: &mgmtv1alpha1.TransformerConfig{
-							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+					DestinationSchema: "public",
+					DestinationTable:  "users",
+					JobMapping: &mgmtv1alpha1.JobMapping{
+						Schema: "public",
+						Table:  "users",
+						Column: "id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+							},
 						},
 					},
 				},
 				{
-					Schema: "public",
-					Table:  "users",
-					Column: "name",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Config: &mgmtv1alpha1.TransformerConfig{
-							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+					DestinationSchema: "public",
+					DestinationTable:  "users",
+					JobMapping: &mgmtv1alpha1.JobMapping{
+						Schema: "public",
+						Table:  "users",
+						Column: "name",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+							},
 						},
 					},
 				},
 			},
-		}}
+		},
+	}
 
 	groupedSchemas := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 		"public.users": {
@@ -125,33 +134,42 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	tableMappings := map[string]*tableMapping{
 		"public.users": {Schema: "public",
 			Table: "users",
-			Mappings: []*mgmtv1alpha1.JobMapping{
+			Mappings: []*shared.JobTransformationMapping{
 				{
-					Schema: "public",
-					Table:  "users",
-					Column: "id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Config: &mgmtv1alpha1.TransformerConfig{
-							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-								PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					DestinationSchema: "public",
+					DestinationTable:  "users",
+					JobMapping: &mgmtv1alpha1.JobMapping{
+						Schema: "public",
+						Table:  "users",
+						Column: "id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+									PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+								},
 							},
 						},
 					},
 				},
 				{
-					Schema: "public",
-					Table:  "users",
-					Column: "name",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Config: &mgmtv1alpha1.TransformerConfig{
-							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
-								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: ""},
+					DestinationSchema: "public",
+					DestinationTable:  "users",
+					JobMapping: &mgmtv1alpha1.JobMapping{
+						Schema: "public",
+						Table:  "users",
+						Column: "name",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+									TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: ""},
+								},
 							},
 						},
 					},
 				},
 			},
-		}}
+		},
+	}
 
 	groupedSchemas := map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
 		"public.users": {
@@ -212,70 +230,6 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	require.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 }
 
-func TestShouldHaltOnSchemaAddition(t *testing.T) {
-	newCols, ok := shouldHaltOnSchemaAddition(
-		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
-			"public.users": {
-				"id":         &sqlmanager_shared.DatabaseSchemaRow{},
-				"created_by": &sqlmanager_shared.DatabaseSchemaRow{},
-			},
-		},
-		[]*mgmtv1alpha1.JobMapping{
-			{Schema: "public", Table: "users", Column: "id"},
-			{Schema: "public", Table: "users", Column: "created_by"},
-		},
-	)
-	require.False(t, ok, "job mappings are valid set of database schemas")
-	require.Empty(t, newCols)
-
-	newCols, ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
-			"public.users": {
-				"id":         &sqlmanager_shared.DatabaseSchemaRow{},
-				"created_by": &sqlmanager_shared.DatabaseSchemaRow{},
-			},
-			"neosync_api.accounts": {
-				"id":   &sqlmanager_shared.DatabaseSchemaRow{},
-				"name": &sqlmanager_shared.DatabaseSchemaRow{},
-			},
-		},
-		[]*mgmtv1alpha1.JobMapping{
-			{Schema: "public", Table: "users", Column: "id"},
-			{Schema: "public", Table: "users", Column: "created_by"},
-		},
-	)
-	require.False(t, ok, "valid subset of job mappings")
-
-	newCols, ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
-			"public.users": {
-				"id":         &sqlmanager_shared.DatabaseSchemaRow{},
-				"created_by": &sqlmanager_shared.DatabaseSchemaRow{},
-			},
-		},
-		[]*mgmtv1alpha1.JobMapping{
-			{Schema: "public", Table: "users", Column: "id"},
-		},
-	)
-	require.True(t, ok, "job mappings are missing table column")
-	require.Equal(t, []string{"public.users.created_by"}, newCols)
-
-	newCols, ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]*sqlmanager_shared.DatabaseSchemaRow{
-			"public.users": {
-				"id":         &sqlmanager_shared.DatabaseSchemaRow{},
-				"created_by": &sqlmanager_shared.DatabaseSchemaRow{},
-			},
-		},
-		[]*mgmtv1alpha1.JobMapping{
-			{Schema: "public", Table: "users", Column: "id"},
-			{Schema: "public", Table: "users", Column: "updated_by"},
-		},
-	)
-	require.True(t, ok, "job mappings have same column count, but missing specific column")
-	require.Equal(t, []string{"public.users.created_by"}, newCols)
-}
-
 func Test_buildProcessorConfigsMutation(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
@@ -283,47 +237,47 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	schemaTable := sqlmanager_shared.SchemaTable{Schema: "public", Table: "users"}
 	runconfig := rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{}, nil, []string{}, []string{}, []*rc.DependsOn{}, false)
-	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
+	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
-	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
+	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	runconfig = rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{}, nil, []string{}, []string{"id"}, []*rc.DependsOn{}, false)
-	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id"},
+	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{
+		{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "id"}},
 	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
-	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}},
+	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{
+		{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}}},
 	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
-	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
+	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{
+		{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
-		}}},
+		}}}},
 	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	runconfig = rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{}, nil, []string{}, []string{"id", "name"}, []*rc.DependsOn{}, false)
-	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
+	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{
+		{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
-		}}},
-		{Schema: "public", Table: "users", Column: "name", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
+		}}}},
+		{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "name", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
-		}}},
+		}}}},
 	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 
 	require.Nil(t, err)
@@ -358,8 +312,9 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	}
 
 	runconfig = rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{"id"}, nil, []string{"email"}, []string{"email"}, []*rc.DependsOn{}, false)
-	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}}, groupedSchemas, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
+	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{
+		{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}},
+	}, groupedSchemas, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 
 	require.Nil(t, err)
 	require.Equal(t, `root."email" = transform_email(value:this."email",preserve_length:false,preserve_domain:true,excluded_domains:[],max_length:40,email_type:"uuidv4",invalid_email_action:"reject")`, *output[0].Mutation)
@@ -407,8 +362,9 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 
 	schemaTable := sqlmanager_shared.SchemaTable{Schema: "public", Table: "users"}
 	runconfig := rc.NewRunConfig(schemaTable.String(), schemaTable, rc.RunTypeInsert, []string{"id"}, nil, []string{"id"}, []string{"id"}, []*rc.DependsOn{}, false)
-	resp, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
+	resp, err := buildProcessorConfigs(ctx, mockTransformerClient, []*shared.JobTransformationMapping{
+		{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}}},
+	}, map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId, runconfig, nil, []string{})
 
 	require.NoError(t, err)
 	require.Empty(t, resp)
@@ -473,13 +429,13 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 
 func Test_buildPlainColumns(t *testing.T) {
 	require.Empty(t, buildPlainColumns(nil))
-	require.Empty(t, buildPlainColumns([]*mgmtv1alpha1.JobMapping{}))
+	require.Empty(t, buildPlainColumns([]*shared.JobTransformationMapping{}))
 	require.Equal(
 		t,
-		buildPlainColumns([]*mgmtv1alpha1.JobMapping{
-			{Column: "foo"},
-			{Column: "bar"},
-			{Column: "baz"},
+		buildPlainColumns([]*shared.JobTransformationMapping{
+			{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "foo"}},
+			{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "bar"}},
+			{DestinationSchema: "public", DestinationTable: "users", JobMapping: &mgmtv1alpha1.JobMapping{Schema: "public", Table: "users", Column: "baz"}},
 		}),
 		[]string{"foo", "bar", "baz"},
 	)
@@ -553,11 +509,18 @@ func Test_buildBenthosS3Credentials(t *testing.T) {
 
 func Test_computeMutationFunction_null(t *testing.T) {
 	val, err := computeMutationFunction(
-		&mgmtv1alpha1.JobMapping{
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{}},
+		&shared.JobTransformationMapping{
+			DestinationSchema: "public",
+			DestinationTable:  "users",
+			JobMapping: &mgmtv1alpha1.JobMapping{
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{}},
+				},
 			},
-		}, &sqlmanager_shared.DatabaseSchemaRow{}, false)
+		},
+		&sqlmanager_shared.DatabaseSchemaRow{},
+		false,
+	)
 	require.NoError(t, err)
 	require.Equal(t, val, "null")
 }
@@ -973,10 +936,14 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 	for _, transformer := range transformers {
 		t.Run(fmt.Sprintf("%s_%T_lint", t.Name(), transformer.Config.Config), func(t *testing.T) {
 			val, err := computeMutationFunction(
-				&mgmtv1alpha1.JobMapping{
-					Column: "email",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Config: transformer.Config,
+				&shared.JobTransformationMapping{
+					DestinationSchema: "public",
+					DestinationTable:  "users",
+					JobMapping: &mgmtv1alpha1.JobMapping{
+						Column: "email",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: transformer.Config,
+						},
 					},
 				}, emailColInfo, false)
 			require.NoError(t, err)
@@ -1132,10 +1099,14 @@ func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testi
 	for _, transformer := range transformers {
 		t.Run(fmt.Sprintf("%s_%T_lint", t.Name(), transformer.Config.Config), func(t *testing.T) {
 			val, err := computeMutationFunction(
-				&mgmtv1alpha1.JobMapping{
-					Column: "email",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Config: transformer.Config,
+				&shared.JobTransformationMapping{
+					DestinationSchema: "public",
+					DestinationTable:  "users",
+					JobMapping: &mgmtv1alpha1.JobMapping{
+						Column: "email",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Config: transformer.Config,
+						},
 					},
 				}, emailColInfo, false)
 			require.NoError(t, err)
@@ -1149,17 +1120,21 @@ func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testi
 
 func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 	type testcase struct {
-		jm       *mgmtv1alpha1.JobMapping
+		jm       *shared.JobTransformationMapping
 		ci       *sqlmanager_shared.DatabaseSchemaRow
 		expected string
 	}
-	jm := &mgmtv1alpha1.JobMapping{
-		Transformer: &mgmtv1alpha1.JobMappingTransformer{
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
-					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
-						Min: gotypeutil.ToPtr(int64(2)),
-						Max: gotypeutil.ToPtr(int64(7)),
+	jm := &shared.JobTransformationMapping{
+		DestinationSchema: "public",
+		DestinationTable:  "users",
+		JobMapping: &mgmtv1alpha1.JobMapping{
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
+						GenerateStringConfig: &mgmtv1alpha1.GenerateString{
+							Min: gotypeutil.ToPtr(int64(2)),
+							Max: gotypeutil.ToPtr(int64(7)),
+						},
 					},
 				},
 			},
@@ -1230,11 +1205,15 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 }
 
 func Test_buildBranchCacheConfigs_null(t *testing.T) {
-	cols := []*mgmtv1alpha1.JobMapping{
+	cols := []*shared.JobTransformationMapping{
 		{
-			Schema: "public",
-			Table:  "users",
-			Column: "user_id",
+			DestinationSchema: "public",
+			DestinationTable:  "users",
+			JobMapping: &mgmtv1alpha1.JobMapping{
+				Schema: "public",
+				Table:  "users",
+				Column: "user_id",
+			},
 		},
 	}
 
@@ -1251,17 +1230,51 @@ func Test_buildBranchCacheConfigs_null(t *testing.T) {
 	require.Len(t, resp, 0)
 }
 
-func Test_buildBranchCacheConfigs_success(t *testing.T) {
-	cols := []*mgmtv1alpha1.JobMapping{
+func Test_buildBranchCacheConfigs_missing_redis(t *testing.T) {
+	cols := []*shared.JobTransformationMapping{
 		{
-			Schema: "public",
-			Table:  "users",
-			Column: "user_id",
+			DestinationSchema: "public",
+			DestinationTable:  "users",
+			JobMapping: &mgmtv1alpha1.JobMapping{
+				Schema: "public",
+				Table:  "users",
+				Column: "user_id",
+			},
+		},
+	}
+
+	constraints := map[string][]*bb_internal.ReferenceKey{
+		"user_id": {
+			{
+				Table:  "public.orders",
+				Column: "buyer_id",
+			},
+		},
+	}
+
+	resp := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId)
+	require.Len(t, resp, 1)
+}
+
+func Test_buildBranchCacheConfigs_success(t *testing.T) {
+	cols := []*shared.JobTransformationMapping{
+		{
+			DestinationSchema: "public",
+			DestinationTable:  "users",
+			JobMapping: &mgmtv1alpha1.JobMapping{
+				Schema: "public",
+				Table:  "users",
+				Column: "user_id",
+			},
 		},
 		{
-			Schema: "public",
-			Table:  "users",
-			Column: "name",
+			DestinationSchema: "public",
+			DestinationTable:  "users",
+			JobMapping: &mgmtv1alpha1.JobMapping{
+				Schema: "public",
+				Table:  "users",
+				Column: "name",
+			},
 		},
 	}
 
@@ -1281,11 +1294,15 @@ func Test_buildBranchCacheConfigs_success(t *testing.T) {
 }
 
 func Test_buildBranchCacheConfigs_self_referencing(t *testing.T) {
-	cols := []*mgmtv1alpha1.JobMapping{
+	cols := []*shared.JobTransformationMapping{
 		{
-			Schema: "public",
-			Table:  "users",
-			Column: "user_id",
+			DestinationSchema: "public",
+			DestinationTable:  "users",
+			JobMapping: &mgmtv1alpha1.JobMapping{
+				Schema: "public",
+				Table:  "users",
+				Column: "user_id",
+			},
 		},
 	}
 

@@ -11,6 +11,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
+	jobmapping_builder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders/jobmapping-builder/shared"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
@@ -51,7 +52,7 @@ func (b *dyanmodbSyncBuilder) BuildSourceConfigs(
 	dynamoJobSourceOpts := job.GetSource().GetOptions().GetDynamodb()
 	tableOptsMap := toDynamoDbSourceTableOptionMap(dynamoJobSourceOpts.GetTables())
 
-	groupedMappings := groupMappingsByTable(job.GetMappings())
+	groupedMappings := groupMappingsByTable(jobmapping_builder_shared.JobMappingsFromLegacyMappings(job.GetMappings()))
 
 	benthosConfigs := []*bb_internal.BenthosSourceConfig{}
 	// todo: may need to filter here based on the destination config mappings if there is no source->destination table map
