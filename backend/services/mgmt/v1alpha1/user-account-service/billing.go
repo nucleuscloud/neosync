@@ -80,7 +80,7 @@ func (s *Service) GetAccountStatus(
 		}), nil
 	}
 
-	if stripeExclusionSet[account.AccountSlug] {
+	if stripeExclusionSet[req.Msg.GetAccountId()] {
 		logger.Debug("account is in stripe exclusion set, returning active status")
 		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
 			SubscriptionStatus: mgmtv1alpha1.BillingStatus_BILLING_STATUS_ACTIVE,
