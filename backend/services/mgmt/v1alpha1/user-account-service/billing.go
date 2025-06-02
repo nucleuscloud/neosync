@@ -25,7 +25,10 @@ import (
 
 var (
 	// 14 days duration
-	trialDuration = 14 * 24 * time.Hour
+	trialDuration      = 14 * 24 * time.Hour
+	stripeExclusionSet = map[string]bool{
+		"8428f91a-f377-406e-b81b-55c92f853a9b": true,
+	}
 )
 
 func (s *Service) GetAccountStatus(
@@ -74,6 +77,13 @@ func (s *Service) GetAccountStatus(
 		logger.Warn("stripe is enabled but team account does not have stripe customer id")
 		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
 			SubscriptionStatus: trialStatus,
+		}), nil
+	}
+
+	if stripeExclusionSet[account.AccountSlug] {
+		logger.Debug("account is in stripe exclusion set, returning active status")
+		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
+			SubscriptionStatus: mgmtv1alpha1.BillingStatus_BILLING_STATUS_ACTIVE,
 		}), nil
 	}
 
