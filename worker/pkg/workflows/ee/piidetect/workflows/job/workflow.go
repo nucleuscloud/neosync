@@ -384,7 +384,7 @@ func orchestrateTables(
 func getTablePiiDetectMaxConcurrency() int {
 	maxConcurrency := viper.GetInt("TABLE_PII_DETECT_MAX_CONCURRENCY")
 	if maxConcurrency <= 0 {
-		return 13 // default max concurrency
+		return 3 // default max concurrency
 	}
 	return maxConcurrency
 }
