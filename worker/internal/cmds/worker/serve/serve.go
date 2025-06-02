@@ -382,7 +382,10 @@ func serve(ctx context.Context) error {
 	}
 
 	maxIterations := 100
-	pageLimit := 100_000
+	pageLimit := viper.GetInt("MAX_TABLE_SYNC_PAGE_LIMIT")
+	if pageLimit <= 0 {
+		pageLimit = 100_000
+	}
 	streamManager := benthosstream.NewBenthosStreamManager()
 	tablesync_workflow_register.Register(
 		w,
