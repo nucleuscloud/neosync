@@ -242,101 +242,13 @@ func orchestrateTables(
 	userPrompt string,
 	logger log.Logger,
 ) (*piidetect_job_activities.JobPiiDetectReport, error) {
-	workselector := workflow.NewNamedSelector(ctx, "job_pii_detect")
-
 	maxConcurrency := getTablePiiDetectMaxConcurrency()
-	inFlightLimiter := workflow.NewSemaphore(ctx, int64(maxConcurrency))
 
 	tableWf := piidetect_table_workflow.New()
 	wfInfo := workflow.GetInfo(ctx)
 
 	tableResultKeys := []*piidetect_job_activities.TableReport{}
 	mu := workflow.NewMutex(ctx)
-
-	processTable := func(table piidetect_job_activities.TableIdentifierWithFingerprint, previousReport *piidetect_job_activities.TableReport) error {
-		// Try to acquire the semaphore, sleeping if not available, until success or ctx is done
-		for {
-			if ok := inFlightLimiter.TryAcquire(ctx, 1); ok {
-				break
-			}
-			// Check if context is done
-			if ctx.Err() != nil {
-				return ctx.Err()
-			}
-			// Sleep for 1 second before retrying
-			_ = workflow.Sleep(ctx, time.Second)
-		}
-
-		var previousResultsKey *mgmtv1alpha1.RunContextKey
-		if previousReport != nil {
-			previousResultsKey = previousReport.ReportKey
-		}
-		workselector.AddFuture(
-			workflow.ExecuteChildWorkflow(
-				workflow.WithChildOptions(
-					ctx,
-					workflow.ChildWorkflowOptions{
-						WorkflowID: workflow_shared.BuildChildWorkflowId(
-							wfInfo.WorkflowExecution.ID,
-							fmt.Sprintf("%s.%s", table.Schema, table.Table),
-							workflow.Now(ctx),
-						),
-						RetryPolicy: &temporal.RetryPolicy{
-							MaximumAttempts: 1,
-						},
-						WorkflowRunTimeout: 5 * time.Minute,
-					}),
-				tableWf.TablePiiDetect,
-				&piidetect_table_workflow.TablePiiDetectRequest{
-					AccountId:          accountId,
-					JobId:              jobId,
-					ConnectionId:       connectionId,
-					TableSchema:        table.Schema,
-					TableName:          table.Table,
-					ParentExecutionId:  &wfInfo.WorkflowExecution.ID,
-					ShouldSampleData:   shouldSampleData,
-					UserPrompt:         userPrompt,
-					PreviousResultsKey: previousResultsKey,
-				},
-			),
-			func(f workflow.Future) {
-				defer inFlightLimiter.Release(1)
-				var wfResult *piidetect_table_workflow.TablePiiDetectResponse
-				err := f.Get(ctx, &wfResult)
-
-				if err != nil {
-					logger.Error("activity did not complete", "err", err)
-					return
-				}
-
-				logger.Debug(
-					"table pii detect completed",
-					"table",
-					table.Table,
-					"schema",
-					table.Schema,
-				)
-
-				if err := mu.Lock(ctx); err != nil {
-					logger.Error(
-						"unable to lock mutex after table pii detect completed",
-						"err",
-						err,
-					)
-					return
-				}
-				defer mu.Unlock()
-
-				tableResultKeys = append(tableResultKeys, &piidetect_job_activities.TableReport{
-					TableSchema:     table.Schema,
-					TableName:       table.Table,
-					ScanFingerprint: table.Fingerprint,
-					ReportKey:       wfResult.ResultKey,
-				})
-			},
-		)
-		return nil
-	}
 
 	previousReportsMap := make(
 		map[piidetect_job_activities.TableIdentifier]*piidetect_job_activities.TableReport,
@@ -345,20 +257,125 @@ func orchestrateTables(
 		previousReportsMap[piidetect_job_activities.TableIdentifier{Schema: report.TableSchema, Table: report.TableName}] = report
 	}
 
+	logger.Debug("starting table processing")
+	logger.Debug("total tables to process", "count", len(tablesToScanResp.Tables))
+
+	// Create channels for coordination
+	type tableWork struct {
+		table          piidetect_job_activities.TableIdentifierWithFingerprint
+		previousReport *piidetect_job_activities.TableReport
+	}
+
+	// Use a buffered channel as a work queue
+	workQueue := workflow.NewBufferedChannel(ctx, len(tablesToScanResp.Tables))
+
+	// Queue all work items
 	for _, table := range tablesToScanResp.Tables {
 		previousReport := previousReportsMap[table.TableIdentifier]
-		if err := processTable(table, previousReport); err != nil {
-			return nil, err
-		}
+		workQueue.Send(ctx, tableWork{table: table, previousReport: previousReport})
+		logger.Debug("queued table", "schema", table.Schema, "table", table.Table)
+	}
+	workQueue.Close()
+
+	// Channel to track completion
+	completionChannel := workflow.NewChannel(ctx)
+	activeWorkers := 0
+
+	// Start worker goroutines
+	for i := 0; i < maxConcurrency; i++ {
+		activeWorkers++
+		workflow.Go(ctx, func(ctx workflow.Context) {
+			defer func() {
+				completionChannel.Send(ctx, true)
+			}()
+
+			for {
+				var work tableWork
+				more := workQueue.Receive(ctx, &work)
+				if !more {
+					logger.Debug("worker exiting, no more work", "workerIndex", i)
+					return // Channel closed, no more work
+				}
+
+				logger.Debug("worker processing table", "workerIndex", i, "table", work.table.Table, "schema", work.table.Schema)
+
+				var previousResultsKey *mgmtv1alpha1.RunContextKey
+				if work.previousReport != nil {
+					previousResultsKey = work.previousReport.ReportKey
+				}
+
+				// Execute child workflow synchronously within this goroutine
+				var wfResult piidetect_table_workflow.TablePiiDetectResponse
+				err := workflow.ExecuteChildWorkflow(
+					workflow.WithChildOptions(
+						ctx,
+						workflow.ChildWorkflowOptions{
+							WorkflowID: workflow_shared.BuildChildWorkflowId(
+								wfInfo.WorkflowExecution.ID,
+								fmt.Sprintf("%s.%s", work.table.Schema, work.table.Table),
+								workflow.Now(ctx),
+							),
+							RetryPolicy: &temporal.RetryPolicy{
+								MaximumAttempts: 1,
+							},
+							WorkflowRunTimeout: 5 * time.Minute,
+						}),
+					tableWf.TablePiiDetect,
+					&piidetect_table_workflow.TablePiiDetectRequest{
+						AccountId:          accountId,
+						JobId:              jobId,
+						ConnectionId:       connectionId,
+						TableSchema:        work.table.Schema,
+						TableName:          work.table.Table,
+						ParentExecutionId:  &wfInfo.WorkflowExecution.ID,
+						ShouldSampleData:   shouldSampleData,
+						UserPrompt:         userPrompt,
+						PreviousResultsKey: previousResultsKey,
+					},
+				).Get(ctx, &wfResult)
+
+				if err != nil {
+					logger.Error("child workflow did not complete",
+						"table", work.table.Table,
+						"schema", work.table.Schema,
+						"err", err)
+					continue
+				}
+
+				logger.Debug(
+					"table pii detect completed",
+					"table", work.table.Table,
+					"schema", work.table.Schema,
+				)
+
+				// Store result
+				err = mu.Lock(ctx)
+				if err != nil {
+					logger.Error(
+						"unable to lock mutex after table pii detect completed",
+						"err", err,
+					)
+					continue
+				}
+				tableResultKeys = append(tableResultKeys, &piidetect_job_activities.TableReport{
+					TableSchema:     work.table.Schema,
+					TableName:       work.table.Table,
+					ScanFingerprint: work.table.Fingerprint,
+					ReportKey:       wfResult.ResultKey,
+				})
+				mu.Unlock()
+			}
+		})
 	}
 
-	logger.Debug("waiting for all table pii detect workflows to complete")
-
-	for range tablesToScanResp.Tables {
-		workselector.Select(ctx)
+	// Wait for all workers to complete
+	for i := 0; i < activeWorkers; i++ {
+		var completed bool
+		completionChannel.Receive(ctx, &completed)
+		logger.Debug("worker completed", "remaining", activeWorkers-i-1)
 	}
 
-	logger.Debug("all tables processed")
+	logger.Debug("all tables processed", "total_processed", len(tableResultKeys))
 	return &piidetect_job_activities.JobPiiDetectReport{
 		SuccessfulTableReports: tableResultKeys,
 	}, nil
