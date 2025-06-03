@@ -376,6 +376,9 @@ func serve(ctx context.Context) error {
 	sqlmanager := sql_manager.NewSqlManager(sql_manager.WithConnectionManager(sqlconnmanager))
 
 	redisconfig := shared.GetRedisConfig()
+
+	logger.Debug("initializing redis client", "config", redisconfig)
+
 	redisclient, err := neosync_redis.GetRedisClient(redisconfig)
 	if err != nil {
 		return fmt.Errorf("unable to get redis client: %w", err)
