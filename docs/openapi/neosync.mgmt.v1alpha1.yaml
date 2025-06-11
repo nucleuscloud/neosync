@@ -10980,16 +10980,6 @@ components:
       title: CreateJobRequest
       additionalProperties: false
       description: >+
-        For sync jobs, at least one mapping is required:
-
-        ```
-
-        !has(this.job_type) || has(this.job_type.sync) ? size(this.mappings) >=
-        1 : true
-
-        ```
-
-
         For sync jobs, at least one destination is required:
 
         ```
@@ -12951,9 +12941,749 @@ components:
       description: Filter configuration for table scanning
     mgmt.v1alpha1.JobTypeConfig.JobTypeSync:
       type: object
+      allOf:
+        - anyOf:
+            - required:
+                - schemaChange
+            - not:
+                anyOf:
+                  - required:
+                      - schemaChange
+      anyOf:
+        - required:
+            - schemaChange
+        - not:
+            anyOf:
+              - required:
+                  - schemaChange
+      properties:
+        schemaChange:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaChange
+          title: schema_change
+          description: >-
+            Specify job-wide schema change strategies that will be used to map
+            data from the source to the destination.
+             This acts as the default configuration for all schemas and tables unless overridden by a schema mapping at a lower level.
+        schemaMappings:
+          type: array
+          items:
+            $ref: >-
+              #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaMapping
+          title: schema_mappings
+          description: >-
+            Specify schema mappings that will be used to map data from the
+            source to the destination
+             This replaces the mappings field and is used to configure column transformers as well as re-wire destination schemas and tables.
       title: JobTypeSync
       additionalProperties: false
       description: The configuration for a data sync job
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - mapAllColumns
+            - required:
+                - mapDefinedColumns
+            - not:
+                anyOf:
+                  - required:
+                      - mapAllColumns
+                  - required:
+                      - mapDefinedColumns
+      anyOf:
+        - required:
+            - mapAllColumns
+        - required:
+            - mapDefinedColumns
+        - not:
+            anyOf:
+              - required:
+                  - mapAllColumns
+              - required:
+                  - mapDefinedColumns
+      properties:
+        mapAllColumns:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns
+          title: map_all_columns
+          description: >-
+            1. Map all columns + user-defined sub-strategies for each mismatch
+            scenario
+        mapDefinedColumns:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapDefinedColumns
+          title: map_defined_columns
+          description: >-
+            2. Only map user-defined columns + sub-strategies for mismatch
+            scenarios
+      title: ColumnStrategy
+      additionalProperties: false
+      description: The strategy used to configure how columns are handled during a job run
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - autoMap
+            - required:
+                - continue
+            - required:
+                - halt
+            - not:
+                anyOf:
+                  - required:
+                      - autoMap
+                  - required:
+                      - continue
+                  - required:
+                      - halt
+      anyOf:
+        - required:
+            - autoMap
+        - required:
+            - continue
+        - required:
+            - halt
+        - not:
+            anyOf:
+              - required:
+                  - autoMap
+              - required:
+                  - continue
+              - required:
+                  - halt
+      properties:
+        continue:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Continue
+          title: continue
+          description: '"Continue" => "if init_schema => drop column, else leave it alone"'
+        halt:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Halt
+          title: halt
+        autoMap:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.AutoMap
+          title: auto_map
+      title: ColumnInDestinationNotInSourceStrategy
+      additionalProperties: false
+      description: d) Column in destination, but not in source
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.AutoMap:
+      type: object
+      title: AutoMap
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Continue:
+      type: object
+      title: Continue
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Halt:
+      type: object
+      title: Halt
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - continue
+            - required:
+                - drop
+            - required:
+                - halt
+            - not:
+                anyOf:
+                  - required:
+                      - continue
+                  - required:
+                      - drop
+                  - required:
+                      - halt
+      anyOf:
+        - required:
+            - continue
+        - required:
+            - drop
+        - required:
+            - halt
+        - not:
+            anyOf:
+              - required:
+                  - continue
+              - required:
+                  - drop
+              - required:
+                  - halt
+      properties:
+        continue:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Continue
+          title: continue
+          description: >-
+            In your version, "Continue" = "if init_schema => create column, else
+            skip"
+        drop:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Drop
+          title: drop
+        halt:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Halt
+          title: halt
+      title: ColumnInSourceMappedNotInDestinationStrategy
+      additionalProperties: false
+      description: c) Column in source + mapped, but missing in destination
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Continue:
+      type: object
+      title: Continue
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Drop:
+      type: object
+      title: Drop
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Halt:
+      type: object
+      title: Halt
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - autoMap
+            - required:
+                - drop
+            - required:
+                - halt
+            - required:
+                - passthrough
+            - not:
+                anyOf:
+                  - required:
+                      - autoMap
+                  - required:
+                      - drop
+                  - required:
+                      - halt
+                  - required:
+                      - passthrough
+      anyOf:
+        - required:
+            - autoMap
+        - required:
+            - drop
+        - required:
+            - halt
+        - required:
+            - passthrough
+        - not:
+            anyOf:
+              - required:
+                  - autoMap
+              - required:
+                  - drop
+              - required:
+                  - halt
+              - required:
+                  - passthrough
+      properties:
+        passthrough:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Passthrough
+          title: passthrough
+        autoMap:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.AutoMap
+          title: auto_map
+        halt:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Halt
+          title: halt
+        drop:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Drop
+          title: drop
+      title: ColumnInSourceNotMappedStrategy
+      additionalProperties: false
+      description: a) Column present in source, not mapped
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.AutoMap:
+      type: object
+      title: AutoMap
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Drop:
+      type: object
+      title: Drop
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Halt:
+      type: object
+      title: Halt
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Passthrough:
+      type: object
+      title: Passthrough
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - continue
+            - required:
+                - halt
+            - not:
+                anyOf:
+                  - required:
+                      - continue
+                  - required:
+                      - halt
+      anyOf:
+        - required:
+            - continue
+        - required:
+            - halt
+        - not:
+            anyOf:
+              - required:
+                  - continue
+              - required:
+                  - halt
+      properties:
+        continue:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Continue
+          title: continue
+          description: e.g. treat as NULL or skip
+        halt:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Halt
+          title: halt
+          description: fail the job
+      title: ColumnMappedNotInSourceStrategy
+      additionalProperties: false
+      description: b) Column mapped, but not in source
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Continue:
+      type: object
+      title: Continue
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Halt:
+      type: object
+      title: Halt
+      additionalProperties: false
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - columnInDestinationNoLongerInSource
+            - not:
+                anyOf:
+                  - required:
+                      - columnInDestinationNoLongerInSource
+        - anyOf:
+            - required:
+                - columnInSourceMappedNotInDestination
+            - not:
+                anyOf:
+                  - required:
+                      - columnInSourceMappedNotInDestination
+        - anyOf:
+            - required:
+                - columnInSourceNotMapped
+            - not:
+                anyOf:
+                  - required:
+                      - columnInSourceNotMapped
+        - anyOf:
+            - required:
+                - columnMappedNotInSource
+            - not:
+                anyOf:
+                  - required:
+                      - columnMappedNotInSource
+      properties:
+        columnInSourceNotMapped:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy
+          title: column_in_source_not_mapped
+          description: When a column is present in source but not mapped
+        columnMappedNotInSource:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy
+          title: column_mapped_not_in_source
+          description: When a column is mapped but not in source
+        columnInSourceMappedNotInDestination:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy
+          title: column_in_source_mapped_not_in_destination
+          description: When a column is in source + mapped, but missing in destination
+        columnInDestinationNoLongerInSource:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy
+          title: column_in_destination_no_longer_in_source
+          description: When a column is in the destination but not in source
+      title: MapAllColumns
+      additionalProperties: false
+      description: |-
+        -------------------------------------------------------------
+         1. MapAllColumns
+         -------------------------------------------------------------
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapDefinedColumns:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - columnInSourceMappedNotInDestination
+            - not:
+                anyOf:
+                  - required:
+                      - columnInSourceMappedNotInDestination
+        - anyOf:
+            - required:
+                - columnMappedNotInSource
+            - not:
+                anyOf:
+                  - required:
+                      - columnMappedNotInSource
+      properties:
+        columnMappedNotInSource:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy
+          title: column_mapped_not_in_source
+          description: Mapped but missing in source
+        columnInSourceMappedNotInDestination:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy
+          title: column_in_source_mapped_not_in_destination
+          description: In source + mapped, but missing in destination
+      title: MapDefinedColumns
+      additionalProperties: false
+      description: |-
+        -------------------------------------------------------------
+         2. MapDefinedColumns
+         -------------------------------------------------------------
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaChange:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - columnStrategy
+            - not:
+                anyOf:
+                  - required:
+                      - columnStrategy
+        - anyOf:
+            - required:
+                - schemaStrategy
+            - not:
+                anyOf:
+                  - required:
+                      - schemaStrategy
+        - anyOf:
+            - required:
+                - tableStrategy
+            - not:
+                anyOf:
+                  - required:
+                      - tableStrategy
+      properties:
+        schemaStrategy:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaStrategy
+          title: schema_strategy
+          description: Configure how schemas are handled during a job run
+        tableStrategy:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.TableStrategy
+          title: table_strategy
+          description: Configure how tables are handled during a job run
+        columnStrategy:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy
+          title: column_strategy
+          description: Configure how columns are handled during a job run
+      title: SchemaChange
+      additionalProperties: false
+      description: |-
+        Configure how schemas, tables, and columns are handled during a job run.
+         If anything is not defined, a system-defined fallback will be implemented. Further information can be found in the documentation.
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaMapping:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - columnStrategy
+            - not:
+                anyOf:
+                  - required:
+                      - columnStrategy
+        - anyOf:
+            - required:
+                - destinationSchema
+            - not:
+                anyOf:
+                  - required:
+                      - destinationSchema
+        - anyOf:
+            - required:
+                - tableStrategy
+            - not:
+                anyOf:
+                  - required:
+                      - tableStrategy
+      properties:
+        schema:
+          type: string
+          title: schema
+          minLength: 1
+          description: The database schema this mapping belongs to
+        destinationSchema:
+          type: string
+          title: destination_schema
+          description: Optionally specify a destination schema that this mapping will go to
+        tableMappings:
+          type: array
+          items:
+            $ref: >-
+              #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaMapping.TableMapping
+          title: table_mappings
+          description: >-
+            The list of table mappings that will be used to map data from the
+            source to the destination
+        tableStrategy:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.TableStrategy
+          title: table_strategy
+          description: >-
+            Optionally specify a table strategy. This will override the global
+            table strategy for this schema
+        columnStrategy:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy
+          title: column_strategy
+          description: >-
+            Optionally specify a column strategy. This will override the global
+            column strategy for this schema
+      title: SchemaMapping
+      additionalProperties: false
+      description: Configuration for a specific schema mapping
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaMapping.TableMapping:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - columnStrategy
+            - not:
+                anyOf:
+                  - required:
+                      - columnStrategy
+        - anyOf:
+            - required:
+                - destinationTable
+            - not:
+                anyOf:
+                  - required:
+                      - destinationTable
+      properties:
+        table:
+          type: string
+          title: table
+          minLength: 1
+          description: The database table this mapping belongs to
+        destinationTable:
+          type: string
+          title: destination_table
+          description: Optionally specify a destination table that this mapping will go to
+        columnMappings:
+          type: array
+          items:
+            $ref: >-
+              #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaMapping.TableMapping.ColumnMapping
+          title: column_mappings
+          description: >-
+            The list of column mappings that will be used to map data from the
+            source to the destination
+        columnStrategy:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy
+          title: column_strategy
+          description: >-
+            Optionally specify a column strategy. This will override the global
+            column strategy for this table
+      title: TableMapping
+      additionalProperties: false
+      description: Configuration for a specific table mapping in a schema
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaMapping.TableMapping.ColumnMapping:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - transformer
+            - not:
+                anyOf:
+                  - required:
+                      - transformer
+      anyOf:
+        - required:
+            - transformer
+        - not:
+            anyOf:
+              - required:
+                  - transformer
+      properties:
+        column:
+          type: string
+          title: column
+          minLength: 1
+          description: The column this mapping belongs to
+        transformer:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformerConfig'
+          title: transformer
+          description: >-
+            The transformer configuration that will be applied to each cell in
+            the column
+      title: ColumnMapping
+      additionalProperties: false
+      description: Configuration for a specific column mapping in a table
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - mapAllSchemas
+            - required:
+                - mapDefinedSchemas
+            - not:
+                anyOf:
+                  - required:
+                      - mapAllSchemas
+                  - required:
+                      - mapDefinedSchemas
+      anyOf:
+        - required:
+            - mapAllSchemas
+        - required:
+            - mapDefinedSchemas
+        - not:
+            anyOf:
+              - required:
+                  - mapAllSchemas
+              - required:
+                  - mapDefinedSchemas
+      properties:
+        mapAllSchemas:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaStrategy.MapAllSchemas
+          title: map_all_schemas
+          description: When this strategy is configured, all schemas are mapped
+        mapDefinedSchemas:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaStrategy.MapDefinedSchemas
+          title: map_defined_schemas
+          description: >-
+            When this strategy is configured, only the schemas that are defined
+            are mapped
+      title: SchemaStrategy
+      additionalProperties: false
+      description: The strategy used to configure how schemas are handled during a job run
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaStrategy.MapAllSchemas:
+      type: object
+      title: MapAllSchemas
+      additionalProperties: false
+      description: When this strategy is configured, all schemas are mapped
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaStrategy.MapDefinedSchemas:
+      type: object
+      title: MapDefinedSchemas
+      additionalProperties: false
+      description: >-
+        When this strategy is configured, only the schemas that are defined are
+        mapped
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.TableStrategy:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - mapAllTables
+            - required:
+                - mapDefinedTables
+            - not:
+                anyOf:
+                  - required:
+                      - mapAllTables
+                  - required:
+                      - mapDefinedTables
+      anyOf:
+        - required:
+            - mapAllTables
+        - required:
+            - mapDefinedTables
+        - not:
+            anyOf:
+              - required:
+                  - mapAllTables
+              - required:
+                  - mapDefinedTables
+      properties:
+        mapAllTables:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.TableStrategy.MapAllTables
+          title: map_all_tables
+          description: When this strategy is configured, all tables are mapped
+        mapDefinedTables:
+          allOf:
+            - $ref: >-
+                #/components/schemas/mgmt.v1alpha1.JobTypeConfig.JobTypeSync.TableStrategy.MapDefinedTables
+          title: map_defined_tables
+          description: >-
+            When this strategy is configured, only the tables that are defined
+            are mapped
+      title: TableStrategy
+      additionalProperties: false
+      description: The strategy used to configure how tables are handled during a job run
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.TableStrategy.MapAllTables:
+      type: object
+      title: MapAllTables
+      additionalProperties: false
+      description: When this strategy is configured, all tables are mapped
+    mgmt.v1alpha1.JobTypeConfig.JobTypeSync.TableStrategy.MapDefinedTables:
+      type: object
+      title: MapDefinedTables
+      additionalProperties: false
+      description: >-
+        When this strategy is configured, only the tables that are defined are
+        mapped
     mgmt.v1alpha1.MongoDBDestinationConnectionOptions:
       type: object
       title: MongoDBDestinationConnectionOptions

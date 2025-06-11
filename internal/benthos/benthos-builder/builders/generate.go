@@ -8,6 +8,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	jobmapping_builder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders/jobmapping-builder/shared"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	connectionmanager "github.com/nucleuscloud/neosync/internal/connection-manager"
@@ -68,7 +69,7 @@ func (b *generateBuilder) BuildSourceConfigs(
 	defer db.Db().Close()
 	b.driver = db.Driver()
 
-	groupedMappings := groupMappingsByTable(job.Mappings)
+	groupedMappings := groupMappingsByTable(jobmapping_builder_shared.JobMappingsFromLegacyMappings(job.GetMappings()))
 	groupedTableMapping := getTableMappingsMap(groupedMappings)
 	colTransformerMap := getColumnTransformerMap(groupedTableMapping)
 	sourceTableOpts := groupGenerateSourceOptionsByTable(sourceOptions.Schemas)

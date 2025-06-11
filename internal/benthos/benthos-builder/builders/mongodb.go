@@ -7,6 +7,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	jobmapping_builder_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/builders/jobmapping-builder/shared"
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	bb_shared "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/shared"
 	"github.com/nucleuscloud/neosync/internal/runconfigs"
@@ -31,7 +32,7 @@ func (b *mongodbSyncBuilder) BuildSourceConfigs(
 ) ([]*bb_internal.BenthosSourceConfig, error) {
 	sourceConnection := params.SourceConnection
 	job := params.Job
-	groupedMappings := groupMappingsByTable(job.GetMappings())
+	groupedMappings := groupMappingsByTable(jobmapping_builder_shared.JobMappingsFromLegacyMappings(job.GetMappings()))
 
 	benthosConfigs := []*bb_internal.BenthosSourceConfig{}
 	for _, tableMapping := range groupedMappings {
