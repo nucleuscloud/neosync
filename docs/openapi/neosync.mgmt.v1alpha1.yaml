@@ -5554,6 +5554,15 @@ components:
         - HASH_TYPE_MD5
         - HASH_TYPE_SHA256
         - HASH_TYPE_SHA512
+    mgmt.v1alpha1.TransformHash.HashType:
+      type: string
+      title: HashType
+      enum:
+        - HASH_TYPE_UNSPECIFIED
+        - HASH_TYPE_MD5
+        - HASH_TYPE_SHA1
+        - HASH_TYPE_SHA256
+        - HASH_TYPE_SHA512
     mgmt.v1alpha1.AnonymizeManyErrors:
       type: object
       properties:
@@ -6616,6 +6625,34 @@ components:
             This causes the transformed full name to retain the original length.
       title: TransformFullName
       additionalProperties: false
+    mgmt.v1alpha1.TransformHash:
+      type: object
+      allOf:
+        - anyOf:
+            - required:
+                - algo
+            - not:
+                anyOf:
+                  - required:
+                      - algo
+      anyOf:
+        - required:
+            - algo
+        - not:
+            anyOf:
+              - required:
+                  - algo
+      properties:
+        algo:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformHash.HashType'
+          title: algo
+          description: The hashing algorithm to use.
+      title: TransformHash
+      additionalProperties: false
+      description: >-
+        TransformHash is a transformer that hashes the input string using the
+        specified hashing algorithm.
     mgmt.v1alpha1.TransformInt64:
       type: object
       allOf:
@@ -6951,6 +6988,8 @@ components:
             - required:
                 - transformFullNameConfig
             - required:
+                - transformHashConfig
+            - required:
                 - transformInt64Config
             - required:
                 - transformInt64PhoneNumberConfig
@@ -7049,6 +7088,8 @@ components:
                   - required:
                       - transformFullNameConfig
                   - required:
+                      - transformHashConfig
+                  - required:
                       - transformInt64Config
                   - required:
                       - transformInt64PhoneNumberConfig
@@ -7145,6 +7186,8 @@ components:
             - transformFloat64Config
         - required:
             - transformFullNameConfig
+        - required:
+            - transformHashConfig
         - required:
             - transformInt64Config
         - required:
@@ -7243,6 +7286,8 @@ components:
                   - transformFloat64Config
               - required:
                   - transformFullNameConfig
+              - required:
+                  - transformHashConfig
               - required:
                   - transformInt64Config
               - required:
@@ -7458,6 +7503,13 @@ components:
             - $ref: '#/components/schemas/mgmt.v1alpha1.TransformScrambleIdentity'
           title: transform_scramble_identity_config
           description: Scrambles an integer while keeping it unique.
+        transformHashConfig:
+          allOf:
+            - $ref: '#/components/schemas/mgmt.v1alpha1.TransformHash'
+          title: transform_hash_config
+          description: >-
+            TransformHash is a transformer that hashes the input string using
+            the specified hashing algorithm.
       title: TransformerConfig
       additionalProperties: false
       description: >-
@@ -15065,6 +15117,7 @@ components:
         - TRANSFORMER_SOURCE_GENERATE_IP_ADDRESS
         - TRANSFORMER_SOURCE_TRANSFORM_UUID
         - TRANSFORMER_SOURCE_TRANSFORM_SCRAMBLE_IDENTITY
+        - TRANSFORMER_SOURCE_TRANSFORM_HASH
     mgmt.v1alpha1.CreateUserDefinedTransformerRequest:
       type: object
       properties:

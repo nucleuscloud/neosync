@@ -303,6 +303,7 @@ var testValues = map[string]any{
 	"float64": 123.45,
 	"boolean": true,
 	"email":   `"test@test.com"`,
+	"any":     `"test"`,
 }
 
 const benchmarkTemplate = `

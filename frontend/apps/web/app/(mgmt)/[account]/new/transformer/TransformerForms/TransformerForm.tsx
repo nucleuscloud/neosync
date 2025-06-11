@@ -22,6 +22,7 @@ import TransformEmailForm from './TransformEmailForm';
 import TransformFirstNameForm from './TransformFirstNameForm';
 import TransformFloat64Form from './TransformFloat64Form';
 import TransformFullNameForm from './TransformFullNameForm';
+import TransformHashForm from './TransformHashForm';
 import TransformInt64Form from './TransformInt64Form';
 import TransformIntPhoneNumberForm from './TransformInt64PhoneForm';
 import TransformJavascriptForm from './TransformJavascriptForm';
@@ -422,6 +423,21 @@ export default function TransformerForm(props: Props): ReactElement {
     case 'generateIpAddressConfig':
       return (
         <GenerateIpAddressForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              create(TransformerConfigSchema, {
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'transformHashConfig':
+      return (
+        <TransformHashForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(

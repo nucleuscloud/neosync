@@ -92,13 +92,11 @@ func ExtractBenthosSpec(fileSet *token.FileSet) ([]*BenthosSpec, error) {
 	if err != nil {
 		return nil, fmt.Errorf("impossible to walk directories: %s", err)
 	}
+
 	return transformerSpecs, nil
 }
 
 func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
-	paramRegex := regexp.MustCompile(
-		`bloblang\.New(\w+)Param\("(\w+)"\)(?:\.Optional\(\))?(?:\.Default\(([^()]*(?:\([^()]*\))?[^()]*)\))?(?:\.Description\("([^"]*)"\))?`,
-	)
 	specDescriptionRegex := regexp.MustCompile(`\.Description\("([^"]*)"\)`)
 	params := []*BenthosSpecParam{}
 	readFile, err := os.Open(benthosSpec.SourceFile)
@@ -152,30 +150,22 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 			}
 		}
 		if strings.HasPrefix(line, "(") {
-			matches := paramRegex.FindStringSubmatch(line)
-			if len(matches) > 0 {
-				defaultVal := matches[3]
-				description := matches[4]
-				// seed hack
-				if strings.Contains(line, "Default(time.Now().UnixNano())") {
-					defaultVal = "time.Now().UnixNano()"
-					if specMatches := specDescriptionRegex.FindStringSubmatch(line); len(
-						specMatches,
-					) > 0 {
-						description = specMatches[1]
-					}
-				}
-				param := &BenthosSpecParam{
-					TypeStr:      lowercaseFirst(matches[1]),
-					Name:         toCamelCase(matches[2]),
-					BloblangName: matches[2],
-					IsOptional:   strings.Contains(line, ".Optional()"),
-					HasDefault:   defaultVal != "",
-					Default:      defaultVal,
-					Description:  description,
-				}
-				params = append(params, param)
+			paramType, paramName := extractParamTypeAndName(line)
+			if paramType == "" || paramName == "" {
+				return nil, fmt.Errorf("invalid param type and name: %s", line)
 			}
+			paramDefault := extractParamDefault(line)
+			paramDescription := extractParamDescription(line)
+			param := &BenthosSpecParam{
+				TypeStr:      lowercaseFirst(paramType),
+				Name:         toCamelCase(paramName),
+				BloblangName: paramName,
+				IsOptional:   strings.Contains(line, ".Optional()"),
+				HasDefault:   paramDefault != "",
+				Default:      paramDefault,
+				Description:  paramDescription,
+			}
+			params = append(params, param)
 		}
 	}
 
@@ -190,6 +180,33 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 		SpecDescription:  specDescription,
 		Category:         category,
 	}, nil
+}
+
+func extractParamDefault(line string) string {
+	return regexExtract(line, regexp.MustCompile(`(?:\.Default\(([^()]*(?:\([^()]*\))?[^()]*)\))`))
+}
+
+func extractParamDescription(line string) string {
+	return regexExtract(line, regexp.MustCompile(`\.Description\("([^"]*)"\)`))
+}
+
+func extractParamTypeAndName(line string) (typestr, name string) {
+	regex := regexp.MustCompile(`.New(\w+)Param\("(\w+)"\)`)
+	valueMatches := regex.FindStringSubmatch(line)
+	if len(valueMatches) == 3 {
+		return valueMatches[1], valueMatches[2]
+	}
+	return "", ""
+}
+
+func regexExtract(line string, regex *regexp.Regexp) string {
+	var value string
+	if valueMatches := regex.FindStringSubmatch(line); len(
+		valueMatches,
+	) > 0 {
+		value = valueMatches[1]
+	}
+	return value
 }
 
 func extractBloblangFunctionName(input, sourceFile string) (string, error) {
