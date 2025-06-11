@@ -119,7 +119,28 @@ func transformFullName(
 	maxValue := maxLength
 
 	if preserveLength {
+		if strings.TrimSpace(name) == "" {
+			// If the input is all spaces, return a string of spaces of the same length
+			output := strings.Repeat(" ", len(name))
+			return &output, nil
+		}
+
 		firstname, lastname := splitEvenly(name)
+		if lastname == "" {
+			// Single name: generate two names, join with space, pad/truncate
+			minFirst := int64(1)
+			minLast := int64(1)
+			newfirstname, _ := generateRandomFirstName(randomizer, &minFirst, minFirst)
+			newlastname, _ := generateRandomLastName(randomizer, &minLast, minLast)
+			fullname := fmt.Sprintf("%s %s", newfirstname, newlastname)
+			if len(fullname) < len(name) {
+				fullname += transformer_utils.GetRandomCharacterString(randomizer, int64(len(name)-len(fullname)))
+			} else if len(fullname) > len(name) {
+				fullname = fullname[:len(name)]
+			}
+			return &fullname, nil
+		}
+
 		minFirst := int64(len(firstname))
 		newfirstname, _ := generateRandomFirstName(randomizer, &minFirst, minFirst)
 		if newfirstname == "" {
@@ -131,19 +152,37 @@ func transformFullName(
 				)
 			}
 		}
+		// Calculate remaining length for last name (accounting for space)
+		remainingLength := int64(len(name)) - int64(len(newfirstname)) - 1 // -1 for space
+		if remainingLength < 0 {
+			remainingLength = 0
+		}
 		minLast := int64(len(lastname))
+		if minLast == 0 {
+			minLast = remainingLength
+		}
 		newlastname, _ := generateRandomLastName(randomizer, &minLast, minLast)
 		if newlastname == "" {
-			newfirstname, _ = generateRandomLastName(randomizer, nil, minLast)
+			newlastname, _ = generateRandomLastName(randomizer, nil, minLast)
 			if int64(len(newlastname)) != minLast {
 				newlastname += transformer_utils.GetRandomCharacterString(
 					randomizer,
-					minFirst-int64(len(newlastname)),
+					minLast-int64(len(newlastname)),
 				)
 			}
 		}
 		if newfirstname != "" && newlastname != "" {
 			fullname := fmt.Sprintf("%s %s", newfirstname, newlastname)
+			if int64(len(fullname)) != int64(len(name)) {
+				if int64(len(fullname)) < int64(len(name)) {
+					fullname += transformer_utils.GetRandomCharacterString(
+						randomizer,
+						int64(len(name))-int64(len(fullname)),
+					)
+				} else {
+					fullname = fullname[:len(name)]
+				}
+			}
 			return &fullname, nil
 		}
 	}
