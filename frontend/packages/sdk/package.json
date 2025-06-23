@@ -32,7 +32,7 @@
   "author": "nickzelei",
   "license": "MIT",
   "devDependencies": {
-    "tsup": "^8.3.6"
+    "tsup": "^8.5.0"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.5",
