@@ -30,7 +30,6 @@ func Register(
 	redisclient redis.UniversalClient,
 	isOtelEnabled bool,
 	pageLimit int,
-	postgresSchemaDrift bool,
 ) {
 	genbenthosActivity := genbenthosconfigs_activity.New(
 		jobclient,
@@ -41,7 +40,7 @@ func Register(
 		pageLimit,
 	)
 
-	retrieveActivityOpts := syncactivityopts_activity.New(jobclient, postgresSchemaDrift)
+	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
 	accountStatusActivity := accountstatus_activity.New(userclient)
 	runPostTableSyncActivity := posttablesync_activity.New(jobclient, sqlmanager, connclient)
 	jobhookByTimingActivity := jobhooks_by_timing_activity.New(
