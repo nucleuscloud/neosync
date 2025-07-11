@@ -153,6 +153,7 @@ func serve(ctx context.Context) error {
 	cascadelicense := license.NewCascadeLicense(
 		ncloudlicense,
 		eelicense,
+		license.NewValidLicense(),
 	)
 
 	mux := http.NewServeMux()

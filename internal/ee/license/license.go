@@ -49,6 +49,21 @@ func (e *EELicense) ExpiresAt() time.Time {
 	return e.contents.ExpiresAt
 }
 
+type ValidLicense struct {
+}
+
+func (v *ValidLicense) IsValid() bool {
+	return true
+}
+
+func (v *ValidLicense) ExpiresAt() time.Time {
+	return time.Now().UTC().Add(time.Hour * 24 * 365 * 10)
+}
+
+func NewValidLicense() *ValidLicense {
+	return &ValidLicense{}
+}
+
 // Retrieves the EE license from the environment
 // If not enabled, will still return valid struct.
 // Errors if not able to properly parse a provided EE license from the environment
