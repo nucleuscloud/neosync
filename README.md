@@ -50,6 +50,8 @@ Open Source Data Anonymization and Synthetic Data Orchestration
   </a>
 </div>
 
+> **⚠️ Disclaimer:** **Neosync has been acquired by [Grow Therapy](https://www.growtherapy.com). As a result, this repository is no longer actively maintained. Thank you to all of our OSS and Cloud supporters over the years.**
+
 ## Introduction
 
 [Neosync](https://www.neosync.dev) is an open-source, developer-first way to anonymize PII, generate synthetic data and sync environments for better testing, debugging and developer experience.
