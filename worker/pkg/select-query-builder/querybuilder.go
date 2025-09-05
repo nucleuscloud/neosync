@@ -379,14 +379,20 @@ func qualifyMysqlWhereColumnNames(sql string, schema *string, table string) (str
 		err = sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
 			switch node := node.(type) { //nolint:gocritic
 			case *sqlparser.ComparisonExpr:
-				if col, ok := node.Left.(*sqlparser.ColName); ok {
-					s := ""
-					if schema != nil && *schema != "" {
-						s = *schema
+				qualifyColumn := func(expr sqlparser.Expr) {
+					if col, ok := expr.(*sqlparser.ColName); ok {
+						if col.Qualifier.Name.String() == "" {
+							s := ""
+							if schema != nil && *schema != "" {
+								s = *schema
+							}
+							col.Qualifier.Qualifier = sqlparser.NewTableIdent(s)
+							col.Qualifier.Name = sqlparser.NewTableIdent(table)
+						}
 					}
-					col.Qualifier.Qualifier = sqlparser.NewTableIdent(s)
-					col.Qualifier.Name = sqlparser.NewTableIdent(table)
 				}
+				qualifyColumn(node.Left)
+				qualifyColumn(node.Right)
 				return false, nil
 			}
 			return true, nil
