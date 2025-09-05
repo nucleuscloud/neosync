@@ -14,6 +14,7 @@ import (
 	bb_internal "github.com/nucleuscloud/neosync/internal/benthos/benthos-builder/internal"
 	"github.com/nucleuscloud/neosync/internal/runconfigs"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -35,11 +36,16 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 
 	res, err := buildProcessorConfigs(
 		ctx, mockTransformerClient,
-		[]*mgmtv1alpha1.JobMapping{
+		[]*shared.JobTransformationMapping{
 			{
-				Schema: "public", Table: "users", Column: "address",
-				Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config},
-			}},
+				DestinationSchema: "public",
+				DestinationTable:  "users",
+				JobMapping: &mgmtv1alpha1.JobMapping{
+					Schema: "public", Table: "users", Column: "address",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config},
+				},
+			},
+		},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 		map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId,
 		runconfigs.NewRunConfig("id", sqlmanager_shared.SchemaTable{}, runconfigs.RunTypeInsert, nil, nil, nil, []string{"address"}, nil, false),
@@ -95,10 +101,16 @@ func Test_buildProcessorConfigsGenerateJavascript(t *testing.T) {
 
 	res, err := buildProcessorConfigs(
 		ctx, mockTransformerClient,
-		[]*mgmtv1alpha1.JobMapping{
-			{Schema: "public", Table: "users", Column: "test",
-				Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config},
-			}},
+		[]*shared.JobTransformationMapping{
+			{
+				DestinationSchema: "public",
+				DestinationTable:  "users",
+				JobMapping: &mgmtv1alpha1.JobMapping{
+					Schema: "public", Table: "users", Column: "test",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config},
+				},
+			},
+		},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 		map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId,
 		runconfigs.NewRunConfig("id", sqlmanager_shared.SchemaTable{}, runconfigs.RunTypeInsert, nil, nil, nil, []string{"test"}, nil, false),
@@ -165,9 +177,24 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 
 	res, err := buildProcessorConfigs(
 		ctx, mockTransformerClient,
-		[]*mgmtv1alpha1.JobMapping{
-			{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}},
-			{Schema: "public", Table: "users", Column: ageCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT2.Config}}},
+		[]*shared.JobTransformationMapping{
+			{
+				DestinationSchema: "public",
+				DestinationTable:  "users",
+				JobMapping: &mgmtv1alpha1.JobMapping{
+					Schema: "public", Table: "users", Column: nameCol,
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config},
+				},
+			},
+			{
+				DestinationSchema: "public",
+				DestinationTable:  "users",
+				JobMapping: &mgmtv1alpha1.JobMapping{
+					Schema: "public", Table: "users", Column: ageCol,
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT2.Config},
+				},
+			},
+		},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId,
 		runconfigs.NewRunConfig("id", sqlmanager_shared.SchemaTable{}, runconfigs.RunTypeInsert, nil, nil, nil, []string{nameCol, ageCol}, nil, false),
 		nil,
@@ -234,9 +261,24 @@ func Test_buildProcessorConfigsTransformAndGenerateJavascript(t *testing.T) {
 
 	res, err := buildProcessorConfigs(
 		ctx, mockTransformerClient,
-		[]*mgmtv1alpha1.JobMapping{
-			{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config}},
-			{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT2.Config}}},
+		[]*shared.JobTransformationMapping{
+			{
+				DestinationSchema: "public",
+				DestinationTable:  "users",
+				JobMapping: &mgmtv1alpha1.JobMapping{
+					Schema: "public", Table: "users", Column: nameCol,
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config},
+				},
+			},
+			{
+				DestinationSchema: "public",
+				DestinationTable:  "users",
+				JobMapping: &mgmtv1alpha1.JobMapping{
+					Schema: "public", Table: "users", Column: col2,
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT2.Config},
+				},
+			},
+		},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{}, map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId,
 		runconfigs.NewRunConfig("id", sqlmanager_shared.SchemaTable{}, runconfigs.RunTypeInsert, nil, nil, nil, []string{nameCol, col2}, nil, false),
 		nil,
@@ -291,11 +333,16 @@ func Test_buildProcessorConfigsJavascript_DeepKeys(t *testing.T) {
 
 	res, err := buildProcessorConfigs(
 		ctx, mockTransformerClient,
-		[]*mgmtv1alpha1.JobMapping{
+		[]*shared.JobTransformationMapping{
 			{
-				Schema: "public", Table: "users", Column: "foo.bar.baz",
-				Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config},
-			}},
+				DestinationSchema: "public",
+				DestinationTable:  "users",
+				JobMapping: &mgmtv1alpha1.JobMapping{
+					Schema: "public", Table: "users", Column: "foo.bar.baz",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{Config: jsT.Config},
+				},
+			},
+		},
 		map[string]*sqlmanager_shared.DatabaseSchemaRow{},
 		map[string][]*bb_internal.ReferenceKey{}, []string{}, mockJobId, mockRunId,
 		runconfigs.NewRunConfig("id", sqlmanager_shared.SchemaTable{}, runconfigs.RunTypeInsert, nil, nil, nil, []string{"foo.bar.baz"}, nil, false),
@@ -400,7 +447,7 @@ func Test_buildIdentityCursors(t *testing.T) {
 	t.Run("empty columns list returns empty map", func(t *testing.T) {
 		mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-		cursors, err := buildIdentityCursors(context.Background(), mockTransformerClient, []*mgmtv1alpha1.JobMapping{})
+		cursors, err := buildIdentityCursors(context.Background(), mockTransformerClient, []*shared.JobTransformationMapping{})
 
 		require.NoError(t, err)
 		require.Empty(t, cursors)
@@ -409,27 +456,35 @@ func Test_buildIdentityCursors(t *testing.T) {
 	t.Run("columns with scramble identity transformer", func(t *testing.T) {
 		mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-		cols := []*mgmtv1alpha1.JobMapping{
+		cols := []*shared.JobTransformationMapping{
 			{
-				Schema: "public",
-				Table:  "users",
-				Column: "id",
-				Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Config: &mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig{
-							TransformScrambleIdentityConfig: &mgmtv1alpha1.TransformScrambleIdentity{},
+				DestinationSchema: "public",
+				DestinationTable:  "users",
+				JobMapping: &mgmtv1alpha1.JobMapping{
+					Schema: "public",
+					Table:  "users",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig{
+								TransformScrambleIdentityConfig: &mgmtv1alpha1.TransformScrambleIdentity{},
+							},
 						},
 					},
 				},
 			},
 			{
-				Schema: "public",
-				Table:  "orders",
-				Column: "user_id",
-				Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Config: &mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig{
-							TransformScrambleIdentityConfig: &mgmtv1alpha1.TransformScrambleIdentity{},
+				DestinationSchema: "public",
+				DestinationTable:  "orders",
+				JobMapping: &mgmtv1alpha1.JobMapping{
+					Schema: "public",
+					Table:  "orders",
+					Column: "user_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformScrambleIdentityConfig{
+								TransformScrambleIdentityConfig: &mgmtv1alpha1.TransformScrambleIdentity{},
+							},
 						},
 					},
 				},
@@ -473,16 +528,20 @@ func Test_buildIdentityCursors(t *testing.T) {
 			nil,
 		)
 
-		cols := []*mgmtv1alpha1.JobMapping{
+		cols := []*shared.JobTransformationMapping{
 			{
-				Schema: "public",
-				Table:  "users",
-				Column: "id",
-				Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Config: &mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
-							UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
-								Id: userDefinedId,
+				DestinationSchema: "public",
+				DestinationTable:  "users",
+				JobMapping: &mgmtv1alpha1.JobMapping{
+					Schema: "public",
+					Table:  "users",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
+								UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
+									Id: userDefinedId,
+								},
 							},
 						},
 					},
@@ -502,15 +561,19 @@ func Test_buildIdentityCursors(t *testing.T) {
 	t.Run("columns with other transformers are ignored", func(t *testing.T) {
 		mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-		cols := []*mgmtv1alpha1.JobMapping{
+		cols := []*shared.JobTransformationMapping{
 			{
-				Schema: "public",
-				Table:  "users",
-				Column: "email",
-				Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Config: &mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
-							GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
+				DestinationSchema: "public",
+				DestinationTable:  "users",
+				JobMapping: &mgmtv1alpha1.JobMapping{
+					Schema: "public",
+					Table:  "users",
+					Column: "email",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
+								GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
+							},
 						},
 					},
 				},
@@ -539,16 +602,20 @@ func Test_buildIdentityCursors(t *testing.T) {
 			connect.NewError(connect.CodeNotFound, errors.New("transformer not found")),
 		)
 
-		cols := []*mgmtv1alpha1.JobMapping{
+		cols := []*shared.JobTransformationMapping{
 			{
-				Schema: "public",
-				Table:  "users",
-				Column: "id",
-				Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Config: &mgmtv1alpha1.TransformerConfig{
-						Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
-							UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
-								Id: userDefinedId,
+				DestinationSchema: "public",
+				DestinationTable:  "users",
+				JobMapping: &mgmtv1alpha1.JobMapping{
+					Schema: "public",
+					Table:  "users",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
+								UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
+									Id: userDefinedId,
+								},
 							},
 						},
 					},

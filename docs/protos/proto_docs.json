@@ -15003,6 +15003,819 @@
           "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync",
           "description": "The configuration for a data sync job",
           "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema_change",
+              "description": "Specify job-wide schema change strategies that will be used to map data from the source to the destination.\nThis acts as the default configuration for all schemas and tables unless overridden by a schema mapping at a lower level.",
+              "label": "optional",
+              "type": "SchemaChange",
+              "longType": "JobTypeConfig.JobTypeSync.SchemaChange",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaChange",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_schema_change",
+              "defaultValue": ""
+            },
+            {
+              "name": "schema_mappings",
+              "description": "Specify schema mappings that will be used to map data from the source to the destination\nThis replaces the mappings field and is used to configure column transformers as well as re-wire destination schemas and tables.",
+              "label": "repeated",
+              "type": "SchemaMapping",
+              "longType": "JobTypeConfig.JobTypeSync.SchemaMapping",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaMapping",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ColumnStrategy",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy",
+          "description": "The strategy used to configure how columns are handled during a job run",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "map_all_columns",
+              "description": "1. Map all columns + user-defined sub-strategies for each mismatch scenario",
+              "label": "",
+              "type": "MapAllColumns",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "map_defined_columns",
+              "description": "2. Only map user-defined columns + sub-strategies for mismatch scenarios",
+              "label": "",
+              "type": "MapDefinedColumns",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.MapDefinedColumns",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapDefinedColumns",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ColumnInDestinationNotInSourceStrategy",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy",
+          "description": "d) Column in destination, but not in source",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "continue",
+              "description": "\"Continue\" =\u003e \"if init_schema =\u003e drop column, else leave it alone\"",
+              "label": "",
+              "type": "Continue",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Continue",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Continue",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "halt",
+              "description": "",
+              "label": "",
+              "type": "Halt",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Halt",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Halt",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "auto_map",
+              "description": "",
+              "label": "",
+              "type": "AutoMap",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.AutoMap",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.AutoMap",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "AutoMap",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.AutoMap",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.AutoMap",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Continue",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Continue",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Continue",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Halt",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Halt",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy.Halt",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "ColumnInSourceMappedNotInDestinationStrategy",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy",
+          "description": "c) Column in source + mapped, but missing in destination",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "continue",
+              "description": "In your version, \"Continue\" = \"if init_schema =\u003e create column, else skip\"",
+              "label": "",
+              "type": "Continue",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Continue",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Continue",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "drop",
+              "description": "",
+              "label": "",
+              "type": "Drop",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Drop",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Drop",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "halt",
+              "description": "",
+              "label": "",
+              "type": "Halt",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Halt",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Halt",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Continue",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Continue",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Continue",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Drop",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Drop",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Drop",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Halt",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Halt",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy.Halt",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "ColumnInSourceNotMappedStrategy",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy",
+          "description": "a) Column present in source, not mapped",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "passthrough",
+              "description": "",
+              "label": "",
+              "type": "Passthrough",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Passthrough",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Passthrough",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "auto_map",
+              "description": "",
+              "label": "",
+              "type": "AutoMap",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.AutoMap",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.AutoMap",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "halt",
+              "description": "",
+              "label": "",
+              "type": "Halt",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Halt",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Halt",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "drop",
+              "description": "",
+              "label": "",
+              "type": "Drop",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Drop",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Drop",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "AutoMap",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.AutoMap",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.AutoMap",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Drop",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Drop",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Drop",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Halt",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Halt",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Halt",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Passthrough",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Passthrough",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy.Passthrough",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "ColumnMappedNotInSourceStrategy",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy",
+          "description": "b) Column mapped, but not in source",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "continue",
+              "description": "e.g. treat as NULL or skip",
+              "label": "",
+              "type": "Continue",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Continue",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Continue",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "halt",
+              "description": "fail the job",
+              "label": "",
+              "type": "Halt",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Halt",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Halt",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Continue",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Continue",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Continue",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Halt",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Halt",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy.Halt",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "MapAllColumns",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapAllColumns",
+          "description": "-------------------------------------------------------------\n1. MapAllColumns\n-------------------------------------------------------------",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "column_in_source_not_mapped",
+              "description": "When a column is present in source but not mapped",
+              "label": "optional",
+              "type": "ColumnInSourceNotMappedStrategy",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceNotMappedStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_column_in_source_not_mapped",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_mapped_not_in_source",
+              "description": "When a column is mapped but not in source",
+              "label": "optional",
+              "type": "ColumnMappedNotInSourceStrategy",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_column_mapped_not_in_source",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_in_source_mapped_not_in_destination",
+              "description": "When a column is in source + mapped, but missing in destination",
+              "label": "optional",
+              "type": "ColumnInSourceMappedNotInDestinationStrategy",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_column_in_source_mapped_not_in_destination",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_in_destination_no_longer_in_source",
+              "description": "When a column is in the destination but not in source",
+              "label": "optional",
+              "type": "ColumnInDestinationNotInSourceStrategy",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInDestinationNotInSourceStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_column_in_destination_no_longer_in_source",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MapDefinedColumns",
+          "longName": "JobTypeConfig.JobTypeSync.ColumnStrategy.MapDefinedColumns",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.MapDefinedColumns",
+          "description": "-------------------------------------------------------------\n2. MapDefinedColumns\n-------------------------------------------------------------",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "column_mapped_not_in_source",
+              "description": "Mapped but missing in source",
+              "label": "optional",
+              "type": "ColumnMappedNotInSourceStrategy",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnMappedNotInSourceStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_column_mapped_not_in_source",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_in_source_mapped_not_in_destination",
+              "description": "In source + mapped, but missing in destination",
+              "label": "optional",
+              "type": "ColumnInSourceMappedNotInDestinationStrategy",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy.ColumnInSourceMappedNotInDestinationStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_column_in_source_mapped_not_in_destination",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SchemaChange",
+          "longName": "JobTypeConfig.JobTypeSync.SchemaChange",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaChange",
+          "description": "Configure how schemas, tables, and columns are handled during a job run.\nIf anything is not defined, a system-defined fallback will be implemented. Further information can be found in the documentation.",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema_strategy",
+              "description": "Configure how schemas are handled during a job run",
+              "label": "optional",
+              "type": "SchemaStrategy",
+              "longType": "JobTypeConfig.JobTypeSync.SchemaStrategy",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_schema_strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "table_strategy",
+              "description": "Configure how tables are handled during a job run",
+              "label": "optional",
+              "type": "TableStrategy",
+              "longType": "JobTypeConfig.JobTypeSync.TableStrategy",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.TableStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_table_strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_strategy",
+              "description": "Configure how columns are handled during a job run",
+              "label": "optional",
+              "type": "ColumnStrategy",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_column_strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SchemaMapping",
+          "longName": "JobTypeConfig.JobTypeSync.SchemaMapping",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaMapping",
+          "description": "Configuration for a specific schema mapping",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "The database schema this mapping belongs to",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "destination_schema",
+              "description": "Optionally specify a destination schema that this mapping will go to",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_destination_schema",
+              "defaultValue": ""
+            },
+            {
+              "name": "table_mappings",
+              "description": "The list of table mappings that will be used to map data from the source to the destination",
+              "label": "repeated",
+              "type": "TableMapping",
+              "longType": "JobTypeConfig.JobTypeSync.SchemaMapping.TableMapping",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaMapping.TableMapping",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table_strategy",
+              "description": "Optionally specify a table strategy. This will override the global table strategy for this schema",
+              "label": "optional",
+              "type": "TableStrategy",
+              "longType": "JobTypeConfig.JobTypeSync.TableStrategy",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.TableStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_table_strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_strategy",
+              "description": "Optionally specify a column strategy. This will override the global column strategy for this schema",
+              "label": "optional",
+              "type": "ColumnStrategy",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_column_strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TableMapping",
+          "longName": "JobTypeConfig.JobTypeSync.SchemaMapping.TableMapping",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaMapping.TableMapping",
+          "description": "Configuration for a specific table mapping in a schema",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "table",
+              "description": "The database table this mapping belongs to",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "destination_table",
+              "description": "Optionally specify a destination table that this mapping will go to",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_destination_table",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_mappings",
+              "description": "The list of column mappings that will be used to map data from the source to the destination",
+              "label": "repeated",
+              "type": "ColumnMapping",
+              "longType": "JobTypeConfig.JobTypeSync.SchemaMapping.TableMapping.ColumnMapping",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaMapping.TableMapping.ColumnMapping",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "column_strategy",
+              "description": "Optionally specify a column strategy. This will override the global column strategy for this table",
+              "label": "optional",
+              "type": "ColumnStrategy",
+              "longType": "JobTypeConfig.JobTypeSync.ColumnStrategy",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.ColumnStrategy",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_column_strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ColumnMapping",
+          "longName": "JobTypeConfig.JobTypeSync.SchemaMapping.TableMapping.ColumnMapping",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaMapping.TableMapping.ColumnMapping",
+          "description": "Configuration for a specific column mapping in a table",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "column",
+              "description": "The column this mapping belongs to",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "transformer",
+              "description": "The transformer configuration that will be applied to each cell in the column",
+              "label": "optional",
+              "type": "TransformerConfig",
+              "longType": "TransformerConfig",
+              "fullType": "mgmt.v1alpha1.TransformerConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_transformer",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SchemaStrategy",
+          "longName": "JobTypeConfig.JobTypeSync.SchemaStrategy",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaStrategy",
+          "description": "The strategy used to configure how schemas are handled during a job run",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "map_all_schemas",
+              "description": "When this strategy is configured, all schemas are mapped",
+              "label": "",
+              "type": "MapAllSchemas",
+              "longType": "JobTypeConfig.JobTypeSync.SchemaStrategy.MapAllSchemas",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaStrategy.MapAllSchemas",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "map_defined_schemas",
+              "description": "When this strategy is configured, only the schemas that are defined are mapped",
+              "label": "",
+              "type": "MapDefinedSchemas",
+              "longType": "JobTypeConfig.JobTypeSync.SchemaStrategy.MapDefinedSchemas",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaStrategy.MapDefinedSchemas",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MapAllSchemas",
+          "longName": "JobTypeConfig.JobTypeSync.SchemaStrategy.MapAllSchemas",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaStrategy.MapAllSchemas",
+          "description": "When this strategy is configured, all schemas are mapped",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "MapDefinedSchemas",
+          "longName": "JobTypeConfig.JobTypeSync.SchemaStrategy.MapDefinedSchemas",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.SchemaStrategy.MapDefinedSchemas",
+          "description": "When this strategy is configured, only the schemas that are defined are mapped",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "TableStrategy",
+          "longName": "JobTypeConfig.JobTypeSync.TableStrategy",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.TableStrategy",
+          "description": "The strategy used to configure how tables are handled during a job run",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "map_all_tables",
+              "description": "When this strategy is configured, all tables are mapped",
+              "label": "",
+              "type": "MapAllTables",
+              "longType": "JobTypeConfig.JobTypeSync.TableStrategy.MapAllTables",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.TableStrategy.MapAllTables",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            },
+            {
+              "name": "map_defined_tables",
+              "description": "When this strategy is configured, only the tables that are defined are mapped",
+              "label": "",
+              "type": "MapDefinedTables",
+              "longType": "JobTypeConfig.JobTypeSync.TableStrategy.MapDefinedTables",
+              "fullType": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.TableStrategy.MapDefinedTables",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "strategy",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MapAllTables",
+          "longName": "JobTypeConfig.JobTypeSync.TableStrategy.MapAllTables",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.TableStrategy.MapAllTables",
+          "description": "When this strategy is configured, all tables are mapped",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "MapDefinedTables",
+          "longName": "JobTypeConfig.JobTypeSync.TableStrategy.MapDefinedTables",
+          "fullName": "mgmt.v1alpha1.JobTypeConfig.JobTypeSync.TableStrategy.MapDefinedTables",
+          "description": "When this strategy is configured, only the tables that are defined are mapped",
+          "hasExtensions": false,
           "hasFields": false,
           "hasOneofs": false,
           "extensions": [],
