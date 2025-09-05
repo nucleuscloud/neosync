@@ -954,6 +954,16 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 				},
 			},
 		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_HASH,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformHashConfig{
+					TransformHashConfig: &mgmtv1alpha1.TransformHash{
+						Algo: gotypeutil.ToPtr(mgmtv1alpha1.TransformHash_HASH_TYPE_SHA256),
+					},
+				},
+			},
+		},
 	}
 
 	emailColInfo := &sqlmanager_shared.DatabaseSchemaRow{
@@ -1112,6 +1122,9 @@ func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testi
 		},
 		{
 			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{}},
+		},
+		{
+			Config: &mgmtv1alpha1.TransformerConfig{Config: &mgmtv1alpha1.TransformerConfig_TransformHashConfig{}},
 		},
 	}
 

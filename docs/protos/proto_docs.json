@@ -1447,6 +1447,39 @@
           ]
         },
         {
+          "name": "HashType",
+          "longName": "TransformHash.HashType",
+          "fullName": "mgmt.v1alpha1.TransformHash.HashType",
+          "description": "",
+          "values": [
+            {
+              "name": "HASH_TYPE_UNSPECIFIED",
+              "number": "0",
+              "description": "If unspecified, defaults to md5"
+            },
+            {
+              "name": "HASH_TYPE_MD5",
+              "number": "1",
+              "description": "The MD5 Hash Algorithm"
+            },
+            {
+              "name": "HASH_TYPE_SHA1",
+              "number": "2",
+              "description": "The SHA1 Hash Algorithm"
+            },
+            {
+              "name": "HASH_TYPE_SHA256",
+              "number": "3",
+              "description": "The SHA256 Hash Algorithm"
+            },
+            {
+              "name": "HASH_TYPE_SHA512",
+              "number": "4",
+              "description": "The SHA512 Hash Algorithm"
+            }
+          ]
+        },
+        {
           "name": "TransformerDataType",
           "longName": "TransformerDataType",
           "fullName": "mgmt.v1alpha1.TransformerDataType",
@@ -1759,6 +1792,11 @@
               "name": "TRANSFORMER_SOURCE_TRANSFORM_SCRAMBLE_IDENTITY",
               "number": "51",
               "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_HASH",
+              "number": "52",
+              "description": "TransformHash is a transformer that hashes the input string using the specified hashing algorithm."
             }
           ]
         }
@@ -3356,6 +3394,30 @@
           ]
         },
         {
+          "name": "TransformHash",
+          "longName": "TransformHash",
+          "fullName": "mgmt.v1alpha1.TransformHash",
+          "description": "TransformHash is a transformer that hashes the input string using the specified hashing algorithm.",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "algo",
+              "description": "The hashing algorithm to use.",
+              "label": "optional",
+              "type": "HashType",
+              "longType": "TransformHash.HashType",
+              "fullType": "mgmt.v1alpha1.TransformHash.HashType",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_algo",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "TransformInt64",
           "longName": "TransformInt64",
           "fullName": "mgmt.v1alpha1.TransformInt64",
@@ -4246,6 +4308,18 @@
               "type": "TransformScrambleIdentity",
               "longType": "TransformScrambleIdentity",
               "fullType": "mgmt.v1alpha1.TransformScrambleIdentity",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "transform_hash_config",
+              "description": "TransformHash is a transformer that hashes the input string using the specified hashing algorithm.",
+              "label": "",
+              "type": "TransformHash",
+              "longType": "TransformHash",
+              "fullType": "mgmt.v1alpha1.TransformHash",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
