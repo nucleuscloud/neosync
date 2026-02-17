@@ -103,8 +103,10 @@ func New(
 		Logger:   pgxslog.NewLogger(cfg.logger, pgxslog.GetShouldOmitArgs()),
 		LogLevel: pgxslog.GetDatabaseLogLevel(),
 	}
-	// todo: We may need to re-enable this to support pg bouncer
-	// pgxConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
+
+	// Ensures we don't send prepared statements to the server and that it is all done client-side
+	// This is the safest approach that allows us to support pg bouncer.
+	pgxConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
 
 	// RegisterConnConfig returns unique connection strings, so even if the dsn is used for multiple calls to New()
 	// The unregister will not interfere with any other instances of Connector that are using the same input dsn
