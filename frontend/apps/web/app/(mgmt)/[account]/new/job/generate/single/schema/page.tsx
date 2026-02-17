@@ -206,6 +206,7 @@ export default function Page(props: PageProps): ReactElement {
         })
       );
       setValidateMappingsResponse(res);
+      form.trigger('mappings');
     } catch (error) {
       console.error('Failed to validate job mappings:', error);
       toast.error('Unable to validate job mappings', {
